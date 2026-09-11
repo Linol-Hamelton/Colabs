@@ -76,7 +76,9 @@ $Required = @(
     ".ai/TASK.md", ".ai/PLAN.md", ".ai/DECISIONS.md", ".ai/ARCHIVE.md",
     ".ai/worklog/claude.md", ".ai/worklog/codex.md", ".claude/settings.json",
     ".claude/hooks/session-start.sh", ".claude/hooks/stop-worklog-check.sh",
-    ".claude/hooks/protocol-hooks.cjs", "validate-protocol.ps1"
+    ".claude/hooks/protocol-hooks.cjs", "validate-protocol.ps1",
+    "setup-ai-protocol.ps1", "test-protocol.ps1", "docs/PROTOCOL.md",
+    "scripts/protocol-lock.cjs", "scripts/protocol-handoff.cjs"
 )
 foreach ($relative in $Required) {
     if (Test-Path -LiteralPath (Join-Path $Root $relative) -PathType Leaf) {
@@ -89,6 +91,7 @@ foreach ($relative in $Required) {
 # .git file; merely finding a .git directory accepts corrupt repositories.
 $gitCommand = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
 $paths = @($Required)
+$script:GitUsable = $false
 if (-not $gitCommand) { Write-Result "FAIL" "git is unavailable; install Git and add it to PATH" }
 else {
     $inside = Invoke-External $gitCommand.Source @('-C', $Root, 'rev-parse', '--is-inside-work-tree')
@@ -101,6 +104,7 @@ else {
     }
     else {
         Write-Result "PASS" "valid Git working tree"
+        $script:GitUsable = $true
         $listing = Invoke-External $gitCommand.Source @('-C', $Root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z')
         if ($listing.Code -ne 0) { Write-Result "FAIL" ("cannot enumerate Git files: " + $listing.Error.Trim()) }
         else { $paths += $listing.Output.Split([char]0) | Where-Object { $_.Length -gt 0 } }
@@ -293,8 +297,44 @@ if (Test-Path -LiteralPath $taskPath -PathType Leaf) {
     }
 }
 
+# T2: hooks are the only part of this protocol that runs without being asked.
+# A single settings key switches them all off, and validation used to stay
+# green while nothing was enforced. The owner keeps the right to disable them;
+# they do not keep a green protocol check while enforcement is off.
+foreach ($settingsName in @('.claude/settings.json', '.claude/settings.local.json')) {
+    $settingsFile = Join-Path $Root $settingsName
+    if (-not (Test-Path -LiteralPath $settingsFile -PathType Leaf)) { continue }
+    try { $parsed = Get-Content -LiteralPath $settingsFile -Raw | ConvertFrom-Json }
+    catch { continue }
+    if ($null -eq $parsed) { continue }
+    $property = $parsed.PSObject.Properties['disableAllHooks']
+    if ($property -and $property.Value -eq $true) {
+        Write-Result "FAIL" ("$settingsName sets disableAllHooks; protocol enforcement is off while this check would otherwise pass")
+    }
+}
+
+# T5: the installer checks that the canonical ignore lines are present. A later
+# negation pattern can cancel them while the text is still there, so ask Git
+# what it actually does instead of reading the file.
+if ($gitCommand -and $script:GitUsable) {
+    foreach ($probe in @('.ai/runtime/shared-writer.json', '.claude/settings.local.json', '.ai/scratch/probe.txt')) {
+        $ignored = Invoke-External $gitCommand.Source @('-C', $Root, 'check-ignore', '-q', '--no-index', $probe)
+        if ($ignored.Code -eq 0) { continue }
+        if ($ignored.Code -eq 1) {
+            Write-Result "FAIL" ("Git does not ignore $probe; session state can reach a commit")
+        }
+        else {
+            Write-Result "WARN" ("cannot determine the ignore rule for $probe")
+        }
+    }
+}
+
 $installerPath = Join-Path $Root 'setup-ai-protocol.ps1'
-if (Test-Path -LiteralPath $installerPath -PathType Leaf) {
+if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
+    # Skipping silently is how a deleted installer used to pass validation.
+    Write-Result "FAIL" "installer absent; its self-check cannot run and was not skipped quietly"
+}
+else {
     # The installer's no-argument mode is a read-only self-check. Running it
     # here closes the gap that let this validator report "Protocol OK" while
     # the installer could not run at all: its manifest named a source file

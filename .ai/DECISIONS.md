@@ -401,12 +401,78 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0011
+
+Status: Accepted
+Date: 2026-09-12
+Supersedes: nothing; it adds a mechanism and closes defects found by the audit
+
+Context:
+The 2026-09-12 audit reproduced five cases where a check reported success while
+the thing it checked was absent, disabled or ineffective. Deleting the
+installer left validation green because the file was not required and the
+self-check was wrapped in a test for its own existence. One settings key
+switched every hook off with no diagnostic. A later negation pattern cancelled
+the canonical ignore rules while their text stayed in place, so session state
+could reach a commit. Separately, both agents had written journal entries whose
+central claims nobody could check: "59 tests pass" and "no implementation was
+changed" were prose, and the next agent had to take them on trust.
+
+Decision:
+Two changes, one defensive and one structural.
+
+Validation stops reporting success for a protocol it cannot see. Every runtime
+entry point is a required file. A missing installer fails instead of skipping
+its self-check. `disableAllHooks` in either settings file fails, because the
+owner keeps the right to disable enforcement but not the right to a green
+protocol check while it is off. Ignore rules are checked by asking Git what it
+actually ignores rather than by reading the file for expected lines.
+
+Handoff carries evidence instead of assertions. `scripts/protocol-handoff.cjs
+record` runs the checks, writes their real exit codes into the session journal,
+and stamps the entry with a digest of the exact tree they ran against. It exits
+non-zero when a check fails, so a failing tree cannot produce a passing
+receipt. `verify` recomputes the digest and fails when the tree has moved. The
+digest covers file content and mode only, never the Git index, so evidence
+recorded before `git add` still verifies after it. `Evidence` is an optional
+sixth field in a journal entry; the five required fields are unchanged.
+
+The SessionStart hook now creates the journal it names, and CI runs the
+validator, the suite and a clean install on Windows PowerShell 5.1.
+
+Reasoning:
+Every defect this protocol has produced so far came from a confident statement
+that nothing could contradict. A check that skips silently, a rule whose text
+survives its own cancellation, and a journal claim with no anchor are the same
+failure in three places. Requiring evidence does not make an agent honest; it
+makes the honest answer the only one that survives re-running.
+
+Alternatives rejected:
+Warning instead of failing on disabled hooks. A warning leaves the headline at
+Protocol OK, which is the exact false signal being removed. Storing evidence in
+a separate file: the next agent reads journals, and a second location is a
+second thing to fall out of sync. Making Evidence a required sixth field: it
+would invalidate every existing entry and force ceremony on read-only sessions.
+
+Consequences:
+Validation now spawns Git for three ignore probes and fails on configurations
+that previously passed, including any project that legitimately disables hooks.
+Recording evidence runs the full suite, which takes roughly two minutes, so it
+belongs at handoff rather than after every change. Running `record` without
+`--quick` from inside the suite would recurse; the tests use the exported
+functions instead. CI results are only visible once the branch is pushed.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
 
-Status: Proposed | Accepted | Superseded by DEC-nnnn
+Status: Proposed | Accepted
 Date:
+Supersedes: _the DEC this one replaces, or omit the line_
 
 Context:
 _What situation forced a choice._

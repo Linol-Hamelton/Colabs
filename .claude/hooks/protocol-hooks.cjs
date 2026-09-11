@@ -118,16 +118,31 @@ function saveState(filename, state, createOnly = false) {
   } finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
 }
 
+// Required labels, then optional ones. Optional labels never gate completeness,
+// but they do terminate the preceding label's capture, so an Evidence block
+// appended by scripts/protocol-handoff.cjs does not leak into Open.
+const REQUIRED_LABELS = ['Agent', 'Action', 'Result', 'Next step', 'Open'];
+const ENTRY_LABELS = [...REQUIRED_LABELS, 'Evidence'];
+
+function entryField(section, label) {
+  const following = ENTRY_LABELS.slice(ENTRY_LABELS.indexOf(label) + 1);
+  const end = following.map(next => `${next}:`).join('|') || '(?!)';
+  const match = section.match(new RegExp(`^${label}:[ \\t]*([\\s\\S]*?)(?=^(?:${end})|(?![\\s\\S]))`, 'm'));
+  return match ? match[1].trim() : null;
+}
+
 function latestCompleteEntry(text) {
-  const sections = text.replace(/\r\n/g, '\n').split(/(?=^## )/m);
+  // Strip the trailing separator first. Leaving it attached let an empty final
+  // label capture "---" and count as a filled section.
+  const sections = text.replace(/\r\n/g, '\n').split(/(?=^## )/m)
+    .map(section => section.replace(/\n-{3,}\s*$/, '\n'));
   return sections.find(section => {
     if (!/^## \d{4}-\d{2}-\d{2} - .+/.test(section)) return false;
-    return ['Agent', 'Action', 'Result', 'Next step', 'Open'].every((label, i, labels) => {
-      const end = labels.slice(i + 1).map(next => `${next}:`).join('|') || '(?!)';
-      const match = section.match(new RegExp(`^${label}:[ \\t]*([\\s\\S]*?)(?=^(?:${end})|(?![\\s\\S]))`, 'm'));
-      return match && match[1].trim() && !/^_(?:What|Assumptions)/.test(match[1].trim());
+    return REQUIRED_LABELS.every(label => {
+      const value = entryField(section, label);
+      return value && !/^_(?:What|Assumptions)/.test(value);
     });
-  })?.trim().replace(/\n---\s*$/, '') || null;
+  })?.trim() || null;
 }
 
 function readText(root, relative) {
@@ -188,6 +203,20 @@ function run(event, input) {
     entryHash: entry === null ? null : digest(entry),
   };
   if (event === 'SessionStart') {
+    // Create the journal the agent is told to use. Leaving it absent is how a
+    // session ends up writing to a name of its own choosing, which no Stop
+    // check and no other agent then looks for.
+    if (logHash === null) {
+      const file = path.join(root, paths.worklog);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      const name = path.basename(paths.worklog, '.md');
+      try {
+        fs.writeFileSync(file,
+          `# Worklog: ${name}\n\nSession journal. Owned by this session. ` +
+          `No other session writes here.\n\nNewest entry first. Limit 150 lines.\n\n---\n`,
+          { flag: 'wx' });
+      } catch (error) { if (error.code !== 'EEXIST') throw error; }
+    }
     // Resume and compaction must not erase the pre-edit baseline.
     if (!previous) saveState(paths.state, current, true);
     return { suppressOutput: true, hookSpecificOutput: {
@@ -223,4 +252,4 @@ function main() {
 }
 
 if (require.main === module) main();
-module.exports = { latestCompleteEntry, sessionPaths, run, changedFiles };
+module.exports = { latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint };

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.2
+## AI Collaboration Protocol v1.3
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude, and
 others. They do not share chat history. The filesystem is the only channel
@@ -122,9 +122,10 @@ The lock is cooperative, not an operating system barrier. It works only if
 every participant takes it.
 
 If `acquire` reports another owner, do not steal it. Run `status` and read
-`stale`. A lock past the stale threshold belongs to a session that ended
-badly; confirm that, then release it with the reported owner name. Releasing a
-live holder's lock destroys their work.
+`stale` and `heldForMinutes`. Age is a reason to investigate, never a proof:
+a slow live holder looks exactly like a dead one. Confirm the session is
+actually over, then release it with the reported owner name. Releasing a live
+holder's lock destroys their work.
 
 Other writing rules:
 
@@ -142,21 +143,38 @@ ever rewritten.
 
 ---
 
-## 7. Checks
+## 7. Checks and evidence
 
-Run both before handing off, and report the real result.
+Run both before handing off.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
 ```
 
-The validator checks protocol health, encodings, size limits, hook wiring, and
+The validator checks protocol health, encodings, size limits, hook wiring,
+whether hooks are switched off, whether Git really ignores session state, and
 that the installer can still run. The suite is a regression test for the
-tooling itself; run it after changing a hook, the installer, the validator or
-the lock.
+tooling itself; run it after changing a hook, the installer, the validator,
+the lock or the handoff tool.
 
 A green validator is not a green project. Run the project's own tests too.
+
+Then attach evidence to your journal entry instead of asserting a result:
+
+```bash
+node scripts/protocol-handoff.cjs record --owner <your-session-id>
+```
+
+It runs the checks, records their real exit codes, and stamps the entry with a
+digest of the exact tree they ran against. It exits non-zero when a check
+fails, so a red tree cannot produce a green receipt. The next agent re-checks
+with `node scripts/protocol-handoff.cjs verify`, which fails when the tree has
+moved since the evidence was recorded.
+
+This is the difference between telling the next agent the suite passed and
+letting them confirm it. Prose in a journal is a claim; an Evidence block is a
+record. Never hand-write one.
 
 ---
 

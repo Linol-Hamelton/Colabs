@@ -27,8 +27,9 @@ None yet.
 
 ### DEC-nnnn
 
-Status: Proposed | Accepted | Superseded by DEC-nnnn
+Status: Proposed | Accepted
 Date:
+Supersedes: _the DEC this one replaces, or omit the line_
 
 Context:
 _What situation forced a choice._

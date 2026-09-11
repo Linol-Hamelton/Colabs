@@ -189,3 +189,42 @@ test('a protocol instance in a parent repository requires its own root', t => {
   seedProtocol(nested);
   fails(nested, /protocol root is inside another repository/);
 });
+
+test('a deleted installer fails validation instead of skipping its self-check', t => {
+  const root = makeProtocolFixture(t);
+  fs.rmSync(path.join(root, 'setup-ai-protocol.ps1'));
+  const output = fails(root, /missing file: setup-ai-protocol\.ps1/);
+  assert.match(output, /installer absent/);
+});
+
+test('every runtime entrypoint is required, not only the validator', t => {
+  for (const entrypoint of ['test-protocol.ps1', 'scripts/protocol-lock.cjs',
+    'scripts/protocol-handoff.cjs', 'docs/PROTOCOL.md']) {
+    const root = makeProtocolFixture(t);
+    fs.rmSync(path.join(root, entrypoint));
+    fails(root, new RegExp('missing file: ' + entrypoint));
+  }
+});
+
+test('globally disabled hooks fail validation in both settings files', t => {
+  for (const name of ['.claude/settings.json', '.claude/settings.local.json']) {
+    const root = makeProtocolFixture(t);
+    const file = path.join(root, name);
+    const settings = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
+    settings.disableAllHooks = true;
+    write(root, name, JSON.stringify(settings, null, 2) + '\n');
+    fails(root, /disableAllHooks; protocol enforcement is off/);
+  }
+});
+
+test('ignore rules cancelled by a later negation fail validation', t => {
+  const root = makeProtocolFixture(t);
+  const current = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
+  write(root, '.gitignore', `${current}\n!.ai/runtime/\n!.ai/runtime/**\n`);
+  fails(root, /Git does not ignore \.ai\/runtime/);
+});
+
+test('hooks left enabled and ignore rules intact still validate', t => {
+  const root = makeProtocolFixture(t);
+  succeeds(root);
+});

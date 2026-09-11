@@ -62,7 +62,9 @@ node scripts/protocol-lock.cjs release --owner <your-session-id>
 A session journal needs no lock. Each session writes only its own file.
 
 If `acquire` reports another owner, do not steal the lock. Run `status` and
-look at `staleFor`. A lock whose holder has finished is released with the same
+look at `stale` and `heldForMinutes`. Age means the lock needs checking, not
+that it may be taken: a slow live holder looks the same as a dead one. Once you
+have confirmed the session is over, release it with the same
 owner name, which is the documented recovery path:
 
 ```powershell
@@ -101,6 +103,40 @@ Next step:
 
 Open:
 ```
+
+---
+
+## Handing off with evidence
+
+A journal entry is a claim. An Evidence block is a record. Before handing off,
+let the tooling write the record instead of typing it:
+
+```powershell
+node scripts/protocol-handoff.cjs record --owner <your-session-id>
+```
+
+It runs the validator and the regression suite, writes their real exit codes
+into the newest entry of your journal, and stamps that entry with a digest of
+the exact tree they ran against. It exits non-zero when a check fails, so a
+failing tree cannot produce a passing receipt. Use `--quick` to run only the
+validator while iterating.
+
+The next agent, or you after a break, confirms it:
+
+```powershell
+node scripts/protocol-handoff.cjs verify
+```
+
+This fails when the newest entry has no evidence, when the tree has changed
+since the evidence was recorded, or when the evidence itself records a failing
+check. `node scripts/protocol-handoff.cjs state` prints the current anchor
+without running anything.
+
+The digest covers file content and mode, never the Git index, so evidence
+recorded before `git add` still verifies afterwards. Session journals and
+runtime state are excluded, so writing the evidence does not invalidate it.
+
+Never hand-write an Evidence block. A hand-written one is a claim again.
 
 ---
 

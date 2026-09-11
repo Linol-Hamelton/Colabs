@@ -52,6 +52,37 @@ Running it with no arguments is a read-only self-check of this checkout.
 
 ---
 
+## Handoff carries evidence, not assertions
+
+The protocol's first two rounds both produced journal entries whose central
+claim nobody could check. "The suite passes" and "no implementation changed"
+were prose, and the next agent had to take them on trust.
+
+```powershell
+node scripts/protocol-handoff.cjs record --owner <session-id>
+node scripts/protocol-handoff.cjs verify
+```
+
+`record` runs the checks, writes their real exit codes into the session
+journal, and stamps the entry with a digest of the exact tree they ran
+against. It exits non-zero when a check fails, so a red tree cannot produce a
+green receipt. `verify` recomputes the digest and fails when the tree has
+moved, when the entry has no evidence, or when the evidence records a failure.
+
+That is the difference between telling the next agent something and letting
+them confirm it.
+
+---
+
+## The checks refuse to be green for a protocol that is not running
+
+Validation used to pass when the installer was deleted, when every hook was
+switched off by one settings key, and when a later negation pattern cancelled
+the ignore rules that keep session state out of commits. Each of those now
+fails with the reason, and each has a regression test. See DEC-0011.
+
+---
+
 ## Checks
 
 ```powershell
@@ -126,4 +157,4 @@ rather than merely documented. The validator enforces it. See DEC-0001.
 
 Commit `ae5e831` holds protocol v0.1 exactly as it was generated, corruption
 included. Everything since, and the reasoning behind each change, is recorded
-as DEC-0001 through DEC-0010 in `.ai/DECISIONS.md`.
+as DEC-0001 through DEC-0011 in `.ai/DECISIONS.md`.

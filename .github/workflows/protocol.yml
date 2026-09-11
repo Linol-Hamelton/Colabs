@@ -1,0 +1,59 @@
+name: protocol
+
+# DEC-0009 recorded that the regression suite runs locally and in CI. Only the
+# local half was true until this workflow existed. Windows PowerShell 5.1 is
+# the documented baseline, so the checks run on the interpreter that the
+# encoding rules in AGENTS.md section 11 are written for.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Protocol validation
+        shell: powershell
+        run: .\validate-protocol.ps1
+
+      - name: Regression suite
+        shell: powershell
+        run: .\test-protocol.ps1
+
+      - name: Tree anchor
+        shell: powershell
+        run: node scripts/protocol-handoff.cjs state
+
+      - name: Install into a clean directory and validate there
+        shell: powershell
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'protocol-install'
+          .\setup-ai-protocol.ps1 -Target $target -InitGit
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $target 'validate-protocol.ps1')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Reinstall is idempotent and preserves project state
+        shell: powershell
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'protocol-install'
+          Set-Content -LiteralPath (Join-Path $target '.ai/TASK.md') -Value "# Current Task`n`nStatus: In progress`n`nSTATE MARKER" -Encoding utf8
+          .\setup-ai-protocol.ps1 -Target $target -Force
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Select-String -LiteralPath (Join-Path $target '.ai/TASK.md') -Pattern 'STATE MARKER' -Quiet)) {
+            Write-Error 'Force overwrote accumulated project state'
+            exit 1
+          }
