@@ -142,6 +142,29 @@ function resolveJournal(root, explicit, owner) {
   return path.join(directory, candidates[0].name);
 }
 
+function reportOne(root, journalPath, state) {
+  const evidence = readEvidence(journalPath);
+  const relative = path.relative(root, journalPath);
+  if (!evidence) {
+    process.stderr.write(`AI protocol: ${relative} has no Evidence block on its newest entry.
+`);
+    return 1;
+  }
+  if (evidence.digest !== state.digest) {
+    process.stderr.write(`AI protocol: ${relative} evidence is stale. Recorded ${evidence.digest}, tree is now ${state.digest}.
+`);
+    return 1;
+  }
+  if (/exit [^0]/.test(evidence.body)) {
+    process.stderr.write(`AI protocol: ${relative} evidence matches the tree but records a failing check.
+`);
+    return 1;
+  }
+  process.stdout.write(`${relative}: evidence matches the current tree
+`);
+  return 0;
+}
+
 function main(argv) {
   const command = argv[0];
   const options = {};
@@ -182,23 +205,44 @@ function main(argv) {
   }
 
   if (command === 'verify') {
-    const journalPath = resolveJournal(root, options.journal, options.owner);
-    const evidence = readEvidence(journalPath);
-    const relative = path.relative(root, journalPath);
-    if (!evidence) {
-      process.stderr.write(`AI protocol: ${relative} has no Evidence block on its newest entry.\n`);
+    // With an explicit target, judge that one journal. Without one, ask the
+    // real question: does any journal hold evidence for the tree as it is now?
+    // Picking the newest by modification time was wrong, because a checkout or
+    // a merge rewrites every file and scrambles the order.
+    if (options.journal || options.owner) {
+      const journalPath = resolveJournal(root, options.journal, options.owner);
+      return reportOne(root, journalPath, state);
+    }
+    const directory = path.join(root, '.ai', 'worklog');
+    if (!fs.existsSync(directory)) {
+      process.stderr.write('AI protocol: no .ai/worklog directory.\n');
       return 1;
     }
-    if (evidence.digest !== state.digest) {
-      process.stderr.write(`AI protocol: ${relative} evidence is stale. Recorded ${evidence.digest}, tree is now ${state.digest}.\n`);
+    const journals = fs.readdirSync(directory)
+      .filter(name => name.endsWith('.md') && name !== 'README.md')
+      .map(name => path.join(directory, name));
+    const carrying = journals
+      .map(file => ({ file, evidence: readEvidence(file) }))
+      .filter(item => item.evidence);
+    if (!carrying.length) {
+      process.stderr.write('AI protocol: no journal carries an Evidence block. ' +
+        'Run: node scripts/protocol-handoff.cjs record --owner <session-id>\n');
       return 1;
     }
-    if (/exit [^0]/.test(evidence.body)) {
-      process.stderr.write(`AI protocol: ${relative} evidence matches the tree but records a failing check.\n`);
-      return 1;
+    const matching = carrying.filter(item => item.evidence.digest === state.digest &&
+      !/exit [^0]/.test(item.evidence.body));
+    if (matching.length) {
+      for (const item of matching) {
+        process.stdout.write(`${path.relative(root, item.file)}: evidence matches the current tree\n`);
+      }
+      return 0;
     }
-    process.stdout.write(`${relative}: evidence matches the current tree\n`);
-    return 0;
+    process.stderr.write(`AI protocol: no evidence matches the current tree ${state.digest}.\n`);
+    for (const item of carrying) {
+      const why = item.evidence.digest === state.digest ? 'records a failing check' : 'anchored to a different tree';
+      process.stderr.write(`  ${path.relative(root, item.file)}: ${why}\n`);
+    }
+    return 1;
   }
 
   throw new Error('Usage: protocol-handoff.cjs record|verify|state');

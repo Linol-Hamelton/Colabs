@@ -91,3 +91,37 @@ test('evidence cannot be attached to a journal with no dated entry', t => {
   write(root, journal, '# W\n\nno entries yet\n');
   assert.throws(() => handoff.attach(path.join(root, journal), 'Evidence:\n- x'), /No dated entry/);
 });
+
+// Picking the newest journal by modification time was wrong: a checkout or a
+// merge rewrites every file and scrambles the order, so verify reported a
+// stale result for a tree that did have matching evidence elsewhere.
+test('verify without a target asks whether any journal matches the tree', t => {
+  const root = makeProtocolFixture(t);
+  write(root, '.ai/worklog/old-session.md', `# W\n\n${entry('older')}\n`);
+  write(root, '.ai/worklog/new-session.md', `# W\n\n${entry('newer')}\n`);
+  const old = path.join(root, '.ai/worklog/old-session.md');
+  const fresh = path.join(root, '.ai/worklog/new-session.md');
+
+  handoff.attach(old, `Evidence:\n- digest: sha256:${'e'.repeat(64)}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(fresh, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- validate-protocol.ps1: exit 0 in 1s`);
+
+  // Make the stale journal the most recently touched one.
+  const later = new Date(Date.now() + 60000);
+  fs.utimesSync(old, later, later);
+
+  const result = cli(root, ['verify']);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /new-session\.md: evidence matches/);
+});
+
+test('verify reports every journal when none matches the tree', t => {
+  const root = makeProtocolFixture(t);
+  write(root, '.ai/worklog/one.md', `# W\n\n${entry('one')}\n`);
+  write(root, '.ai/worklog/two.md', `# W\n\n${entry('two')}\n`);
+  handoff.attach(path.join(root, '.ai/worklog/one.md'), `Evidence:\n- digest: sha256:${'1'.repeat(64)}`);
+  handoff.attach(path.join(root, '.ai/worklog/two.md'), `Evidence:\n- digest: sha256:${'2'.repeat(64)}`);
+  const result = cli(root, ['verify']);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /one\.md/);
+  assert.match(result.stderr, /two\.md/);
+});

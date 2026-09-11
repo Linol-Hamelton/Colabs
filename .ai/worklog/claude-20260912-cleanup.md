@@ -44,17 +44,21 @@ Next step:
 Owner names the first product objective. `.ai/PLAN.md` proposes the pilot.
 
 Open:
-- CI has not yet run against this state. The previous run is the only one
-  that has ever executed, and it failed.
+- CI ran green on `main` for the first time: validation, the suite, a clean
+  install and an idempotent upgrade, all on Windows PowerShell 5.1.
+- Fixed one more defect found by using the tool right after the merge:
+  bare `verify` picked a journal by modification time, which a checkout
+  scrambles, so it reported stale evidence for a tree that had matching
+  evidence in another journal. It now asks whether any journal matches.
 - Installing `.gitattributes` into an existing repository changes line-ending
   normalization for that whole project. Backed up, but it needs a human look.
 - The protocol still has no product task behind it after four rounds.
 - Audit findings T4, T6, T7 and T8 remain open; none produces a false green.
 
 Evidence:
-- anchor: 4b539462a0704f4583c8d91165c534e52ca67d18, uncommitted changes present
-- digest: sha256:9d802d7e0524fb490b105cd8f33d3fc0c7ebefaf8abcbb88d82c64db5ef0ec5a over 35 tracked and untracked files
-- recorded: 2026-09-11T23:33:11.348Z by claude-20260912-cleanup
+- anchor: 6b157403f00155a06d5fa8cd10747a6e0dc82a47, uncommitted changes present
+- digest: sha256:2d95bbc4a9596931cdfa04bb5931f6b4177184d9cb01bb2242182848f3a995b9 over 35 tracked and untracked files
+- recorded: 2026-09-11T23:45:56.146Z by claude-20260912-cleanup
 - validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 156s
+- test-protocol.ps1: exit 0 in 158s
 - reproduce: node scripts/protocol-handoff.cjs verify

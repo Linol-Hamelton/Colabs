@@ -126,9 +126,10 @@ The next agent, or you after a break, confirms it:
 node scripts/protocol-handoff.cjs verify
 ```
 
-This fails when the newest entry has no evidence, when the tree has changed
-since the evidence was recorded, or when the evidence itself records a failing
-check. `node scripts/protocol-handoff.cjs state` prints the current anchor
+Without a target this asks whether any journal holds evidence for the tree as
+it is now, and names the ones that do not. Add `--owner <session-id>` to judge
+one journal on its own. It fails when no evidence matches the current tree, or
+when the matching evidence records a failing check. `node scripts/protocol-handoff.cjs state` prints the current anchor
 without running anything.
 
 The digest covers file content and mode, never the Git index, so evidence
