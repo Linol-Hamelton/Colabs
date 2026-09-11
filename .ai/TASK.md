@@ -21,10 +21,10 @@ starts a test project on it.
 
 ## Current state
 
-Branch `harden-protocol-defaults`, uncommitted. 59 of 59 tests pass, the
-validator exits 0 with no warnings, the installer self-check exits 0.
-Recorded as DEC-0010. Nothing is committed: section 4 of AGENTS.md leaves that
-to the owner.
+Committed as `79b3f28` on `harden-protocol-defaults` and merged into `main`.
+Published to the owner's public GitHub repository `Linol-Hamelton/Colabs`,
+which is now the remote `origin`. 59 of 59 tests pass, the validator exits 0
+with no warnings, the installer self-check exits 0. Recorded as DEC-0010.
 
 ## Active agent
 
@@ -47,4 +47,8 @@ to the owner.
 
 ## Next
 
-Owner supplies the test project's first objective.
+Owner supplies the test project's first objective. Two follow-ups are open:
+DEC-0009 records that regression tests run "locally and in CI", but no CI
+workflow exists; now that a GitHub remote is configured, that claim can be
+made true or the wording corrected. The repository is public, so anything
+committed here is world-readable.
