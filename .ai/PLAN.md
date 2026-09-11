@@ -1,50 +1,65 @@
 # Development Plan
 
-Status: In progress
-Task: Harden the default collaboration workspace before the test project.
+Status: Draft
+Task: Proposed next iteration after the published v1.2 audit
 Author: GPT/Codex
-Date: 2026-09-11
+Date: 2026-09-12
+Approval: Pending owner prioritization; this document is a proposal.
 
-## Authorization
+## Context
 
-The owner requested implementation of the review's repairs on 2026-09-11.
-DEC-0009 records the approved repair scope and implementation boundaries.
-This plan tracks work; it does not independently approve new decisions.
+Audit target: 0b3b0947593bcac9c6981a01ad8e0080dc6fe69d.
+Full findings and longer roadmap: docs/reviews/2026-09-12-claude-v1.2-audit.md.
+The former hardening plan remains available at that immutable Git revision.
+Its CI requirement is not complete; the current green local suite has 59 tests.
 
-## Approach
+## Wave 1 objective
 
-1. Separate install-time state from upgradeable protocol files. Verify only
-   checks working-state presence; Force never overwrites accumulated memory.
-   Preserve existing application configuration and back up managed replacements.
-2. Validate Git-visible text and required protocol files, strict UTF-8/LF,
-   decision blocks, hook configuration, dependencies and exact line limits.
-3. Replace path/mtime heuristics with Git NUL-delimited records and per-session
-   content snapshots; inject complete recent entries and a unique worklog path.
-4. Serialize shared metadata edits with an explicit cooperative writer lock.
-   Delegate implementation through disjoint file sets; no claim of OS-wide
-   protection against non-participating writers.
-5. Reconcile instructions, preserve old decisions, and document local defaults.
-6. Add dependency-free Node regression tests, a PowerShell test entrypoint,
-   and a Windows CI workflow. Exercise installation, upgrades, negative checks,
-   hook shell entrypoints and lock contention in isolated temporary fixtures.
+Make validation and handoff claims dependable, reject invalid upgrades before
+mutation, enable CI and remove the remaining documentary contradictions.
 
-## Alternatives considered
+## Proposed implementation sequence
 
-- Keep timestamps: cannot reliably detect deletion, touch-only logs or edits
-  within one clock tick. Content snapshots fit the existing Node dependency.
-- Add a database/server: unnecessary for a local handoff protocol. Atomic local
-  lock operations plus explicit ownership keep the workflow inspectable.
-- Overwrite all settings: would lose project permissions and unrelated hooks.
-  Preserve project configuration and update only managed protocol entries.
+1. Add failing regressions for missing installer, disableAllHooks, deletion
+   of a latest journal entry, empty fields, invalid hook-group structure and
+   overridden Git ignore patterns. Findings T1-T5/T9 define the cases.
+2. Require all runtime entrypoints in validation. Report disabled integration
+   explicitly without silently changing the owner's setting.
+3. Precompute and validate every installer merge before writing. Verify
+   effective ignore behavior, not just presence of ignore-rule text.
+4. Require a newly prepended complete handoff while preserving earlier
+   history; a changed hash alone is insufficient evidence.
+5. Add Windows CI for PowerShell 5.1 and PowerShell 7 with Node 22, the
+   validator, full suite, encoding and installer package checks.
+6. Align TASK/PLAN, hook-assigned journal naming, lock status field names and
+   stale-lock wording. A timeout never proves the owner session has ended.
+7. Make version/manifest information consistent and capture reproducible
+   validation evidence against the exact commit being proposed.
 
-## Validation
+## Acceptance criteria
 
-Run test-protocol.ps1, validate-protocol.ps1, setup-ai-protocol.ps1 -Verify
-through powershell -NoProfile -ExecutionPolicy Bypass -File.
-Run git diff HEAD --check.
+- [ ] Removing an installer entrypoint fails validation.
+- [ ] Disabled hooks produce a clear integration-state diagnostic.
+- [ ] Removing history never counts as a new handoff.
+- [ ] Invalid existing hook structure leaves target bytes unchanged.
+- [ ] Runtime/backups/local-settings effective ignore rules are checked.
+- [ ] New tests and the existing suite pass on the supported Windows matrix.
+- [ ] CI runs on the exact proposed commit and publishes results.
+- [ ] Documents use actual field names, consistent statuses and journal paths.
 
-## Remaining practical validation
+## Later waves, gated by evidence
 
-The future test project should measure missing handoff context, repeated work,
-owner clarification requests and time spent maintaining protocol documents.
-This task does not claim to establish those product outcomes.
+- Session start/status/handoff/doctor/archive commands with one session ID.
+- Safe whole-journal archival, interruption recovery and decision references.
+- Claude and Codex adapters tested inside their real hosts; project trust and
+  installed versions are checked, not inferred from documentation alone.
+- Pilot 10-20 product tasks; measure lost context, duplicate work, owner
+  questions, handoff startup time and documentation overhead.
+- Public distribution: owner-selected license, contribution/security process,
+  versioned releases, migration tests, compatibility spec and conformance suite.
+
+## Discussion and authority
+
+Open points and replies remain in TASK under DEC-0007. No new discussion file
+or decision is created merely by proposing this roadmap. Existing decisions
+can be superseded only by an approved new block; old blocks stay immutable.
