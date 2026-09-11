@@ -1,664 +1,312 @@
-# ============================================================
-# AI Collaboration Protocol — Initial Setup
-# Version: 0.1
-#
-# Создаёт структуру для совместной работы GPT/Codex и Claude
-# в любой папке, где находится этот скрипт.
-#
-# Повторный запуск НЕ перезаписывает существующие файлы.
-# ============================================================
+# AI Collaboration Protocol installer v1.1. ASCII-only for PowerShell 5.1.
+# No arguments: read-only check of this checkout.
+# -Target <path> [-InitGit]: initialize missing state and merge integration.
+# -Force: update managed tooling with backups, preserving existing .ai state.
+# -Verify: read-only check; populated state is never compared to templates.
+[CmdletBinding()]
+param(
+    [string]$Target,
+    [switch]$Force,
+    [switch]$InitGit,
+    [switch]$Verify
+)
 
-$ErrorActionPreference = "Stop"
-
-# ------------------------------------------------------------
-# Определяем папку, в которой находится сам скрипт
-# ------------------------------------------------------------
-
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$AiDir = Join-Path $Root ".ai"
-
-Write-Host ""
-Write-Host "AI Collaboration Protocol Setup" -ForegroundColor Cyan
-Write-Host "Root: $Root"
-Write-Host ""
-
-# ------------------------------------------------------------
-# Создаём .ai
-# ------------------------------------------------------------
-
-if (-not (Test-Path $AiDir)) {
-    New-Item -ItemType Directory -Path $AiDir | Out-Null
-    Write-Host "[+] Created .ai directory" -ForegroundColor Green
+$ErrorActionPreference = 'Stop'
+# PowerShell 5.1 writes the console in the OEM codepage, which mangles
+# non-ASCII paths in this report and in any captured output. Force UTF-8.
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
+$SourceRoot = [System.IO.Path]::GetFullPath($PSScriptRoot)
+$TargetRoot = $SourceRoot
+if (-not [string]::IsNullOrWhiteSpace($Target)) {
+    $TargetRoot = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Target)
 }
-else {
-    Write-Host "[=] .ai directory already exists" -ForegroundColor Yellow
+$TargetRoot = [System.IO.Path]::GetFullPath($TargetRoot)
+$SelfInstall = ($TargetRoot.TrimEnd('\', '/') -eq $SourceRoot.TrimEnd('\', '/'))
+$CheckOnly = $Verify -or $SelfInstall
+$script:Drifted = 0
+$script:Created = 0
+$script:Updated = 0
+$script:Kept = 0
+$script:BackupRoot = $null
+$Utf8 = New-Object System.Text.UTF8Encoding($false, $true)
+
+function Read-Text([string]$Path) {
+    return [System.IO.File]::ReadAllText($Path, $Utf8)
 }
 
-# ------------------------------------------------------------
-# Функция безопасного создания файла
-# ------------------------------------------------------------
-
-function New-SafeFile {
-    param (
-        [string]$Path,
-        [string]$Content
-    )
-
-    if (Test-Path $Path) {
-        Write-Host "[=] Exists: $Path" -ForegroundColor Yellow
+function Same-Bytes([string]$A, [string]$B) {
+    if (-not [System.IO.File]::Exists($A) -or -not [System.IO.File]::Exists($B)) { return $false }
+    $left = [System.IO.File]::ReadAllBytes($A)
+    $right = [System.IO.File]::ReadAllBytes($B)
+    if ($left.Length -ne $right.Length) { return $false }
+    for ($i = 0; $i -lt $left.Length; $i++) {
+        if ($left[$i] -ne $right[$i]) { return $false }
     }
+    return $true
+}
+
+function Assert-SafeDestination([string]$Relative) {
+    $candidate = Join-Path $TargetRoot $Relative
+    $current = $candidate
+    while ($current -and $current.Length -ge $TargetRoot.Length) {
+        if (Test-Path -LiteralPath $current) {
+            $item = Get-Item -LiteralPath $current -Force
+            if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                throw "Refusing a linked destination: $current"
+            }
+            if (($current -ne $candidate) -and -not $item.PSIsContainer) {
+                throw "Destination parent is not a directory: $current"
+            }
+        }
+        $parent = Split-Path -Parent $current
+        if ($parent -eq $current) { break }
+        $current = $parent
+    }
+    if ([System.IO.Directory]::Exists($candidate)) {
+        throw "Destination file is a directory: $candidate"
+    }
+}
+
+function Report-Drift([string]$Message) {
+    Write-Host "[!=] $Message" -ForegroundColor Yellow
+    $script:Drifted++
+}
+
+function Backup-File([string]$Relative) {
+    if (-not $script:BackupRoot) {
+        $stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssfffZ')
+        $script:BackupRoot = Join-Path $TargetRoot ('.ai/backups/' + $stamp + '-' + [guid]::NewGuid().ToString('N'))
+    }
+    $backup = Join-Path $script:BackupRoot $Relative
+    [System.IO.Directory]::CreateDirectory((Split-Path -Parent $backup)) | Out-Null
+    [System.IO.File]::Copy((Join-Path $TargetRoot $Relative), $backup, $false)
+}
+
+function Write-Bytes([string]$Relative, [byte[]]$Bytes) {
+    $destination = Join-Path $TargetRoot $Relative
+    if ([System.IO.File]::Exists($destination)) {
+        Backup-File $Relative
+        $script:Updated++
+    }
+    else { $script:Created++ }
+    [System.IO.Directory]::CreateDirectory((Split-Path -Parent $destination)) | Out-Null
+    [System.IO.File]::WriteAllBytes($destination, $Bytes)
+    Write-Host "[ok] written: $Relative"
+}
+
+function Write-Text([string]$Relative, [string]$Value) {
+    Write-Bytes $Relative $Utf8.GetBytes(($Value -replace "`r`n", "`n"))
+}
+
+function Install-File([string]$Source, [string]$Destination, [switch]$State) {
+    $src = Join-Path $SourceRoot $Source
+    $dst = Join-Path $TargetRoot $Destination
+    if (-not [System.IO.File]::Exists($dst)) {
+        if ($CheckOnly) { Report-Drift "Missing: $Destination" }
+        else { Write-Bytes $Destination ([System.IO.File]::ReadAllBytes($src)) }
+        return
+    }
+    if ($State -or (Same-Bytes $src $dst)) { $script:Kept++; return }
+    if ($CheckOnly) { Report-Drift "Managed file differs: $Destination" }
+    elseif ($Force) { Write-Bytes $Destination ([System.IO.File]::ReadAllBytes($src)) }
     else {
-        Set-Content -Path $Path -Value $Content -Encoding UTF8
-        Write-Host "[+] Created: $Path" -ForegroundColor Green
+        Write-Host "[==] kept local managed file: $Destination (use -Force to update with backup)"
+        $script:Kept++
     }
 }
 
-# ============================================================
-# 1. AGENTS.md
-# ============================================================
-
-$Agents = @'
-# AGENTS.md
-
-## AI Collaboration Protocol
-
-This repository may be worked on by multiple AI coding assistants,
-including GPT/Codex and Claude.
-
-The assistants do NOT share chat history.
-
-The shared source of truth is:
-
-1. The actual files in the repository.
-2. Git state and Git history.
-3. Files inside `.ai/`.
-4. Explicitly approved decisions.
-
-AI assistants must not assume that another assistant's intentions
-are known unless those intentions are documented.
-
----
-
-## Roles
-
-Each AI assistant acts as an independent engineering agent.
-
-An assistant may:
-
-- analyse the current implementation;
-- propose solutions;
-- identify bugs;
-- challenge another assistant's proposal;
-- modify files when explicitly instructed;
-- review modifications made by another assistant.
-
-The human owner of the project has final authority.
-
-AI agents must not treat their own proposal as an approved decision.
-
----
-
-## Source of Truth
-
-When determining the current state of the project, inspect:
-
-1. Current files.
-2. `git status`.
-3. Relevant `git diff`.
-4. Relevant Git history.
-5. `.ai/TASK.md`.
-6. `.ai/PLAN.md`.
-7. `.ai/DECISIONS.md`.
-8. `.ai/WORKLOG.md`.
-
-Do not rely exclusively on previous chat messages.
-
----
-
-## Before Making Changes
-
-Before modifying code:
-
-1. Understand the current task.
-2. Inspect the relevant implementation.
-3. Check the current Git state.
-4. Read the relevant AI context files.
-5. Identify existing constraints.
-6. State assumptions when they matter.
-
-Do not make broad unrelated changes.
-
----
-
-## After Making Changes
-
-After modifying code:
-
-1. Inspect the resulting diff.
-2. Check for obvious regressions.
-3. Run relevant tests or validation.
-4. Update `.ai/WORKLOG.md` when the work materially changes the task.
-5. Do not commit or push unless explicitly instructed.
-
----
-
-## Collaboration Principle
-
-AI assistants communicate through the shared project state.
-
-The communication hierarchy is:
-
-    Current files
-          ↓
-       Git diff
-          ↓
-    TASK / PLAN
-          ↓
-      WORKLOG
-          ↓
-     DECISIONS
-          ↓
-       History
-
-Chat messages are not considered persistent project memory.
-
----
-
-## GitHub
-
-GitHub is primarily the persistent version-control and collaboration
-layer.
-
-Intermediate experimentation should normally remain local.
-
-Do NOT push every intermediate change.
-
-Push or commit when:
-
-- a meaningful checkpoint has been reached;
-- the human owner requests it;
-- a stable version needs to be preserved;
-- a branch/PR workflow explicitly requires it.
-
----
-
-## Important
-
-Do not delete historical information merely to reduce context size.
-
-Use archival files and checkpoints instead.
-
-The human owner decides when a checkpoint becomes authoritative.
-'@
-
-New-SafeFile (Join-Path $Root "AGENTS.md") $Agents
-
-# ============================================================
-# 2. TASK.md
-# ============================================================
-
-$Task = @'
-# Current Task
-
-## Status
-
-No active task.
-
----
-
-## Objective
-
-Describe the specific task currently being worked on.
-
----
-
-## Problem
-
-Describe the problem that needs to be solved.
-
----
-
-## Constraints
-
-List technical, architectural, business or compatibility constraints.
-
----
-
-## Acceptance Criteria
-
-Define what must be true for the task to be considered complete.
-
----
-
-## Current State
-
-Short description of the current implementation.
-
----
-
-## Assigned / Active Agent
-
-- Agent:
-- Started:
-- Last update:
-
----
-
-## Notes
-
-Keep this file short.
-
-It describes the CURRENT task, not the complete project history.
-'@
-
-New-SafeFile (Join-Path $AiDir "TASK.md") $Task
-
-# ============================================================
-# 3. PLAN.md
-# ============================================================
-
-$Plan = @'
-# Development Plan
-
-## Status
-
-Draft
-
-## Purpose
-
-This document contains the current proposed implementation plan.
-
-The plan is NOT automatically authoritative.
-
-It must be reviewed and approved by the human project owner.
-
----
-
-## Objective
-
-Describe the desired result.
-
----
-
-## Proposed Approach
-
-Describe the proposed technical approach.
-
----
-
-## Alternatives Considered
-
-### Alternative 1
-
-Description:
-
-Advantages:
-
-Disadvantages:
-
-### Alternative 2
-
-Description:
-
-Advantages:
-
-Disadvantages:
-
----
-
-## Risks
-
-List known technical or architectural risks.
-
----
-
-## Implementation Steps
-
-1. 
-2. 
-3. 
-4. 
-
----
-
-## Validation
-
-Describe how the result will be tested.
-
----
-
-## Approval
-
-Status:
-
-- [ ] Draft
-- [ ] Reviewed by GPT/Codex
-- [ ] Reviewed by Claude
-- [ ] Disagreements resolved
-- [ ] Approved by human
-- [ ] Implemented
-- [ ] Validated
-
-Approved by:
-
-Date:
-'@
-
-New-SafeFile (Join-Path $AiDir "PLAN.md") $Plan
-
-# ============================================================
-# 4. DISCUSSION.md
-# ============================================================
-
-$Discussion = @'
-# AI Discussion
-
-## Purpose
-
-This file is a temporary shared discussion space for AI agents.
-
-It allows GPT/Codex and Claude to communicate through the filesystem
-without requiring access to each other's chat history.
-
----
-
-## Rules
-
-Each contribution should contain:
-
-- Agent
-- Date/time
-- Topic
-- Position
-- Reasoning
-- Proposed action
-
-Agents should challenge ideas when appropriate.
-
-Agreement is not required.
-
-The purpose of discussion is to improve the technical result.
-
----
-
-## Discussion
-
-### [GPT/Codex]
-
-Date:
-
-Topic:
-
-Position:
-
-Reasoning:
-
-Proposed action:
-
-
-### [Claude]
-
-Date:
-
-Topic:
-
-Position:
-
-Reasoning:
-
-Proposed action:
-
-
----
-
-## Open Questions
-
-1.
-2.
-3.
-
----
-
-## Resolved Questions
-
-1.
-2.
-3.
-
----
-
-## Conclusion
-
-Do not treat this document as the final project decision.
-
-Once a decision is accepted, record the resulting decision in
-`.ai/DECISIONS.md`.
-
-Old discussions may later be archived.
-'@
-
-New-SafeFile (Join-Path $AiDir "DISCUSSION.md") $Discussion
-
-# ============================================================
-# 5. WORKLOG.md
-# ============================================================
-
-$Worklog = @'
-# Current Worklog
-
-## Purpose
-
-Short-term working memory shared between AI assistants.
-
-This file should remain small.
-
-Do NOT use it as a complete historical record.
-
----
-
-## Current Context
-
-Current project state:
-
-Current task:
-
-Current blocker:
-
-Current hypothesis:
-
----
-
-## Recent Actions
-
-### Entry
-
-Agent:
-Date/time:
-
-Action:
-
-Result:
-
-Next step:
-
-
----
-
-## Handoff
-
-### From
-
-Agent:
-
-### To
-
-Agent:
-
-### Summary
-
-What was done:
-
-What remains:
-
-Important findings:
-
-Files changed:
-
-Tests performed:
-
-Potential risks:
-
-
----
-
-## Checkpoint
-
-Checkpoint ID:
-
-Date:
-
-Summary:
-
-Approved:
-
----
-
-## Maintenance Rule
-
-When this file becomes too large:
-
-1. Preserve important information.
-2. Move completed historical entries to the history archive.
-3. Keep only relevant current context here.
-4. Never silently delete important decisions.
-'@
-
-New-SafeFile (Join-Path $AiDir "WORKLOG.md") $Worklog
-
-# ============================================================
-# 6. DECISIONS.md
-# ============================================================
-
-$Decisions = @'
-# Architectural and Technical Decisions
-
-## Purpose
-
-This file contains decisions that have been accepted as authoritative
-for the project.
-
-It is NOT a discussion log.
-
----
-
-## Decision Format
-
-Each decision should contain:
-
-- ID
-- Date
-- Context
-- Decision
-- Reasoning
-- Alternatives rejected
-- Consequences
-- Approval
-
----
-
-## Decisions
-
-### DEC-0001
-
-Status: Template
-
-Date:
-
-Context:
-
-Decision:
-
-Reasoning:
-
-Alternatives rejected:
-
-Consequences:
-
-Approved by:
-
----
-
-## Rule
-
-A proposal discussed by AI agents does NOT become a decision
-automatically.
-
-A decision becomes authoritative only after explicit approval.
-
-Previous decisions should normally remain in this file even when
-later decisions supersede them.
-
-When a decision is superseded, mark it accordingly instead of deleting
-its history.
-'@
-
-New-SafeFile (Join-Path $AiDir "DECISIONS.md") $Decisions
-
-# ============================================================
-# 7. WORKLOG_HISTORY.md
-# ============================================================
-
-$History = @'
-# Worklog History
-
-This file contains archived historical worklog information.
-
-It is intentionally separated from `.ai/WORKLOG.md`.
-
-The current worklog should contain only information relevant to
-the current development context.
-
----
-
-## Archive
-
-No archived entries yet.
-
----
-
-## Archiving Rule
-
-When a checkpoint is completed:
-
-1. Preserve the relevant historical worklog entries here.
-2. Keep `.ai/WORKLOG.md` focused on the current state.
-3. Do not remove information that is necessary to understand an
-   accepted architectural or technical decision.
-4. Authoritative decisions belong in `.ai/DECISIONS.md`.
-'@
-
-New-SafeFile (Join-Path $AiDir "WORKLOG_HISTORY.md") $History
-
-# ============================================================
-# Завершение
-# ============================================================
-
-Write-Host ""
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "AI collaboration protocol created." -ForegroundColor Green
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "Created structure:"
-Write-Host ""
-Write-Host "  AGENTS.md"
-Write-Host "  .ai\TASK.md"
-Write-Host "  .ai\PLAN.md"
-Write-Host "  .ai\DISCUSSION.md"
-Write-Host "  .ai\WORKLOG.md"
-Write-Host "  .ai\WORKLOG_HISTORY.md"
-Write-Host "  .ai\DECISIONS.md"
-Write-Host ""
-Write-Host "Existing files were NOT overwritten." -ForegroundColor Yellow
-Write-Host ""
-Write-Host "Next step: review the protocol with GPT/Codex and Claude."
-Write-Host ""
+function Json-Object([string]$Path) {
+    $value = ConvertFrom-Json -InputObject (Read-Text $Path)
+    if ($null -eq $value -or $value -isnot [System.Management.Automation.PSCustomObject]) {
+        throw "Expected a JSON object: $Path"
+    }
+    return $value
+}
+
+function Set-Property($Object, [string]$Name, $Value) {
+    $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $Value -Force
+}
+
+function Merge-Settings {
+    $relative = '.claude/settings.json'
+    $src = Join-Path $SourceRoot $relative
+    $dst = Join-Path $TargetRoot $relative
+    $wanted = Json-Object $src
+    if (-not [System.IO.File]::Exists($dst)) {
+        if ($CheckOnly) { Report-Drift "Missing: $relative" }
+        else { Write-Bytes $relative ([System.IO.File]::ReadAllBytes($src)) }
+        return
+    }
+    $existing = Json-Object $dst
+    $before = ConvertTo-Json -InputObject $existing -Depth 100 -Compress
+    if (-not $existing.PSObject.Properties['hooks']) { Set-Property $existing 'hooks' ([pscustomobject]@{}) }
+    if ($existing.hooks -isnot [System.Management.Automation.PSCustomObject]) {
+        throw "Expected hooks to be a JSON object: $dst"
+    }
+    # Commands from earlier protocol versions. Installing the canonical command
+    # removes these, so an upgrade never leaves two hooks racing on one event.
+    $legacy = @{
+        SessionStart = @(
+            '[ -f .claude/hooks/session-start.sh ] && bash .claude/hooks/session-start.sh || true',
+            'bash "$(git -C "${CLAUDE_PROJECT_DIR:-.}" rev-parse --show-toplevel)/.claude/hooks/session-start.sh"'
+        )
+        Stop = @(
+            '[ -f .claude/hooks/stop-worklog-check.sh ] && bash .claude/hooks/stop-worklog-check.sh || true',
+            'bash "$(git -C "${CLAUDE_PROJECT_DIR:-.}" rev-parse --show-toplevel)/.claude/hooks/stop-worklog-check.sh"'
+        )
+    }
+    foreach ($event in $wanted.hooks.PSObject.Properties) {
+        $commands = @($event.Value | ForEach-Object { $_.hooks } | ForEach-Object { $_.command })
+        if ($legacy.ContainsKey($event.Name)) { $commands += @($legacy[$event.Name]) }
+        $groups = @()
+        $oldEvent = $existing.hooks.PSObject.Properties[$event.Name]
+        if ($oldEvent) {
+            if ($oldEvent.Value -isnot [array]) { throw "Expected hooks.$($event.Name) to be an array: $dst" }
+            foreach ($group in $oldEvent.Value) {
+                if (-not $group.PSObject.Properties['hooks'] -or $group.hooks -isnot [array]) {
+                    throw "Expected a hook group with a hooks array: $dst"
+                }
+                $remaining = @($group.hooks | Where-Object {
+                    -not ($_.type -eq 'command' -and $commands -contains $_.command)
+                })
+                if ($remaining.Count -gt 0 -or $group.hooks.Count -eq 0) {
+                    Set-Property $group 'hooks' $remaining
+                    $groups += $group
+                }
+            }
+        }
+        $groups += @($event.Value)
+        Set-Property $existing.hooks $event.Name $groups
+    }
+    $after = ConvertTo-Json -InputObject $existing -Depth 100 -Compress
+    if ($before -ceq $after) { $script:Kept++; return }
+    if ($CheckOnly) { Report-Drift 'Claude protocol hooks need merging'; return }
+    Write-Text $relative ((ConvertTo-Json -InputObject $existing -Depth 100) + "`n")
+}
+
+function Merge-Hygiene([string]$Relative, [string]$ScopedContent) {
+    $src = Join-Path $SourceRoot $Relative
+    $dst = Join-Path $TargetRoot $Relative
+    if (-not [System.IO.File]::Exists($dst)) {
+        if ($CheckOnly) { Report-Drift "Missing: $Relative" }
+        else { Write-Bytes $Relative ([System.IO.File]::ReadAllBytes($src)) }
+        return
+    }
+    if (Same-Bytes $src $dst) { $script:Kept++; return }
+    $existing = (Read-Text $dst) -replace "`r`n", "`n"
+    $begin = '# BEGIN AI COLLABORATION PROTOCOL'
+    $end = '# END AI COLLABORATION PROTOCOL'
+    $block = $begin + "`n" + $ScopedContent.TrimEnd() + "`n" + $end + "`n"
+    $pattern = '(?ms)^' + [regex]::Escape($begin) + '\n.*?^' + [regex]::Escape($end) + '(?:\n|$)'
+    $matches = [regex]::Matches($existing, $pattern)
+    if ($matches.Count -gt 1 -or (($existing.Contains($begin) -or $existing.Contains($end)) -and $matches.Count -ne 1)) {
+        throw "Malformed managed block in $Relative; preserve the file and repair its markers."
+    }
+    if ($matches.Count -eq 1) {
+        $merged = $existing.Substring(0, $matches[0].Index) + $block + $existing.Substring($matches[0].Index + $matches[0].Length)
+    }
+    else { $merged = $existing.TrimEnd("`n") + "`n`n" + $block }
+    if ($merged -ceq $existing) { $script:Kept++; return }
+    if ($CheckOnly) { Report-Drift "Protocol entries need merging: $Relative"; return }
+    Write-Text $Relative $merged
+}
+
+function Merge-Ignore {
+    $src = Join-Path $SourceRoot '.gitignore'
+    $dst = Join-Path $TargetRoot '.gitignore'
+    if (-not [System.IO.File]::Exists($dst)) {
+        if ($CheckOnly) { Report-Drift 'Missing: .gitignore' }
+        else { Write-Bytes '.gitignore' ([System.IO.File]::ReadAllBytes($src)) }
+        return
+    }
+    $existing = (Read-Text $dst) -replace "`r`n", "`n"
+    $lines = $existing -split "`n"
+    $missing = @((Read-Text $src) -split "`r?`n" | Where-Object {
+        $_.Trim().Length -gt 0 -and -not $_.TrimStart().StartsWith('#') -and $lines -cnotcontains $_
+    })
+    if ($missing.Count -eq 0) { $script:Kept++; return }
+    if ($CheckOnly) { Report-Drift 'Missing protocol ignore entries'; return }
+    Write-Text '.gitignore' ($existing.TrimEnd("`n") + "`n`n# AI collaboration protocol`n" + ($missing -join "`n") + "`n")
+}
+
+function Invoke-Git([string[]]$Arguments) {
+    $previous = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = @(& git @Arguments 2>&1)
+        if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed: $($output -join ' ')" }
+        return ($output -join "`n")
+    }
+    finally { $ErrorActionPreference = $previous }
+}
+
+try {
+    Write-Host "AI Collaboration Protocol installer`nSource: $SourceRoot`nTarget: $TargetRoot"
+    $managed = @(
+        'AGENTS.md', 'CLAUDE.md', 'setup-ai-protocol.ps1', 'validate-protocol.ps1',
+        'test-protocol.ps1', 'scripts/protocol-lock.cjs', 'docs/PROTOCOL.md',
+        '.claude/hooks/session-start.sh', '.claude/hooks/stop-worklog-check.sh',
+        '.claude/hooks/protocol-hooks.cjs', 'tests/helpers.cjs', 'tests/installer.test.cjs',
+        'tests/validator.test.cjs', 'tests/hooks.test.cjs', 'tests/lock.test.cjs'
+    )
+    $state = @('TASK.md', 'PLAN.md', 'DECISIONS.md', 'ARCHIVE.md', 'worklog/claude.md', 'worklog/codex.md')
+    $managed += @($state | ForEach-Object { 'templates/ai/' + $_ })
+    $extraTests = @(Get-ChildItem -LiteralPath (Join-Path $SourceRoot 'tests') -Filter '*.cjs' -File -ErrorAction SilentlyContinue |
+        ForEach-Object { 'tests/' + $_.Name } | Where-Object { $managed -notcontains $_ })
+    $managed += $extraTests
+    $integration = @('.claude/settings.json', '.gitattributes', '.editorconfig', '.gitignore')
+    foreach ($relative in ($managed + $integration)) {
+        if (-not [System.IO.File]::Exists((Join-Path $SourceRoot $relative))) { throw "Required source file missing: $relative" }
+    }
+    $sourceSettings = Json-Object (Join-Path $SourceRoot '.claude/settings.json')
+    if (-not $sourceSettings.PSObject.Properties['hooks'] -or
+        -not $sourceSettings.hooks.PSObject.Properties['SessionStart'] -or
+        -not $sourceSettings.hooks.PSObject.Properties['Stop']) {
+        throw 'Source Claude settings must provide SessionStart and Stop hooks.'
+    }
+    if ([System.IO.File]::Exists($TargetRoot)) { throw "Target is not a directory: $TargetRoot" }
+    if ($CheckOnly -and -not [System.IO.Directory]::Exists($TargetRoot)) {
+        throw "Target does not exist (verification made no changes): $TargetRoot"
+    }
+    foreach ($relative in ($managed + $integration + @($state | ForEach-Object { '.ai/' + $_ }) + '.ai/backups/.probe')) {
+        Assert-SafeDestination $relative
+    }
+    # Reject invalid existing JSON before initializing project files.
+    $targetSettings = Join-Path $TargetRoot '.claude/settings.json'
+    if ([System.IO.File]::Exists($targetSettings)) { $null = Json-Object $targetSettings }
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'Git is required but is not available.' }
+    $gitPath = Join-Path $TargetRoot '.git'
+    if (-not (Test-Path -LiteralPath $gitPath)) {
+        if ($InitGit -and -not $CheckOnly) {
+            [System.IO.Directory]::CreateDirectory($TargetRoot) | Out-Null
+            $null = Invoke-Git @('-C', $TargetRoot, 'init', '-b', 'main')
+        }
+        else { throw 'Target needs its own Git repository. Install with -InitGit, then verify.' }
+    }
+    $gitRoot = Invoke-Git @('-C', $TargetRoot, 'rev-parse', '--show-toplevel')
+    if ([System.IO.Path]::GetFullPath($gitRoot).TrimEnd('\', '/') -ne $TargetRoot.TrimEnd('\', '/')) {
+        throw 'Git resolved a different repository root.'
+    }
+    $null = Invoke-Git @('-C', $TargetRoot, 'status', '--porcelain=v1', '-uno')
+    foreach ($relative in $managed) { Install-File $relative $relative }
+    foreach ($relative in $state) { Install-File ('templates/ai/' + $relative) ('.ai/' + $relative) -State }
+    Merge-Settings
+    Merge-Ignore
+    $scopedPaths = @($managed | Where-Object { -not $_.StartsWith('templates/') }) + @('.ai/**', 'templates/ai/**')
+    $attributes = ($scopedPaths | ForEach-Object { $_ + ' text eol=lf' }) -join "`n"
+    Merge-Hygiene '.gitattributes' $attributes
+    $editor = '[{' + ($scopedPaths -join ',') + "}]`ncharset = utf-8`nend_of_line = lf`ninsert_final_newline = true"
+    Merge-Hygiene '.editorconfig' $editor
+    if ($script:Drifted -gt 0) {
+        Write-Host "$($script:Drifted) difference(s). Install to merge integration; -Force updates managed files with backups. Project state is always kept."
+        exit 1
+    }
+    if ($CheckOnly) { Write-Host 'Structure and integration verified. Project state was checked for existence only.' }
+    else { Write-Host "Done: $($script:Created) created, $($script:Updated) updated, $($script:Kept) kept. Existing project state preserved." }
+    if ($script:BackupRoot) { Write-Host "Previous versions saved to: $script:BackupRoot" }
+    exit 0
+}
+catch {
+    Write-Host "[error] $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}

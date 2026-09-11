@@ -1,131 +1,229 @@
-﻿# AGENTS.md
+# AGENTS.md
 
-## AI Collaboration Protocol
+## AI Collaboration Protocol v1.2
 
-This repository may be worked on by multiple AI coding assistants,
-including GPT/Codex and Claude.
+Several AI coding assistants work in this repository: GPT/Codex, Claude, and
+others. They do not share chat history. The filesystem is the only channel
+between them.
 
-The assistants do NOT share chat history.
+Read this file at the start of every session, then read `.ai/TASK.md`.
 
-The shared source of truth is:
-
-1. The actual files in the repository.
-2. Git state and Git history.
-3. Files inside `.ai/`.
-4. Explicitly approved decisions.
-
-AI assistants must not assume that another assistant's intentions
-are known unless those intentions are documented.
+Chat history is not project memory. Never justify a claim with "we discussed
+this earlier". If it is not in the repository, it did not happen.
 
 ---
 
-## Roles
+## 1. Source of truth
 
-Each AI assistant acts as an independent engineering agent.
+Ranked. When two sources disagree, the higher one wins.
 
-An assistant may:
+1. `.ai/DECISIONS.md` - approved decisions. Binding.
+2. The working tree, plus `git status`, `git diff`, `git log`. What the code
+   actually is.
+3. `.ai/TASK.md` - what is being worked on now, and the open questions.
+4. `.ai/PLAN.md` - the proposed approach. A draft until approved.
+5. `.ai/worklog/` - one journal per session, newest first.
+6. `.ai/ARCHIVE.md` - cold history.
 
-- analyse the current implementation;
-- propose solutions;
-- identify bugs;
-- challenge another assistant's proposal;
-- modify files when explicitly instructed;
-- review modifications made by another assistant.
+If a higher source contradicts a lower one, the lower one is stale. Fix it or
+say so in your journal. Do not act on the stale version.
 
-The human owner of the project has final authority.
-
-AI agents must not treat their own proposal as an approved decision.
-
----
-
-## Source of Truth
-
-When determining the current state of the project, inspect:
-
-1. Current files.
-2. `git status`.
-3. Relevant `git diff`.
-4. Relevant Git history.
-5. `.ai/TASK.md`.
-6. `.ai/PLAN.md`.
-7. `.ai/DECISIONS.md`.
-8. `.ai/WORKLOG.md`.
-
-Do not rely exclusively on previous chat messages.
+`.ai/runtime/` is disposable session state and is not tracked. Nothing there
+is a source of truth.
 
 ---
 
-## Before Making Changes
+## 2. Authority
 
-Before modifying code:
-
-1. Understand the current task.
-2. Inspect the relevant implementation.
-3. Check the current Git state.
-4. Read the relevant AI context files.
-5. Identify existing constraints.
-6. State assumptions when they matter.
-
-Do not make broad unrelated changes.
+- A proposal written by an AI agent is not a decision.
+- A decision exists only as a `DEC-nnnn` block in `.ai/DECISIONS.md` carrying
+  `Approved by:` with a human name. That text records who authorized the work.
+  It is a record, not proof; the owner remains the only one who can approve.
+- Any agent may challenge any other agent. Record the disagreement in
+  `.ai/TASK.md` under Open questions. Do not silently overwrite.
+- The human owner decides. Ask rather than assume.
 
 ---
 
-## After Making Changes
+## 3. Session start
 
-After modifying code:
+Mandatory, in order:
 
-1. Inspect the resulting diff.
-2. Check for obvious regressions.
-3. Run relevant tests or validation.
-4. Update `.ai/WORKLOG.md` when the work materially changes the task.
-5. Do not commit or push unless explicitly instructed.
+1. Read `.ai/TASK.md`.
+2. Run `git status --short --branch` and `git log --oneline -10`.
+3. Read the recent journals in `.ai/worklog/`, including other agents'.
+4. Read `.ai/DECISIONS.md` when the task touches architecture, data, or
+   external contracts.
+5. If `.ai/TASK.md` says there is no active task, ask the owner. Do not invent
+   a task and do not start refactoring.
 
----
-
-## Collaboration Principle
-
-AI assistants communicate through the shared project state.
-
-The communication hierarchy is:
-
-    Current files
-          в†“
-       Git diff
-          в†“
-    TASK / PLAN
-          в†“
-      WORKLOG
-          в†“
-     DECISIONS
-          в†“
-       History
-
-Chat messages are not considered persistent project memory.
+For Claude the SessionStart hook injects most of this and names your journal
+file. The injection is bounded; reading the omitted files is still your job.
 
 ---
 
-## GitHub
+## 4. Session end
 
-GitHub is primarily the persistent version-control and collaboration
-layer.
+Mandatory, in order:
 
-Intermediate experimentation should normally remain local.
+1. Review your own diff with `git diff`.
+2. Run the checks in section 7. Report what you actually ran.
+3. Write one entry in your session journal, with all five labels.
+4. Update `.ai/TASK.md` if the state of the task changed.
+5. Release the shared-document lock if you hold it.
+6. Do not commit and do not push unless the owner instructed it.
 
-Do NOT push every intermediate change.
-
-Push or commit when:
-
-- a meaningful checkpoint has been reached;
-- the human owner requests it;
-- a stable version needs to be preserved;
-- a branch/PR workflow explicitly requires it.
+An entry that says only "made changes" is not an entry. Say what changed, what
+you verified, and what is still open. A claim about what you did not change
+must still be true when the session ends.
 
 ---
 
-## Important
+## 5. Session journals
 
-Do not delete historical information merely to reduce context size.
+Each session writes exactly one file in `.ai/worklog/`. No session writes to
+another session's file, so two agents can never overwrite each other and no
+lock is needed here.
 
-Use archival files and checkpoints instead.
+- Claude: the SessionStart hook prints your file name. Create it if missing.
+- Other agents: the file is named after the session id you take the lock with.
+- `claude.md` and `codex.md` are seed files holding history from before
+  per-session journals. Read them. Never rewrite them.
 
-The human owner decides when a checkpoint becomes authoritative.
+Every entry needs all five labels, or the Stop hook will not count it:
+
+```markdown
+## YYYY-MM-DD - short title
+
+Agent:
+
+Action:
+
+Result:
+
+Next step:
+
+Open:
+```
+
+---
+
+## 6. Shared documents have one writer
+
+`.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md` and `.ai/ARCHIVE.md` are
+edited by one session at a time, through a cooperative lock.
+
+```bash
+node scripts/protocol-lock.cjs acquire --owner <your-session-id>
+node scripts/protocol-lock.cjs release --owner <your-session-id>
+```
+
+The lock is cooperative, not an operating system barrier. It works only if
+every participant takes it.
+
+If `acquire` reports another owner, do not steal it. Run `status` and read
+`stale`. A lock past the stale threshold belongs to a session that ended
+badly; confirm that, then release it with the reported owner name. Releasing a
+live holder's lock destroys their work.
+
+Other writing rules:
+
+| File               | Rule                                               |
+| ------------------ | -------------------------------------------------- |
+| `.ai/DECISIONS.md` | append only; a written block is never edited again  |
+| `.ai/TASK.md`      | replace sections; it is short by design             |
+| `.ai/PLAN.md`      | replaced by the session that owns the task          |
+| `.ai/ARCHIVE.md`   | append only                                         |
+
+To replace a decision, append a new approved block with a `Supersedes:` line
+naming the old one. Do not edit the old block, not even its status. The
+decision log is the one file safe to trust precisely because nothing in it is
+ever rewritten.
+
+---
+
+## 7. Checks
+
+Run both before handing off, and report the real result.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
+powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
+```
+
+The validator checks protocol health, encodings, size limits, hook wiring, and
+that the installer can still run. The suite is a regression test for the
+tooling itself; run it after changing a hook, the installer, the validator or
+the lock.
+
+A green validator is not a green project. Run the project's own tests too.
+
+---
+
+## 8. Size limits
+
+Enforced by `validate-protocol.ps1`.
+
+| File                       | Limit     | On overflow                        |
+| -------------------------- | --------- | ---------------------------------- |
+| `.ai/TASK.md`              | 80 lines  | cut back to the current task only  |
+| `.ai/worklog/<journal>.md` | 150 lines | move oldest entries to the archive |
+| `.ai/PLAN.md`              | 200 lines | the task is too big; split it      |
+| `.ai/worklog/` file count  | 30 files  | archive the oldest journals        |
+| `.ai/DECISIONS.md`         | none      | never trimmed, never summarized    |
+| `.ai/ARCHIVE.md`           | none      | never trimmed                      |
+
+Archiving moves text. It never deletes text.
+
+---
+
+## 9. Before changing code
+
+1. Know the current task.
+2. Read the code you are about to change, not just its name.
+3. Run `git status` and look for another session's uncommitted work. In a
+   shared checkout, a change you did not make may belong to another agent.
+4. Check `.ai/DECISIONS.md` for a constraint that already settles the question.
+5. Write down an assumption in your journal entry when it matters.
+
+Stay inside the task. No unrelated refactors, no drive-by renames, no
+reformatting files you did not otherwise touch.
+
+---
+
+## 10. Git
+
+Git is the durable layer, not a scratchpad.
+
+- Commit at meaningful checkpoints, or when the owner asks.
+- Do not push every intermediate change.
+- Do not rewrite history that has been pushed.
+- Branch for anything bigger than a small fix.
+- Never commit a secret. Keys belong in environment variables.
+
+---
+
+## 11. Encoding
+
+All text files: UTF-8 without a byte order mark, LF line endings. Enforced by
+`.gitattributes`, `.editorconfig` and the validator.
+
+PowerShell scripts are the exception and the trap. Windows PowerShell 5.1 reads
+a `.ps1` file without a byte order mark as the system ANSI codepage. A
+non-ASCII character in such a script is silently corrupted, and a script that
+writes files propagates the corruption into everything it generates.
+
+Rule: keep every `.ps1` file ASCII-only. The validator fails the build if a
+non-ASCII byte appears in one.
+
+---
+
+## 12. Never
+
+- Never treat your own proposal as approved.
+- Never delete history to save context. Archive it.
+- Never write to another session's journal.
+- Never edit a decision block that is already written.
+- Never release a lock you did not take without confirming the holder is gone.
+- Never commit secrets.
+- Never report work as verified when you did not run the check.

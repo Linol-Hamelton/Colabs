@@ -1,0 +1,21 @@
+# Claude Code local overrides (personal, never shared)
+.claude/settings.local.json
+
+# Editor and OS noise
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+
+# Scratch space for agents. Nothing here is project state.
+.ai/scratch/
+.ai/runtime/
+.ai/backups/
+
+# Never track secrets.
+.env
+.env.*
+*.key
+*.pem

@@ -1,0 +1,10 @@
+# Normalize every text file to LF in the repository.
+# Keep LF in the working tree as well, including PowerShell scripts.
+* text=auto eol=lf
+
+# PowerShell scripts must stay ASCII-only. See AGENTS.md section 9.
+*.ps1 text eol=lf
+
+*.md   text diff=markdown
+*.json text
+*.sh   text eol=lf
