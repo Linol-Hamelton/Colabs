@@ -242,19 +242,16 @@ function Invoke-Git([string[]]$Arguments) {
 
 try {
     Write-Host "AI Collaboration Protocol installer`nSource: $SourceRoot`nTarget: $TargetRoot"
-    $managed = @(
-        'AGENTS.md', 'CLAUDE.md', 'setup-ai-protocol.ps1', 'validate-protocol.ps1',
-        'test-protocol.ps1', 'scripts/protocol-lock.cjs', 'docs/PROTOCOL.md',
-        '.claude/hooks/session-start.sh', '.claude/hooks/stop-worklog-check.sh',
-        '.claude/hooks/protocol-hooks.cjs', 'tests/helpers.cjs', 'tests/installer.test.cjs',
-        'tests/validator.test.cjs', 'tests/hooks.test.cjs', 'tests/lock.test.cjs'
-    )
-    $state = @('TASK.md', 'PLAN.md', 'DECISIONS.md', 'ARCHIVE.md', 'worklog/claude.md', 'worklog/codex.md')
+    # One manifest, read here and by validate-protocol.ps1. Keeping two lists
+    # that had to agree failed three times; see DEC-0012.
+    $manifestPath = Join-Path $SourceRoot 'protocol-manifest.json'
+    if (-not [System.IO.File]::Exists($manifestPath)) { throw "Required source file missing: protocol-manifest.json" }
+    $manifest = Json-Object $manifestPath
+    $managed = @($manifest.managed)
+    $state = @($manifest.state)
+    $managed += @($manifest.tests)
     $managed += @($state | ForEach-Object { 'templates/ai/' + $_ })
-    $extraTests = @(Get-ChildItem -LiteralPath (Join-Path $SourceRoot 'tests') -Filter '*.cjs' -File -ErrorAction SilentlyContinue |
-        ForEach-Object { 'tests/' + $_.Name } | Where-Object { $managed -notcontains $_ })
-    $managed += $extraTests
-    $integration = @('.claude/settings.json', '.gitattributes', '.editorconfig', '.gitignore')
+    $integration = @($manifest.integration)
     foreach ($relative in ($managed + $integration)) {
         if (-not [System.IO.File]::Exists((Join-Path $SourceRoot $relative))) { throw "Required source file missing: $relative" }
     }

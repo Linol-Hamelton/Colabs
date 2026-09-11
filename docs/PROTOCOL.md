@@ -81,12 +81,11 @@ really over first.
 Each session writes exactly one file in `.ai/worklog/`. No session writes to
 another session's file, so two agents can never overwrite each other.
 
-For Claude the file name is assigned by the SessionStart hook and printed in
-the injected context. Create the file if it does not exist yet. For other
-agents the name is the session id chosen when taking the lock.
+For Claude the SessionStart hook creates the file and prints its name in the
+injected context. For other agents the name is the session id chosen when
+taking the lock.
 
-`.ai/worklog/claude.md` and `.ai/worklog/codex.md` are seed files. They hold
-history from before per-session journals and are read, never rewritten.
+`README.md` in that directory is not a journal; it explains the convention.
 
 An entry needs all five labels, or the Stop hook will not count it:
 

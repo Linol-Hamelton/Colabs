@@ -32,24 +32,6 @@ can be trusted without reading the diff history.
 
 ---
 
-## Install into a project
-
-```powershell
-.\setup-ai-protocol.ps1 -Target D:\my-project -InitGit
-```
-
-Existing files are kept and `.gitignore` is merged, so the project's own
-entries survive. Upgrade the managed tooling later with `-Force`, which keeps
-backups and never resets populated `.ai` state.
-
-Report what has drifted from the canonical version, changing nothing:
-
-```powershell
-.\setup-ai-protocol.ps1 -Target D:\my-project -Verify
-```
-
-Running it with no arguments is a read-only self-check of this checkout.
-
 ---
 
 ## Handoff carries evidence, not assertions
@@ -80,6 +62,74 @@ Validation used to pass when the installer was deleted, when every hook was
 switched off by one settings key, and when a later negation pattern cancelled
 the ignore rules that keep session state out of commits. Each of those now
 fails with the reason, and each has a regression test. See DEC-0011.
+
+---
+
+## Connecting the protocol to a project
+
+You need Git, Node.js 22 or later, and Windows PowerShell 5.1. Clone this
+repository somewhere; it stays the source you install and upgrade from.
+
+### A new project
+
+```powershell
+cd D:\path\to\Colabs
+.\setup-ai-protocol.ps1 -Target D:\path\to\new-project -InitGit
+cd D:\path\to\new-project
+powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
+```
+
+Two warnings are expected and correct: no decisions yet, no active task. Write
+the first objective into `.ai/TASK.md`, then open the project in Claude Code.
+The SessionStart hook loads the state and creates the session journal.
+
+### An existing repository
+
+Same command without `-InitGit`, because the repository already exists.
+
+```powershell
+.\setup-ai-protocol.ps1 -Target D:\path\to\existing-project
+```
+
+Nothing of yours is replaced. Verified against a project that already had its
+own README, ignore rules, Claude permissions and a `PostToolUse` hook:
+
+| Yours                       | What happens                                    |
+| --------------------------- | ----------------------------------------------- |
+| `README.md`, source, config | untouched; the protocol installs none of these   |
+| `.gitignore`                | your rules kept, protocol rules appended below   |
+| `.claude/settings.json`     | your permissions and hooks kept, two hooks added |
+| line endings in your code   | not inspected; the protocol checks its own files |
+
+The protocol does add `.gitattributes` and `.editorconfig` at the root. If your
+repository already has either, review the result: those files change how Git
+normalizes line endings for everything, not just for protocol files. The
+previous versions are saved under `.ai/backups/`.
+
+Review `git status` before committing. The install adds about 30 files.
+
+### Upgrading a project later
+
+```powershell
+.\setup-ai-protocol.ps1 -Target D:\path\to\project -Verify
+.\setup-ai-protocol.ps1 -Target D:\path\to\project -Force
+```
+
+`-Verify` changes nothing and reports what has drifted. `-Force` replaces the
+managed tooling, keeps backups in `.ai/backups/`, and never touches the task,
+plan, decisions, archive or journals your project has accumulated.
+
+### The daily loop
+
+```powershell
+node scripts/protocol-lock.cjs acquire --owner <session-id>   # before editing TASK, PLAN, DECISIONS, ARCHIVE
+node scripts/protocol-lock.cjs release --owner <session-id>
+node scripts/protocol-handoff.cjs record --owner <session-id> # before handing off
+node scripts/protocol-handoff.cjs verify                      # when picking work up
+```
+
+For Claude the session id and journal come from the hook. For other agents,
+pick one id per session and use it for both the lock and the journal name.
 
 ---
 

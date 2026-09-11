@@ -130,9 +130,12 @@ function resolveJournal(root, explicit, owner) {
     if (fs.existsSync(byOwner)) return byOwner;
   }
   const directory = path.join(root, '.ai', 'worklog');
-  const seeds = new Set(['claude.md', 'codex.md']);
+  if (!fs.existsSync(directory)) {
+    throw new Error('No .ai/worklog directory. Start a session, or create the journal by hand.');
+  }
+  const notJournals = new Set(['README.md']);
   const candidates = fs.readdirSync(directory)
-    .filter(name => name.endsWith('.md') && !seeds.has(name))
+    .filter(name => name.endsWith('.md') && !notJournals.has(name))
     .map(name => ({ name, mtime: fs.statSync(path.join(directory, name)).mtimeMs }))
     .sort((a, b) => b.mtime - a.mtime);
   if (!candidates.length) throw new Error('No session journal found in .ai/worklog. Create one first.');

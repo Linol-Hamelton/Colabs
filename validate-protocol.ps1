@@ -71,15 +71,25 @@ function Get-LineCount {
 Write-Host "AI Collaboration Protocol - validation"
 Write-Host "Root: $Root"
 
-$Required = @(
-    "AGENTS.md", "CLAUDE.md", ".gitattributes", ".gitignore", ".editorconfig",
-    ".ai/TASK.md", ".ai/PLAN.md", ".ai/DECISIONS.md", ".ai/ARCHIVE.md",
-    ".ai/worklog/claude.md", ".ai/worklog/codex.md", ".claude/settings.json",
-    ".claude/hooks/session-start.sh", ".claude/hooks/stop-worklog-check.sh",
-    ".claude/hooks/protocol-hooks.cjs", "validate-protocol.ps1",
-    "setup-ai-protocol.ps1", "test-protocol.ps1", "docs/PROTOCOL.md",
-    "scripts/protocol-lock.cjs", "scripts/protocol-handoff.cjs"
-)
+# The required set comes from protocol-manifest.json, the same file the
+# installer copies from. Two lists that had to agree failed three times; see
+# DEC-0012. A missing or malformed manifest is itself a failure.
+$Required = @()
+$manifestPath = Join-Path $Root 'protocol-manifest.json'
+if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+    Write-Result "FAIL" "missing file: protocol-manifest.json"
+}
+else {
+    try {
+        $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+        $Required = @($manifest.managed) + @($manifest.tests) + @($manifest.integration) +
+            @($manifest.state | ForEach-Object { '.ai/' + $_ })
+    }
+    catch {
+        Write-Result "FAIL" ("protocol-manifest.json is not valid JSON: " + $_.Exception.Message)
+        $Required = @()
+    }
+}
 foreach ($relative in $Required) {
     if (Test-Path -LiteralPath (Join-Path $Root $relative) -PathType Leaf) {
         Write-Result "PASS" "present: $relative"
@@ -122,6 +132,22 @@ $worklogDirectory = Join-Path $Root '.ai/worklog'
 if (Test-Path -LiteralPath $worklogDirectory -PathType Container) {
     $paths += Get-ChildItem -LiteralPath $worklogDirectory -Filter '*.md' -File -Force | ForEach-Object { '.ai/worklog/' + $_.Name }
 }
+# Only protocol-owned files are inspected. Applying these rules to everything
+# Git can see meant an installed project failed validation because its own
+# source used CRLF, which is the host project's business and not this
+# protocol's. Ownership is the manifest plus the directories it creates.
+function Test-ProtocolOwned {
+    param([string]$Relative)
+    if ($Required -contains $Relative) { return $true }
+    # Protocol-specific by name, and not installed into host projects.
+    if ($Relative -eq '.github/workflows/protocol.yml') { return $true }
+    $normalized = $Relative.Replace([char]92, '/')
+    foreach ($prefix in @('.ai/', 'templates/ai/', '.claude/hooks/')) {
+        if ($normalized.StartsWith($prefix)) { return $true }
+    }
+    return $false
+}
+
 $textExtensions = @('.md', '.txt', '.json', '.jsonc', '.sh', '.ps1', '.psm1', '.psd1', '.cjs', '.mjs', '.js', '.jsx', '.ts', '.tsx', '.yml', '.yaml', '.toml', '.ini', '.xml', '.html', '.css', '.scss', '.svg', '.py', '.rb', '.go', '.rs', '.sql', '.csv')
 $textNames = @('.editorconfig', '.gitattributes', '.gitignore', '.npmrc', '.nvmrc', 'Dockerfile', 'Makefile')
 $textCount = 0
@@ -133,6 +159,7 @@ foreach ($relative in ($paths | Sort-Object -Unique)) {
         Write-Result "WARN" "symlink content not inspected: $relative"
         continue
     }
+    if (-not (Test-ProtocolOwned $relative)) { continue }
     if ($textExtensions -notcontains $file.Extension -and $textNames -notcontains $file.Name) { continue }
     $textCount++
     $bytes = [System.IO.File]::ReadAllBytes($full)
@@ -153,7 +180,7 @@ foreach ($relative in ($paths | Sort-Object -Unique)) {
         foreach ($parseError in $parseErrors) { Write-Result "FAIL" ("PowerShell syntax in {0}: {1}" -f $relative, $parseError.Message) }
     }
 }
-Write-Result "PASS" "inspected $textCount repository text files for UTF-8, BOM, LF and PowerShell syntax"
+Write-Result "PASS" "inspected $textCount protocol-owned text files for UTF-8, BOM, LF and PowerShell syntax"
 
 # One journal per session keeps writers from colliding, but the directory grows
 # without bound unless old journals are archived. See AGENTS.md section 8.

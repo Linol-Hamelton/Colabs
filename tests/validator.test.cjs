@@ -48,22 +48,22 @@ test('encoding checks ignore scratch files but include tracked ignored files', t
 
 test('untracked Unicode and literal wildcard filenames are checked as paths', t => {
   const root = makeProtocolFixture(t);
-  const filename = 'документ с пробелами [draft].md';
+  const filename = '.ai/документ с пробелами [draft].md';
   write(root, filename, Buffer.from([0xc3, 0x28]));
-  fails(root, /invalid UTF-8: документ с пробелами \[draft\]\.md/);
+  fails(root, /invalid UTF-8: \.ai\/документ с пробелами \[draft\]\.md/);
   write(root, filename, 'Корректный UTF-8.\n');
   succeeds(root);
 });
 
 test('BOM, malformed UTF-8, CRLF and PowerShell syntax fail independently', async t => {
   const cases = [
-    ['UTF-8 BOM', 'notes.md', Buffer.from([0xef, 0xbb, 0xbf, 0x61, 10]), /byte order mark present: notes\.md/],
-    ['malformed UTF-8', 'notes.md', Buffer.from([0xc0, 0xaf]), /invalid UTF-8: notes\.md/],
-    ['UTF-16', 'notes.md', Buffer.from([0xff, 0xfe, 0x41, 0]), /invalid UTF-8: notes\.md/],
+    ['UTF-8 BOM', '.ai/notes.md', Buffer.from([0xef, 0xbb, 0xbf, 0x61, 10]), /byte order mark present: \.ai\/notes\.md/],
+    ['malformed UTF-8', '.ai/notes.md', Buffer.from([0xc0, 0xaf]), /invalid UTF-8: \.ai\/notes\.md/],
+    ['UTF-16', '.ai/notes.md', Buffer.from([0xff, 0xfe, 0x41, 0]), /invalid UTF-8: \.ai\/notes\.md/],
     ['editor config CRLF', '.editorconfig', 'root = true\r\n', /CR\/CRLF found.*\.editorconfig/],
-    ['Node file CRLF', 'custom.cjs', 'module.exports = {};\r\n', /CR\/CRLF found.*custom\.cjs/],
-    ['YAML CRLF', 'pipeline.yml', 'name: test\r\n', /CR\/CRLF found.*pipeline\.yml/],
-    ['PowerShell syntax', 'broken.ps1', 'if (\n', /PowerShell syntax in broken\.ps1/],
+    ['Node file CRLF', '.ai/custom.cjs', 'module.exports = {};\r\n', /CR\/CRLF found.*\.ai\/custom\.cjs/],
+    ['YAML CRLF', '.ai/pipeline.yml', 'name: test\r\n', /CR\/CRLF found.*\.ai\/pipeline\.yml/],
+    ['PowerShell syntax', '.ai/broken.ps1', 'if (\n', /PowerShell syntax in \.ai\/broken\.ps1/],
   ];
   for (const [name, filename, content, message] of cases) {
     await t.test(name, child => {

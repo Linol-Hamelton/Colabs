@@ -8,10 +8,8 @@ This repository runs a shared multi-agent protocol. The rules live in
 ## Claude-specific notes
 
 - Your journal is one file per session in `.ai/worklog/`. The SessionStart
-  hook prints its name in the injected context. Create it if it does not
-  exist yet, and write only to that file.
-- `.ai/worklog/claude.md` is a seed file with history from before per-session
-  journals. Read it; do not rewrite it.
+  hook creates it and prints its name in the injected context. Write only to
+  that file, and never to another session's.
 - The injected context is bounded. It is a starting point, not the whole
   picture. Read `.ai/DECISIONS.md` yourself when the task touches
   architecture, data, or external contracts.

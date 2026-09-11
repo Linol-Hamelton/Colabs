@@ -85,10 +85,9 @@ Each session writes exactly one file in `.ai/worklog/`. No session writes to
 another session's file, so two agents can never overwrite each other and no
 lock is needed here.
 
-- Claude: the SessionStart hook prints your file name. Create it if missing.
+- Claude: the SessionStart hook creates the file and prints its name.
 - Other agents: the file is named after the session id you take the lock with.
-- `claude.md` and `codex.md` are seed files holding history from before
-  per-session journals. Read them. Never rewrite them.
+- `README.md` in that directory is not a journal. Every other file is one.
 
 Every entry needs all five labels, or the Stop hook will not count it:
 

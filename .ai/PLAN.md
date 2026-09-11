@@ -1,65 +1,77 @@
 # Development Plan
 
 Status: Draft
-Task: Proposed next iteration after the published v1.2 audit
-Author: GPT/Codex
+Task: The first product pilot
+Author: GPT/Codex, revised by Claude after wave 1
 Date: 2026-09-12
 Approval: Pending owner prioritization; this document is a proposal.
 
-## Context
+## Where wave 1 ended
 
-Audit target: 0b3b0947593bcac9c6981a01ad8e0080dc6fe69d.
-Full findings and longer roadmap: docs/reviews/2026-09-12-claude-v1.2-audit.md.
-The former hardening plan remains available at that immutable Git revision.
-Its CI requirement is not complete; the current green local suite has 59 tests.
+Proposed by Codex in the 2026-09-12 audit, implemented and recorded as
+DEC-0011 and DEC-0012.
 
-## Wave 1 objective
+- [x] Regressions for every reproduced counterexample: T1, T2, T3, T5, T9.
+- [x] Validation refuses to be green for a protocol that is not running.
+- [x] Effective Git ignore behaviour checked, not the presence of rule text.
+- [x] Handoff carries evidence anchored to a tree digest.
+- [x] CI on Windows PowerShell 5.1, including a clean install and an upgrade.
+- [x] One manifest defines what the protocol owns; four lists became one.
+- [x] Validation stops inspecting a host project's own source.
+- [x] Documents, templates, lock fields and version identifier agree.
 
-Make validation and handoff claims dependable, reject invalid upgrades before
-mutation, enable CI and remove the remaining documentary contradictions.
+Not done from the original wave 1: T4, T6, T7, T8. They are narrower and none
+of them produces a false green. T4 leaves a partial upgrade with backups on an
+invalid hook structure; T7 accepts a Supersedes pointing at nothing; T8 picks
+recent journals by modification time, which is unreliable after a clone.
 
-## Proposed implementation sequence
+## Objective
 
-1. Add failing regressions for missing installer, disableAllHooks, deletion
-   of a latest journal entry, empty fields, invalid hook-group structure and
-   overridden Git ignore patterns. Findings T1-T5/T9 define the cases.
-2. Require all runtime entrypoints in validation. Report disabled integration
-   explicitly without silently changing the owner's setting.
-3. Precompute and validate every installer merge before writing. Verify
-   effective ignore behavior, not just presence of ignore-rule text.
-4. Require a newly prepended complete handoff while preserving earlier
-   history; a changed hash alone is insufficient evidence.
-5. Add Windows CI for PowerShell 5.1 and PowerShell 7 with Node 22, the
-   validator, full suite, encoding and installer package checks.
-6. Align TASK/PLAN, hook-assigned journal naming, lock status field names and
-   stale-lock wording. A timeout never proves the owner session has ended.
-7. Make version/manifest information consistent and capture reproducible
-   validation evidence against the exact commit being proposed.
+Find out whether this protocol reduces rework and context loss on real work,
+before building anything further for it.
 
-## Acceptance criteria
+## Proposed approach
 
-- [ ] Removing an installer entrypoint fails validation.
-- [ ] Disabled hooks produce a clear integration-state diagnostic.
-- [ ] Removing history never counts as a new handoff.
-- [ ] Invalid existing hook structure leaves target bytes unchanged.
-- [ ] Runtime/backups/local-settings effective ignore rules are checked.
-- [ ] New tests and the existing suite pass on the supported Windows matrix.
-- [ ] CI runs on the exact proposed commit and publishes results.
-- [ ] Documents use actual field names, consistent statuses and journal paths.
+Run 10 to 20 comparable product tasks through the protocol with handoffs in
+both directions, Claude to Codex and Codex to Claude. Include a defect fix, a
+decision that gets superseded, two agents touching the same area, and a task
+resumed after an interruption.
 
-## Later waves, gated by evidence
+Measure, per task: constraints lost between sessions, work redone, questions
+the owner had to answer, time for the next agent to become productive, and the
+share of effort spent maintaining protocol documents rather than the product.
 
-- Session start/status/handoff/doctor/archive commands with one session ID.
-- Safe whole-journal archival, interruption recovery and decision references.
-- Claude and Codex adapters tested inside their real hosts; project trust and
-  installed versions are checked, not inferred from documentation alone.
-- Pilot 10-20 product tasks; measure lost context, duplicate work, owner
-  questions, handoff startup time and documentation overhead.
-- Public distribution: owner-selected license, contribution/security process,
-  versioned releases, migration tests, compatibility spec and conformance suite.
+Compare against the cheapest alternative that could work: one task file and one
+handoff note, with no lock, no hooks and no evidence.
 
-## Discussion and authority
+## Alternatives considered
 
-Open points and replies remain in TASK under DEC-0007. No new discussion file
-or decision is created merely by proposing this roadmap. Existing decisions
-can be superseded only by an approved new block; old blocks stay immutable.
+Continue hardening the tooling. Rejected for now: three rounds have improved
+the scaffolding and none has produced evidence that it helps. T4, T6, T7 and
+T8 are real but none of them can mislead a reader about the state of a project.
+
+Build the Codex hook adapter first. Rejected until the pilot: the adapter is
+worth building only if the mechanism it enforces is worth enforcing, and the
+pilot is what decides that.
+
+## Risks
+
+The pilot measures a protocol used by its own authors, who know it well. The
+numbers will flatter it. Agree the target metrics before starting, not after
+seeing the result.
+
+A product task large enough to need handoffs is also large enough to hide
+whether the protocol or ordinary care produced the outcome. Prefer several
+small comparable tasks over one large one.
+
+## Validation
+
+A published table of tasks and outcomes, including the failures, showing which
+parts of the protocol earned their cost and which can be dropped.
+
+## Review
+
+- [ ] Owner names the first product objective
+- [ ] Target metrics agreed before the first task
+- [ ] Reviewed by GPT/Codex
+- [ ] Approved by owner

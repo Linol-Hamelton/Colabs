@@ -5,7 +5,7 @@ const path = require('node:path');
 const { repoRoot, makeFixture, runPowerShell, git, write } = require('./helpers.cjs');
 
 const installer = path.join(repoRoot, 'setup-ai-protocol.ps1');
-const states = ['TASK.md', 'PLAN.md', 'DECISIONS.md', 'ARCHIVE.md', 'worklog/claude.md', 'worklog/codex.md'];
+const states = ['TASK.md', 'PLAN.md', 'DECISIONS.md', 'ARCHIVE.md', 'worklog/README.md'];
 function setup(root, ...args) {
   return runPowerShell(installer, ['-Target', root, ...args]);
 }

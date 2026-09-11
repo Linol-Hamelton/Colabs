@@ -1,0 +1,40 @@
+{
+  "comment": "One list, read by both the installer and the validator, and the only definition of what this protocol owns. Separate lists that had to agree failed three times: a manifest entry with no file, a required file the installer never shipped, and encoding rules applied to a host project's own source. See DEC-0012.",
+  "protocolVersion": "1.3",
+  "managed": [
+    "protocol-manifest.json",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/PROTOCOL.md",
+    "setup-ai-protocol.ps1",
+    "validate-protocol.ps1",
+    "test-protocol.ps1",
+    "scripts/protocol-lock.cjs",
+    "scripts/protocol-handoff.cjs",
+    ".claude/hooks/protocol-hooks.cjs",
+    ".claude/hooks/session-start.sh",
+    ".claude/hooks/stop-worklog-check.sh"
+  ],
+  "tests": [
+    "tests/handoff.test.cjs",
+    "tests/helpers.cjs",
+    "tests/hooks.test.cjs",
+    "tests/installer.test.cjs",
+    "tests/lock.test.cjs",
+    "tests/manifest.test.cjs",
+    "tests/validator.test.cjs"
+  ],
+  "integration": [
+    ".claude/settings.json",
+    ".gitattributes",
+    ".editorconfig",
+    ".gitignore"
+  ],
+  "state": [
+    "TASK.md",
+    "PLAN.md",
+    "DECISIONS.md",
+    "ARCHIVE.md",
+    "worklog/README.md"
+  ]
+}

@@ -466,6 +466,70 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0012
+
+Status: Accepted
+Date: 2026-09-12
+Supersedes: nothing; it removes duplication DEC-0011 left in place
+
+Context:
+CI ran for the first time on 2026-09-12 and failed immediately. The validator
+required `scripts/protocol-handoff.cjs` while the installer's manifest never
+shipped it, so every installed project was born broken. That was the third
+instance of one defect: a manifest naming a file that did not exist, a required
+file missing from the manifest, and now a required file the installer never
+delivered. Three separate lists had to agree and nothing compared them.
+
+Testing the install into a realistic existing project exposed a second problem.
+The validator inspected every file Git could see, so a host project whose own
+source used CRLF failed validation on the day it adopted the protocol. The
+encoding rules exist to stop Windows PowerShell 5.1 corrupting this protocol's
+own scripts. Applying them to somebody else's codebase is overreach and makes
+the first impression of the protocol a red check for something it does not own.
+
+Decision:
+`protocol-manifest.json` is the single definition of what this protocol owns.
+The installer copies from it and the validator requires from it; neither keeps
+a list of its own. It names the managed files, the test files, the integration
+files it merges rather than replaces, and the working state created once per
+project. It lists itself, so an install carries it forward. Tests assert that
+every entry exists, that every test file on disk is listed, and that an
+installed project contains every entry.
+
+Validation inspects protocol-owned files only: the manifest entries plus
+`.ai/`, `templates/ai/` and `.claude/hooks/`. A host project's own sources are
+not inspected for encoding, line endings or syntax. The rules still apply in
+full to everything the protocol ships.
+
+The two seed journals are gone. `claude.md` and `codex.md` were the last
+remnant of the one-journal-per-agent model that DEC-0009 replaced; they forced
+an exception into four documents and put two placeholder files into every new
+project. Their entries moved whole into `.ai/ARCHIVE.md`, which is the first
+time the archiving procedure has been exercised. `.ai/worklog/README.md`
+explains the convention in their place.
+
+Reasoning:
+Every one of these defects is duplication with no reconciliation. Two lists of
+files, two models of journal naming, and one rule applied to two different
+scopes. Removing the duplicate removes the class, which adding a fourth check
+would not.
+
+Alternatives rejected:
+Adding the missing file to the installer's list. It fixes the instance and
+leaves the next divergence to CI or to a user. Making host-file encoding a
+warning: the headline would still be green while the message implied the host
+should change its line endings, which is not this protocol's call.
+
+Consequences:
+Adding a protocol file now means editing the manifest, and a test fails if it
+is forgotten. A host project can hold its own conventions, so the validator no
+longer reports anything about files outside the protocol. The archive holds
+four journals; the live worklog directory holds two plus its README.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

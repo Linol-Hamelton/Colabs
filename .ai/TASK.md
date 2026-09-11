@@ -6,29 +6,26 @@ Last update: 2026-09-12
 
 ## Objective
 
-Wave 1 of the audit roadmap: stop the checks from reporting success for a
-protocol that is not running, and make handoff carry evidence instead of
-assertions. Authorized by the owner's 2026-09-12 instruction to continue with
-the most valuable work.
+Clear the repository of leftovers from tested hypotheses, assess what actually
+happens when the protocol is installed into a new or an existing project, and
+write down how to connect it. Authorized by the owner's 2026-09-12 request,
+made before starting the first product task.
 
 ## Acceptance criteria
 
-- [x] Removing any runtime entry point fails validation.
-- [x] Globally disabled hooks fail validation with the reason.
-- [x] Ineffective ignore rules fail validation, checked through Git itself.
-- [x] An empty final field no longer counts as a completed journal entry.
-- [x] Handoff records real exit codes anchored to a tree digest.
-- [x] Evidence survives `git add` and fails when the tree moves.
-- [x] Every counterexample above has a regression test.
-- [x] CI runs the validator, the suite and a clean install on Windows.
-- [x] Lock field names, version identifier, decision template and the
-      archiving procedure match what the tooling actually does.
+- [x] CI failure on its first real run diagnosed and fixed at the root.
+- [x] One manifest defines what the protocol owns; installer, validator and
+      test fixtures all derive from it.
+- [x] Validation no longer inspects a host project's own source files.
+- [x] Seed journals removed and archived; the archiving procedure exercised.
+- [x] Dead branches removed; every commit reachable from `main`.
+- [x] Install verified against a new project and two existing repositories.
+- [x] Connection instructions written from what was observed, not assumed.
 
 ## Current state
 
-Branch `wave1/verifiable-state`. Recorded as DEC-0011. The Codex audit is
-preserved as its own commit `8d71e78` so per-round authorship stays
-recoverable.
+Recorded as DEC-0012. 79 tests pass, the validator exits 0, and the evidence
+block on this session's journal anchors those results to the tree.
 
 ## Active agent
 
@@ -36,19 +33,18 @@ recoverable.
 
 ## Open questions
 
-1. CI has never executed. The workflow is verified only by its own shape and
-   by the commands it runs passing locally. It proves nothing until pushed.
-2. The protocol still has no product task. Three rounds have now improved the
-   scaffolding. Wave 3 of the audit roadmap is the decisive evidence and it is
-   blocked only on the owner naming a first objective.
+1. The protocol has still never run a product task. Three rounds have improved
+   the scaffolding. `.ai/PLAN.md` proposes the pilot that would settle whether
+   any of it earns its cost.
+2. Findings T4, T6, T7 and T8 from the audit remain open. None can produce a
+   false green, which is why they were deprioritized.
 3. Codex has no hook adapter, so evidence and journals stay voluntary there.
-   Upstream documents `.codex/hooks.json`; an adapter needs testing in a real
-   host before it is worth writing.
-4. Archiving a closed journal whole is now specified but has never been run.
-   No journal directory has reached the thirty-file limit.
+4. Installing `.gitattributes` and `.editorconfig` into an existing repository
+   changes line-ending normalization for that project as a whole. Backups are
+   kept, but this is the one install step that needs a human look.
 5. The public repository still has no licence, release tags or contribution
-   process. Wave 4 of the roadmap.
+   process.
 
 ## Next
 
-Owner names the first product task, or authorizes the push that lets CI run.
+Owner names the first product objective for the pilot.
