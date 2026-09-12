@@ -57,8 +57,9 @@ Mandatory, in order:
 5. If `.ai/TASK.md` says there is no active task, ask the owner. Do not invent
    a task and do not start refactoring.
 
-For Claude the SessionStart hook injects most of this and names your journal
-file. The injection is bounded; reading the omitted files is still your job.
+For Claude and Codex, an enabled and trusted SessionStart hook injects most of
+this and names your journal file. The injection is bounded; reading omitted
+files is still your job. Codex activation is described in docs/CODEX.md.
 
 ---
 
@@ -85,8 +86,10 @@ Each session writes exactly one file in `.ai/worklog/`. No session writes to
 another session's file, so two agents can never overwrite each other and no
 lock is needed here.
 
-- Claude: the SessionStart hook creates the file and prints its name.
-- Other agents: the file is named after the session id you take the lock with.
+- Claude/Codex with active hooks: use the journal created by SessionStart.
+  Use its basename without `.md` as the lock owner and evidence owner.
+- Without active hooks: name the file after the session id used for the lock.
+  Keep that same journal if hooks are configured during this session.
 - `README.md` in that directory is not a journal. Every other file is one.
 
 Every entry needs all five labels, or the Stop hook will not count it:

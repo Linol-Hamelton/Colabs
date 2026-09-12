@@ -1,0 +1,6 @@
+# Project defaults. Personal model, reasoning effort and plugins are inherited.
+# Shared working instructions live in AGENTS.md; project history lives in .ai/.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+# Hooks are registered in hooks.json, not duplicated as inline tables here.

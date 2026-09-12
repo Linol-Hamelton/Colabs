@@ -138,6 +138,8 @@ if (Test-Path -LiteralPath $worklogDirectory -PathType Container) {
 # protocol's. Ownership is the manifest plus the directories it creates.
 function Test-ProtocolOwned {
     param([string]$Relative)
+    # Initialized once and then owned by the host, including its formatting.
+    if ($Relative.Replace([char]92, '/') -eq '.codex/config.toml') { return $false }
     if ($Required -contains $Relative) { return $true }
     # Protocol-specific by name, and not installed into host projects.
     if ($Relative -eq '.github/workflows/protocol.yml') { return $true }
@@ -236,13 +238,45 @@ else {
     if ($nodeVersion.Code -ne 0) { Write-Result "FAIL" "Node.js cannot run" }
     else {
         Write-Result "PASS" ("Node.js available: " + $nodeVersion.Output.Trim())
-        $engine = Join-Path $Root '.claude/hooks/protocol-hooks.cjs'
-        if (Test-Path -LiteralPath $engine -PathType Leaf) {
-            $syntax = Invoke-External $nodeCommand.Source @('--check', $engine)
-            if ($syntax.Code -ne 0) { Write-Result "FAIL" ("hook module syntax: " + $syntax.Error.Trim()) }
-            else { Write-Result "PASS" "hook module JavaScript syntax" }
+        foreach ($module in @('scripts/protocol-hooks.cjs', '.claude/hooks/protocol-hooks.cjs', '.codex/hooks/protocol.cjs')) {
+            $engine = Join-Path $Root $module
+            if (Test-Path -LiteralPath $engine -PathType Leaf) {
+                $syntax = Invoke-External $nodeCommand.Source @('--check', $engine)
+                if ($syntax.Code -ne 0) { Write-Result "FAIL" ("hook module syntax: " + $syntax.Error.Trim()) }
+                else { Write-Result "PASS" "hook module JavaScript syntax: $module" }
+            }
         }
     }
+}
+
+# This checks the repository definition, not the user's Codex trust store.
+# Host activation must still be reviewed with /hooks in a trusted project.
+$codexSettingsPath = Join-Path $Root '.codex/hooks.json'
+if (Test-Path -LiteralPath $codexSettingsPath -PathType Leaf) {
+    try {
+        $codexSettings = (Read-ProtocolText $codexSettingsPath) | ConvertFrom-Json
+        $expected = 'node -e "require(require(''node:path'').join(require(''node:child_process'').execFileSync(''git'',[''rev-parse'',''--show-toplevel''],{encoding:''utf8'',windowsHide:true}).trim(),''.codex/hooks/protocol.cjs'')).main()"'
+        foreach ($event in @('SessionStart', 'Stop')) {
+            $matching = @()
+            foreach ($group in $codexSettings.hooks.$event) {
+                foreach ($handler in $group.hooks) {
+                    if ($handler.type -eq 'command' -and $handler.command -ceq $expected) {
+                        $matching += $handler
+                        if ($group.matcher -and $group.matcher -notin @('*', '.*')) {
+                            throw "$event protocol hook must match all sources, including resume and compact"
+                        }
+                        if ($handler.commandWindows -or $handler.command_windows -or $handler.async -eq $true -or
+                            $handler.timeout -ne 30) {
+                            throw "$event protocol hook has unsupported execution overrides"
+                        }
+                    }
+                }
+            }
+            if ($matching.Count -ne 1) { throw "$event must configure exactly one canonical Codex protocol hook command" }
+            Write-Result "PASS" "Codex $event protocol hook configured (host trust checked separately)"
+        }
+    }
+    catch { Write-Result "FAIL" ("invalid Codex hooks: " + $_.Exception.Message) }
 }
 
 # Windows system32 bash.exe may be WSL with no installed distro. Prefer Git

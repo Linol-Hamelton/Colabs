@@ -20,6 +20,8 @@ in `AGENTS.md`, which is the only place a rule is defined.
 | `.ai/ARCHIVE.md`           | cold storage for old journal entries                |
 | `.ai/runtime/`             | disposable session state and the lock, not tracked  |
 | `.claude/`                 | hooks and settings that enforce the protocol        |
+| `.codex/`                  | Codex config and hooks; see CODEX.md for activation |
+| `scripts/protocol-hooks.cjs` | shared hook engine for Claude and Codex           |
 | `scripts/protocol-lock.cjs`| cooperative ownership of the shared documents       |
 | `validate-protocol.ps1`    | health check                                        |
 | `test-protocol.ps1`        | regression suite for the protocol tooling           |
@@ -81,9 +83,10 @@ really over first.
 Each session writes exactly one file in `.ai/worklog/`. No session writes to
 another session's file, so two agents can never overwrite each other.
 
-For Claude the SessionStart hook creates the file and prints its name in the
-injected context. For other agents the name is the session id chosen when
-taking the lock.
+With active Claude/Codex hooks, SessionStart creates the journal and prints its
+name. Use its basename without `.md` as the lock and evidence owner. Without
+active hooks, choose one session id for both. Keep an existing journal if hooks
+are configured midway through the session. See [Codex activation](CODEX.md).
 
 `README.md` in that directory is not a journal; it explains the convention.
 

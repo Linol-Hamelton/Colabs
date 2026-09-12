@@ -94,10 +94,6 @@ function Write-Bytes([string]$Relative, [byte[]]$Bytes) {
     Write-Host "[ok] written: $Relative"
 }
 
-function Write-Text([string]$Relative, [string]$Value) {
-    Write-Bytes $Relative $Utf8.GetBytes(($Value -replace "`r`n", "`n"))
-}
-
 function Install-File([string]$Source, [string]$Destination, [switch]$State) {
     $src = Join-Path $SourceRoot $Source
     $dst = Join-Path $TargetRoot $Destination
@@ -127,22 +123,58 @@ function Set-Property($Object, [string]$Name, $Value) {
     $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $Value -Force
 }
 
-function Merge-Settings {
-    $relative = '.claude/settings.json'
-    $src = Join-Path $SourceRoot $relative
-    $dst = Join-Path $TargetRoot $relative
-    $wanted = Json-Object $src
-    if (-not [System.IO.File]::Exists($dst)) {
-        if ($CheckOnly) { Report-Drift "Missing: $relative" }
-        else { Write-Bytes $relative ([System.IO.File]::ReadAllBytes($src)) }
+function New-MergePlan([string]$Relative, $Bytes, [string]$Message) {
+    return [pscustomobject]@{ Relative = $Relative; Bytes = $Bytes; Message = $Message }
+}
+
+function Apply-MergePlan($Plan) {
+    if ($null -eq $Plan.Bytes) { $script:Kept++; return }
+    if ($CheckOnly) { Report-Drift $Plan.Message; return }
+    Write-Bytes $Plan.Relative $Plan.Bytes
+}
+
+function Assert-HookSettings($Settings, [string]$Path, [switch]$Source) {
+    if (-not $Settings.PSObject.Properties['hooks']) {
+        if ($Source) { throw "Source settings must provide SessionStart and Stop hooks: $Path" }
         return
     }
+    if ($Settings.hooks -isnot [System.Management.Automation.PSCustomObject]) {
+        throw "Expected hooks to be a JSON object: $Path"
+    }
+    if ($Source -and (-not $Settings.hooks.PSObject.Properties['SessionStart'] -or
+        -not $Settings.hooks.PSObject.Properties['Stop'])) {
+        throw "Source settings must provide SessionStart and Stop hooks: $Path"
+    }
+    foreach ($event in $Settings.hooks.PSObject.Properties) {
+        if ($event.Value -isnot [array]) { throw "Expected hooks.$($event.Name) to be an array: $Path" }
+        foreach ($group in $event.Value) {
+            if ($group -isnot [System.Management.Automation.PSCustomObject] -or
+                -not $group.PSObject.Properties['hooks'] -or $group.hooks -isnot [array]) {
+                throw "Expected a hook group with a hooks array: $Path"
+            }
+            foreach ($handler in $group.hooks) {
+                if ($handler -isnot [System.Management.Automation.PSCustomObject]) {
+                    throw "Expected each hook handler to be a JSON object: $Path"
+                }
+            }
+        }
+    }
+}
+
+# Prepare complete integration updates before any target mutation. Parsing JSON
+# alone missed valid JSON with invalid hook structure and caused partial upgrades.
+function Prepare-SettingsMerge([string]$Relative, [string]$AgentName) {
+    $src = Join-Path $SourceRoot $Relative
+    $dst = Join-Path $TargetRoot $Relative
+    $wanted = Json-Object $src
+    Assert-HookSettings $wanted $src -Source
+    if (-not [System.IO.File]::Exists($dst)) {
+        return New-MergePlan $Relative ([System.IO.File]::ReadAllBytes($src)) "Missing: $Relative"
+    }
     $existing = Json-Object $dst
+    Assert-HookSettings $existing $dst
     $before = ConvertTo-Json -InputObject $existing -Depth 100 -Compress
     if (-not $existing.PSObject.Properties['hooks']) { Set-Property $existing 'hooks' ([pscustomobject]@{}) }
-    if ($existing.hooks -isnot [System.Management.Automation.PSCustomObject]) {
-        throw "Expected hooks to be a JSON object: $dst"
-    }
     # Commands from earlier protocol versions. Installing the canonical command
     # removes these, so an upgrade never leaves two hooks racing on one event.
     $legacy = @{
@@ -157,17 +189,21 @@ function Merge-Settings {
     }
     foreach ($event in $wanted.hooks.PSObject.Properties) {
         $commands = @($event.Value | ForEach-Object { $_.hooks } | ForEach-Object { $_.command })
-        if ($legacy.ContainsKey($event.Name)) { $commands += @($legacy[$event.Name]) }
+        if ($Relative -eq '.claude/settings.json' -and $legacy.ContainsKey($event.Name)) {
+            $commands += @($legacy[$event.Name])
+        }
         $groups = @()
         $oldEvent = $existing.hooks.PSObject.Properties[$event.Name]
         if ($oldEvent) {
-            if ($oldEvent.Value -isnot [array]) { throw "Expected hooks.$($event.Name) to be an array: $dst" }
             foreach ($group in $oldEvent.Value) {
-                if (-not $group.PSObject.Properties['hooks'] -or $group.hooks -isnot [array]) {
-                    throw "Expected a hook group with a hooks array: $dst"
-                }
                 $remaining = @($group.hooks | Where-Object {
-                    -not ($_.type -eq 'command' -and $commands -contains $_.command)
+                    # Merely mentioning an adapter path does not make a host
+                    # command ours. Codex has no legacy commands to migrate.
+                    $owned = if ($Relative -eq '.codex/hooks.json') {
+                        $commands -ccontains $_.command
+                    }
+                    else { $commands -contains $_.command }
+                    -not ($_.type -eq 'command' -and $owned)
                 })
                 if ($remaining.Count -gt 0 -or $group.hooks.Count -eq 0) {
                     Set-Property $group 'hooks' $remaining
@@ -179,54 +215,51 @@ function Merge-Settings {
         Set-Property $existing.hooks $event.Name $groups
     }
     $after = ConvertTo-Json -InputObject $existing -Depth 100 -Compress
-    if ($before -ceq $after) { $script:Kept++; return }
-    if ($CheckOnly) { Report-Drift 'Claude protocol hooks need merging'; return }
-    Write-Text $relative ((ConvertTo-Json -InputObject $existing -Depth 100) + "`n")
+    if ($before -ceq $after) { return New-MergePlan $Relative $null '' }
+    $merged = ((ConvertTo-Json -InputObject $existing -Depth 100) + "`n") -replace "`r`n", "`n"
+    return New-MergePlan $Relative ($Utf8.GetBytes($merged)) "$AgentName protocol hooks need merging"
 }
 
-function Merge-Hygiene([string]$Relative, [string]$ScopedContent) {
+function Prepare-HygieneMerge([string]$Relative, [string]$ScopedContent) {
     $src = Join-Path $SourceRoot $Relative
     $dst = Join-Path $TargetRoot $Relative
     if (-not [System.IO.File]::Exists($dst)) {
-        if ($CheckOnly) { Report-Drift "Missing: $Relative" }
-        else { Write-Bytes $Relative ([System.IO.File]::ReadAllBytes($src)) }
-        return
+        return New-MergePlan $Relative ([System.IO.File]::ReadAllBytes($src)) "Missing: $Relative"
     }
-    if (Same-Bytes $src $dst) { $script:Kept++; return }
+    if (Same-Bytes $src $dst) { return New-MergePlan $Relative $null '' }
     $existing = (Read-Text $dst) -replace "`r`n", "`n"
     $begin = '# BEGIN AI COLLABORATION PROTOCOL'
     $end = '# END AI COLLABORATION PROTOCOL'
     $block = $begin + "`n" + $ScopedContent.TrimEnd() + "`n" + $end + "`n"
     $pattern = '(?ms)^' + [regex]::Escape($begin) + '\n.*?^' + [regex]::Escape($end) + '(?:\n|$)'
     $matches = [regex]::Matches($existing, $pattern)
-    if ($matches.Count -gt 1 -or (($existing.Contains($begin) -or $existing.Contains($end)) -and $matches.Count -ne 1)) {
+    $beginCount = [regex]::Matches($existing, [regex]::Escape($begin)).Count
+    $endCount = [regex]::Matches($existing, [regex]::Escape($end)).Count
+    if ($matches.Count -gt 1 -or $beginCount -ne $matches.Count -or $endCount -ne $matches.Count) {
         throw "Malformed managed block in $Relative; preserve the file and repair its markers."
     }
     if ($matches.Count -eq 1) {
         $merged = $existing.Substring(0, $matches[0].Index) + $block + $existing.Substring($matches[0].Index + $matches[0].Length)
     }
     else { $merged = $existing.TrimEnd("`n") + "`n`n" + $block }
-    if ($merged -ceq $existing) { $script:Kept++; return }
-    if ($CheckOnly) { Report-Drift "Protocol entries need merging: $Relative"; return }
-    Write-Text $Relative $merged
+    if ($merged -ceq $existing) { return New-MergePlan $Relative $null '' }
+    return New-MergePlan $Relative ($Utf8.GetBytes($merged)) "Protocol entries need merging: $Relative"
 }
 
-function Merge-Ignore {
+function Prepare-IgnoreMerge {
     $src = Join-Path $SourceRoot '.gitignore'
     $dst = Join-Path $TargetRoot '.gitignore'
     if (-not [System.IO.File]::Exists($dst)) {
-        if ($CheckOnly) { Report-Drift 'Missing: .gitignore' }
-        else { Write-Bytes '.gitignore' ([System.IO.File]::ReadAllBytes($src)) }
-        return
+        return New-MergePlan '.gitignore' ([System.IO.File]::ReadAllBytes($src)) 'Missing: .gitignore'
     }
     $existing = (Read-Text $dst) -replace "`r`n", "`n"
     $lines = $existing -split "`n"
     $missing = @((Read-Text $src) -split "`r?`n" | Where-Object {
         $_.Trim().Length -gt 0 -and -not $_.TrimStart().StartsWith('#') -and $lines -cnotcontains $_
     })
-    if ($missing.Count -eq 0) { $script:Kept++; return }
-    if ($CheckOnly) { Report-Drift 'Missing protocol ignore entries'; return }
-    Write-Text '.gitignore' ($existing.TrimEnd("`n") + "`n`n# AI collaboration protocol`n" + ($missing -join "`n") + "`n")
+    if ($missing.Count -eq 0) { return New-MergePlan '.gitignore' $null '' }
+    $merged = $existing.TrimEnd("`n") + "`n`n# AI collaboration protocol`n" + ($missing -join "`n") + "`n"
+    return New-MergePlan '.gitignore' ($Utf8.GetBytes($merged)) 'Missing protocol ignore entries'
 }
 
 function Invoke-Git([string[]]$Arguments) {
@@ -255,12 +288,6 @@ try {
     foreach ($relative in ($managed + $integration)) {
         if (-not [System.IO.File]::Exists((Join-Path $SourceRoot $relative))) { throw "Required source file missing: $relative" }
     }
-    $sourceSettings = Json-Object (Join-Path $SourceRoot '.claude/settings.json')
-    if (-not $sourceSettings.PSObject.Properties['hooks'] -or
-        -not $sourceSettings.hooks.PSObject.Properties['SessionStart'] -or
-        -not $sourceSettings.hooks.PSObject.Properties['Stop']) {
-        throw 'Source Claude settings must provide SessionStart and Stop hooks.'
-    }
     if ([System.IO.File]::Exists($TargetRoot)) { throw "Target is not a directory: $TargetRoot" }
     if ($CheckOnly -and -not [System.IO.Directory]::Exists($TargetRoot)) {
         throw "Target does not exist (verification made no changes): $TargetRoot"
@@ -268,9 +295,18 @@ try {
     foreach ($relative in ($managed + $integration + @($state | ForEach-Object { '.ai/' + $_ }) + '.ai/backups/.probe')) {
         Assert-SafeDestination $relative
     }
-    # Reject invalid existing JSON before initializing project files.
-    $targetSettings = Join-Path $TargetRoot '.claude/settings.json'
-    if ([System.IO.File]::Exists($targetSettings)) { $null = Json-Object $targetSettings }
+    # Build every integration update first, including hook structure and managed
+    # markers. A preflight failure must not initialize Git, write files or backups.
+    $scopedPaths = @($managed | Where-Object { -not $_.StartsWith('templates/') }) + @('.ai/**', 'templates/ai/**')
+    $attributes = ($scopedPaths | ForEach-Object { $_ + ' text eol=lf' }) -join "`n"
+    $editor = '[{' + ($scopedPaths -join ',') + "}]`ncharset = utf-8`nend_of_line = lf`ninsert_final_newline = true"
+    $mergePlans = @(
+        (Prepare-SettingsMerge '.claude/settings.json' 'Claude'),
+        (Prepare-SettingsMerge '.codex/hooks.json' 'Codex'),
+        (Prepare-IgnoreMerge),
+        (Prepare-HygieneMerge '.gitattributes' $attributes),
+        (Prepare-HygieneMerge '.editorconfig' $editor)
+    )
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'Git is required but is not available.' }
     $gitPath = Join-Path $TargetRoot '.git'
     if (-not (Test-Path -LiteralPath $gitPath)) {
@@ -287,13 +323,10 @@ try {
     $null = Invoke-Git @('-C', $TargetRoot, 'status', '--porcelain=v1', '-uno')
     foreach ($relative in $managed) { Install-File $relative $relative }
     foreach ($relative in $state) { Install-File ('templates/ai/' + $relative) ('.ai/' + $relative) -State }
-    Merge-Settings
-    Merge-Ignore
-    $scopedPaths = @($managed | Where-Object { -not $_.StartsWith('templates/') }) + @('.ai/**', 'templates/ai/**')
-    $attributes = ($scopedPaths | ForEach-Object { $_ + ' text eol=lf' }) -join "`n"
-    Merge-Hygiene '.gitattributes' $attributes
-    $editor = '[{' + ($scopedPaths -join ',') + "}]`ncharset = utf-8`nend_of_line = lf`ninsert_final_newline = true"
-    Merge-Hygiene '.editorconfig' $editor
+    # Existing Codex configuration belongs to the host project. Initialize it
+    # once, then preserve its exact bytes even with -Force or during -Verify.
+    Install-File '.codex/config.toml' '.codex/config.toml' -State
+    foreach ($plan in $mergePlans) { Apply-MergePlan $plan }
     if ($script:Drifted -gt 0) {
         Write-Host "$($script:Drifted) difference(s). Install to merge integration; -Force updates managed files with backups. Project state is always kept."
         exit 1

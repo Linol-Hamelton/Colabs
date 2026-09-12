@@ -99,6 +99,8 @@ own README, ignore rules, Claude permissions and a `PostToolUse` hook:
 | `README.md`, source, config | untouched; the protocol installs none of these   |
 | `.gitignore`                | your rules kept, protocol rules appended below   |
 | `.claude/settings.json`     | your permissions and hooks kept, two hooks added |
+| `.codex/hooks.json`         | your hooks kept, two protocol hooks added        |
+| `.codex/config.toml`        | existing bytes kept, defaults only if absent     |
 | line endings in your code   | not inspected; the protocol checks its own files |
 
 The protocol does add `.gitattributes` and `.editorconfig` at the root. If your
@@ -128,8 +130,9 @@ node scripts/protocol-handoff.cjs record --owner <session-id> # before handing o
 node scripts/protocol-handoff.cjs verify                      # when picking work up
 ```
 
-For Claude the session id and journal come from the hook. For other agents,
-pick one id per session and use it for both the lock and the journal name.
+With active Claude/Codex hooks, use the assigned journal basename (without
+`.md`) as the lock and evidence owner. Otherwise pick one session id and use
+it for both. See [Codex setup](docs/CODEX.md) for the host activation step.
 
 ---
 
@@ -154,7 +157,8 @@ hook, the installer, the validator or the lock. It needs Node.js 22 or later.
 
 ## What actually enforces the protocol
 
-Documents do not enforce themselves. Two Claude Code hooks do.
+Claude and Codex each register SessionStart and Stop hooks using one shared
+engine in `scripts/protocol-hooks.cjs`.
 
 - **SessionStart** injects the task, Git status, recent commits, the decision
   headings and the newest journal entries, and names the journal file for this
@@ -165,11 +169,12 @@ Documents do not enforce themselves. Two Claude Code hooks do.
   it says so. It warns and never blocks, because a hook that blocks gets
   disabled and a disabled hook enforces nothing.
 
-Both are wired in `.claude/settings.json` and stay silent where Git, Node or
-the wrapper script is unavailable.
-
-Codex does not read `.claude/`. Its compliance rests on `AGENTS.md` alone,
-which is the protocol's remaining asymmetry.
+Claude registers them in `.claude/settings.json`; Codex uses
+`.codex/hooks.json`. Each product gets its own session journal and snapshot.
+Codex hooks require a trusted project and review of the exact definitions in
+`/hooks`; see [activation and validation limits](docs/CODEX.md). Until activated,
+Codex follows `AGENTS.md` without automatic reminders. Repository checks verify
+the configured adapter, not the client trust store.
 
 ---
 

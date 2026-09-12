@@ -1,50 +1,44 @@
 # Current Task
 
-Status: Completed
+Status: In progress
 Owner: RuslanFomenko
 Last update: 2026-09-12
 
 ## Objective
 
-Clear the repository of leftovers from tested hypotheses, assess what actually
-happens when the protocol is installed into a new or an existing project, and
-write down how to connect it. Authorized by the owner's 2026-09-12 request,
-made before starting the first product task.
+Configure a project-local Codex adapter using useful Claude practices, then
+advance the protocol after Claude's two completed improvement sessions.
+Authorized by the owner's 2026-09-12 request in this session.
 
 ## Acceptance criteria
 
-- [x] CI failure on its first real run diagnosed and fixed at the root.
-- [x] One manifest defines what the protocol owns; installer, validator and
-      test fixtures all derive from it.
-- [x] Validation no longer inspects a host project's own source files.
-- [x] Seed journals removed and archived; the archiving procedure exercised.
-- [x] Dead branches removed; every commit reachable from `main`.
-- [x] Install verified against a new project and two existing repositories.
-- [x] Connection instructions written from what was observed, not assumed.
+- [ ] Add portable Codex SessionStart/Stop hooks with isolated journals.
+- [ ] Reuse the existing engine and retain Claude compatibility.
+- [ ] Install/upgrade both adapters while preserving host settings.
+- [ ] Reject invalid integration settings before any install writes (T4).
+- [ ] Test the adapters, installer, validator and handoff evidence.
+- [ ] Document activation and distinguish static from live checks.
 
 ## Current state
 
-Recorded as DEC-0012. 79 tests pass, the validator exits 0, and the evidence
-block on this session's journal anchors those results to the tree.
+Started from clean main at 78f10f3, after DEC-0011 and DEC-0012.
+Baseline validator exits 0; the suite passes 81 tests with no skips.
+Branch: codex/project-adapter. Codex user settings already exist on this PC;
+the project folder is new. Global model preferences remain inherited.
 
 ## Active agent
 
-- None. The shared-document lock is released.
+- Codex, session codex-20260912-adapter, holds the shared-document lock.
+- Installer delegate owns setup-ai-protocol.ps1 and tests/installer.test.cjs.
 
 ## Open questions
 
-1. The protocol has still never run a product task. Three rounds have improved
-   the scaffolding. `.ai/PLAN.md` proposes the pilot that would settle whether
-   any of it earns its cost.
-2. Findings T4, T6, T7 and T8 from the audit remain open. None can produce a
-   false green, which is why they were deprioritized.
-3. Codex has no hook adapter, so evidence and journals stay voluntary there.
-4. Installing `.gitattributes` and `.editorconfig` into an existing repository
-   changes line-ending normalization for that project as a whole. Backups are
-   kept, but this is the one install step that needs a human look.
-5. The public repository still has no licence, release tags or contribution
-   process.
+1. The project still has no product pilot; the owner has not named a product.
+2. T6, T7 and T8 remain separate findings. T4 is in this task's scope.
+3. Codex host trust/activation must be distinguished from adapter tests.
+4. The repository still has no licence, release tags or contribution process.
 
 ## Next
 
-Owner names the first product objective for the pilot.
+Complete the Codex integration and installer preflight. Then run the product
+pilot from PLAN when the owner supplies its objective.

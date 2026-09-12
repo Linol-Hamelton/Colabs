@@ -3,9 +3,10 @@
 One file per session lives here. No session writes to another session's file,
 so two agents can never overwrite each other and no lock is needed.
 
-For Claude the SessionStart hook creates the file and prints its name in the
-injected context. For other agents the name is the session id used to take the
-shared-document lock.
+With active Claude/Codex hooks, SessionStart creates the journal and prints its
+name. Use its basename without `.md` as the lock and evidence owner. Without
+active hooks, choose one session id for both. Keep an existing journal if hooks
+are configured midway through the session.
 
 This README is not a journal. Every other `.md` in this directory is one.
 

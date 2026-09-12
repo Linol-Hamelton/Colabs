@@ -11,11 +11,15 @@
     "test-protocol.ps1",
     "scripts/protocol-lock.cjs",
     "scripts/protocol-handoff.cjs",
+    "scripts/protocol-hooks.cjs",
+    ".codex/hooks/protocol.cjs",
+    "docs/CODEX.md",
     ".claude/hooks/protocol-hooks.cjs",
     ".claude/hooks/session-start.sh",
     ".claude/hooks/stop-worklog-check.sh"
   ],
   "tests": [
+    "tests/codex.test.cjs",
     "tests/handoff.test.cjs",
     "tests/helpers.cjs",
     "tests/hooks.test.cjs",
@@ -25,6 +29,8 @@
     "tests/validator.test.cjs"
   ],
   "integration": [
+    ".codex/config.toml",
+    ".codex/hooks.json",
     ".claude/settings.json",
     ".gitattributes",
     ".editorconfig",

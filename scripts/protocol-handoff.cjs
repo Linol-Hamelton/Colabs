@@ -18,7 +18,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
-const hooks = require('../.claude/hooks/protocol-hooks.cjs');
+const hooks = require('./protocol-hooks.cjs');
 
 const CHECKS = [
   { name: 'validate-protocol.ps1', quick: true },

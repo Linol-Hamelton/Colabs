@@ -1,0 +1,28 @@
+{
+  "description": "AI protocol: load shared state and remind about missing handoffs.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(require('node:path').join(require('node:child_process').execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8',windowsHide:true}).trim(),'.codex/hooks/protocol.cjs')).main()\"",
+            "timeout": 30,
+            "statusMessage": "Loading AI protocol state"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(require('node:path').join(require('node:child_process').execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8',windowsHide:true}).trim(),'.codex/hooks/protocol.cjs')).main()\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

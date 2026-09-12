@@ -6,6 +6,10 @@ Author: GPT/Codex, revised by Claude after wave 1
 Date: 2026-09-12
 Approval: Pending owner prioritization; this document is a proposal.
 
+The owner subsequently requested project Codex configuration and further
+development on 2026-09-12. TASK now tracks that authorized adapter and installer
+preflight work. The product pilot below remains a separate proposal.
+
 ## Where wave 1 ended
 
 Proposed by Codex in the 2026-09-12 audit, implemented and recorded as
@@ -50,9 +54,10 @@ Continue hardening the tooling. Rejected for now: three rounds have improved
 the scaffolding and none has produced evidence that it helps. T4, T6, T7 and
 T8 are real but none of them can mislead a reader about the state of a project.
 
-Build the Codex hook adapter first. Rejected until the pilot: the adapter is
-worth building only if the mechanism it enforces is worth enforcing, and the
-pilot is what decides that.
+Build the Codex hook adapter first. Initially deferred until the pilot; the
+owner has now explicitly requested Codex setup. The current implementation
+reuses the shared engine and closes installer T4 as part of adding integration.
+The pilot must still establish whether this mechanism earns its cost.
 
 ## Risks
 

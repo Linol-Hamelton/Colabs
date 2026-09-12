@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { repoRoot, makeFixture, runPowerShell, git, write } = require('./helpers.cjs');
+const { repoRoot, makeFixture, makeProtocolFixture, runPowerShell, git, write } = require('./helpers.cjs');
 
 const installer = path.join(repoRoot, 'setup-ai-protocol.ps1');
 const states = ['TASK.md', 'PLAN.md', 'DECISIONS.md', 'ARCHIVE.md', 'worklog/README.md'];
@@ -31,6 +31,8 @@ test('installer initializes paths with spaces, brackets and Unicode and remains 
   for (const relative of states) assert.ok(fs.existsSync(path.join(root, '.ai', relative)));
   assert.ok(fs.existsSync(path.join(root, 'docs/PROTOCOL.md')));
   assert.ok(fs.existsSync(path.join(root, 'test-protocol.ps1')));
+  assert.deepEqual(bytes(root, '.codex/config.toml'), bytes(repoRoot, '.codex/config.toml'));
+  assert.deepEqual(bytes(root, '.codex/hooks.json'), bytes(repoRoot, '.codex/hooks.json'));
   succeeded(runPowerShell(path.join(root, 'setup-ai-protocol.ps1'), [], root));
   succeeded(setup(root, '-Verify'));
   const before = snapshot(root);
@@ -118,6 +120,66 @@ test('settings merge preserves permissions and user hooks while updating legacy 
   assert.deepEqual(snapshot(root), before);
 });
 
+test('Codex merge preserves path mentions and case variants while deduplicating canonical commands', t => {
+  const root = makeFixture(t);
+  const canonical = JSON.parse(bytes(repoRoot, '.codex/hooks.json'));
+  const custom = { type: 'command', command: 'echo host-start', timeout: 17 };
+  const pathMention = { type: 'command', command: 'echo audit .codex/hooks/protocol.cjs' };
+  const caseVariant = { type: 'command', command: canonical.hooks.SessionStart[0].hooks[0].command
+    .replace('.codex/hooks/protocol.cjs', '.CODEX/hooks/protocol.cjs') };
+  const customStop = { matcher: 'host', hooks: [{ type: 'command', command: 'echo host-stop' }] };
+  const input = {
+    hostSetting: 'retained',
+    hooks: {
+      SessionStart: [{ matcher: 'startup', hooks: [custom, pathMention, caseVariant, {
+        ...canonical.hooks.SessionStart[0].hooks[0], timeout: 10
+      }] }],
+      Stop: [customStop, { hooks: [
+        { ...canonical.hooks.Stop[0].hooks[0], timeout: 11 },
+        { ...canonical.hooks.Stop[0].hooks[0], timeout: 12 }
+      ] }],
+      PreToolUse: [{ matcher: '*', hooks: [{ type: 'command', command: 'echo host-tool' }] }]
+    }
+  };
+  write(root, '.codex/hooks.json', JSON.stringify(input, null, 2) + '\n');
+  succeeded(setup(root));
+  const output = JSON.parse(bytes(root, '.codex/hooks.json'));
+  assert.equal(output.hostSetting, input.hostSetting);
+  assert.equal(Object.hasOwn(output, 'permissions'), false);
+  assert.deepEqual(output.hooks.PreToolUse, input.hooks.PreToolUse);
+  assert.deepEqual(output.hooks.SessionStart, [
+    { matcher: 'startup', hooks: [custom, pathMention, caseVariant] }, ...canonical.hooks.SessionStart
+  ]);
+  assert.deepEqual(output.hooks.Stop, [customStop, ...canonical.hooks.Stop]);
+  const before = snapshot(root);
+  succeeded(setup(root));
+  succeeded(setup(root, '-Force'));
+  succeeded(setup(root, '-Verify'));
+  assert.deepEqual(snapshot(root), before, 'repeated merges must not create duplicates or new backups');
+});
+
+test('host Codex configuration is initialization-only and Verify checks presence', t => {
+  const root = makeFixture(t);
+  const config = Buffer.from('# Host formatting and comments are retained.\r\n' +
+    'approval_policy = "untrusted"\r\n\r\n[features]\r\nmulti_agent = false\r\n');
+  write(root, '.codex/config.toml', config);
+  succeeded(setup(root));
+  assert.deepEqual(bytes(root, '.codex/config.toml'), config);
+  const before = snapshot(root);
+  succeeded(setup(root));
+  succeeded(setup(root, '-Force'));
+  succeeded(setup(root, '-Verify'));
+  assert.deepEqual(snapshot(root), before);
+  fs.unlinkSync(path.join(root, '.codex/config.toml'));
+  const missing = snapshot(root);
+  const result = setup(root, '-Verify', '-Force');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /Missing: \.codex\/config\.toml/);
+  assert.deepEqual(snapshot(root), missing, 'Verify must not initialize absent configuration');
+  succeeded(setup(root));
+  assert.deepEqual(bytes(root, '.codex/config.toml'), bytes(repoRoot, '.codex/config.toml'));
+});
+
 test('hygiene merge preserves application rules and scopes protocol overrides', t => {
   const root = makeFixture(t);
   const attributes = '*.cs text eol=crlf\n*.dat binary\n';
@@ -164,13 +226,78 @@ test('incomplete installer source fails before creating target files', t => {
   assert.equal(fs.existsSync(target), false);
 });
 
-test('invalid settings are preserved and fail before installation', t => {
-  const root = makeFixture(t);
-  write(root, '.claude/settings.json', '{ invalid json, do not truncate }\n');
-  const before = snapshot(root);
-  assert.notEqual(setup(root, '-Force').status, 0);
-  assert.deepEqual(snapshot(root), before);
-});
+for (const relative of ['.claude/settings.json', '.codex/hooks.json']) {
+  test(`invalid JSON in ${relative} is preserved and fails before installation`, t => {
+    const root = makeFixture(t);
+    write(root, relative, '{ invalid json, do not truncate }\n');
+    const before = snapshot(root);
+    assert.notEqual(setup(root, '-Force').status, 0);
+    assert.deepEqual(snapshot(root), before);
+  });
+
+  test(`invalid hook structure in ${relative} cannot partially apply Force`, t => {
+    for (const hooks of [
+      [],
+      { SessionStart: 42 },
+      { SessionStart: [null] },
+      { SessionStart: [{ hooks: {} }] },
+      { SessionStart: [{ hooks: [null] }] },
+      { PreToolUse: 42 }
+    ]) {
+      const root = makeFixture(t);
+      write(root, 'AGENTS.md', '# Local rules that Force must not replace on failure.\n');
+      write(root, '.ai/DECISIONS.md', '# Project decisions must survive.\n');
+      write(root, relative, JSON.stringify({ hooks }) + '\n');
+      const before = snapshot(root);
+      const result = setup(root, '-Force');
+      assert.notEqual(result.status, 0, JSON.stringify(hooks));
+      assert.match(result.stdout, /Expected.*(?:hooks|hook)/);
+      assert.deepEqual(snapshot(root), before, 'no rewritten tooling, new state, or backups on preflight failure');
+      assert.equal(fs.existsSync(path.join(root, '.ai/TASK.md')), false);
+    }
+  });
+
+  test(`invalid hook structure in ${relative} is rejected before Git initialization`, t => {
+    const root = path.join(makeFixture(t), 'uninitialized project');
+    write(root, relative, JSON.stringify({ hooks: { SessionStart: 42 } }) + '\n');
+    const before = snapshot(root);
+    const result = setup(root, '-InitGit', '-Force');
+    assert.notEqual(result.status, 0);
+    assert.match(result.stdout, /Expected hooks\.SessionStart to be an array/);
+    assert.equal(fs.existsSync(path.join(root, '.git')), false);
+    assert.deepEqual(snapshot(root), before);
+  });
+
+  test(`invalid source structure in ${relative} cannot create the target`, t => {
+    const source = makeProtocolFixture(t);
+    write(source, relative, JSON.stringify({ hooks: { SessionStart: 42, Stop: [] } }) + '\n');
+    const target = path.join(source, 'uncreated target');
+    const result = runPowerShell(path.join(source, 'setup-ai-protocol.ps1'), ['-Target', target, '-InitGit'], source);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stdout, /Expected hooks\.SessionStart to be an array/);
+    assert.equal(fs.existsSync(target), false);
+  });
+}
+
+for (const relative of ['.gitattributes', '.editorconfig']) {
+  test(`malformed managed markers in ${relative} fail before any installation changes`, t => {
+    const begin = '# BEGIN AI COLLABORATION PROTOCOL\n';
+    const end = '# END AI COLLABORATION PROTOCOL\n';
+    for (const markers of [begin, end, begin + begin + end, begin + end + end]) {
+      const root = path.join(makeFixture(t), 'uninitialized project');
+      write(root, 'AGENTS.md', '# Existing rules.\n');
+      write(root, '.claude/settings.json', '{}\n');
+      write(root, '.codex/hooks.json', '{}\n');
+      write(root, relative, '# Host content\n' + markers);
+      const before = snapshot(root);
+      const result = setup(root, '-InitGit', '-Force');
+      assert.notEqual(result.status, 0);
+      assert.match(result.stdout, /Malformed managed block/);
+      assert.equal(fs.existsSync(path.join(root, '.git')), false);
+      assert.deepEqual(snapshot(root), before);
+    }
+  });
+}
 
 test('a broken Git directory and nonrepository target fail clearly', t => {
   const parent = makeFixture(t);
