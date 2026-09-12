@@ -94,21 +94,23 @@ Same command without `-InitGit`, because the repository already exists.
 Nothing of yours is replaced. Verified against a project that already had its
 own README, ignore rules, Claude permissions and a `PostToolUse` hook:
 
-| Yours                       | What happens                                    |
-| --------------------------- | ----------------------------------------------- |
-| `README.md`, source, config | untouched; the protocol installs none of these   |
-| `.gitignore`                | your rules kept, protocol rules appended below   |
-| `.claude/settings.json`     | your permissions and hooks kept, two hooks added |
-| `.codex/hooks.json`         | your hooks kept, two protocol hooks added        |
-| `.codex/config.toml`        | existing bytes kept, defaults only if absent     |
-| line endings in your code   | not inspected; the protocol checks its own files |
+| Yours                       | What happens                                      |
+| --------------------------- | ------------------------------------------------- |
+| `README.md`, source, config | untouched; the protocol installs none of these     |
+| `.gitignore`                | your rules kept, protocol rules appended below     |
+| `.claude/settings.json`     | your permissions and hooks kept, two hooks added   |
+| `.codex/hooks.json`         | merged the same way                                |
+| `.codex/config.toml`        | never written; approval policy is your decision    |
+| `.editorconfig`             | never written; indentation is your decision        |
+| `.gitattributes`            | a scoped block naming protocol paths only          |
+| line endings in your code   | not inspected; the protocol checks its own files   |
 
-The protocol does add `.gitattributes` and `.editorconfig` at the root. If your
-repository already has either, review the result: those files change how Git
-normalizes line endings for everything, not just for protocol files. The
-previous versions are saved under `.ai/backups/`.
+The protocol configures its own hooks and nothing else. It installs 22 files:
+the rules, the two host adapters, the shared hook engine, the lock, the handoff
+tool and the validator. The installer, this test suite and the templates stay
+in this repository, because a product repository cannot use them.
 
-Review `git status` before committing. The install adds about 30 files.
+Review `git status` before committing.
 
 ### Upgrading a project later
 
@@ -208,8 +210,19 @@ rather than merely documented. The validator enforces it. See DEC-0001.
 
 ---
 
+## Licence, contributing, security
+
+MIT, in `LICENSE`. The choice is recorded as DEC-0014 and is still marked
+Proposed: an agent may not pick a licence for the repository owner.
+
+`CONTRIBUTING.md` covers the working loop and where a new protocol file belongs
+in the manifest. `SECURITY.md` covers what the hooks execute on your machine and
+what to check before adopting the protocol.
+
+---
+
 ## History
 
 Commit `ae5e831` holds protocol v0.1 exactly as it was generated, corruption
 included. Everything since, and the reasoning behind each change, is recorded
-as DEC-0001 through DEC-0011 in `.ai/DECISIONS.md`.
+as DEC-0001 through DEC-0014 in `.ai/DECISIONS.md`.

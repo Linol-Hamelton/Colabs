@@ -530,6 +530,105 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0013
+
+Status: Accepted
+Date: 2026-09-13
+Supersedes: nothing; it narrows what DEC-0012 installs and what the protocol governs
+
+Context:
+Installing into a real product repository put 39 files there. Fifteen of them
+were the installer, this protocol's own regression suite and its templates,
+which a product repository cannot use and should not carry. The install also
+wrote a `.codex/config.toml` that sets an approval policy and a sandbox mode,
+and a `.gitattributes` containing `* text=auto eol=lf` whenever the project had
+none, which changes line-ending normalization for every file the project owns.
+An `.editorconfig` with `root = true` did the same for editor settings.
+
+DEC-0012 had already established that this protocol inspects only what it owns.
+The installer had not been held to the same boundary: it was still writing
+rules for files it does not own.
+
+Decision:
+The manifest separates what is installed from what stays here. `managed` is the
+runtime a project needs: the rules, the two host adapters, the shared hook
+engine, the lock, the handoff tool, the validator and the manifest itself.
+`source` is the installer, the test runner and the release documents, which
+exist only in this repository. The installed copy of the manifest records
+`"role": "installed"` and omits the source lists, so a project's validator
+never demands an installer that was deliberately not delivered.
+
+The protocol configures its own hooks and nothing else. `.codex/config.toml` is
+no longer written: approval policy and sandbox mode are the host project's
+decisions. `.editorconfig` is no longer written at all. A `.gitattributes`
+created from scratch now carries the same scoped managed block a merge would
+add, naming only protocol paths, instead of a copy of this repository's own
+file. An existing hygiene file is merged, never replaced.
+
+A `Supersedes:` naming a decision that does not exist now fails validation,
+because a reader otherwise cannot tell which decision still stands.
+
+The repository carries a licence, a contribution guide and a security policy.
+The licence choice is recorded separately as DEC-0014 and is not settled here.
+
+Reasoning:
+Adoption is the moment a protocol is judged. A tool that drops its own test
+suite into a product repository and rewrites that project's line-ending rules
+will be removed before it is ever evaluated on its merits. The boundary that
+DEC-0012 drew for inspection applies to installation for the same reason.
+
+Alternatives rejected:
+Shipping everything and documenting what to delete. It puts the work on every
+adopter and leaves the protocol's tests running in projects that did not ask
+for them. Keeping `.editorconfig` scoped rather than dropping it: an
+`.editorconfig` at a project root with `root = true` stops that project's own
+configuration from being found, which is not a side effect worth any benefit.
+
+Consequences:
+An install is 22 files instead of 39. A project that installed an earlier
+version keeps the extra files until it removes them; nothing deletes them on
+its behalf. Upgrading such a project leaves the stale installer and test suite
+in place, which is untidy but harmless. Protocol files added in future must be
+placed in the right manifest list deliberately, and a test fails when the lists
+and the working tree disagree.
+
+Approved by: RuslanFomenko
+
+---
+
+### DEC-0014
+
+Status: Proposed
+Date: 2026-09-13
+
+Context:
+The repository is public and had no licence, so nobody could legally use,
+copy or modify it, including the owner's own later projects under a different
+entity. Production readiness cannot mean a repository nobody may use.
+
+Decision:
+Proposed: MIT, with copyright held by the repository owner. It is the most
+permissive common choice for tooling of this kind and imposes nothing on the
+projects that install the protocol.
+
+Reasoning:
+The protocol is installed into other repositories and its files are copied
+there. A copyleft licence would propagate obligations into every adopting
+project, which would defeat the purpose. MIT does not.
+
+Alternatives rejected:
+Apache-2.0, which adds an explicit patent grant and attribution requirements.
+It is a reasonable choice and the owner may prefer it. No licence at all,
+which blocks every use.
+
+Consequences:
+`LICENSE` exists so the repository is usable today. If the owner chooses
+differently, the file changes and a new decision supersedes this one.
+
+Approved by: _pending; an agent may not choose a licence for its owner_
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

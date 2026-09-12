@@ -60,7 +60,7 @@ test('BOM, malformed UTF-8, CRLF and PowerShell syntax fail independently', asyn
     ['UTF-8 BOM', '.ai/notes.md', Buffer.from([0xef, 0xbb, 0xbf, 0x61, 10]), /byte order mark present: \.ai\/notes\.md/],
     ['malformed UTF-8', '.ai/notes.md', Buffer.from([0xc0, 0xaf]), /invalid UTF-8: \.ai\/notes\.md/],
     ['UTF-16', '.ai/notes.md', Buffer.from([0xff, 0xfe, 0x41, 0]), /invalid UTF-8: \.ai\/notes\.md/],
-    ['editor config CRLF', '.editorconfig', 'root = true\r\n', /CR\/CRLF found.*\.editorconfig/],
+    ['host-visible protocol YAML CRLF', '.ai/notes.yml', 'root = true\r\n', /CR\/CRLF found.*\.ai\/notes\.yml/],
     ['Node file CRLF', '.ai/custom.cjs', 'module.exports = {};\r\n', /CR\/CRLF found.*\.ai\/custom\.cjs/],
     ['YAML CRLF', '.ai/pipeline.yml', 'name: test\r\n', /CR\/CRLF found.*\.ai\/pipeline\.yml/],
     ['PowerShell syntax', '.ai/broken.ps1', 'if (\n', /PowerShell syntax in \.ai\/broken\.ps1/],

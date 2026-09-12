@@ -62,7 +62,10 @@ function seedProtocol(root) {
   // Derived from protocol-manifest.json, not from a list of its own. A fourth
   // list that had to agree with the manifest is what broke the first CI run.
   const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'protocol-manifest.json'), 'utf8'));
-  const entries = [...manifest.managed, ...manifest.tests, ...manifest.integration, 'templates'];
+  // A fixture stands in for the protocol source repository, so it needs the
+  // source-only tooling too. An installed project gets only `managed`.
+  const entries = [...manifest.managed, ...manifest.source, ...manifest.tests,
+    ...manifest.integration, '.editorconfig', '.codex/config.toml', 'templates'];
   for (const relative of entries) {
     const source = path.join(repoRoot, relative);
     if (!fs.existsSync(source)) continue;

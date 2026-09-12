@@ -1,22 +1,28 @@
 {
-  "comment": "One list, read by both the installer and the validator, and the only definition of what this protocol owns. Separate lists that had to agree failed three times: a manifest entry with no file, a required file the installer never shipped, and encoding rules applied to a host project's own source. See DEC-0012.",
-  "protocolVersion": "1.3",
+  "comment": "The only definition of what this protocol owns, read by the installer, the validator and the test fixtures. 'managed' is installed into every project. 'source' stays in this repository: a product repo has no use for the installer, the protocol's own test suite or its templates. 'integration' is merged into whatever the project already has, never replaced. See DEC-0013.",
+  "protocolVersion": "1.4",
+  "role": "source",
   "managed": [
     "protocol-manifest.json",
     "AGENTS.md",
     "CLAUDE.md",
     "docs/PROTOCOL.md",
-    "setup-ai-protocol.ps1",
+    "docs/CODEX.md",
     "validate-protocol.ps1",
-    "test-protocol.ps1",
+    "scripts/protocol-hooks.cjs",
     "scripts/protocol-lock.cjs",
     "scripts/protocol-handoff.cjs",
-    "scripts/protocol-hooks.cjs",
-    ".codex/hooks/protocol.cjs",
-    "docs/CODEX.md",
     ".claude/hooks/protocol-hooks.cjs",
     ".claude/hooks/session-start.sh",
-    ".claude/hooks/stop-worklog-check.sh"
+    ".claude/hooks/stop-worklog-check.sh",
+    ".codex/hooks/protocol.cjs"
+  ],
+  "source": [
+    "setup-ai-protocol.ps1",
+    "test-protocol.ps1",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
   ],
   "tests": [
     "tests/codex.test.cjs",
@@ -29,11 +35,9 @@
     "tests/validator.test.cjs"
   ],
   "integration": [
-    ".codex/config.toml",
-    ".codex/hooks.json",
     ".claude/settings.json",
+    ".codex/hooks.json",
     ".gitattributes",
-    ".editorconfig",
     ".gitignore"
   ],
   "state": [

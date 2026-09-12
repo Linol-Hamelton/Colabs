@@ -30,10 +30,12 @@ test('installer initializes paths with spaces, brackets and Unicode and remains 
   succeeded(setup(root, '-InitGit'));
   for (const relative of states) assert.ok(fs.existsSync(path.join(root, '.ai', relative)));
   assert.ok(fs.existsSync(path.join(root, 'docs/PROTOCOL.md')));
-  assert.ok(fs.existsSync(path.join(root, 'test-protocol.ps1')));
-  assert.deepEqual(bytes(root, '.codex/config.toml'), bytes(repoRoot, '.codex/config.toml'));
+  // Source-only tooling stays behind; a product repository cannot use it.
+  assert.ok(!fs.existsSync(path.join(root, 'test-protocol.ps1')));
+  assert.ok(!fs.existsSync(path.join(root, 'setup-ai-protocol.ps1')));
+  assert.ok(!fs.existsSync(path.join(root, '.codex/config.toml')));
   assert.deepEqual(bytes(root, '.codex/hooks.json'), bytes(repoRoot, '.codex/hooks.json'));
-  succeeded(runPowerShell(path.join(root, 'setup-ai-protocol.ps1'), [], root));
+  succeeded(runPowerShell('validate-protocol.ps1', [], root));
   succeeded(setup(root, '-Verify'));
   const before = snapshot(root);
   succeeded(setup(root));
@@ -158,12 +160,16 @@ test('Codex merge preserves path mentions and case variants while deduplicating 
   assert.deepEqual(snapshot(root), before, 'repeated merges must not create duplicates or new backups');
 });
 
-test('host Codex configuration is initialization-only and Verify checks presence', t => {
+test('a host Codex configuration is never written or touched', t => {
   const root = makeFixture(t);
-  const config = Buffer.from('# Host formatting and comments are retained.\r\n' +
-    'approval_policy = "untrusted"\r\n\r\n[features]\r\nmulti_agent = false\r\n');
+  const crlf = String.fromCharCode(13, 10);
+  const config = Buffer.from('# Host formatting and comments are retained.' + crlf +
+    'approval_policy = "untrusted"' + crlf + crlf + '[features]' + crlf +
+    'multi_agent = false' + crlf);
   write(root, '.codex/config.toml', config);
   succeeded(setup(root));
+  // Approval policy and sandbox mode are the host project's decisions. The
+  // protocol configures its own hooks and nothing else. See DEC-0013.
   assert.deepEqual(bytes(root, '.codex/config.toml'), config);
   const before = snapshot(root);
   succeeded(setup(root));
@@ -171,15 +177,10 @@ test('host Codex configuration is initialization-only and Verify checks presence
   succeeded(setup(root, '-Verify'));
   assert.deepEqual(snapshot(root), before);
   fs.unlinkSync(path.join(root, '.codex/config.toml'));
-  const missing = snapshot(root);
-  const result = setup(root, '-Verify', '-Force');
-  assert.notEqual(result.status, 0);
-  assert.match(result.stdout, /Missing: \.codex\/config\.toml/);
-  assert.deepEqual(snapshot(root), missing, 'Verify must not initialize absent configuration');
   succeeded(setup(root));
-  assert.deepEqual(bytes(root, '.codex/config.toml'), bytes(repoRoot, '.codex/config.toml'));
+  assert.ok(!fs.existsSync(path.join(root, '.codex/config.toml')),
+    'the installer must not create a Codex configuration');
 });
-
 test('hygiene merge preserves application rules and scopes protocol overrides', t => {
   const root = makeFixture(t);
   const attributes = '*.cs text eol=crlf\n*.dat binary\n';
@@ -189,12 +190,14 @@ test('hygiene merge preserves application rules and scopes protocol overrides', 
   write(root, '.gitignore', 'build-output/\ncustom-secret.txt\n');
   succeeded(setup(root, '-Force'));
   assert.ok(bytes(root, '.gitattributes').toString().startsWith(attributes));
-  assert.ok(bytes(root, '.editorconfig').toString().startsWith(editor));
+  // The protocol no longer writes .editorconfig at all: indentation for a whole
+  // project is not its decision. A host file must survive untouched.
+  assert.equal(bytes(root, '.editorconfig').toString(), editor);
   assert.ok(bytes(root, '.gitignore').toString().startsWith('build-output/\ncustom-secret.txt\n'));
   const application = git(root, ['check-attr', 'eol', '--', 'application.cs']);
   succeeded(application);
   assert.match(application.stdout, /crlf/);
-  const protocol = git(root, ['check-attr', 'eol', '--', 'setup-ai-protocol.ps1']);
+  const protocol = git(root, ['check-attr', 'eol', '--', 'validate-protocol.ps1']);
   succeeded(protocol);
   assert.match(protocol.stdout, /eol: lf/);
   succeeded(setup(root, '-Verify'));
@@ -216,8 +219,9 @@ test('missing state fails self-check and Verify without recreating it', t => {
 });
 
 test('incomplete installer source fails before creating target files', t => {
-  const source = makeFixture(t);
-  succeeded(setup(source));
+  // An install no longer delivers the templates, so the source of an install
+  // has to be a protocol source repository. See DEC-0013.
+  const source = makeProtocolFixture(t);
   fs.unlinkSync(path.join(source, 'templates/ai/TASK.md'));
   const target = path.join(source, 'uncreated target');
   const result = runPowerShell(path.join(source, 'setup-ai-protocol.ps1'), ['-Target', target, '-InitGit'], source);
@@ -279,7 +283,7 @@ for (const relative of ['.claude/settings.json', '.codex/hooks.json']) {
   });
 }
 
-for (const relative of ['.gitattributes', '.editorconfig']) {
+for (const relative of ['.gitattributes']) {
   test(`malformed managed markers in ${relative} fail before any installation changes`, t => {
     const begin = '# BEGIN AI COLLABORATION PROTOCOL\n';
     const end = '# END AI COLLABORATION PROTOCOL\n';

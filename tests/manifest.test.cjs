@@ -87,3 +87,67 @@ test('protocol files are still held to the encoding rules', t => {
   assert.equal(result.status, 1);
   assert.match(result.stdout + result.stderr, /CR\/CRLF found[\s\S]*TASK\.md/);
 });
+
+// A product repository gets the runtime and nothing else. Shipping the
+// installer, the protocol's own test suite and its templates put fifteen
+// files of protocol-development machinery into somebody's product.
+test('an installed project receives the runtime but not the source tooling', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  for (const relative of [...manifest.source, ...manifest.tests, 'templates',
+    '.editorconfig', '.codex/config.toml']) {
+    fs.rmSync(path.join(target, relative), { recursive: true, force: true });
+  }
+  const install = runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  assert.equal(install.status, 0, install.stdout + install.stderr);
+
+  for (const relative of manifest.managed) {
+    assert.ok(fs.existsSync(path.join(target, relative)), `missing runtime file: ${relative}`);
+  }
+  for (const relative of [...manifest.source, ...manifest.tests, 'templates', '.editorconfig', '.codex/config.toml']) {
+    assert.ok(!fs.existsSync(path.join(target, relative)), `source-only file was installed: ${relative}`);
+  }
+});
+
+test('the installed manifest declares its role and drops the source lists', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  const installed = JSON.parse(fs.readFileSync(path.join(target, 'protocol-manifest.json'), 'utf8'));
+  assert.equal(installed.role, 'installed');
+  assert.equal(installed.source, undefined);
+  assert.equal(installed.tests, undefined);
+  assert.deepEqual(installed.managed, manifest.managed);
+});
+
+test('an installed project validates without the installer present', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  const result = runPowerShell('validate-protocol.ps1', [], target);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /installed project; the installer lives in the protocol source repository/);
+});
+
+// Line endings and editor settings belong to the host project.
+test('fresh hygiene files govern protocol paths only', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  fs.rmSync(path.join(target, '.gitattributes'), { force: true });
+  fs.writeFileSync(path.join(target, 'host.js'), 'const a = 1;\n');
+  runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  const attributes = fs.readFileSync(path.join(target, '.gitattributes'), 'utf8');
+  assert.doesNotMatch(attributes, /^\* /m, 'a repository-wide rule reached a host project');
+  assert.match(attributes, /BEGIN AI COLLABORATION PROTOCOL/);
+  assert.match(attributes, /\.ai\/\*\* text eol=lf/);
+});
+
+test('a Supersedes pointing at no decision fails validation', t => {
+  const root = makeProtocolFixture(t);
+  const log = '# Decisions\n\n### DEC-0001\n\nStatus: Accepted\nDate: 2026-09-12\n' +
+    'Supersedes: DEC-9999\nApproved by: Test Owner\n';
+  write(root, '.ai/DECISIONS.md', log);
+  const result = runPowerShell('validate-protocol.ps1', ['-Quiet'], root);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout + result.stderr, /DEC-0001 supersedes DEC-9999, which does not exist/);
+});

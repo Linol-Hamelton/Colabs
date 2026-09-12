@@ -1,4 +1,4 @@
-# AI Collaboration Protocol installer, protocol v1.3. ASCII-only for PS 5.1.
+# AI Collaboration Protocol installer, protocol v1.4. ASCII-only for PS 5.1.
 # No arguments: read-only check of this checkout.
 # -Target <path> [-InitGit]: initialize missing state and merge integration.
 # -Force: update managed tooling with backups, preserving existing .ai state.
@@ -220,17 +220,53 @@ function Prepare-SettingsMerge([string]$Relative, [string]$AgentName) {
     return New-MergePlan $Relative ($Utf8.GetBytes($merged)) "$AgentName protocol hooks need merging"
 }
 
+function Prepare-ManifestWrite($Manifest) {
+    # The installed copy describes an installed project: no installer, no test
+    # suite, no templates, so its validator does not demand files that a
+    # product repository has no reason to carry.
+    $installed = [ordered]@{
+        comment = 'Installed copy. The protocol source repository holds the installer, the test suite and the templates; this project holds only the runtime it needs.'
+        protocolVersion = $Manifest.protocolVersion
+        role = 'installed'
+        managed = @($Manifest.managed)
+        integration = @($Manifest.integration)
+        state = @($Manifest.state)
+    }
+    # Running the installer against its own repository must never downgrade the
+    # source manifest to an installed one: that would delete the record of the
+    # installer, the tests and the templates from the only place they exist.
+    if ($SelfInstall) {
+        return New-MergePlan 'protocol-manifest.json' $null ''
+    }
+    $json = (ConvertTo-Json -InputObject ([pscustomobject]$installed) -Depth 10) -replace "`r`n", "`n"
+    $bytes = $Utf8.GetBytes($json.TrimEnd("`n") + "`n")
+    $dst = Join-Path $TargetRoot 'protocol-manifest.json'
+    if ([System.IO.File]::Exists($dst)) {
+        $current = [System.IO.File]::ReadAllBytes($dst)
+        if ($current.Length -eq $bytes.Length) {
+            $same = $true
+            for ($i = 0; $i -lt $bytes.Length; $i++) { if ($current[$i] -ne $bytes[$i]) { $same = $false; break } }
+            if ($same) { return New-MergePlan 'protocol-manifest.json' $null '' }
+        }
+    }
+    return New-MergePlan 'protocol-manifest.json' $bytes 'Manifest needs updating: protocol-manifest.json'
+}
+
 function Prepare-HygieneMerge([string]$Relative, [string]$ScopedContent) {
     $src = Join-Path $SourceRoot $Relative
     $dst = Join-Path $TargetRoot $Relative
-    if (-not [System.IO.File]::Exists($dst)) {
-        return New-MergePlan $Relative ([System.IO.File]::ReadAllBytes($src)) "Missing: $Relative"
-    }
-    if (Same-Bytes $src $dst) { return New-MergePlan $Relative $null '' }
-    $existing = (Read-Text $dst) -replace "`r`n", "`n"
     $begin = '# BEGIN AI COLLABORATION PROTOCOL'
     $end = '# END AI COLLABORATION PROTOCOL'
     $block = $begin + "`n" + $ScopedContent.TrimEnd() + "`n" + $end + "`n"
+    if (-not [System.IO.File]::Exists($dst)) {
+        # Copying this repository's own hygiene file would apply its rules to the
+        # whole host project: line endings for every source file, indentation for
+        # every language. Only the protocol's own paths are ours to govern, so a
+        # fresh file gets the same scoped block a merge would add.
+        return New-MergePlan $Relative ($Utf8.GetBytes($block)) "Missing: $Relative"
+    }
+    if (Same-Bytes $src $dst) { return New-MergePlan $Relative $null '' }
+    $existing = (Read-Text $dst) -replace "`r`n", "`n"
     $pattern = '(?ms)^' + [regex]::Escape($begin) + '\n.*?^' + [regex]::Escape($end) + '(?:\n|$)'
     $matches = [regex]::Matches($existing, $pattern)
     $beginCount = [regex]::Matches($existing, [regex]::Escape($begin)).Count
@@ -280,12 +316,16 @@ try {
     $manifestPath = Join-Path $SourceRoot 'protocol-manifest.json'
     if (-not [System.IO.File]::Exists($manifestPath)) { throw "Required source file missing: protocol-manifest.json" }
     $manifest = Json-Object $manifestPath
+    # What the target receives. The installer, the protocol's own test suite and
+    # the templates stay in this repository: a product repo cannot use them and
+    # should not carry them. See DEC-0013.
     $managed = @($manifest.managed)
     $state = @($manifest.state)
-    $managed += @($manifest.tests)
-    $managed += @($state | ForEach-Object { 'templates/ai/' + $_ })
     $integration = @($manifest.integration)
-    foreach ($relative in ($managed + $integration)) {
+    # What must exist here for an install to be possible at all.
+    $sourceOnly = @($manifest.source) + @($manifest.tests) +
+        @($state | ForEach-Object { 'templates/ai/' + $_ })
+    foreach ($relative in ($managed + $integration + $sourceOnly)) {
         if (-not [System.IO.File]::Exists((Join-Path $SourceRoot $relative))) { throw "Required source file missing: $relative" }
     }
     if ([System.IO.File]::Exists($TargetRoot)) { throw "Target is not a directory: $TargetRoot" }
@@ -297,15 +337,14 @@ try {
     }
     # Build every integration update first, including hook structure and managed
     # markers. A preflight failure must not initialize Git, write files or backups.
-    $scopedPaths = @($managed | Where-Object { -not $_.StartsWith('templates/') }) + @('.ai/**', 'templates/ai/**')
+    $scopedPaths = @($managed) + @('.ai/**')
     $attributes = ($scopedPaths | ForEach-Object { $_ + ' text eol=lf' }) -join "`n"
-    $editor = '[{' + ($scopedPaths -join ',') + "}]`ncharset = utf-8`nend_of_line = lf`ninsert_final_newline = true"
     $mergePlans = @(
         (Prepare-SettingsMerge '.claude/settings.json' 'Claude'),
         (Prepare-SettingsMerge '.codex/hooks.json' 'Codex'),
+        (Prepare-ManifestWrite $manifest),
         (Prepare-IgnoreMerge),
-        (Prepare-HygieneMerge '.gitattributes' $attributes),
-        (Prepare-HygieneMerge '.editorconfig' $editor)
+        (Prepare-HygieneMerge '.gitattributes' $attributes)
     )
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'Git is required but is not available.' }
     $gitPath = Join-Path $TargetRoot '.git'
@@ -321,11 +360,11 @@ try {
         throw 'Git resolved a different repository root.'
     }
     $null = Invoke-Git @('-C', $TargetRoot, 'status', '--porcelain=v1', '-uno')
-    foreach ($relative in $managed) { Install-File $relative $relative }
+    foreach ($relative in $managed) {
+        if ($relative -eq 'protocol-manifest.json') { continue }
+        Install-File $relative $relative
+    }
     foreach ($relative in $state) { Install-File ('templates/ai/' + $relative) ('.ai/' + $relative) -State }
-    # Existing Codex configuration belongs to the host project. Initialize it
-    # once, then preserve its exact bytes even with -Force or during -Verify.
-    Install-File '.codex/config.toml' '.codex/config.toml' -State
     foreach ($plan in $mergePlans) { Apply-MergePlan $plan }
     if ($script:Drifted -gt 0) {
         Write-Host "$($script:Drifted) difference(s). Install to merge integration; -Force updates managed files with backups. Project state is always kept."

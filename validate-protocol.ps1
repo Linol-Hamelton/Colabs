@@ -10,6 +10,8 @@ $ErrorActionPreference = "Stop"
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
 $Root = $PSScriptRoot
 $script:Failures = 0
+$script:ProtocolRole = 'source'
+$script:SupersedeRefs = @()
 $script:Warnings = 0
 $StrictUtf8 = New-Object System.Text.UTF8Encoding($false, $true)
 
@@ -82,8 +84,16 @@ if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
 else {
     try {
         $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-        $Required = @($manifest.managed) + @($manifest.tests) + @($manifest.integration) +
+        # A source repository must carry the installer, the test suite and the
+        # templates. An installed project must not: it cannot use them. The
+        # manifest says which kind of checkout this is. See DEC-0013.
+        $script:ProtocolRole = if ($manifest.PSObject.Properties['role']) { [string]$manifest.role } else { 'source' }
+        $Required = @($manifest.managed) + @($manifest.integration) +
             @($manifest.state | ForEach-Object { '.ai/' + $_ })
+        if ($script:ProtocolRole -eq 'source') {
+            $Required += @($manifest.source) + @($manifest.tests) +
+                @($manifest.state | ForEach-Object { 'templates/ai/' + $_ })
+        }
     }
     catch {
         Write-Result "FAIL" ("protocol-manifest.json is not valid JSON: " + $_.Exception.Message)
@@ -319,6 +329,13 @@ if (Test-Path -LiteralPath $decisionPath -PathType Leaf) {
             if ($seen.ContainsKey($id)) { Write-Result "FAIL" "duplicate decision: $id" }
             $seen[$id] = $true
             $body = $block.Groups['body'].Value
+            # A Supersedes pointing at nothing makes the log unreadable: a
+            # reader cannot tell which decision still stands. See DEC-0013.
+            foreach ($reference in [regex]::Matches($body, '(?m)^Supersedes:[ 	]*(.*)$')) {
+                foreach ($target in [regex]::Matches($reference.Groups[1].Value, 'DEC-\d{4}')) {
+                    $script:SupersedeRefs += [pscustomobject]@{ From = $id; To = $target.Value }
+                }
+            }
             $fields = @{}
             foreach ($field in @('Status', 'Date', 'Approved by')) {
                 $values = [regex]::Matches($body, ('(?m)^' + [regex]::Escape($field) + ':[ \t]*(.*)$'))
@@ -340,6 +357,14 @@ if (Test-Path -LiteralPath $decisionPath -PathType Leaf) {
         }
         if ($blocks.Count -eq 0) { Write-Result "WARN" "no numbered decisions recorded yet" }
         else { Write-Result "PASS" ("inspected {0} decision blocks; approval text is not proof of human authorization" -f $blocks.Count) }
+        foreach ($reference in $script:SupersedeRefs) {
+            if (-not $seen.ContainsKey($reference.To)) {
+                Write-Result "FAIL" ("{0} supersedes {1}, which does not exist" -f $reference.From, $reference.To)
+            }
+            elseif ($reference.To -eq $reference.From) {
+                Write-Result "FAIL" ("{0} supersedes itself" -f $reference.From)
+            }
+        }
     }
 }
 
@@ -391,7 +416,10 @@ if ($gitCommand -and $script:GitUsable) {
 }
 
 $installerPath = Join-Path $Root 'setup-ai-protocol.ps1'
-if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
+if ($script:ProtocolRole -ne 'source') {
+    Write-Result "PASS" "installed project; the installer lives in the protocol source repository"
+}
+elseif (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
     # Skipping silently is how a deleted installer used to pass validation.
     Write-Result "FAIL" "installer absent; its self-check cannot run and was not skipped quietly"
 }

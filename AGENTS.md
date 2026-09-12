@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.3
+## AI Collaboration Protocol v1.4
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude, and
 others. They do not share chat history. The filesystem is the only channel

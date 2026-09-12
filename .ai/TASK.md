@@ -1,44 +1,51 @@
 # Current Task
 
-Status: In progress
+Status: Completed
 Owner: RuslanFomenko
-Last update: 2026-09-12
+Last update: 2026-09-13
 
 ## Objective
 
-Configure a project-local Codex adapter using useful Claude practices, then
-advance the protocol after Claude's two completed improvement sessions.
-Authorized by the owner's 2026-09-12 request in this session.
+Bring the stack to a state that can be installed on a real product repository:
+finish the Codex adapter round that stopped mid-way, remove everything a
+product repository cannot use, and stop the protocol from configuring anything
+it does not own. Authorized by the owner's 2026-09-13 instruction.
 
 ## Acceptance criteria
 
-- [ ] Add portable Codex SessionStart/Stop hooks with isolated journals.
-- [ ] Reuse the existing engine and retain Claude compatibility.
-- [ ] Install/upgrade both adapters while preserving host settings.
-- [ ] Reject invalid integration settings before any install writes (T4).
-- [ ] Test the adapters, installer, validator and handoff evidence.
-- [ ] Document activation and distinguish static from live checks.
+- [x] The interrupted Codex round is committed, assessed and green.
+- [x] An install delivers the runtime only; source tooling stays behind.
+- [x] No approval policy, editor settings or repository-wide line-ending rule
+      is written into a host project.
+- [x] An installed project validates without the installer present.
+- [x] A Supersedes naming no decision fails validation.
+- [x] Licence, contribution guide and security policy exist.
+- [x] Every change above has a regression test.
 
 ## Current state
 
-Started from clean main at 78f10f3, after DEC-0011 and DEC-0012.
-Baseline validator exits 0; the suite passes 81 tests with no skips.
-Branch: codex/project-adapter. Codex user settings already exist on this PC;
-the project folder is new. Global model preferences remain inherited.
+Recorded as DEC-0013, with the licence choice open as DEC-0014. 103 tests pass
+and the evidence on this session's journal anchors that to the tree.
 
 ## Active agent
 
-- Codex, session codex-20260912-adapter, holds the shared-document lock.
-- Installer delegate owns setup-ai-protocol.ps1 and tests/installer.test.cjs.
+- None. The shared-document lock is released.
 
 ## Open questions
 
-1. The project still has no product pilot; the owner has not named a product.
-2. T6, T7 and T8 remain separate findings. T4 is in this task's scope.
-3. Codex host trust/activation must be distinguished from adapter tests.
-4. The repository still has no licence, release tags or contribution process.
+1. DEC-0014 is Proposed, not Accepted. MIT is in place so the repository is
+   usable; the owner confirms or replaces it.
+2. The Codex adapter has never run inside a real Codex host. Its cost of being
+   wrong is that the hooks do not fire, which is where things stood before.
+3. The session `codex-20260912-adapter` held the shared lock for 124 minutes
+   and never created the journal it named. Stale detection surfaced it and the
+   lock was released after inspection. Its round is described from the diff,
+   not from its own handoff.
+4. Projects installed before v1.4 keep the extra files until removed by hand.
+   Nothing deletes them on a project's behalf.
+5. Still no product task. That remains the only open question that matters.
 
 ## Next
 
-Complete the Codex integration and installer preflight. Then run the product
-pilot from PLAN when the owner supplies its objective.
+Owner names the first product objective. The stack is ready to be installed on
+it.

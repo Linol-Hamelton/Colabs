@@ -29,6 +29,22 @@ of them produces a false green. T4 leaves a partial upgrade with backups on an
 invalid hook structure; T7 accepts a Supersedes pointing at nothing; T8 picks
 recent journals by modification time, which is unreliable after a clone.
 
+## Production readiness, closed 2026-09-13
+
+Recorded as DEC-0013. The Codex adapter round is DEC-0009 mechanics finished.
+
+- [x] Codex adapter on a shared hook engine, with its own entry point.
+- [x] Install footprint cut from 39 files to 22; source tooling stays here.
+- [x] The protocol configures its own hooks and nothing else.
+- [x] Dangling Supersedes fails validation.
+- [x] Licence, contribution guide and security policy.
+- [x] Version 1.4 consistent across manifest, rules and installer.
+
+Open and deliberately not done: audit findings T6 and T8 in the SessionStart
+hook, both narrow and neither able to produce a false green. The Codex adapter
+has never run inside a real Codex host; if its schema is wrong the hooks simply
+do not fire, which is the state before it existed.
+
 ## Objective
 
 Find out whether this protocol reduces rework and context loss on real work,
