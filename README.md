@@ -32,8 +32,6 @@ can be trusted without reading the diff history.
 
 ---
 
----
-
 ## Handoff carries evidence, not assertions
 
 The protocol's first two rounds both produced journal entries whose central
@@ -67,32 +65,39 @@ fails with the reason, and each has a regression test. See DEC-0011.
 
 ## Connecting the protocol to a project
 
-You need Git, Node.js 22 or later, and Windows PowerShell 5.1. Clone this
-repository somewhere; it stays the source you install and upgrade from.
+You need Git for Windows (including Git Bash), Node.js 22 or later, and Windows
+PowerShell 5.1. Clone this repository somewhere; it stays the source you install
+and upgrade from.
 
 ### A new project
 
 ```powershell
 cd D:\path\to\Colabs
-.\setup-ai-protocol.ps1 -Target D:\path\to\new-project -InitGit
+powershell -ExecutionPolicy Bypass -File .\setup-ai-protocol.ps1 -Target D:\path\to\new-project -InitGit
 cd D:\path\to\new-project
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 ```
 
 Two warnings are expected and correct: no decisions yet, no active task. Write
-the first objective into `.ai/TASK.md`, then open the project in Claude Code.
-The SessionStart hook loads the state and creates the session journal.
+the first objective into `.ai/TASK.md`, then open the project in Claude Code
+or Codex. For Codex, review and trust the project hooks in `/hooks` first;
+see [activation](docs/CODEX.md). An active SessionStart hook loads the state
+and creates the session journal.
 
 ### An existing repository
 
 Same command without `-InitGit`, because the repository already exists.
 
 ```powershell
-.\setup-ai-protocol.ps1 -Target D:\path\to\existing-project
+powershell -ExecutionPolicy Bypass -File .\setup-ai-protocol.ps1 -Target D:\path\to\existing-project
 ```
 
-Nothing of yours is replaced. Verified against a project that already had its
-own README, ignore rules, Claude permissions and a `PostToolUse` hook:
+Existing files are kept on a normal install; integration files merge the
+protocol settings. If a managed path such as `AGENTS.md` already contains your
+own rules, inspect the reported drift and reconcile those rules before using
+`-Force`, which replaces managed files. Verified against a project that
+already had its own README, ignore rules, Claude permissions and a
+`PostToolUse` hook:
 
 | Yours                       | What happens                                      |
 | --------------------------- | ------------------------------------------------- |
@@ -225,4 +230,4 @@ what to check before adopting the protocol.
 
 Commit `ae5e831` holds protocol v0.1 exactly as it was generated, corruption
 included. Everything since, and the reasoning behind each change, is recorded
-as DEC-0001 through DEC-0014 in `.ai/DECISIONS.md`.
+in `.ai/DECISIONS.md` and the per-session journals in `.ai/worklog/`.

@@ -2,6 +2,42 @@
 
 Session journal. Owned by this session, resumed on 2026-09-13.
 
+## 2026-09-13 - Finish against Claude v1.5.1 and repair Windows handoff
+
+Agent:
+GPT/Codex, session codex-20260912-adapter, with adapter_review on the isolated
+reproductions, shared hook repair and regression tests.
+
+Action:
+Resumed from clean cdcca4b and verified Claude's latest evidence before edits.
+The earlier entry's repairs are now committed in 54c0623. Claude's subsequent
+DEC-0015/0016 changes are preserved, including reuse of clean index entries.
+Confirmed two remaining identity mismatches in temporary repositories: Git
+normalizes CRLF before storing a blob, and core.filemode=false preserves a
+tracked executable mode that the Windows filesystem does not report.
+
+Prepared v1.5.2 with Git-normalized dirty file identities and format 4, removed
+obsolete index-prefix stripping from handoff, and corrected current-state and
+adoption docs. A preexisting AGENTS.md needs rule reconciliation before Force.
+The earlier branch/file cleanup remains intact; history and approved decisions
+are preserved. The source repository retains its installer, templates and tests.
+
+Result:
+Both defects reproduced on the unmodified v1.5.1 base. Verification of the
+repair and final automated evidence are pending; no green result is claimed yet.
+
+Next step:
+Run targeted regressions and full source checks, record evidence for the final
+tree, verify it and release the shared-document lock.
+
+Open:
+Assumption: this is a mechanical repair of DEC-0016's promised stable Git
+identity, within the owner's adoption-workflow request. Advancing the digest
+format follows DEC-0015; no new approval or product scope is inferred. Prior
+evidence is preserved and must be refreshed for format 4. No commit or push
+requested. Codex hook execution still requires the owner's host trust review.
+T6/T8, licence DEC-0014 and the first product objective remain open.
+
 ## 2026-09-13 - Resume interrupted adapter work and verify adoption
 
 Agent:

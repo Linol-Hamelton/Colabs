@@ -61,12 +61,9 @@ function anchor(root) {
   const names = Object.keys(files).sort();
   const hash = crypto.createHash('sha256');
   for (const name of names) {
-    // snapshot() prefixes each entry with its Git index record. Staging a file
-    // changes that record without changing the file, so evidence recorded
-    // before `git add` would fail to verify after it. Content and mode are
-    // what the evidence is about; keep only those.
-    const content = files[name].split('|').pop();
-    hash.update(`${name}|${content}|`);
+    // snapshot() supplies the same Git content/mode identity before and after
+    // staging. No separate index-state prefix needs stripping.
+    hash.update(`${name}|${files[name]}|`);
   }
   const dirty = git(root, ['status', '--porcelain', '-uall']).trim().length > 0;
   return {

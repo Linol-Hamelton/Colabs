@@ -7,8 +7,11 @@ Date: 2026-09-13
 Approval: Pending owner prioritization; this document is a proposal.
 
 The Codex adapter was preserved in 3b3a973 and the v1.4 delivery boundary in
-a00c275. TASK tracks the resumed session's final workflow verification and
-handoff repair. The product pilot below remains a separate proposal.
+a00c275. The installed-project handoff repair was committed in 54c0623;
+Claude then added the fast snapshot and staging-stable identity in 3e91ded
+and cdcca4b (DEC-0015/0016, v1.5.1). TASK tracks the remaining Windows
+normalization regression found during adoption checks. The product pilot
+below remains a separate proposal.
 
 ## Where wave 1 ended
 
@@ -39,9 +42,10 @@ Recorded as DEC-0013. The Codex adapter round is DEC-0009 mechanics finished.
 - [x] Licence, contribution guide and security policy.
 - [x] Version 1.4 consistent across manifest, rules and installer.
 
-Open and deliberately not done: audit findings T6 and T8 in the SessionStart
-hook. On 2026-09-13 the installed Codex CLI discovered both project hooks with
-no errors; both were enabled but untrusted. Execution in a trusted live session
+Open audit follow-ups: T6 concerns validator text-extension coverage; T8
+concerns SessionStart journal ordering. On 2026-09-13 the installed Codex CLI
+discovered both project hooks with no errors; both were enabled but untrusted.
+Execution in a trusted live session
 remains distinct from the successful adapter regression tests.
 
 ## Objective
@@ -66,7 +70,7 @@ handoff note, with no lock, no hooks and no evidence.
 ## Alternatives considered
 
 Continue broad hardening before the pilot. Deferred: infrastructure checks do
-not establish product value. Finish the current installed-handoff regression
+not establish product value. Finish the reproduced Windows handoff regression
 and documentation repair, then measure the protocol on product work.
 
 Build the Codex hook adapter first. Initially deferred until the pilot; the

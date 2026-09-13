@@ -139,9 +139,14 @@ one journal on its own. It fails when no evidence matches the current tree, or
 when the matching evidence records a failing check. `node scripts/protocol-handoff.cjs state` prints the current anchor
 without running anything.
 
-The digest covers file content and mode, never the Git index, so evidence
-recorded before `git add` still verifies afterwards. Session journals and
-runtime state are excluded, so writing the evidence does not invalidate it.
+The digest covers Git-normalized content and mode. Clean files reuse their
+index identity; changed files use Git's path-specific normalization and mode
+rules. Evidence therefore survives staging and committing unchanged work,
+including CRLF files in Windows projects. Session journals and runtime state
+are excluded, so writing the evidence does not invalidate it.
+
+Version 1.5.2 uses digest format 4. Earlier evidence remains in the journals
+but is reported as not comparable; run `record` again after upgrading.
 
 Never hand-write an Evidence block. A hand-written one is a claim again.
 
@@ -153,12 +158,16 @@ Run installation and upgrade commands from the protocol source repository;
 the installed project deliberately has no installer. For a new project:
 
 ```powershell
-.\setup-ai-protocol.ps1 -Target D:\my-project -InitGit
+powershell -ExecutionPolicy Bypass -File .\setup-ai-protocol.ps1 -Target D:\my-project -InitGit
 ```
 
 For an existing Git repository use the same command without `-InitGit`. Then
 open that repository in your agent, follow [Codex hook activation](CODEX.md)
 when applicable, and fill `.ai/TASK.md` with the first product objective.
+
+If `AGENTS.md` already holds project-specific rules, normal installation keeps
+it. Reconcile those rules with the protocol before using `-Force`; managed
+files are replaced on upgrade, with backups. Review `git diff` after installing.
 
 Report what has drifted from the canonical version without changing anything:
 

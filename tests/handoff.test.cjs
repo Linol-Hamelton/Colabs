@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { makeFixture, makeProtocolFixture, run, runPowerShell, write } = require('./helpers.cjs');
+const { makeFixture, makeProtocolFixture, run, git, runPowerShell, write } = require('./helpers.cjs');
 const hooks = require('../.claude/hooks/protocol-hooks.cjs');
 const handoff = require('../scripts/protocol-handoff.cjs');
 
@@ -12,6 +12,13 @@ const handoff = require('../scripts/protocol-handoff.cjs');
 // runner. Installed fixtures must exercise the default handoff without --quick.
 function cli(root, args) {
   return run(process.execPath, [path.join(root, 'scripts/protocol-handoff.cjs'), ...args], root);
+}
+
+function checkedGit(root, args) {
+  const result = git(root, ['-c', 'user.name=Protocol Test',
+    '-c', 'user.email=protocol-test@example.invalid', ...args]);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  return result.stdout;
 }
 
 function entry(title = 'work', open = 'nothing outstanding') {
@@ -284,4 +291,75 @@ test('recorded evidence still verifies after the work is committed', t => {
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'save'], root);
   const after = cli(root, ['verify', '--journal', journal]);
   assert.equal(after.status, 0, after.stderr);
+});
+
+test('CRLF host evidence survives staging and commit while a real edit still invalidates it', t => {
+  const root = makeFixture(t);
+  write(root, '.gitattributes', '*.txt text eol=crlf\n');
+  const install = runPowerShell('setup-ai-protocol.ps1', ['-Target', root]);
+  assert.equal(install.status, 0, install.stdout + install.stderr);
+  checkedGit(root, ['add', '.']);
+  checkedGit(root, ['commit', '-m', 'Installed project baseline']);
+  const relative = "host source/a 'quote' $(literal) \u0442\u0435\u0441\u0442.txt";
+  const content = Buffer.from('first\r\nsecond\r\n');
+  const filename = write(root, relative, content);
+  const journal = '.ai/worklog/crlf-session.md';
+  write(root, journal, `# W\n\n${entry('CRLF host handoff')}\n`);
+
+  const recorded = cli(root, ['record', '--owner', 'crlf-session']);
+  assert.equal(recorded.status, 0, recorded.stdout + recorded.stderr);
+  const before = handoff.anchor(root).digest;
+  checkedGit(root, ['add', '--', relative]);
+  assert.equal(handoff.anchor(root).digest, before, 'staging must preserve the evidence digest');
+  checkedGit(root, ['commit', '-m', 'Commit CRLF content without changing working bytes']);
+  assert.deepEqual(fs.readFileSync(filename), content);
+  assert.equal(handoff.anchor(root).digest, before, 'committing must preserve the evidence digest');
+  const verified = cli(root, ['verify', '--owner', 'crlf-session']);
+  assert.equal(verified.status, 0, verified.stdout + verified.stderr);
+
+  fs.appendFileSync(filename, 'a real edit\r\n');
+  assert.notEqual(handoff.anchor(root).digest, before);
+  const changed = cli(root, ['verify', '--owner', 'crlf-session']);
+  assert.equal(changed.status, 1, changed.stdout + changed.stderr);
+  assert.match(changed.stderr, /evidence is stale/);
+});
+
+test('core.filemode=false keeps an executable index mode when only content changes', t => {
+  const root = makeFixture(t);
+  checkedGit(root, ['config', 'core.filemode', 'false']);
+  const filename = write(root, 'run.sh', 'echo initial\n');
+  checkedGit(root, ['add', 'run.sh']);
+  checkedGit(root, ['update-index', '--chmod=+x', 'run.sh']);
+  checkedGit(root, ['commit', '-m', 'Executable index entry']);
+  const initial = hooks.snapshot(root)['run.sh'];
+  assert.match(initial, /^100755:/);
+
+  const content = Buffer.from('echo changed\n');
+  fs.writeFileSync(filename, content);
+  const dirty = hooks.snapshot(root)['run.sh'];
+  assert.match(dirty, /^100755:/, 'the filesystem mode must not override core.filemode=false');
+  assert.notEqual(dirty, initial, 'the content change must remain visible');
+  const before = handoff.anchor(root).digest;
+  checkedGit(root, ['add', 'run.sh']);
+  assert.equal(handoff.anchor(root).digest, before);
+  checkedGit(root, ['commit', '-m', 'Content-only update']);
+  assert.deepEqual(fs.readFileSync(filename), content);
+  assert.equal(hooks.snapshot(root)['run.sh'], dirty);
+  assert.equal(handoff.anchor(root).digest, before);
+});
+
+test('dirty hashing handles argument edge cases and files beyond the first batch', t => {
+  const root = makeFixture(t);
+  const names = ['-leading.txt', "a 'quote' $(literal) \u0442\u0435\u0441\u0442.txt"];
+  if (process.platform !== 'win32') names.push('a\nnewline.txt', 'a"double-quote.txt', 'a\\backslash.txt');
+  for (let i = 0; i < 130; i += 1) names.push(`many files/${String(i).padStart(3, '0')}.txt`);
+  for (const [i, name] of names.entries()) write(root, name, `content ${i}\n`);
+  const before = hooks.snapshot(root);
+  assert.equal(Object.keys(before).length, names.length);
+  checkedGit(root, ['add', '.']);
+  checkedGit(root, ['commit', '-m', 'Preserve every filename and batch']);
+  assert.deepEqual(hooks.snapshot(root), before);
+  const last = names[names.length - 1];
+  write(root, last, 'a changed final file\n');
+  assert.deepEqual(hooks.changedFiles(before, hooks.snapshot(root)), [last]);
 });

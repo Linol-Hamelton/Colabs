@@ -41,8 +41,8 @@ function rootFor(input, agent) {
 // The identity of a file must not depend on whether Git happens to be tracking
 // it yet, or evidence recorded before `git add` would not survive it. So a
 // working-tree file is identified by the same Git blob hash the index would
-// hold for it, computed here. See DEC-0015 and DEC-0016.
-const SNAPSHOT_FORMAT = 3;
+// hold for it, including path-specific conversions. See DEC-0015 and DEC-0016.
+const SNAPSHOT_FORMAT = 4;
 
 function blobId(content) {
   const header = Buffer.from(`blob ${content.length}${String.fromCharCode(0)}`);
@@ -61,16 +61,54 @@ function fingerprint(filename) {
   return `${mode}:${blobId(fs.readFileSync(filename))}`;
 }
 
+function hashWorkingFiles(root, entries, identities) {
+  if (!entries.length) return;
+  const trustMode = git(root, ['config', '--type=bool', '--default', 'true', '--get', 'core.filemode'])
+    .trim() === 'true';
+  const hashBatch = batch => {
+    // Git applies each path's attributes, clean filters and encoding. Raw
+    // bytes are not necessarily the blob git add stores (for example CRLF).
+    // Pass filenames as arguments, never shell code or newline-separated stdin.
+    const hashes = git(root, ['hash-object', '--', ...batch.map(item => item.name)])
+      .trim().split(/\r?\n/);
+    if (hashes.length !== batch.length || hashes.some(hash => !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(hash))) {
+      throw new Error('Git hash-object returned unexpected file identities.');
+    }
+    batch.forEach((item, i) => {
+      const mode = trustMode
+        ? ((item.mode & 0o111) ? '100755' : '100644')
+        : (item.indexMode === '100755' ? '100755' : '100644');
+      identities.set(item.name, `${mode}:${hashes[i]}`);
+    });
+  };
+  let batch = [];
+  let characters = 0;
+  for (const entry of entries) {
+    // Leave ample room below Windows' command-line limit, including quoting.
+    const size = entry.name.length * 2 + 4;
+    if (batch.length && (batch.length >= 128 || characters + size > 12000)) {
+      hashBatch(batch);
+      batch = [];
+      characters = 0;
+    }
+    batch.push(entry);
+    characters += size;
+  }
+  if (batch.length) hashBatch(batch);
+}
+
 function snapshot(root) {
   const names = new Set(git(root, ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])
     .split('\0').filter(Boolean));
   const index = new Map();
+  const indexModes = new Map();
   for (const record of git(root, ['ls-files', '--stage', '-z']).split('\0').filter(Boolean)) {
     const separator = record.indexOf('\t');
     const name = record.slice(separator + 1);
     const parts = record.slice(0, separator).split(/\s+/);
     // mode, object id. Keep every stage so a conflicted path stays distinct.
     index.set(name, `${index.get(name) || ''}${parts[0]}:${parts[1]};`);
+    if (parts[2] === '0') indexModes.set(name, parts[0]);
   }
   // --no-renames keeps every record a single path, so NUL parsing stays simple.
   const dirty = new Set();
@@ -78,17 +116,38 @@ function snapshot(root) {
     .split('\0').filter(Boolean)) {
     if (record.length > 3) dirty.add(record.slice(3));
   }
-  const files = {};
+  const identities = new Map();
+  const regular = [];
   for (const name of [...names].sort()) {
     // Runtime is disposable. Each worklog has its own writer and is checked separately.
     if (name.startsWith('.ai/runtime/') || name.startsWith('.ai/worklog/')) continue;
     const staged = index.get(name);
-    // A clean tracked entry is already identified by its mode and blob hash,
-    // in exactly the form fingerprint() would produce for it.
-    const identity = (staged && !dirty.has(name))
-      ? staged.replace(/;$/, '')
-      : fingerprint(path.join(root, name));
-    Object.defineProperty(files, name, { value: String(identity), enumerable: true });
+    // Clean tracked entries need no file reads or extra Git subprocesses.
+    if (staged && !dirty.has(name)) {
+      identities.set(name, staged.replace(/;$/, ''));
+      continue;
+    }
+    const filename = path.join(root, name);
+    let stat;
+    try { stat = fs.lstatSync(filename); }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      identities.set(name, null);
+      continue;
+    }
+    if (stat.isFile()) {
+      regular.push({ name, mode: stat.mode, indexMode: indexModes.get(name) });
+    }
+    else {
+      // Journal fingerprints remain raw and independent of repository filters.
+      // Symlinks/directories retain their existing snapshot handling too.
+      identities.set(name, fingerprint(filename));
+    }
+  }
+  hashWorkingFiles(root, regular, identities);
+  const files = {};
+  for (const name of [...identities.keys()].sort()) {
+    Object.defineProperty(files, name, { value: String(identities.get(name)), enumerable: true });
   }
   return files;
 }
