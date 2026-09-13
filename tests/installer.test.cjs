@@ -29,7 +29,7 @@ test('installer initializes paths with spaces, brackets and Unicode and remains 
   const root = path.join(parent, 'project [one] ' + String.fromCodePoint(0x442, 0x435, 0x441, 0x442));
   succeeded(setup(root, '-InitGit'));
   for (const relative of states) assert.ok(fs.existsSync(path.join(root, '.ai', relative)));
-  assert.ok(fs.existsSync(path.join(root, 'docs/PROTOCOL.md')));
+  assert.ok(fs.existsSync(path.join(root, '.ai/docs/PROTOCOL.md')));
   // Source-only tooling stays behind; a product repository cannot use it.
   assert.ok(!fs.existsSync(path.join(root, 'test-protocol.ps1')));
   assert.ok(!fs.existsSync(path.join(root, 'setup-ai-protocol.ps1')));

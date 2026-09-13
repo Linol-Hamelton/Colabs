@@ -6,12 +6,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { makeFixture, makeProtocolFixture, run, git, runPowerShell, write } = require('./helpers.cjs');
 const hooks = require('../.claude/hooks/protocol-hooks.cjs');
-const handoff = require('../scripts/protocol-handoff.cjs');
+const handoff = require('../.ai/bin/protocol-handoff.cjs');
 
 // Source fixtures use --quick unless their suite is replaced by a small test
 // runner. Installed fixtures must exercise the default handoff without --quick.
 function cli(root, args) {
-  return run(process.execPath, [path.join(root, 'scripts/protocol-handoff.cjs'), ...args], root);
+  return run(process.execPath, [path.join(root, '.ai/bin/protocol-handoff.cjs'), ...args], root);
 }
 
 function checkedGit(root, args) {

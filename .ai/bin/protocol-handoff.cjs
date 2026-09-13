@@ -202,7 +202,7 @@ function main(argv) {
     else throw new Error('Usage: protocol-handoff.cjs record|verify|state [--owner id] [--journal path] [--root path] [--quick]');
     i += 1;
   }
-  const root = fs.realpathSync(path.resolve(options.root || path.join(__dirname, '..')));
+  const root = fs.realpathSync(path.resolve(options.root || path.join(__dirname, '..', '..')));
   const state = anchor(root);
 
   if (command === 'state') {

@@ -15,7 +15,7 @@ never edited again.
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
-node scripts/protocol-handoff.cjs record --owner <your-session-id>
+node .ai/bin/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
 The validator must exit 0 and the suite must pass before you hand off. The

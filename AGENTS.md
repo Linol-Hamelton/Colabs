@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.5.2
+## AI Collaboration Protocol v1.6.2
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude, and
 others. They do not share chat history. The filesystem is the only channel
@@ -59,7 +59,7 @@ Mandatory, in order:
 
 For Claude and Codex, an enabled and trusted SessionStart hook injects most of
 this and names your journal file. The injection is bounded; reading omitted
-files is still your job. Codex activation is described in docs/CODEX.md.
+files is still your job. Codex activation is described in .ai/docs/CODEX.md.
 
 ---
 
@@ -116,8 +116,8 @@ Open:
 edited by one session at a time, through a cooperative lock.
 
 ```bash
-node scripts/protocol-lock.cjs acquire --owner <your-session-id>
-node scripts/protocol-lock.cjs release --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs acquire --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs release --owner <your-session-id>
 ```
 
 The lock is cooperative, not an operating system barrier. It works only if
@@ -168,7 +168,7 @@ A green validator is not a green project. Run the project's own tests too.
 Then attach evidence to your journal entry instead of asserting a result:
 
 ```bash
-node scripts/protocol-handoff.cjs record --owner <your-session-id>
+node .ai/bin/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
 It runs the validator, plus the protocol regression suite in the source role,
@@ -176,7 +176,7 @@ records their real exit codes, and stamps the entry with a digest of the exact
 tree they ran against. Record product test results separately in the journal;
 this tool does not run or certify them. It exits non-zero when a check
 fails, so a red tree cannot produce a green receipt. The next agent re-checks
-with `node scripts/protocol-handoff.cjs verify`, which fails when the tree has
+with `node .ai/bin/protocol-handoff.cjs verify`, which fails when the tree has
 moved since the evidence was recorded.
 
 This is the difference between telling the next agent the suite passed and

@@ -35,7 +35,7 @@ jobs:
 
       - name: Tree anchor
         shell: powershell
-        run: node scripts/protocol-handoff.cjs state
+        run: node .ai/bin/protocol-handoff.cjs state
 
       - name: Install into a clean directory and validate there
         shell: powershell

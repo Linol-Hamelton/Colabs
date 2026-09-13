@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { repoRoot, makeProtocolFixture, runPowerShell, write } = require('./helpers.cjs');
+const { repoRoot, makeProtocolFixture, runPowerShell, run, write } = require('./helpers.cjs');
 
 const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'protocol-manifest.json'), 'utf8'));
 
@@ -150,4 +150,46 @@ test('a Supersedes pointing at no decision fails validation', t => {
   const result = runPowerShell('validate-protocol.ps1', ['-Quiet'], root);
   assert.equal(result.status, 1);
   assert.match(result.stdout + result.stderr, /DEC-0001 supersedes DEC-9999, which does not exist/);
+});
+
+// Both candidate pilot repositories keep their own scripts/ and docs/, and one
+// of them regenerates docs/ from a workflow. The protocol must not put files
+// in a directory the project already uses. See DEC-0017.
+test('installing adds nothing to a host project own directories', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  for (const relative of [...manifest.source, ...manifest.tests, 'templates',
+    'tests', '.editorconfig', '.codex/config.toml', 'docs', 'scripts']) {
+    fs.rmSync(path.join(target, relative), { recursive: true, force: true });
+  }
+  fs.mkdirSync(path.join(target, 'scripts'), { recursive: true });
+  fs.mkdirSync(path.join(target, 'docs'), { recursive: true });
+  fs.writeFileSync(path.join(target, 'scripts/build.js'), 'build\n');
+  fs.writeFileSync(path.join(target, 'docs/index.md'), '# API\n');
+
+  const install = runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  assert.equal(install.status, 0, install.stdout + install.stderr);
+  assert.deepEqual(fs.readdirSync(path.join(target, 'scripts')), ['build.js']);
+  assert.deepEqual(fs.readdirSync(path.join(target, 'docs')), ['index.md']);
+
+  const roots = fs.readdirSync(target).filter(name => !name.startsWith('.') &&
+    !['scripts', 'docs'].includes(name)).sort();
+  assert.deepEqual(roots, ['AGENTS.md', 'CLAUDE.md', 'protocol-manifest.json', 'validate-protocol.ps1'],
+    `the protocol added unexpected top-level entries: ${roots.join(', ')}`);
+});
+
+test('the tools resolve the project root from .ai/bin, including a subdirectory', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  fs.mkdirSync(path.join(target, 'deep', 'nested'), { recursive: true });
+
+  for (const cwd of [target, path.join(target, 'deep', 'nested')]) {
+    const state = run(process.execPath, [path.join(target, '.ai/bin/protocol-handoff.cjs'), 'state'], cwd);
+    assert.equal(state.status, 0, state.stderr);
+    assert.ok(JSON.parse(state.stdout).fileCount > 10,
+      `root resolved wrongly from ${cwd}: ${state.stdout}`);
+    const lock = run(process.execPath, [path.join(target, '.ai/bin/protocol-lock.cjs'), 'status'], cwd);
+    assert.equal(lock.status, 0, lock.stderr);
+  }
 });

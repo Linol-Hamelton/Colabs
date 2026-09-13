@@ -30,7 +30,7 @@ Before handing off, let the tooling attach the sixth, optional field instead of
 typing a claim:
 
 ```
-node scripts/protocol-handoff.cjs record --owner <your-session-id>
+node .ai/bin/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
 When this directory passes thirty files, move the oldest closed journals whole

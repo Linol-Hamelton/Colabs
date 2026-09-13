@@ -9,7 +9,7 @@ agents. Neither is duplicated in `.codex/`.
 
 - `.codex/hooks.json`: SessionStart and Stop command registrations.
 - `.codex/hooks/protocol.cjs`: a thin Codex entrypoint for the shared engine
-  in `scripts/protocol-hooks.cjs`. Claude uses that same engine.
+  in `.ai/bin/protocol-hooks.cjs`. Claude uses that same engine.
 
 The protocol installer does not create or modify `.codex/config.toml`. This
 source repository has its own local defaults there; installed projects keep

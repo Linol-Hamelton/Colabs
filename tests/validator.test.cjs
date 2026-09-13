@@ -198,8 +198,8 @@ test('a deleted installer fails validation instead of skipping its self-check', 
 });
 
 test('every runtime entrypoint is required, not only the validator', t => {
-  for (const entrypoint of ['test-protocol.ps1', 'scripts/protocol-lock.cjs',
-    'scripts/protocol-handoff.cjs', 'docs/PROTOCOL.md']) {
+  for (const entrypoint of ['test-protocol.ps1', '.ai/bin/protocol-lock.cjs',
+    '.ai/bin/protocol-handoff.cjs', '.ai/docs/PROTOCOL.md']) {
     const root = makeProtocolFixture(t);
     fs.rmSync(path.join(root, entrypoint));
     fails(root, new RegExp('missing file: ' + entrypoint));

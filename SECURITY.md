@@ -14,7 +14,7 @@ the platform, and the smallest reproduction you have.
 
 ## What to check before adopting it
 
-- The hooks execute `scripts/protocol-hooks.cjs` from your checkout. Read it.
+- The hooks execute `.ai/bin/protocol-hooks.cjs` from your checkout. Read it.
   A hook runs with your permissions every session.
 - `.claude/settings.json` and `.codex/hooks.json` are merged into whatever you
   already have. Review the diff; the protocol's entries are the only ones it

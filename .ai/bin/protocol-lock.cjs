@@ -86,7 +86,7 @@ function operate(root, command, owner) {
 function main(args) {
   const [command, ...options] = args;
   let owner;
-  let root = path.resolve(__dirname, '..');
+  let root = path.resolve(__dirname, '..', '..');
   for (let i = 0; i < options.length; i += 2) {
     if (options[i] === '--owner' && options[i + 1]) owner = options[i + 1];
     else if (options[i] === '--root' && options[i + 1]) root = path.resolve(options[i + 1]);

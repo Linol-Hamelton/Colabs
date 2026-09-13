@@ -248,7 +248,7 @@ else {
     if ($nodeVersion.Code -ne 0) { Write-Result "FAIL" "Node.js cannot run" }
     else {
         Write-Result "PASS" ("Node.js available: " + $nodeVersion.Output.Trim())
-        foreach ($module in @('scripts/protocol-hooks.cjs', '.claude/hooks/protocol-hooks.cjs', '.codex/hooks/protocol.cjs')) {
+        foreach ($module in @('.ai/bin/protocol-hooks.cjs', '.claude/hooks/protocol-hooks.cjs', '.codex/hooks/protocol.cjs')) {
             $engine = Join-Path $Root $module
             if (Test-Path -LiteralPath $engine -PathType Leaf) {
                 $syntax = Invoke-External $nodeCommand.Source @('--check', $engine)

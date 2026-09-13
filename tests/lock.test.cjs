@@ -8,7 +8,7 @@ const { spawn } = require('node:child_process');
 const { makeProtocolFixture, run, write } = require('./helpers.cjs');
 
 function invoke(root, command, owner) {
-  return run(process.execPath, [path.join(root, 'scripts/protocol-lock.cjs'), command,
+  return run(process.execPath, [path.join(root, '.ai/bin/protocol-lock.cjs'), command,
     ...(owner ? ['--owner', owner] : [])], root);
 }
 
@@ -32,7 +32,7 @@ test('shared ownership excludes another writer and only the owner can release it
 test('concurrent acquisitions grant ownership to exactly one process', async t => {
   const root = makeProtocolFixture(t);
   const acquire = owner => new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(root, 'scripts/protocol-lock.cjs'),
+    const child = spawn(process.execPath, [path.join(root, '.ai/bin/protocol-lock.cjs'),
       'acquire', '--owner', owner], { cwd: root, windowsHide: true, stdio: 'ignore' });
     child.on('error', reject);
     child.on('exit', status => resolve({ status, owner }));

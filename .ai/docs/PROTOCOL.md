@@ -12,7 +12,7 @@ in `AGENTS.md`, which is the only place a rule is defined.
 | -------------------------- | -------------------------------------------------- |
 | `AGENTS.md`                | the rules, shared by every agent                    |
 | `CLAUDE.md`                | pointer so Claude Code loads those rules            |
-| `docs/PROTOCOL.md`         | this guide                                          |
+| `.ai/docs/PROTOCOL.md`         | this guide                                          |
 | `.ai/TASK.md`              | the current task and the open questions             |
 | `.ai/PLAN.md`              | the proposed approach for larger work               |
 | `.ai/DECISIONS.md`         | approved decisions, append-only                     |
@@ -21,10 +21,10 @@ in `AGENTS.md`, which is the only place a rule is defined.
 | `.ai/runtime/`             | disposable session state and the lock, not tracked  |
 | `.claude/`                 | hooks and settings that enforce the protocol        |
 | `.codex/`                  | Codex hooks; see CODEX.md for activation            |
-| `scripts/protocol-hooks.cjs` | shared hook engine for Claude and Codex           |
-| `scripts/protocol-lock.cjs`| cooperative ownership of the shared documents       |
+| `.ai/bin/protocol-hooks.cjs` | shared hook engine for Claude and Codex           |
+| `.ai/bin/protocol-lock.cjs`| cooperative ownership of the shared documents       |
 | `validate-protocol.ps1`    | health check                                        |
-| `scripts/protocol-handoff.cjs` | records and verifies protocol check evidence    |
+| `.ai/bin/protocol-handoff.cjs` | records and verifies protocol check evidence    |
 
 The installer, `test-protocol.ps1`, tests and templates stay in the protocol
 source repository. They are not part of an installed project's daily commands.
@@ -49,7 +49,7 @@ powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
 Inspect who owns the shared documents right now.
 
 ```powershell
-node scripts/protocol-lock.cjs status
+node .ai/bin/protocol-lock.cjs status
 ```
 
 ---
@@ -60,8 +60,8 @@ node scripts/protocol-lock.cjs status
 writer at a time. Take the lock first, edit, then release it.
 
 ```powershell
-node scripts/protocol-lock.cjs acquire --owner <your-session-id>
-node scripts/protocol-lock.cjs release --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs acquire --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs release --owner <your-session-id>
 ```
 
 A session journal needs no lock. Each session writes only its own file.
@@ -73,7 +73,7 @@ have confirmed the session is over, release it with the same
 owner name, which is the documented recovery path:
 
 ```powershell
-node scripts/protocol-lock.cjs release --owner <the-reported-owner>
+node .ai/bin/protocol-lock.cjs release --owner <the-reported-owner>
 ```
 
 Releasing someone else's live lock loses their work. Check that the session is
@@ -117,7 +117,7 @@ A journal entry is a claim. An Evidence block is a record. Before handing off,
 let the tooling write the record instead of typing it:
 
 ```powershell
-node scripts/protocol-handoff.cjs record --owner <your-session-id>
+node .ai/bin/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
 In an installed project it runs the validator. In the protocol source repository
@@ -130,13 +130,13 @@ the validator while iterating in the source repository.
 The next agent, or you after a break, confirms it:
 
 ```powershell
-node scripts/protocol-handoff.cjs verify
+node .ai/bin/protocol-handoff.cjs verify
 ```
 
 Without a target this asks whether any journal holds evidence for the current
 tree; if none matches, it reports each recorded mismatch. Add `--owner <session-id>` to judge
 one journal on its own. It fails when no evidence matches the current tree, or
-when the matching evidence records a failing check. `node scripts/protocol-handoff.cjs state` prints the current anchor
+when the matching evidence records a failing check. `node .ai/bin/protocol-handoff.cjs state` prints the current anchor
 without running anything.
 
 The digest covers Git-normalized content and mode. Clean files reuse their
@@ -200,7 +200,7 @@ the snapshot takes about 120 ms and opens one file.
 If a session feels slow, measure before assuming:
 
 ```
-node scripts/protocol-handoff.cjs state
+node .ai/bin/protocol-handoff.cjs state
 ```
 
 It prints the file count and the digest without running any checks.

@@ -736,6 +736,62 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0017
+
+Status: Accepted
+Date: 2026-09-13
+Supersedes: nothing; it completes the boundary DEC-0013 drew
+
+Context:
+The owner named two candidate repositories for the first product pilot. Both
+keep their own `scripts/` and their own `docs/`: one has 8 and 51 files there,
+the other 32 and 80. The protocol was installing `scripts/protocol-hooks.cjs`,
+`scripts/protocol-lock.cjs` and `scripts/protocol-handoff.cjs` into the first
+and `docs/PROTOCOL.md` and `docs/CODEX.md` into the second.
+
+In one candidate `docs/` is a generated documentation site with its own deploy
+workflow triggered on `docs/**`. Two protocol documents there would appear in a
+published API reference, trigger a deployment on every protocol change, and
+risk being removed by the generator.
+
+DEC-0013 stopped the protocol writing rules for files it does not own. It did
+not stop it writing files into directories it does not own.
+
+Decision:
+Everything the protocol ships now lives in a namespace it owns.
+`scripts/protocol-*.cjs` moved to `.ai/bin/` and the two operator documents to
+`.ai/docs/`. What an installed project receives is `.ai/`, `.claude/`,
+`.codex/`, and four identifiable files at the root: `AGENTS.md`, `CLAUDE.md`,
+`protocol-manifest.json` and `validate-protocol.ps1`. `.gitignore` and
+`.gitattributes` are merged into whatever is already there.
+
+Historical journals, the archive and earlier decision blocks keep the old
+paths. They describe what was true when they were written and are not edited.
+
+Reasoning:
+A tool that scatters files through a project's own directories is removed
+before it is judged. The host's directories are the host's, for the same reason
+its line endings and its approval policy are.
+
+Alternatives rejected:
+Namespacing inside the host directories, as `scripts/protocol/`. It still
+claims a directory the project owns and still triggers a docs deployment.
+A fourth top-level directory such as `.protocol/`: `.ai/` is already the
+protocol's namespace in that project, and one namespace is easier to explain
+and to delete than two.
+
+Consequences:
+The two tools resolve the project root two levels up rather than one; that
+broke silently on the move and is now covered by a test that runs them from a
+subdirectory of an installed project. Anyone with a pre-1.6 installation has
+protocol files in `scripts/` and `docs/` that an upgrade does not remove,
+because nothing deletes files on a project's behalf. No such installation
+exists today.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

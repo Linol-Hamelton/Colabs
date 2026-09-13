@@ -17,7 +17,7 @@ session has to be written down. The protocol defines where.
 | ------------------------- | ------------------------------------------------ |
 | `AGENTS.md`               | the rules; the only place a rule is defined      |
 | `CLAUDE.md`               | a pointer so Claude Code loads those rules       |
-| `docs/PROTOCOL.md`        | the operator guide installed into every project  |
+| `.ai/docs/PROTOCOL.md`        | the operator guide installed into every project  |
 | `.ai/TASK.md`             | the current task and the open questions          |
 | `.ai/PLAN.md`             | the proposed approach for larger work            |
 | `.ai/DECISIONS.md`        | approved decisions; append-only, never rewritten |
@@ -39,8 +39,8 @@ claim nobody could check. "The suite passes" and "no implementation changed"
 were prose, and the next agent had to take them on trust.
 
 ```powershell
-node scripts/protocol-handoff.cjs record --owner <session-id>
-node scripts/protocol-handoff.cjs verify
+node .ai/bin/protocol-handoff.cjs record --owner <session-id>
+node .ai/bin/protocol-handoff.cjs verify
 ```
 
 `record` runs the checks, writes their real exit codes into the session
@@ -81,7 +81,7 @@ powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 Two warnings are expected and correct: no decisions yet, no active task. Write
 the first objective into `.ai/TASK.md`, then open the project in Claude Code
 or Codex. For Codex, review and trust the project hooks in `/hooks` first;
-see [activation](docs/CODEX.md). An active SessionStart hook loads the state
+see [activation](.ai/docs/CODEX.md). An active SessionStart hook loads the state
 and creates the session journal.
 
 ### An existing repository
@@ -131,15 +131,15 @@ plan, decisions, archive or journals your project has accumulated.
 ### The daily loop
 
 ```powershell
-node scripts/protocol-lock.cjs acquire --owner <session-id>   # before editing TASK, PLAN, DECISIONS, ARCHIVE
-node scripts/protocol-lock.cjs release --owner <session-id>
-node scripts/protocol-handoff.cjs record --owner <session-id> # before handing off
-node scripts/protocol-handoff.cjs verify                      # when picking work up
+node .ai/bin/protocol-lock.cjs acquire --owner <session-id>   # before editing TASK, PLAN, DECISIONS, ARCHIVE
+node .ai/bin/protocol-lock.cjs release --owner <session-id>
+node .ai/bin/protocol-handoff.cjs record --owner <session-id> # before handing off
+node .ai/bin/protocol-handoff.cjs verify                      # when picking work up
 ```
 
 With active Claude/Codex hooks, use the assigned journal basename (without
 `.md`) as the lock and evidence owner. Otherwise pick one session id and use
-it for both. See [Codex setup](docs/CODEX.md) for the host activation step.
+it for both. See [Codex setup](.ai/docs/CODEX.md) for the host activation step.
 
 ---
 
@@ -165,7 +165,7 @@ hook, the installer, the validator or the lock. It needs Node.js 22 or later.
 ## What actually enforces the protocol
 
 Claude and Codex each register SessionStart and Stop hooks using one shared
-engine in `scripts/protocol-hooks.cjs`.
+engine in `.ai/bin/protocol-hooks.cjs`.
 
 - **SessionStart** injects the task, Git status, recent commits, the decision
   headings and the newest journal entries, and names the journal file for this
@@ -179,7 +179,7 @@ engine in `scripts/protocol-hooks.cjs`.
 Claude registers them in `.claude/settings.json`; Codex uses
 `.codex/hooks.json`. Each product gets its own session journal and snapshot.
 Codex hooks require a trusted project and review of the exact definitions in
-`/hooks`; see [activation and validation limits](docs/CODEX.md). Until activated,
+`/hooks`; see [activation and validation limits](.ai/docs/CODEX.md). Until activated,
 Codex follows `AGENTS.md` without automatic reminders. Repository checks verify
 the configured adapter, not the client trust store.
 
@@ -192,9 +192,9 @@ edited under a cooperative lock. Session journals need no lock, because no
 session writes to another session's file.
 
 ```powershell
-node scripts/protocol-lock.cjs status
-node scripts/protocol-lock.cjs acquire --owner <your-session-id>
-node scripts/protocol-lock.cjs release --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs status
+node .ai/bin/protocol-lock.cjs acquire --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs release --owner <your-session-id>
 ```
 
 The lock is cooperative, not an operating system barrier. It reports how long
