@@ -211,14 +211,16 @@ test('clean tracked files are identified by the Git index, not read from disk', 
   const root = makeProtocolFixture(t);
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'baseline'], root);
-  const taken = hooks.snapshot(root);
-  const values = Object.values(taken);
-  assert.ok(values.length > 5);
-  const indexed = values.filter(value => value.endsWith('|indexed'));
-  assert.equal(indexed.length, values.length,
-    'a committed, unmodified tree must need no content hashing');
+  // Count the reads rather than inspect the identity: both states produce the
+  // same Git blob hash by design, so only the absence of reads proves it.
+  const original = fs.readFileSync;
+  let reads = 0;
+  fs.readFileSync = (...args) => { reads += 1; return original(...args); };
+  let taken;
+  try { taken = hooks.snapshot(root); } finally { fs.readFileSync = original; }
+  assert.ok(Object.keys(taken).length > 5);
+  assert.equal(reads, 0, `a committed, unmodified tree was read ${reads} time(s)`);
 });
-
 test('a modified file is read even though it is tracked', t => {
   const root = makeProtocolFixture(t);
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
@@ -253,4 +255,33 @@ test('evidence from an older digest format is named, not called stale', t => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /digest format 1/);
   assert.doesNotMatch(result.stderr, /stale/);
+});
+
+// Evidence must survive the commit that follows it, or a receipt is useless the
+// moment the work is saved. A file's identity is therefore the Git blob hash in
+// both states, never a different function for tracked and untracked. DEC-0016.
+test('a file keeps one identity untracked, staged and committed', t => {
+  const root = makeProtocolFixture(t);
+  fs.writeFileSync(path.join(root, 'appeared.txt'), 'content under test\n');
+  const untracked = handoff.anchor(root).digest;
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
+  const staged = handoff.anchor(root).digest;
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'save'], root);
+  const committed = handoff.anchor(root).digest;
+  assert.equal(staged, untracked, 'git add must not move the digest');
+  assert.equal(committed, staged, 'git commit must not move the digest');
+});
+
+test('recorded evidence still verifies after the work is committed', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/committing.md';
+  write(root, journal, `# W\n\n${entry()}\n`);
+  const full = path.join(root, journal);
+  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n` +
+    `- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
+  assert.equal(cli(root, ['verify', '--journal', journal]).status, 0);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'save'], root);
+  const after = cli(root, ['verify', '--journal', journal]);
+  assert.equal(after.status, 0, after.stderr);
 });

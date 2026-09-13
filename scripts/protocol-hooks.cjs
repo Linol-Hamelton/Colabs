@@ -34,30 +34,32 @@ function rootFor(input, agent) {
   return root;
 }
 
+// Git already knows every tracked file's content by its blob hash, and which
+// files differ from it. Re-hashing the whole working tree cost about six
+// seconds per hook on a fifty-thousand-file repository, on every response.
+//
+// The identity of a file must not depend on whether Git happens to be tracking
+// it yet, or evidence recorded before `git add` would not survive it. So a
+// working-tree file is identified by the same Git blob hash the index would
+// hold for it, computed here. See DEC-0015 and DEC-0016.
+const SNAPSHOT_FORMAT = 3;
+
+function blobId(content) {
+  const header = Buffer.from(`blob ${content.length}${String.fromCharCode(0)}`);
+  return crypto.createHash('sha1').update(Buffer.concat([header, content])).digest('hex');
+}
+
 function fingerprint(filename) {
   let stat;
   try { stat = fs.lstatSync(filename); }
   catch (error) { if (error.code === 'ENOENT') return null; throw error; }
-  if (stat.isSymbolicLink()) return `link:${digest(fs.readlinkSync(filename))}`;
+  // Git stores a symlink as a blob holding its target path.
+  if (stat.isSymbolicLink()) return `120000:${blobId(Buffer.from(fs.readlinkSync(filename)))}`;
   if (stat.isDirectory()) return 'directory'; // Git submodules are separate repositories.
   if (!stat.isFile()) throw new Error(`Unsupported file type: ${filename}`);
-  const hash = crypto.createHash('sha256');
-  const fd = fs.openSync(filename, 'r');
-  try {
-    const buffer = Buffer.alloc(64 * 1024);
-    let size;
-    while ((size = fs.readSync(fd, buffer, 0, buffer.length, null)) > 0) {
-      hash.update(buffer.subarray(0, size));
-    }
-  } finally { fs.closeSync(fd); }
-  return `${stat.mode & 0o111}:${hash.digest('hex')}`;
+  const mode = (stat.mode & 0o111) ? '100755' : '100644';
+  return `${mode}:${blobId(fs.readFileSync(filename))}`;
 }
-
-// Git already knows every tracked file's content by its blob hash, and which
-// files differ from it. Re-hashing the whole working tree cost about six
-// seconds per hook on a fifty-thousand-file repository, on every response.
-// Only files Git reports as changed or untracked are read here. See DEC-0015.
-const SNAPSHOT_FORMAT = 2;
 
 function snapshot(root) {
   const names = new Set(git(root, ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])
@@ -66,7 +68,9 @@ function snapshot(root) {
   for (const record of git(root, ['ls-files', '--stage', '-z']).split('\0').filter(Boolean)) {
     const separator = record.indexOf('\t');
     const name = record.slice(separator + 1);
-    index.set(name, `${index.get(name) || ''}${record.slice(0, separator)};`);
+    const parts = record.slice(0, separator).split(/\s+/);
+    // mode, object id. Keep every stage so a conflicted path stays distinct.
+    index.set(name, `${index.get(name) || ''}${parts[0]}:${parts[1]};`);
   }
   // --no-renames keeps every record a single path, so NUL parsing stays simple.
   const dirty = new Set();
@@ -79,14 +83,12 @@ function snapshot(root) {
     // Runtime is disposable. Each worklog has its own writer and is checked separately.
     if (name.startsWith('.ai/runtime/') || name.startsWith('.ai/worklog/')) continue;
     const staged = index.get(name);
-    // A clean tracked entry is already identified by its mode and blob hash.
+    // A clean tracked entry is already identified by its mode and blob hash,
+    // in exactly the form fingerprint() would produce for it.
     const identity = (staged && !dirty.has(name))
-      ? 'indexed'
+      ? staged.replace(/;$/, '')
       : fingerprint(path.join(root, name));
-    Object.defineProperty(files, name, {
-      value: `${staged || ''}|${identity}`,
-      enumerable: true,
-    });
+    Object.defineProperty(files, name, { value: String(identity), enumerable: true });
   }
   return files;
 }

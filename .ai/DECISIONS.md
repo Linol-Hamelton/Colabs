@@ -685,6 +685,57 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0016
+
+Status: Accepted
+Date: 2026-09-13
+Supersedes: nothing; it repairs a property DEC-0015 broke on the way past
+
+Context:
+DEC-0011 made the evidence digest independent of the Git index precisely so a
+receipt would survive the `git add` and the commit that normally follow it.
+DEC-0015 sped the snapshot up by identifying a clean tracked file from its
+index record and hashing only what changed. That reintroduced the defect from
+the other side: the same file had one identity while untracked, computed with
+SHA-256, and another once tracked, taken from the index. Committing the work
+therefore moved the digest, and the evidence recorded minutes earlier reported
+that it no longer matched.
+
+The final check of the session caught it, on the session's own evidence.
+
+Decision:
+A file has one identity in every state: the Git blob hash, in the form
+`<mode>:<object id>`. For a clean tracked file it is read from the index. For
+anything changed or untracked it is computed here, from the same definition Git
+uses, so the two agree by construction rather than by coincidence. A symlink is
+identified by the blob of its target path, which is what Git stores.
+
+The snapshot format is 3. Evidence written under an earlier format is reported
+as not comparable, as DEC-0015 established.
+
+Reasoning:
+Two functions computing the identity of one thing will disagree eventually.
+Using Git's own definition on both paths removes the possibility rather than
+testing for it, and a regression now asserts the digest is unchanged across
+staging and committing.
+
+Alternatives rejected:
+Excluding the index state from the identity, as DEC-0011 did. It was what made
+DEC-0015's speedup possible to get wrong, because the fast path had nothing to
+agree with. Recomputing SHA-256 for clean files as well: that is the cost
+DEC-0015 removed.
+
+Consequences:
+The identity is a SHA-1 blob hash rather than SHA-256, because that is what Git
+stores. This is an integrity check against accidental drift between two
+sessions, not a defence against a crafted collision; an agent able to forge a
+blob hash could edit the journal directly. A clean, committed tree is now read
+zero times during a snapshot, which a test asserts by counting reads.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
