@@ -20,11 +20,14 @@ in `AGENTS.md`, which is the only place a rule is defined.
 | `.ai/ARCHIVE.md`           | cold storage for old journal entries                |
 | `.ai/runtime/`             | disposable session state and the lock, not tracked  |
 | `.claude/`                 | hooks and settings that enforce the protocol        |
-| `.codex/`                  | Codex config and hooks; see CODEX.md for activation |
+| `.codex/`                  | Codex hooks; see CODEX.md for activation            |
 | `scripts/protocol-hooks.cjs` | shared hook engine for Claude and Codex           |
 | `scripts/protocol-lock.cjs`| cooperative ownership of the shared documents       |
 | `validate-protocol.ps1`    | health check                                        |
-| `test-protocol.ps1`        | regression suite for the protocol tooling           |
+| `scripts/protocol-handoff.cjs` | records and verifies protocol check evidence    |
+
+The installer, `test-protocol.ps1`, tests and templates stay in the protocol
+source repository. They are not part of an installed project's daily commands.
 
 ---
 
@@ -36,8 +39,8 @@ Check that the protocol is healthy. Run this before handing off.
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 ```
 
-Run the regression suite for the tooling itself. Needed after changing a hook,
-the installer, the validator or the lock.
+Run the host project's own test command for product changes. After changing
+protocol tooling, run its regression suite from the protocol source repository:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
@@ -117,11 +120,12 @@ let the tooling write the record instead of typing it:
 node scripts/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
-It runs the validator and the regression suite, writes their real exit codes
-into the newest entry of your journal, and stamps that entry with a digest of
-the exact tree they ran against. It exits non-zero when a check fails, so a
-failing tree cannot produce a passing receipt. Use `--quick` to run only the
-validator while iterating.
+In an installed project it runs the validator. In the protocol source repository
+it also runs the protocol regression suite. It writes the actual exit codes
+into your journal and records a digest of the tree. Product tests must be run
+separately and described in the journal; protocol evidence does not certify
+them. A failing protocol check makes `record` fail. Use `--quick` to run only
+the validator while iterating in the source repository.
 
 The next agent, or you after a break, confirms it:
 
@@ -129,8 +133,8 @@ The next agent, or you after a break, confirms it:
 node scripts/protocol-handoff.cjs verify
 ```
 
-Without a target this asks whether any journal holds evidence for the tree as
-it is now, and names the ones that do not. Add `--owner <session-id>` to judge
+Without a target this asks whether any journal holds evidence for the current
+tree; if none matches, it reports each recorded mismatch. Add `--owner <session-id>` to judge
 one journal on its own. It fails when no evidence matches the current tree, or
 when the matching evidence records a failing check. `node scripts/protocol-handoff.cjs state` prints the current anchor
 without running anything.
@@ -145,11 +149,16 @@ Never hand-write an Evidence block. A hand-written one is a claim again.
 
 ## Installing and upgrading
 
-Install into a new project from the protocol repository:
+Run installation and upgrade commands from the protocol source repository;
+the installed project deliberately has no installer. For a new project:
 
 ```powershell
 .\setup-ai-protocol.ps1 -Target D:\my-project -InitGit
 ```
+
+For an existing Git repository use the same command without `-InitGit`. Then
+open that repository in your agent, follow [Codex hook activation](CODEX.md)
+when applicable, and fill `.ai/TASK.md` with the first product objective.
 
 Report what has drifted from the canonical version without changing anything:
 

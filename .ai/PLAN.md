@@ -3,12 +3,12 @@
 Status: Draft
 Task: The first product pilot
 Author: GPT/Codex, revised by Claude after wave 1
-Date: 2026-09-12
+Date: 2026-09-13
 Approval: Pending owner prioritization; this document is a proposal.
 
-The owner subsequently requested project Codex configuration and further
-development on 2026-09-12. TASK now tracks that authorized adapter and installer
-preflight work. The product pilot below remains a separate proposal.
+The Codex adapter was preserved in 3b3a973 and the v1.4 delivery boundary in
+a00c275. TASK tracks the resumed session's final workflow verification and
+handoff repair. The product pilot below remains a separate proposal.
 
 ## Where wave 1 ended
 
@@ -24,10 +24,9 @@ DEC-0011 and DEC-0012.
 - [x] Validation stops inspecting a host project's own source.
 - [x] Documents, templates, lock fields and version identifier agree.
 
-Not done from the original wave 1: T4, T6, T7, T8. They are narrower and none
-of them produces a false green. T4 leaves a partial upgrade with backups on an
-invalid hook structure; T7 accepts a Supersedes pointing at nothing; T8 picks
-recent journals by modification time, which is unreliable after a clone.
+T4 (partial upgrade on invalid hook structure) was closed in the Codex adapter
+round. T7 (dangling Supersedes) was closed in v1.4. T6 and T8 remain open;
+T8 concerns journal ordering by modification time after a clone.
 
 ## Production readiness, closed 2026-09-13
 
@@ -41,9 +40,9 @@ Recorded as DEC-0013. The Codex adapter round is DEC-0009 mechanics finished.
 - [x] Version 1.4 consistent across manifest, rules and installer.
 
 Open and deliberately not done: audit findings T6 and T8 in the SessionStart
-hook, both narrow and neither able to produce a false green. The Codex adapter
-has never run inside a real Codex host; if its schema is wrong the hooks simply
-do not fire, which is the state before it existed.
+hook. On 2026-09-13 the installed Codex CLI discovered both project hooks with
+no errors; both were enabled but untrusted. Execution in a trusted live session
+remains distinct from the successful adapter regression tests.
 
 ## Objective
 
@@ -66,9 +65,9 @@ handoff note, with no lock, no hooks and no evidence.
 
 ## Alternatives considered
 
-Continue hardening the tooling. Rejected for now: three rounds have improved
-the scaffolding and none has produced evidence that it helps. T4, T6, T7 and
-T8 are real but none of them can mislead a reader about the state of a project.
+Continue broad hardening before the pilot. Deferred: infrastructure checks do
+not establish product value. Finish the current installed-handoff regression
+and documentation repair, then measure the protocol on product work.
 
 Build the Codex hook adapter first. Initially deferred until the pilot; the
 owner has now explicitly requested Codex setup. The current implementation

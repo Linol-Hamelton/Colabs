@@ -206,6 +206,33 @@ test('hygiene merge preserves application rules and scopes protocol overrides', 
   assert.deepEqual(snapshot(root), before);
 });
 
+test('a CRLF host can check out its installed hooks and still validate', t => {
+  const root = makeFixture(t);
+  write(root, '.gitattributes', '* text=auto eol=crlf\n');
+  write(root, 'application.cs', 'class Application {}\r\n');
+  const config = '# Host preferences\r\nmodel_reasoning_effort = "high"\r\n';
+  write(root, '.codex/config.toml', config);
+  succeeded(setup(root));
+  for (const name of ['.claude/settings.json', '.codex/hooks.json', '.gitattributes', '.gitignore']) {
+    const attributes = git(root, ['check-attr', 'eol', '--', name]);
+    succeeded(attributes);
+    assert.match(attributes.stdout, /eol: lf/);
+  }
+  for (const name of ['application.cs', '.codex/config.toml']) {
+    assert.match(git(root, ['check-attr', 'eol', '--', name]).stdout, /eol: crlf/);
+  }
+  succeeded(git(root, ['add', '.']));
+  // Force a real checkout from the fixture's index to exercise attributes.
+  succeeded(git(root, ['checkout-index', '--force', '--all']));
+  assert.equal(bytes(root, '.codex/config.toml').toString(), config);
+  assert.equal(bytes(root, 'application.cs').toString(), 'class Application {}\r\n');
+  for (const name of ['.claude/settings.json', '.codex/hooks.json']) {
+    assert.equal(bytes(root, name).includes(13), false);
+  }
+  succeeded(runPowerShell('validate-protocol.ps1', [], root));
+  succeeded(setup(root, '-Verify'));
+});
+
 test('missing state fails self-check and Verify without recreating it', t => {
   const root = makeFixture(t);
   succeeded(setup(root));

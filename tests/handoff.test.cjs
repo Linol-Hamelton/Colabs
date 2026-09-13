@@ -4,12 +4,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { makeProtocolFixture, run, write } = require('./helpers.cjs');
+const { makeFixture, makeProtocolFixture, run, runPowerShell, write } = require('./helpers.cjs');
 const hooks = require('../.claude/hooks/protocol-hooks.cjs');
 const handoff = require('../scripts/protocol-handoff.cjs');
 
-// Never invoke `record` without --quick from here: it runs test-protocol.ps1,
-// which runs this file again.
+// Source fixtures use --quick unless their suite is replaced by a small test
+// runner. Installed fixtures must exercise the default handoff without --quick.
 function cli(root, args) {
   return run(process.execPath, [path.join(root, 'scripts/protocol-handoff.cjs'), ...args], root);
 }
@@ -124,4 +124,82 @@ test('verify reports every journal when none matches the tree', t => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /one\.md/);
   assert.match(result.stderr, /two\.md/);
+});
+
+test('a clean installed project records and verifies a default handoff without source tooling', t => {
+  const root = makeFixture(t);
+  const install = runPowerShell('setup-ai-protocol.ps1', ['-Target', root]);
+  assert.equal(install.status, 0, install.stdout + install.stderr);
+  assert.equal(fs.existsSync(path.join(root, 'test-protocol.ps1')), false);
+  const journal = '.ai/worklog/installed-session.md';
+  write(root, journal, `# W\n\n${entry('installed handoff')}\n`);
+
+  const recorded = cli(root, ['record', '--owner', 'installed-session']);
+  assert.equal(recorded.status, 0, recorded.stdout + recorded.stderr);
+  assert.match(recorded.stdout, /validate-protocol\.ps1: exit 0/);
+  assert.doesNotMatch(recorded.stdout, /test-protocol\.ps1/);
+  const evidence = handoff.readEvidence(path.join(root, journal));
+  assert.match(evidence.body, /scope: protocol checks only; host-project tests run separately/);
+  assert.match(evidence.body, /validate-protocol\.ps1: exit 0/);
+  assert.doesNotMatch(evidence.body, /test-protocol\.ps1/);
+  const verified = cli(root, ['verify', '--owner', 'installed-session']);
+  assert.equal(verified.status, 0, verified.stdout + verified.stderr);
+  assert.match(verified.stdout, /evidence matches the current tree/);
+});
+
+test('source handoff still runs the required suite and records its real failure', t => {
+  const root = makeProtocolFixture(t);
+  write(root, 'test-protocol.ps1', 'exit 7\n');
+  const journal = '.ai/worklog/source-session.md';
+  write(root, journal, `# W\n\n${entry('source handoff')}\n`);
+  const result = cli(root, ['record', '--owner', 'source-session']);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const evidence = handoff.readEvidence(path.join(root, journal));
+  assert.match(evidence.body, /validate-protocol\.ps1: exit 0/);
+  assert.match(evidence.body, /test-protocol\.ps1: exit 7/);
+  assert.equal(cli(root, ['verify', '--owner', 'source-session']).status, 1);
+});
+
+test('a missing source suite is a failed handoff, including legacy manifests without a role', t => {
+  const root = makeProtocolFixture(t);
+  fs.unlinkSync(path.join(root, 'test-protocol.ps1'));
+  const journal = '.ai/worklog/missing-suite.md';
+  write(root, journal, `# W\n\n${entry('missing suite')}\n`);
+  for (const legacy of [false, true]) {
+    if (legacy) {
+      const manifest = JSON.parse(fs.readFileSync(path.join(root, 'protocol-manifest.json'), 'utf8'));
+      delete manifest.role;
+      write(root, 'protocol-manifest.json', JSON.stringify(manifest) + '\n');
+    }
+    const result = cli(root, ['record', '--owner', 'missing-suite']);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const evidence = handoff.readEvidence(path.join(root, journal));
+    assert.match(evidence.body, /test-protocol\.ps1: exit (?!0\b)/);
+  }
+});
+
+test('missing or invalid manifests cannot produce handoff evidence', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/invalid-manifest.md';
+  write(root, journal, `# W\n\n${entry('invalid manifest')}\n`);
+  for (const content of [null, '{ broken', 'null', '[]', '{"role":"unknown"}', '{"role":null}']) {
+    if (content === null) fs.unlinkSync(path.join(root, 'protocol-manifest.json'));
+    else write(root, 'protocol-manifest.json', content + '\n');
+    const result = cli(root, ['record', '--owner', 'invalid-manifest', '--quick']);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(result.stderr, /[Pp]rotocol manifest/);
+    assert.equal(handoff.readEvidence(path.join(root, journal)), null);
+  }
+});
+
+test('an explicit missing owner never falls back to another session journal', t => {
+  const root = makeProtocolFixture(t);
+  const other = write(root, '.ai/worklog/other-session.md', `# W\n\n${entry('other session')}\n`);
+  const before = fs.readFileSync(other);
+  for (const command of ['record', 'verify']) {
+    const result = cli(root, [command, '--owner', 'missing-session', '--quick']);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(result.stderr, /No session journal for owner missing-session/);
+    assert.deepEqual(fs.readFileSync(other), before);
+  }
 });

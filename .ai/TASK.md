@@ -6,46 +6,45 @@ Last update: 2026-09-13
 
 ## Objective
 
-Bring the stack to a state that can be installed on a real product repository:
-finish the Codex adapter round that stopped mid-way, remove everything a
-product repository cannot use, and stop the protocol from configuring anything
-it does not own. Authorized by the owner's 2026-09-13 instruction.
+Finish the interrupted Codex session, inspect cleanup already performed by
+Claude, verify the full new/existing-project workflow and align connection
+instructions. Authorized by the owner's resumed 2026-09-13 request.
 
 ## Acceptance criteria
 
-- [x] The interrupted Codex round is committed, assessed and green.
-- [x] An install delivers the runtime only; source tooling stays behind.
-- [x] No approval policy, editor settings or repository-wide line-ending rule
-      is written into a host project.
-- [x] An installed project validates without the installer present.
-- [x] A Supersedes naming no decision fails validation.
-- [x] Licence, contribution guide and security policy exist.
-- [x] Every change above has a regression test.
+- [x] Reconcile interrupted changes with 3b3a973 and v1.4 a00c275.
+- [x] Inspect tracked artifacts and local branches; preserve project history.
+- [x] Fix default handoff in installed projects without source tooling.
+- [x] Prevent a missing owner journal from selecting another agent's journal.
+- [x] Keep installed hook files valid after checkout in a CRLF host project.
+- [x] Align source/installed instructions and inspect real Codex discovery.
+- [x] Run full validation and regression suite (109 tests passing).
 
 ## Current state
 
-Recorded as DEC-0013, with the licence choice open as DEC-0014. 103 tests pass
-and the evidence on this session's journal anchors that to the tree.
+Started from clean main at a00c275; Claude had already preserved the adapter,
+removed obsolete branches and reduced installation to the 22 runtime files.
+Current branch: codex/finish-handoff-20260913. Validator: exit 0, no warnings.
+Full suite: 109 passed, no failures/skips (237.57s). The final automated receipt
+is recorded in .ai/worklog/codex-20260912-adapter.md.
+GitHub branch discovery confirms main is the only remote branch.
 
 ## Active agent
 
-- None. The shared-document lock is released.
+- None after handoff; Codex is recording evidence and releasing its lock.
 
 ## Open questions
 
-1. DEC-0014 is Proposed, not Accepted. MIT is in place so the repository is
-   usable; the owner confirms or replaces it.
-2. The Codex adapter has never run inside a real Codex host. Its cost of being
-   wrong is that the hooks do not fire, which is where things stood before.
-3. The session `codex-20260912-adapter` held the shared lock for 124 minutes
-   and never created the journal it named. Stale detection surfaced it and the
-   lock was released after inspection. Its round is described from the diff,
-   not from its own handoff.
-4. Projects installed before v1.4 keep the extra files until removed by hand.
-   Nothing deletes them on a project's behalf.
-5. Still no product task. That remains the only open question that matters.
+1. Codex CLI 0.154.0 discovers both project hooks without errors, enabled but
+   untrusted. The owner reviews them via /hooks before live automatic execution.
+2. The resumed Codex journal records the interrupted round. Changes are on
+   codex/finish-handoff-20260913, uncommitted; no push was requested or made.
+3. Before v1.4, installed projects received extra source files. Inspect those
+   targets separately before removal; the installer preserves existing files.
+4. DEC-0014 remains Proposed. No licence approval is inferred in this session.
+5. The owner has not named the first product task. T6/T8 remain deferred.
 
 ## Next
 
-Owner names the first product objective. The stack is ready to be installed on
-it.
+The owner activates Codex hooks and names the first product objective.
+Use docs/PROTOCOL.md for new/existing-project installation and handoff.

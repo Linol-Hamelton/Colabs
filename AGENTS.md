@@ -147,18 +147,21 @@ ever rewritten.
 
 ## 7. Checks and evidence
 
-Run both before handing off.
+Before handing off, run the validator and the project's own checks. In the
+protocol source repository (`role: source` in `protocol-manifest.json`), also
+run its regression suite:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
 ```
 
-The validator checks protocol health, encodings, size limits, hook wiring,
-whether hooks are switched off, whether Git really ignores session state, and
-that the installer can still run. The suite is a regression test for the
-tooling itself; run it after changing a hook, the installer, the validator,
-the lock or the handoff tool.
+The validator checks protocol health, encodings, size limits, hook wiring and
+whether Git really ignores session state. In the source repository it also
+checks the installer. Installed projects (`role: installed`) do not contain
+`test-protocol.ps1` or the installer. Run the protocol suite from its source
+repository after changing its tooling; use the host project's own test command
+for product code.
 
 A green validator is not a green project. Run the project's own tests too.
 
@@ -168,8 +171,10 @@ Then attach evidence to your journal entry instead of asserting a result:
 node scripts/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
-It runs the checks, records their real exit codes, and stamps the entry with a
-digest of the exact tree they ran against. It exits non-zero when a check
+It runs the validator, plus the protocol regression suite in the source role,
+records their real exit codes, and stamps the entry with a digest of the exact
+tree they ran against. Record product test results separately in the journal;
+this tool does not run or certify them. It exits non-zero when a check
 fails, so a red tree cannot produce a green receipt. The next agent re-checks
 with `node scripts/protocol-handoff.cjs verify`, which fails when the tree has
 moved since the evidence was recorded.

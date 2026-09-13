@@ -337,7 +337,10 @@ try {
     }
     # Build every integration update first, including hook structure and managed
     # markers. A preflight failure must not initialize Git, write files or backups.
-    $scopedPaths = @($managed) + @('.ai/**')
+    # Merged integration files are validated too. Keep their checkout bytes LF
+    # even when the host uses a repository-wide CRLF rule. The integration list
+    # excludes host Codex/editor preferences; their attributes stay untouched.
+    $scopedPaths = @($managed) + @($integration) + @('.ai/**')
     $attributes = ($scopedPaths | ForEach-Object { $_ + ' text eol=lf' }) -join "`n"
     $mergePlans = @(
         (Prepare-SettingsMerge '.claude/settings.json' 'Claude'),

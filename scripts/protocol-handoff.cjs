@@ -25,6 +25,22 @@ const CHECKS = [
   { name: 'test-protocol.ps1', quick: false },
 ];
 
+function checksFor(root, quick) {
+  let manifest;
+  try { manifest = JSON.parse(fs.readFileSync(path.join(root, 'protocol-manifest.json'), 'utf8')); }
+  catch (error) { throw new Error(`Cannot read protocol manifest: ${error.message}`); }
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    throw new Error('Protocol manifest must be a JSON object.');
+  }
+  // Older manifests had no role and shipped the source suite. Do not treat
+  // that absence, an unknown role, or a missing script as an installed runtime.
+  const role = Object.hasOwn(manifest, 'role') ? manifest.role : 'source';
+  if (!['source', 'installed'].includes(role)) {
+    throw new Error('Protocol manifest role must be source or installed.');
+  }
+  return CHECKS.filter(check => (role !== 'installed' || check.quick) && (!quick || check.quick));
+}
+
 function git(root, args) {
   const result = spawnSync('git', ['-C', root, ...args], {
     encoding: 'utf8', windowsHide: true, timeout: 30000,
@@ -81,6 +97,7 @@ function renderEvidence(state, checks, owner) {
     `- anchor: ${state.commit || 'no commits'}${state.dirty ? ', uncommitted changes present' : ', clean tree'}`,
     `- digest: ${state.digest} over ${state.fileCount} tracked and untracked files`,
     `- recorded: ${new Date().toISOString()} by ${owner}`,
+    '- scope: protocol checks only; host-project tests run separately',
   ];
   for (const check of checks) {
     lines.push(`- ${check.name}: exit ${check.code} in ${check.seconds}s`);
@@ -128,6 +145,7 @@ function resolveJournal(root, explicit, owner) {
   if (owner) {
     const byOwner = path.join(root, '.ai', 'worklog', `${owner}.md`);
     if (fs.existsSync(byOwner)) return byOwner;
+    throw new Error(`No session journal for owner ${owner}. Create ${path.relative(root, byOwner)} first.`);
   }
   const directory = path.join(root, '.ai', 'worklog');
   if (!fs.existsSync(directory)) {
@@ -189,13 +207,14 @@ function main(argv) {
   if (command === 'record') {
     if (!options.owner) throw new Error('record needs --owner <session id>');
     const journalPath = resolveJournal(root, options.journal, options.owner);
-    const checks = CHECKS.filter(check => !options.quick || check.quick).map(check => runCheck(root, check.name));
+    const checks = checksFor(root, options.quick).map(check => runCheck(root, check.name));
     const failed = checks.filter(check => check.code !== 0);
     // Re-anchor: the checks may have touched the tree. Evidence must describe
     // the state it was actually measured against.
     const after = anchor(root);
     attach(journalPath, renderEvidence(after, checks, options.owner));
     process.stdout.write(`${path.relative(root, journalPath)}: evidence recorded\n`);
+    process.stdout.write('Protocol checks only; run and report the host project tests separately.\n');
     for (const check of checks) process.stdout.write(`  ${check.name}: exit ${check.code}\n`);
     if (failed.length) {
       process.stderr.write(`AI protocol: ${failed.length} check(s) failed; the evidence records the failure.\n`);

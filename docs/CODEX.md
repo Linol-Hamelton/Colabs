@@ -7,11 +7,13 @@ agents. Neither is duplicated in `.codex/`.
 
 ## What is configured
 
-- `.codex/config.toml`: workspace-write sandbox and on-request approvals.
-  The personal model, reasoning effort and plugins remain inherited.
 - `.codex/hooks.json`: SessionStart and Stop command registrations.
 - `.codex/hooks/protocol.cjs`: a thin Codex entrypoint for the shared engine
   in `scripts/protocol-hooks.cjs`. Claude uses that same engine.
+
+The protocol installer does not create or modify `.codex/config.toml`. This
+source repository has its own local defaults there; installed projects keep
+their existing user/project model, permissions, sandbox and plugin settings.
 
 SessionStart loads bounded project context and creates a journal named
 `.ai/worklog/codex-<session-hash>.md`. Stop warns when files changed without a
@@ -48,12 +50,13 @@ and [hook contract](https://learn.chatgpt.com/docs/hooks).
 ## Installation and local preferences
 
 The installer merges protocol hooks into `.codex/hooks.json`, keeping unrelated
-hooks. Existing `.codex/config.toml` is kept byte-for-byte, including with
-`-Force`; the default is copied only when absent. Verify checks its presence,
-not equality to the defaults. Host config syntax is the Codex client's concern.
+hooks. `.codex/config.toml` is neither installed nor required by Verify.
+Existing configuration is kept byte-for-byte, including with `-Force`.
+Host config syntax is the Codex client's concern.
 
 Both agents' hook settings and managed text blocks are prepared before any
-target writes. Invalid settings fail before a partial upgrade can occur.
+target writes. Invalid JSON, hook-group structure or managed block markers fail
+before a partial upgrade can occur. This is not full host configuration validation.
 This preflight does not promise a filesystem transaction for disk or I/O errors.
 
 ## Local Claude practices considered
