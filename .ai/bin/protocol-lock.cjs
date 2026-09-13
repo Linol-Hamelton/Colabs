@@ -63,7 +63,7 @@ function operate(root, command, owner) {
         const advice = age.stale
           ? ` The lock has been held for ${held}, past the ${STALE_AFTER_MINUTES}-minute stale threshold.`
             + ' Confirm that session has finished, then release it with'
-            + `: node scripts/protocol-lock.cjs release --owner ${current.owner}`
+            + `: node .ai/bin/protocol-lock.cjs release --owner ${current.owner}`
           : ` Held for ${held}. Wait, or ask that session to release it.`;
         throw new Error(`Shared documents are owned by ${current.owner}; do not overwrite or automatically steal the lock.${advice}`);
       }
@@ -90,7 +90,7 @@ function main(args) {
   for (let i = 0; i < options.length; i += 2) {
     if (options[i] === '--owner' && options[i + 1]) owner = options[i + 1];
     else if (options[i] === '--root' && options[i + 1]) root = path.resolve(options[i + 1]);
-    else throw new Error('Usage: node scripts/protocol-lock.cjs acquire|release|status [--owner session-id] [--root path]');
+    else throw new Error('Usage: node .ai/bin/protocol-lock.cjs acquire|release|status [--owner session-id] [--root path]');
   }
   process.stdout.write(JSON.stringify(operate(root, command, owner), null, 2) + '\n');
 }

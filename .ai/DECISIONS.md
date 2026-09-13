@@ -792,6 +792,51 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0018
+
+Status: Accepted
+Date: 2026-09-14
+Supersedes: nothing; it repairs an omission in DEC-0017
+
+Context:
+DEC-0017 moved the tools to `.ai/bin/` and updated every file that referenced
+the old paths, except the three that were moved. By the time the references
+were rewritten those files no longer matched the list they were looked up in,
+so six instructions inside them still named `scripts/`.
+
+One of them mattered. The SessionStart hook injects "use
+scripts/protocol-lock.cjs before editing it" into every agent's context, and in
+an installed project that path does not exist. The first agent in the pilot
+would have followed the instruction and failed. The evidence block told the
+next reader to reproduce with a command that would not run either.
+
+Found by rehearsing a whole session inside a clone of the pilot repository,
+not by reading the diff.
+
+Decision:
+The six instructions name `.ai/bin/`. Two checks keep it that way: no file the
+protocol ships may mention a retired path standing on its own, and every tool
+path appearing in the injected context must exist in the installed project it
+was injected into.
+
+Reasoning:
+A path inside a string is invisible to every check that reasons about files.
+The second check is the one that matters, because it tests the thing an agent
+actually receives rather than the thing a maintainer meant to write.
+
+Alternatives rejected:
+Deriving the paths at runtime from the manifest. It removes the literal, but an
+instruction assembled from data is harder to read in a diff, and the reference
+would still be a guess about where the reader is standing.
+
+Consequences:
+A future move of a tool requires updating its own strings, and the second check
+fails if it is forgotten. Renaming a tool requires updating the retired list.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

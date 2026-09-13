@@ -193,3 +193,46 @@ test('the tools resolve the project root from .ai/bin, including a subdirectory'
     assert.equal(lock.status, 0, lock.stderr);
   }
 });
+
+// The v1.6 move updated every file that referenced the old paths except the
+// three that were moved, because by then they no longer matched the list. The
+// SessionStart hook went on telling agents to run a path that an installed
+// project does not have. Nothing but a check keeps that from recurring.
+test('no shipped file mentions a path the protocol no longer installs', () => {
+  const retired = ['scripts/protocol-hooks.cjs', 'scripts/protocol-lock.cjs',
+    'scripts/protocol-handoff.cjs', 'docs/PROTOCOL.md', 'docs/CODEX.md'];
+  // A retired path is only a real mention when it stands on its own. The
+  // replacement `.ai/docs/PROTOCOL.md` contains the old one as a suffix.
+  const mentions = (text, stale) => {
+    for (let i = text.indexOf(stale); i !== -1; i = text.indexOf(stale, i + 1)) {
+      const before = i === 0 ? '' : text[i - 1];
+      if (!/[\w./-]/.test(before)) return true;
+    }
+    return false;
+  };
+  const offenders = [];
+  for (const relative of [...manifest.managed, ...manifest.integration,
+    ...manifest.state.map(name => path.posix.join('templates/ai', name))]) {
+    const full = path.join(repoRoot, relative);
+    if (!fs.existsSync(full)) continue;
+    const text = fs.readFileSync(full, 'utf8');
+    for (const stale of retired) {
+      if (mentions(text, stale)) offenders.push(`${relative} mentions ${stale}`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+test('the injected context names a tool the installed project actually has', t => {
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], repoRoot);
+  const started = run(process.execPath,
+    [path.join(target, '.claude/hooks/protocol-hooks.cjs'), 'SessionStart'], target,
+    { input: JSON.stringify({ session_id: 'context-probe', cwd: target }) });
+  assert.equal(started.status, 0, started.stderr);
+  const context = JSON.parse(started.stdout).hookSpecificOutput.additionalContext;
+  for (const mentioned of context.match(/[\w./-]+\/protocol-[\w-]+\.cjs/g) || []) {
+    assert.ok(fs.existsSync(path.join(target, mentioned)),
+      `the injected context names ${mentioned}, which is not installed`);
+  }
+});

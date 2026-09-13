@@ -2,7 +2,7 @@
 
 Status: Completed
 Owner: RuslanFomenko
-Last update: 2026-09-13
+Last update: 2026-09-14
 
 ## Objective
 
@@ -18,6 +18,20 @@ over, judged against the two repositories the owner named as pilot candidates.
 - [x] The tools resolve the project root from their new location, including
       from a subdirectory.
 - [x] Every change has a regression test.
+
+## Pre-flight against D:\Block-Puzzle
+
+Rehearsed in a clone, never in the repository itself.
+
+- [x] Nothing collides: no AGENTS.md, CLAUDE.md, .gitattributes, .editorconfig,
+      .ai, .claude or .codex exists there. The install is purely additive.
+- [x] Only `.gitignore` changes among tracked files, by appended block.
+- [x] Their `scripts/` and `docs/` stay untouched.
+- [x] Both adapters answer; the tools resolve the root from `.ai/bin/`.
+- [x] Their own suite: 196 Flutter tests pass in 16 seconds.
+- [x] A Flutter build leaves nothing Git can see, so the snapshot stays at 429
+      entries and about 190 ms.
+- [x] Full protocol cycle rehearsed: lock, journal, evidence, verify, release.
 
 ## Current state
 

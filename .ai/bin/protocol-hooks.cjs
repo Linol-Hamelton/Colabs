@@ -199,7 +199,7 @@ function saveState(filename, state, createOnly = false) {
 
 // Required labels, then optional ones. Optional labels never gate completeness,
 // but they do terminate the preceding label's capture, so an Evidence block
-// appended by scripts/protocol-handoff.cjs does not leak into Open.
+// appended by .ai/bin/protocol-handoff.cjs does not leak into Open.
 const REQUIRED_LABELS = ['Agent', 'Action', 'Result', 'Next step', 'Open'];
 const ENTRY_LABELS = [...REQUIRED_LABELS, 'Evidence'];
 
@@ -232,7 +232,7 @@ function context(root, worklog) {
   let result = '# AI protocol state (injected at session start)\n\n';
   result += `Active checkout: ${root}\nRules: AGENTS.md\nYour worklog: ${worklog}\n`;
   result += 'Prepend a complete entry to this session-specific worklog; create it if needed.\n';
-  result += 'Shared metadata has one writer: use scripts/protocol-lock.cjs before editing it.\n';
+  result += 'Shared metadata has one writer: use .ai/bin/protocol-lock.cjs before editing it.\n';
   result += 'This bounded context is a starting point. Read omitted files when relevant.\n\n';
   const add = (heading, body, maximum = 5000) => {
     const block = `## ${heading}\n\n${body.trim()}\n\n`;

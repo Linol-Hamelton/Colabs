@@ -101,7 +101,7 @@ function renderEvidence(state, checks, owner) {
   for (const check of checks) {
     lines.push(`- ${check.name}: exit ${check.code} in ${check.seconds}s`);
   }
-  lines.push('- reproduce: node scripts/protocol-handoff.cjs verify');
+  lines.push('- reproduce: node .ai/bin/protocol-handoff.cjs verify');
   return lines.join('\n');
 }
 
@@ -251,7 +251,7 @@ function main(argv) {
       .filter(item => item.evidence);
     if (!carrying.length) {
       process.stderr.write('AI protocol: no journal carries an Evidence block. ' +
-        'Run: node scripts/protocol-handoff.cjs record --owner <session-id>\n');
+        'Run: node .ai/bin/protocol-handoff.cjs record --owner <session-id>\n');
       return 1;
     }
     const matching = carrying.filter(item => item.evidence.format === state.format &&
