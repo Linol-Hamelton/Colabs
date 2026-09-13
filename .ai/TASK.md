@@ -6,45 +6,45 @@ Last update: 2026-09-13
 
 ## Objective
 
-Finish the interrupted Codex session, inspect cleanup already performed by
-Claude, verify the full new/existing-project workflow and align connection
-instructions. Authorized by the owner's resumed 2026-09-13 request.
+Finish the interrupted Codex round, then remove what would actually break on a
+real product project rather than what looks unfinished. Authorized by the
+owner's 2026-09-13 instruction to reach a launchable state.
 
 ## Acceptance criteria
 
-- [x] Reconcile interrupted changes with 3b3a973 and v1.4 a00c275.
-- [x] Inspect tracked artifacts and local branches; preserve project history.
-- [x] Fix default handoff in installed projects without source tooling.
-- [x] Prevent a missing owner journal from selecting another agent's journal.
-- [x] Keep installed hook files valid after checkout in a CRLF host project.
-- [x] Align source/installed instructions and inspect real Codex discovery.
-- [x] Run full validation and regression suite (109 tests passing).
+- [x] The interrupted Codex round is committed, assessed and green.
+- [x] Hook cost measured on a large repository and on the owner's own product,
+      not estimated.
+- [x] The Stop hook, which runs after every response, no longer grows with the
+      size of the project.
+- [x] Change detection unaffected: edit, revert, add and delete all still seen.
+- [x] Evidence from an older digest format is named, not called stale.
+- [x] Every change has a regression test.
 
 ## Current state
 
-Started from clean main at a00c275; Claude had already preserved the adapter,
-removed obsolete branches and reduced installation to the 22 runtime files.
-Current branch: codex/finish-handoff-20260913. Validator: exit 0, no warnings.
-Full suite: 109 passed, no failures/skips (237.57s). The final automated receipt
-is recorded in .ai/worklog/codex-20260912-adapter.md.
-GitHub branch discovery confirms main is the only remote branch.
+Recorded as DEC-0015, version 1.5. 113 tests pass. Measured: the Stop hook fell
+from about 850 ms to about 330 ms on five thousand files, and the snapshot takes
+122 ms on the owner's product repository while reading one file of 558.
 
 ## Active agent
 
-- None after handoff; Codex is recording evidence and releasing its lock.
+- None. The shared-document lock is released.
 
 ## Open questions
 
-1. Codex CLI 0.154.0 discovers both project hooks without errors, enabled but
-   untrusted. The owner reviews them via /hooks before live automatic execution.
-2. The resumed Codex journal records the interrupted round. Changes are on
-   codex/finish-handoff-20260913, uncommitted; no push was requested or made.
-3. Before v1.4, installed projects received extra source files. Inspect those
-   targets separately before removal; the installer preserves existing files.
-4. DEC-0014 remains Proposed. No licence approval is inferred in this session.
-5. The owner has not named the first product task. T6/T8 remain deferred.
+1. Still no product task. Five rounds have improved the scaffolding. Everything
+   that can be verified without real work has now been verified.
+2. Deliberately not built: pruning stale files on upgrade and an uninstall
+   command. No project has ever installed the protocol, so there are no stale
+   installs to prune. Build it when a project has been upgraded twice.
+3. DEC-0014, the licence choice, is still Proposed.
+4. The Codex adapter is discovered by Codex CLI 0.154.0 and reported untrusted,
+   as expected. Execution still awaits the owner trusting it in the host.
+5. Audit findings T6 and T8 remain open in the SessionStart hook; neither can
+   produce a false green.
 
 ## Next
 
-The owner activates Codex hooks and names the first product objective.
-Use docs/PROTOCOL.md for new/existing-project installation and handoff.
+Install the protocol on the product repository and run the first real task
+through it. The connection command is in `README.md`.

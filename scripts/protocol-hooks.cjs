@@ -53,6 +53,12 @@ function fingerprint(filename) {
   return `${stat.mode & 0o111}:${hash.digest('hex')}`;
 }
 
+// Git already knows every tracked file's content by its blob hash, and which
+// files differ from it. Re-hashing the whole working tree cost about six
+// seconds per hook on a fifty-thousand-file repository, on every response.
+// Only files Git reports as changed or untracked are read here. See DEC-0015.
+const SNAPSHOT_FORMAT = 2;
+
 function snapshot(root) {
   const names = new Set(git(root, ['ls-files', '--cached', '--others', '--exclude-standard', '-z'])
     .split('\0').filter(Boolean));
@@ -62,12 +68,23 @@ function snapshot(root) {
     const name = record.slice(separator + 1);
     index.set(name, `${index.get(name) || ''}${record.slice(0, separator)};`);
   }
+  // --no-renames keeps every record a single path, so NUL parsing stays simple.
+  const dirty = new Set();
+  for (const record of git(root, ['status', '--porcelain=v1', '-uall', '-z', '--no-renames'])
+    .split('\0').filter(Boolean)) {
+    if (record.length > 3) dirty.add(record.slice(3));
+  }
   const files = {};
   for (const name of [...names].sort()) {
     // Runtime is disposable. Each worklog has its own writer and is checked separately.
     if (name.startsWith('.ai/runtime/') || name.startsWith('.ai/worklog/')) continue;
+    const staged = index.get(name);
+    // A clean tracked entry is already identified by its mode and blob hash.
+    const identity = (staged && !dirty.has(name))
+      ? 'indexed'
+      : fingerprint(path.join(root, name));
     Object.defineProperty(files, name, {
-      value: `${index.get(name) || ''}|${fingerprint(path.join(root, name))}`,
+      value: `${staged || ''}|${identity}`,
       enumerable: true,
     });
   }
@@ -255,4 +272,4 @@ function main(agent = 'claude') {
 }
 
 if (require.main === module) main();
-module.exports = { latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };
+module.exports = { SNAPSHOT_FORMAT, latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };

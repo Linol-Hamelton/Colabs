@@ -629,6 +629,62 @@ Approved by: _pending; an agent may not choose a licence for its owner_
 
 ---
 
+### DEC-0015
+
+Status: Accepted
+Date: 2026-09-13
+Supersedes: nothing; it changes how the snapshot is computed, not what it means
+
+Context:
+Both hooks took a content hash of every file Git could see, on every run. The
+Stop hook runs after every response, so that cost is paid continuously. Measured
+on a generated five-thousand-file repository: 584 ms of hashing against 70 ms
+for Git itself, and the hook as a whole took 800 to 900 ms. The cost is linear
+in bytes, which projects to roughly six seconds per response at fifty thousand
+files. Measured read-only against the owner's own product repository, which has
+558 tracked files but 118 MB of content because of screenshots, hashing alone
+took 238 ms.
+
+An agent whose every reply is delayed by seconds will have the hooks removed,
+and a protocol whose enforcement has been removed enforces nothing.
+
+Decision:
+Git already identifies every tracked file by the blob hash in its index, and
+`git status` already says which files differ from it. The snapshot now reads
+only what Git reports as changed or untracked; a clean tracked entry is
+identified by its index record. Change detection is unaffected: an edit, a
+revert, an addition and a deletion are each still detected exactly as before.
+
+Because the identity strings changed, every digest changes with them. The
+snapshot format is numbered and the number is recorded in each Evidence block.
+Evidence written under an older format is reported as not comparable, naming
+the format, instead of being reported as stale. A stale digest and an
+incomparable one are different facts and the tool says which it found.
+
+Reasoning:
+Recomputing what Git has already computed is the whole of the cost. The index
+is authoritative for a clean file by construction: Git decides whether a file
+is clean, and its blob hash is the content identity it decided on.
+
+Alternatives rejected:
+Caching hashes between runs. It adds a cache to invalidate and would still read
+every file the first time. Sampling or capping the file set: it would make the
+snapshot silently incomplete, which is the class of defect DEC-0011 removed.
+Leaving the digest unversioned: existing evidence would read as stale, which is
+a false statement about why it does not match.
+
+Consequences:
+On the five-thousand-file repository the hook fell from about 850 ms to about
+330 ms, and the remaining time is Git's own three calls rather than anything
+that grows with content. On the owner's product repository the snapshot takes
+122 ms and reads one file of 558. Evidence recorded before this change cannot
+be compared against a tree measured after it, and says so; re-recording
+refreshes it.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

@@ -74,6 +74,7 @@ function anchor(root) {
     dirty,
     fileCount: names.length,
     digest: `sha256:${hash.digest('hex')}`,
+    format: hooks.SNAPSHOT_FORMAT,
   };
 }
 
@@ -96,6 +97,7 @@ function renderEvidence(state, checks, owner) {
     'Evidence:',
     `- anchor: ${state.commit || 'no commits'}${state.dirty ? ', uncommitted changes present' : ', clean tree'}`,
     `- digest: ${state.digest} over ${state.fileCount} tracked and untracked files`,
+    `- digest format: ${state.format}`,
     `- recorded: ${new Date().toISOString()} by ${owner}`,
     '- scope: protocol checks only; host-project tests run separately',
   ];
@@ -137,7 +139,8 @@ function readEvidence(journalPath) {
   const body = hooks.entryField(found.sections[found.index].replace(/\n-{3,}\s*$/, '\n'), 'Evidence');
   if (!body) return null;
   const digest = body.match(/digest:\s*(sha256:[a-f0-9]{64})/);
-  return { body, digest: digest ? digest[1] : null };
+  const format = body.match(/digest format:\s*(\d+)/);
+  return { body, digest: digest ? digest[1] : null, format: format ? Number(format[1]) : 1 };
 }
 
 function resolveJournal(root, explicit, owner) {
@@ -165,6 +168,12 @@ function reportOne(root, journalPath, state) {
   const relative = path.relative(root, journalPath);
   if (!evidence) {
     process.stderr.write(`AI protocol: ${relative} has no Evidence block on its newest entry.
+`);
+    return 1;
+  }
+  if (evidence.format !== state.format) {
+    process.stderr.write(`AI protocol: ${relative} evidence uses digest format ${evidence.format}; ` +
+      `this build computes format ${state.format}. The two cannot be compared. Re-record to refresh it.
 `);
     return 1;
   }
@@ -248,8 +257,8 @@ function main(argv) {
         'Run: node scripts/protocol-handoff.cjs record --owner <session-id>\n');
       return 1;
     }
-    const matching = carrying.filter(item => item.evidence.digest === state.digest &&
-      !/exit [^0]/.test(item.evidence.body));
+    const matching = carrying.filter(item => item.evidence.format === state.format &&
+      item.evidence.digest === state.digest && !/exit [^0]/.test(item.evidence.body));
     if (matching.length) {
       for (const item of matching) {
         process.stdout.write(`${path.relative(root, item.file)}: evidence matches the current tree\n`);
@@ -258,7 +267,9 @@ function main(argv) {
     }
     process.stderr.write(`AI protocol: no evidence matches the current tree ${state.digest}.\n`);
     for (const item of carrying) {
-      const why = item.evidence.digest === state.digest ? 'records a failing check' : 'anchored to a different tree';
+      const why = item.evidence.format !== state.format
+        ? `recorded with digest format ${item.evidence.format}, not comparable`
+        : (item.evidence.digest === state.digest ? 'records a failing check' : 'anchored to a different tree');
       process.stderr.write(`  ${path.relative(root, item.file)}: ${why}\n`);
     }
     return 1;

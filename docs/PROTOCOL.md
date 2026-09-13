@@ -177,6 +177,27 @@ Upgrade the managed tooling, keeping the project's own `.ai` state:
 
 ---
 
+## What the hooks cost
+
+SessionStart runs once per session. Stop runs after every response, so its cost
+is paid continuously and is the one that matters.
+
+Both ask Git what changed and read only those files. A clean tracked file is
+identified by the blob hash already in the Git index and is never opened. On a
+five-thousand-file repository the Stop hook takes about a third of a second,
+nearly all of it Git's own calls. On a repository of 558 files holding 118 MB
+the snapshot takes about 120 ms and opens one file.
+
+If a session feels slow, measure before assuming:
+
+```
+node scripts/protocol-handoff.cjs state
+```
+
+It prints the file count and the digest without running any checks.
+
+---
+
 ## Encoding
 
 Every `.ps1` file is ASCII-only. Windows PowerShell 5.1 reads a file with no

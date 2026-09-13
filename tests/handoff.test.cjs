@@ -69,17 +69,17 @@ test('verify rejects a missing block, stale evidence and a recorded failure', t 
   assert.notEqual(missing.status, 0);
   assert.match(missing.stderr, /no Evidence block/);
 
-  handoff.attach(full, `Evidence:\n- digest: sha256:${'d'.repeat(64)}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(full, `Evidence:\n- digest: sha256:${'d'.repeat(64)}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
   const stale = cli(root, ['verify', '--journal', journal]);
   assert.notEqual(stale.status, 0);
   assert.match(stale.stderr, /stale/);
 
   const real = handoff.anchor(root);
-  handoff.attach(full, `Evidence:\n- digest: ${real.digest}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(full, `Evidence:\n- digest: ${real.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
   const good = cli(root, ['verify', '--journal', journal]);
   assert.equal(good.status, 0, good.stderr);
 
-  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- test-protocol.ps1: exit 1 in 9s`);
+  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- test-protocol.ps1: exit 1 in 9s`);
   const failing = cli(root, ['verify', '--journal', journal]);
   assert.notEqual(failing.status, 0);
   assert.match(failing.stderr, /failing check/);
@@ -103,7 +103,7 @@ test('verify without a target asks whether any journal matches the tree', t => {
   const fresh = path.join(root, '.ai/worklog/new-session.md');
 
   handoff.attach(old, `Evidence:\n- digest: sha256:${'e'.repeat(64)}\n- validate-protocol.ps1: exit 0 in 1s`);
-  handoff.attach(fresh, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(fresh, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
 
   // Make the stale journal the most recently touched one.
   const later = new Date(Date.now() + 60000);
@@ -202,4 +202,55 @@ test('an explicit missing owner never falls back to another session journal', t 
     assert.match(result.stderr, /No session journal for owner missing-session/);
     assert.deepEqual(fs.readFileSync(other), before);
   }
+});
+
+// Re-hashing every tracked file cost about six seconds per hook on a
+// fifty-thousand-file repository, and Stop fires after every response. Git
+// already identifies clean files by their blob hash. See DEC-0015.
+test('clean tracked files are identified by the Git index, not read from disk', t => {
+  const root = makeProtocolFixture(t);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'baseline'], root);
+  const taken = hooks.snapshot(root);
+  const values = Object.values(taken);
+  assert.ok(values.length > 5);
+  const indexed = values.filter(value => value.endsWith('|indexed'));
+  assert.equal(indexed.length, values.length,
+    'a committed, unmodified tree must need no content hashing');
+});
+
+test('a modified file is read even though it is tracked', t => {
+  const root = makeProtocolFixture(t);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'baseline'], root);
+  const before = hooks.snapshot(root);
+  fs.appendFileSync(path.join(root, 'AGENTS.md'), '\nedited\n');
+  const after = hooks.snapshot(root);
+  assert.deepEqual(hooks.changedFiles(before, after), ['AGENTS.md']);
+  assert.ok(!after['AGENTS.md'].endsWith('|indexed'), 'a dirty file must be hashed');
+});
+
+test('deletions and new files are still detected', t => {
+  const root = makeProtocolFixture(t);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
+  run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'baseline'], root);
+  const before = hooks.snapshot(root);
+  fs.writeFileSync(path.join(root, 'appeared.txt'), 'new\n');
+  fs.unlinkSync(path.join(root, 'CLAUDE.md'));
+  const after = hooks.snapshot(root);
+  assert.deepEqual(hooks.changedFiles(before, after).sort(), ['CLAUDE.md', 'appeared.txt']);
+});
+
+test('evidence from an older digest format is named, not called stale', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/older-format.md';
+  write(root, journal, `# W\n\n${entry()}\n`);
+  const full = path.join(root, journal);
+  const current = handoff.anchor(root);
+  // Format 1 evidence: the digest line without a format line.
+  handoff.attach(full, `Evidence:\n- digest: ${current.digest}\n- validate-protocol.ps1: exit 0 in 1s`);
+  const result = cli(root, ['verify', '--journal', journal]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /digest format 1/);
+  assert.doesNotMatch(result.stderr, /stale/);
 });
