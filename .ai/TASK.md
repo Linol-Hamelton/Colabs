@@ -1,49 +1,50 @@
 # Current Task
 
-Status: Pending - owner decides the council's first shared task
+Status: In progress
 Owner: RuslanFomenko
 Last update: 2026-09-16
 
 ## Objective
 
-Assess the proposal to widen the council to Qwen, DeepSeek and later Gemini,
-and build whatever that requires of this repository. The proposal's own subject
-matter, a macroeconomic simulation, is a separate project and is not started
-here.
+Independent assessment of this repository by three assistants working
+separately: how well it is built, what its critical defects are, and what to
+improve first. Each writes its own verdict; the owner compares them.
 
-## What was done
+## Constraints
 
-Reproduced the proposal in a throwaway copy: it fails validation immediately,
-on a missing Status line and on CRLF in a pasted log under `.ai/`. Underneath
-that, the engine refused every agent except Claude and Codex, so neither Qwen
-nor DeepSeek could have taken part at all.
+- Read and verify only. No product changes, no commits, no pushes.
+- A claim counts only if the command that checked it is named in the entry.
+- Take the shared-document lock before editing this file.
 
-Participation is now open to any named assistant, and
-`.ai/bin/protocol-session.cjs` gives one without hooks the same journal,
-identity and context the hooks give. A `## Roles` section in this file names
-who does what, written by the owner and injected into each session; nothing
-assigns or rotates. Recorded as DEC-0019 and DEC-0020. Version 1.8.0, which
-also closes the 1.6.1 against 1.6.2 mismatch.
+## Acceptance criteria
+
+- [ ] Each assistant leaves one journal entry with all five labels.
+- [ ] Each entry carries an Evidence block written by the handoff tool.
+- [ ] Each names at least one defect it verified by running something.
+- [ ] Disagreements between assistants land in Open questions below.
 
 ## Roles
 
-_Not yet assigned. The owner writes one line per assistant when a task starts._
+_Three independent reviews of one subject, deliberately. Duplication is a
+defect when implementing and the point when reviewing._
+
+- qwen: independent reviewer
+- deepseek: independent reviewer
+- gemini: independent reviewer, joins when connected
+- claude: consolidates the three verdicts afterwards, does not review now
+
+## Current state
+
+Version 1.8.0. 134 tests pass, the validator exits 0, CI is green on main.
+Twenty decisions are recorded. Nothing here has yet been reviewed by an
+assistant that did not help build it.
 
 ## Open questions
 
-1. The macroeconomic simulation came from a proposal written in another
-   discussion and is not this project's goal. The goal is this tool itself: a
-   collegial instrument for cross-review by several assistants. Nothing about
-   the simulation was built or started.
-2. Codex and Kimi are at their weekly limit and Gemini is not connected, so
-   only Qwen and DeepSeek can take part today.
-3. Journals accumulate one file per started session regardless of whether the
-   session did anything. Two empty ones exist now; the limit of thirty is the
-   only backstop and no archiving pass has run here.
-4. The role line is advisory. An assistant that ignores it is not stopped,
-   exactly as a missing journal entry is not stopped.
+1. Journals accumulate one file per started session whether or not the session
+   did anything. Two empty ones exist and no archiving pass has ever run.
+2. The role line is advisory; an assistant that ignores it is not stopped.
 
 ## Next
 
-Owner names the first task for the council and writes the Roles section for it.
-Qwen and DeepSeek are available now.
+Owner compares the three verdicts and decides what to act on.
