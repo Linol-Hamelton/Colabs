@@ -896,6 +896,61 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0020
+
+Status: Accepted
+Date: 2026-09-16
+Supersedes: nothing; it acts on what the first pilot measured
+
+Context:
+The first pilot gave one task to two assistants at once. Both did it. Two
+development plans for the same repository arrived ten minutes apart, 225 and
+238 lines, covering the same ground. Nothing had collided: the journals were
+partitioned and the lock held. What was lost was not a write but an assignment.
+
+A proposal to widen the council repeated the shape, giving one round to two
+assistants by name. Asked how roles should work, the owner said they want to
+alternate at their own discretion, or by a written priority of roles, or both
+at the same time. A fixed rotation was proposed here and the owner rejected it.
+
+Decision:
+`.ai/TASK.md` may carry a `## Roles` section, one assistant per line as
+`- name: role`. The owner writes it. Nothing assigns, rotates or enforces.
+The role is free text, so a priority or a condition lives inside it, and the
+owner changes it per task at will. That covers assignment by discretion, by
+written priority, and both together, because all three are the same act of
+writing a line.
+
+At session start each assistant is told its own role. One the task does not
+name is told so and told to ask before starting. The task template ships the
+section with the examples in prose rather than as list entries, so a new
+project starts with nobody assigned.
+
+The template also lists the statuses the validator accepts. A previous session
+discovered them by having its receipt refused.
+
+Reasoning:
+The duplicate work was not a concurrency defect and a lock would not have
+prevented it. Each agent simply did not know another had the same task. The
+cheapest thing that fixes it is telling each one what it is, which is one line
+of injected context, and leaving the choice entirely with the owner.
+
+Alternatives rejected:
+A fixed rotation of implementer and reviewer. The owner wants to decide per
+task, and a protocol that decides for them would be overridden or ignored.
+Enforcing that an unnamed assistant may not work: the hooks warn and do not
+block by DEC-0003, and an owner sometimes wants a third opinion without
+editing the task first.
+
+Consequences:
+Roles are advisory. An assistant that ignores the line is not stopped, exactly
+as the Stop hook does not stop a missing journal entry. The section is optional,
+so a task without it behaves as before and nothing about roles is injected.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

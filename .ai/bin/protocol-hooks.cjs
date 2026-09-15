@@ -235,11 +235,42 @@ function readText(root, relative) {
   return fs.readFileSync(path.join(root, relative), 'utf8');
 }
 
-function context(root, worklog) {
+// Who does what in the current task. The first pilot gave one task to two
+// assistants and received two answers to it, so every session is now told its
+// own role before it starts. The owner writes the section; nothing here
+// assigns, rotates or enforces anything. See DEC-0020.
+function assignment(root) {
+  let text;
+  try { text = fs.readFileSync(path.join(root, '.ai', 'TASK.md'), 'utf8').replace(/\r\n/g, '\n'); }
+  catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+  const section = text.split(/(?=^## )/m).find(part => /^## Roles\b/.test(part));
+  if (!section) return [];
+  const entries = [];
+  for (const line of section.split('\n')) {
+    const match = line.match(/^[-*][ \t]+([a-z][a-z0-9-]{1,23})[ \t]*:[ \t]*(\S.*?)[ \t]*$/);
+    if (match) entries.push({ agent: match[1], role: match[2] });
+  }
+  return entries;
+}
+
+function assignmentLines(root, agent) {
+  const roles = assignment(root);
+  if (!roles.length) return '';
+  const mine = roles.filter(entry => entry.agent === agent).map(entry => entry.role);
+  const everyone = roles.map(entry => `${entry.agent} = ${entry.role}`).join(', ');
+  const yours = mine.length
+    ? `Your role in this task: ${mine.join('; ')}\n`
+    : `This task names ${roles.map(entry => entry.agent).join(', ')}. You are ${agent} and are `
+      + 'not among them. Ask the owner before starting work.\n';
+  return `${yours}Assignment: ${everyone}\n`;
+}
+
+function context(root, worklog, agent) {
   let result = '# AI protocol state (injected at session start)\n\n';
   result += `Active checkout: ${root}\nRules: AGENTS.md\nYour worklog: ${worklog}\n`;
   result += 'Prepend a complete entry to this session-specific worklog; create it if needed.\n';
   result += 'Shared metadata has one writer: use .ai/bin/protocol-lock.cjs before editing it.\n';
+  result += assignmentLines(root, agent);
   result += 'This bounded context is a starting point. Read omitted files when relevant.\n\n';
   const add = (heading, body, maximum = 5000) => {
     const block = `## ${heading}\n\n${body.trim()}\n\n`;
@@ -307,7 +338,7 @@ function run(event, input, agent = 'claude') {
     // Resume and compaction must not erase the pre-edit baseline.
     if (!previous) saveState(paths.state, current, true);
     return { suppressOutput: true, hookSpecificOutput: {
-      hookEventName: 'SessionStart', additionalContext: context(root, paths.worklog),
+      hookEventName: 'SessionStart', additionalContext: context(root, paths.worklog, agent),
     } };
   }
   if (event !== 'Stop') throw new Error(`Unknown hook event: ${event}`);
@@ -340,4 +371,4 @@ function main(agent = 'claude') {
 }
 
 if (require.main === module) main();
-module.exports = { SNAPSHOT_FORMAT, AGENT_NAME, context, latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };
+module.exports = { SNAPSHOT_FORMAT, AGENT_NAME, context, assignment, latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };

@@ -20,29 +20,30 @@ nor DeepSeek could have taken part at all.
 
 Participation is now open to any named assistant, and
 `.ai/bin/protocol-session.cjs` gives one without hooks the same journal,
-identity and context the hooks give. Recorded as DEC-0019. Version 1.7.0, which
+identity and context the hooks give. A `## Roles` section in this file names
+who does what, written by the owner and injected into each session; nothing
+assigns or rotates. Recorded as DEC-0019 and DEC-0020. Version 1.8.0, which
 also closes the 1.6.1 against 1.6.2 mismatch.
+
+## Roles
+
+_Not yet assigned. The owner writes one line per assistant when a task starts._
 
 ## Open questions
 
-1. Where does the simulation project live? It needs its own repository with the
-   protocol installed, as Block-Puzzle has. Its task, its knowledge base and its
-   chat logs belong there, outside `.ai/`.
-2. The proposal's split 0.43 / 0.2451 / 0.3249 sums to exactly 1.0 of gross
-   value added, leaving nothing for intermediate consumption, materials or
-   capital expenditure. It is presented as an invariant to encode. It is a
-   modelling assumption and belongs in that project's DECISIONS before any code
-   assumes it.
-3. The proposal assigns one round to two assistants at once. The first pilot
-   measured what that produces: two plans for one task. One implementer and one
-   reviewer per round instead.
-4. Codex and Kimi are at their weekly limit and Gemini is not connected, so the
-   proposed three-round cascade cannot run as written today.
-5. Journals accumulate one file per started session regardless of whether the
+1. The macroeconomic simulation came from a proposal written in another
+   discussion and is not this project's goal. The goal is this tool itself: a
+   collegial instrument for cross-review by several assistants. Nothing about
+   the simulation was built or started.
+2. Codex and Kimi are at their weekly limit and Gemini is not connected, so
+   only Qwen and DeepSeek can take part today.
+3. Journals accumulate one file per started session regardless of whether the
    session did anything. Two empty ones exist now; the limit of thirty is the
-   only backstop.
+   only backstop and no archiving pass has run here.
+4. The role line is advisory. An assistant that ignores it is not stopped,
+   exactly as a missing journal entry is not stopped.
 
 ## Next
 
-Owner decides the simulation project's repository, then gives one bounded task
-to one assistant with another reviewing.
+Owner names the first task for the council and writes the Roles section for it.
+Qwen and DeepSeek are available now.

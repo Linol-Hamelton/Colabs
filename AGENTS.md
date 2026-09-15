@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.7.0
+## AI Collaboration Protocol v1.8.0
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude, and
 others. They do not share chat history. The filesystem is the only channel
@@ -42,6 +42,26 @@ is a source of truth.
 - Any agent may challenge any other agent. Record the disagreement in
   `.ai/TASK.md` under Open questions. Do not silently overwrite.
 - The human owner decides. Ask rather than assume.
+
+### Who does what
+
+`.ai/TASK.md` may carry a `## Roles` section naming one assistant per line:
+
+```markdown
+## Roles
+
+- qwen: implementer
+- deepseek: reviewer, opposes the result before handoff
+- claude: second reviewer only if the two disagree
+```
+
+The owner writes it. Nothing here assigns, rotates or enforces: the role text
+is free, so a priority or a condition can be written into it, and the owner
+changes it per task at will.
+
+At session start each assistant is told its own role. One that is not named is
+told so and told to ask before starting. This exists because the first pilot
+gave one task to two assistants and received two answers to it.
 
 ---
 

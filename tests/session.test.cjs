@@ -94,3 +94,45 @@ test('the hooks and this tool agree on where a session writes', () => {
   const other = hooks.sessionPaths(repoRoot, 'shared-id', 'qwen');
   assert.equal(path.basename(other.worklog), path.basename(paths.worklog).replace('claude-', 'qwen-'));
 });
+
+// The first pilot gave one task to two assistants and received two answers to
+// it. Each session is now told its own role before it starts. See DEC-0020.
+function withRoles(root, body) {
+  // Replace the template's own Roles section rather than adding a second one.
+  const file = path.join(root, '.ai/TASK.md');
+  const text = fs.readFileSync(file, 'utf8');
+  const parts = text.split(/(?=^## )/m).map(part => /^## Roles\b/.test(part)
+    ? `## Roles\n\n${body}\n\n` : part);
+  fs.writeFileSync(file, parts.join(''));
+}
+
+test('each assistant is told its own role, in the owner own words', t => {
+  const root = makeProtocolFixture(t);
+  withRoles(root, '- qwen: implementer, leads this task\n- deepseek: reviewer, opposes before handoff');
+  const qwen = session(root, ['start', '--agent', 'qwen', '--session', 'a']);
+  assert.match(qwen.stdout, /Your role in this task: implementer, leads this task/);
+  const deepseek = session(root, ['start', '--agent', 'deepseek', '--session', 'b']);
+  assert.match(deepseek.stdout, /Your role in this task: reviewer, opposes before handoff/);
+});
+
+test('an assistant the task does not name is told to ask first', t => {
+  const root = makeProtocolFixture(t);
+  withRoles(root, '- qwen: implementer\n- deepseek: reviewer');
+  const other = session(root, ['start', '--agent', 'kimi', '--session', 'c']);
+  assert.match(other.stdout, /You are kimi and are not among them\. Ask the owner/);
+  assert.match(other.stdout, /Assignment: qwen = implementer, deepseek = reviewer/);
+});
+
+test('a task with no Roles section says nothing about roles', t => {
+  const root = makeProtocolFixture(t);
+  const started = session(root, ['start', '--agent', 'qwen', '--session', 'd']);
+  assert.equal(started.status, 0, started.stderr);
+  assert.doesNotMatch(started.stdout, /Your role in this task/);
+  assert.doesNotMatch(started.stdout, /Assignment:/);
+});
+
+test('only well-formed role lines are read', t => {
+  const root = makeProtocolFixture(t);
+  withRoles(root, '- qwen: implementer\nnot a list item: ignored\n- ../escape: nope\n- Capitals: nope');
+  assert.deepEqual(hooks.assignment(root), [{ agent: 'qwen', role: 'implementer' }]);
+});
