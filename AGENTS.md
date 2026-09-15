@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.6.2
+## AI Collaboration Protocol v1.7.0
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude, and
 others. They do not share chat history. The filesystem is the only channel
@@ -88,8 +88,16 @@ lock is needed here.
 
 - Claude/Codex with active hooks: use the journal created by SessionStart.
   Use its basename without `.md` as the lock owner and evidence owner.
-- Without active hooks: name the file after the session id used for the lock.
-  Keep that same journal if hooks are configured during this session.
+- Any other assistant, or one whose hooks are not active, starts its session
+  explicitly and receives the same journal and the same context:
+
+```bash
+node .ai/bin/protocol-session.cjs start --agent <name>
+```
+
+  It prints the context, the session id and one owner name. Use that name for
+  the journal, for the lock and for the evidence. `stop --agent <name>
+  --session <id>` runs the same check the Stop hook runs.
 - `README.md` in that directory is not a journal. Every other file is one.
 
 Every entry needs all five labels, or the Stop hook will not count it:

@@ -2,6 +2,45 @@
 
 Session journal. Owned by this session, resumed on 2026-09-13.
 
+## 2026-09-14 - Assess the first Block-Puzzle collaboration round
+
+Agent: GPT/Codex, codex-20260912-adapter. Read-only product review.
+
+Action: Read both product journals, TASK/PLAN/DECISIONS, plans 12/13 and relevant
+Git/workflow/runtime/test code in D:/Block-Puzzle. Rechecked protocol validation
+and evidence there. Resumed from source main 2f42f7e; Claude has already committed
+the interrupted Windows repair as 39262c1 and completed containment/preflight.
+The previous pending test process returned 118/118 on the older repair tree;
+that result is historical, not validation of today's source.
+
+Result: Product validator exit 0 (one warning: no decisions); verify exit 0
+matches Claude's latest receipt. Lock free, product code/metrics unchanged.
+Both product journals report analyze + 196 tests; I did not rerun Flutter.
+Confirmed release CI omits defines while DI defaults to debug services, and
+batch 2 is absent from HEAD. Found remaining plan-12 stale main/Firebase claims,
+plan-13 A6/B1 gate dependency inversion, and TASK at its 80-line limit.
+Cross-review improved the findings, but two live plans leave consolidation open.
+
+Next step: Recommend one canonical plan, one implementer and one reviewer,
+then a bounded release-adapter regression/fix with explicit acceptance.
+Evaluate accepted findings, rework and handoff questions in that second round.
+
+Open: This pilot tested planning/review, not production implementation or
+device/cloud/store behavior. No product files, commits or deployments changed.
+Source TASK was still describing a pilot that had not started; updated it to
+the observed outcome. Source manifest says 1.6.1 while AGENTS says 1.6.2;
+recorded as housekeeping, not a reason for another broad hardening round.
+Final source checks are attached by the evidence tool below.
+
+Evidence:
+- anchor: 2f42f7eec67b01c1bb952e3ddfbaac4725c9c94b, uncommitted changes present
+- digest: sha256:5270fc54133df339700900f25f7406ce9cac9698d7365daeb2af5660114ee286 over 44 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-14T13:54:06.731Z by codex-20260912-adapter
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 263s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-13 - Finish against Claude v1.5.1 and repair Windows handoff
 
 Agent:

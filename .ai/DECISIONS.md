@@ -837,6 +837,65 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0019
+
+Status: Accepted
+Date: 2026-09-16
+Supersedes: nothing; it widens who may take part
+
+Context:
+The owner intends to widen the council beyond Claude and Codex, starting with
+Qwen and DeepSeek, and later Gemini. A proposal arrived describing how to do it.
+Applied literally to a copy of this repository it failed at once: the validator
+reported two failures, a missing `Status` line in the rewritten `.ai/TASK.md`
+and CRLF in a pasted chat log placed under `.ai/knowledge_base/`. Both were
+reproduced before this block was written.
+
+Underneath that, the engine could not have served the new assistants at all.
+`sessionPaths` accepted only `claude` and `codex` and threw on anything else,
+so no other assistant could obtain a journal, an identity or the injected
+context. Section 5 described what a hookless agent should do without giving it
+any way to do it.
+
+Decision:
+Any assistant may take part. The agent name is validated as a slug rather than
+matched against a list, because the name becomes a filename and that is the
+only property that matters. `.ai/bin/protocol-session.cjs` starts a session for
+an assistant without hooks: it creates the journal the hooks would create,
+prints the context the hooks would inject, and prints one owner name used for
+the journal, the lock and the evidence. `stop` runs the same check the Stop
+hook runs.
+
+A project that uses the protocol keeps its own repository, and the protocol is
+installed into it. Task documents, knowledge bases and chat logs belong to that
+project, not to this one. Raw pasted material does not belong under `.ai/` in
+any project, because `.ai/**` is protocol-owned and held to UTF-8 and LF; a log
+copied from a browser on Windows will fail validation on arrival.
+
+Reasoning:
+The council is worth widening only if a new member is bound by the same rules
+as the others. Handing an assistant a paragraph of instructions produces an
+unattributed artifact, which is what the first pilot already showed. Handing it
+one command produces a journal, an identity and a verifiable handoff.
+
+Alternatives rejected:
+Extending the allowlist with each new name. It makes every new member a change
+to the engine and a release. Writing a hook adapter for each assistant: most
+are reached through a chat panel with no hook contract at all, and the two that
+have one are already served.
+
+Consequences:
+Agent names are now a naming convention rather than a closed set, so a typo
+creates a new identity instead of an error. Journals accumulate one file per
+started session whether or not the session did anything; two empty ones already
+exist, and the thirty-file limit is the only backstop. The version identifier
+moves to 1.7.0, which also closes the 1.6.1 against 1.6.2 mismatch recorded as
+an open question.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

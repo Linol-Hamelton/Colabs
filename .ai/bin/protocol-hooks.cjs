@@ -157,8 +157,15 @@ function changedFiles(before, after) {
     .filter(name => before[name] !== after[name]);
 }
 
+// Any assistant may take part, not only the two with hooks. The name becomes a
+// filename, so it is restricted to a slug rather than to a fixed list. See
+// DEC-0019.
+const AGENT_NAME = /^[a-z][a-z0-9-]{1,23}$/;
+
 function sessionPaths(root, sessionId, agent = 'claude') {
-  if (!['claude', 'codex'].includes(agent)) throw new Error('Unsupported hook agent.');
+  if (!AGENT_NAME.test(agent)) {
+    throw new Error('Agent name must be 2 to 24 lowercase letters, digits or hyphens, starting with a letter.');
+  }
   if (typeof sessionId !== 'string' || !sessionId.trim()) {
     throw new Error('Hook input has no session_id; per-session tracking is unavailable.');
   }
@@ -333,4 +340,4 @@ function main(agent = 'claude') {
 }
 
 if (require.main === module) main();
-module.exports = { SNAPSHOT_FORMAT, latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };
+module.exports = { SNAPSHOT_FORMAT, AGENT_NAME, context, latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };
