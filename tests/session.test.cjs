@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { repoRoot, makeProtocolFixture, run } = require('./helpers.cjs');
+const { repoRoot, makeProtocolFixture, run, write } = require('./helpers.cjs');
 const hooks = require('../.ai/bin/protocol-hooks.cjs');
 
 function session(root, args) {
@@ -86,6 +86,24 @@ test('whoami names the journal without creating one', t => {
   const answer = JSON.parse(who.stdout);
   assert.match(answer.owner, /^qwen-[a-f0-9]{16}$/);
   assert.equal(fs.existsSync(path.join(root, answer.worklog)), false);
+});
+
+test('session start and whoami print session token and preserve nonce across runs', t => {
+  const root = makeProtocolFixture(t);
+  const started = session(root, ['start', '--agent', 'qwen', '--session', 'token-test']);
+  assert.equal(started.status, 0, started.stderr);
+  assert.match(started.stdout, /Session token: [a-f0-9]{64}/);
+  const token = started.stdout.match(/Session token: ([a-f0-9]{64})/)[1];
+
+  const who = session(root, ['whoami', '--agent', 'qwen', '--session', 'token-test']);
+  assert.equal(who.status, 0, who.stderr);
+  const whoJson = JSON.parse(who.stdout);
+  assert.equal(whoJson.sessionToken, token);
+
+  // Second start preserves nonce
+  const startedAgain = session(root, ['start', '--agent', 'qwen', '--session', 'token-test']);
+  assert.equal(startedAgain.status, 0, startedAgain.stderr);
+  assert.match(startedAgain.stdout, new RegExp(`Session token: ${token}`));
 });
 
 test('the hooks and this tool agree on where a session writes', () => {
@@ -220,7 +238,7 @@ test('cleanup-runtime removes orphan snapshots and stale temp files while protec
   const pastTime = (Date.now() - 2 * 3600 * 1000) / 1000;
   fs.utimesSync(staleTmp, pastTime, pastTime);
 
-  // Run cleanup-runtime
+// Run cleanup-runtime
   const cleaned = session(root, ['cleanup-runtime']);
   assert.equal(cleaned.status, 0, cleaned.stderr);
 
@@ -228,5 +246,51 @@ test('cleanup-runtime removes orphan snapshots and stale temp files while protec
   assert.ok(!fs.existsSync(orphanJson), 'orphan snapshot was not removed');
   assert.ok(!fs.existsSync(staleTmp), 'stale tmp file was not removed');
   assert.ok(fs.existsSync(activeJson), 'active session snapshot was mistakenly removed');
+});
+
+test('cleanup-runtime --force preserves snapshot if hostname is foreign or pid status unknown', t => {
+  const root = makeProtocolFixture(t);
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+
+  const foreignSnapshot = path.join(runtimeDir, 'qwen-foreign12345678.json');
+  fs.writeFileSync(foreignSnapshot, JSON.stringify({
+    version: 1,
+    pid: 999999,
+    hostname: 'other-machine-xyz',
+    files: {}
+  }));
+
+  // Create corresponding worklog so it is not treated as orphan
+  write(root, '.ai/worklog/qwen-foreign12345678.md', '# W\n\n');
+
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(foreignSnapshot), 'foreign snapshot should be preserved even with --force');
+});
+
+test('cleanup-runtime preserves foreign-host stale snapshot older than 7 days (null liveness)', t => {
+  const root = makeProtocolFixture(t);
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+
+  const staleSnapshot = path.join(runtimeDir, 'agent-stale7day12345678.json');
+  fs.writeFileSync(staleSnapshot, JSON.stringify({
+    version: 1,
+    pid: 888888,
+    hostname: 'remote-ci-server-xyz',
+    files: {}
+  }));
+  // Set mtime to 8 days ago
+  const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
+  fs.utimesSync(staleSnapshot, eightDaysAgo, eightDaysAgo);
+
+  // Create corresponding worklog so it is not treated as orphan
+  write(root, '.ai/worklog/agent-stale7day12345678.md', '# W\n\n');
+
+  const cleaned = session(root, ['cleanup-runtime']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(staleSnapshot),
+    'foreign-host snapshot with unknown liveness must survive 7-day rule');
 });
 

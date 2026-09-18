@@ -59,9 +59,12 @@ function git(root, args) {
 // The anchor identifies the exact state the evidence describes. A commit alone
 // is not enough: most protocol work is uncommitted when it is handed over.
 function anchor(root) {
-  const head = git(root, ['rev-list', '--all', '--count']).trim() === '0'
-    ? null
-    : git(root, ['rev-parse', 'HEAD']).trim();
+  let head = null;
+  try {
+    head = git(root, ['rev-parse', '--verify', '--quiet', 'HEAD']).trim() || null;
+  } catch {
+    head = null;
+  }
   const files = hooks.snapshot(root);
   const names = Object.keys(files).sort();
   const hash = crypto.createHash('sha256');
@@ -70,7 +73,9 @@ function anchor(root) {
     // staging. No separate index-state prefix needs stripping.
     hash.update(`${name}|${files[name]}|`);
   }
-  const dirty = git(root, ['status', '--porcelain', '-uall']).trim().length > 0;
+  const dirty = typeof files[hooks.DIRTY_SYMBOL] === 'boolean'
+    ? files[hooks.DIRTY_SYMBOL]
+    : git(root, ['status', '--porcelain', '-uall']).trim().length > 0;
   return {
     commit: head,
     dirty,
@@ -115,6 +120,7 @@ function renderEvidence(state, checks, owner, entryDigest, quick, parentEntry = 
     `- digest: ${state.digest} over ${state.fileCount} tracked and untracked files`,
     `- digest format: ${state.format}`,
     `- recorded: ${new Date().toISOString()} by ${owner}`,
+    '- entry hash format: 2',
     `- entry: ${entryDigest} of this entry without this block`,
     `- parent-entry: ${parentEntry}`,
     scopeLine,
@@ -126,8 +132,14 @@ function renderEvidence(state, checks, owner, entryDigest, quick, parentEntry = 
   return lines.join('\n');
 }
 
+// Imported from protocol-hooks.cjs (canonical source, avoids duplication drift).
+const { DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, ENTRY_HASH_FORMAT, hasEntryHashFormat2, canonicalEntryBody } = hooks;
+
 function findArchivedParent(text) {
-  const match = text.match(/<!-- archived-parent:\s*(sha256:[a-f0-9]{64}) -->/);
+  const normalized = text.replace(/\r\n/g, '\n');
+  const firstHeading = normalized.search(/^## /m);
+  const preamble = firstHeading !== -1 ? normalized.slice(0, firstHeading) : normalized;
+  const match = preamble.match(/<!-- archived-parent:\s*(sha256:[a-f0-9]{64})\s*-->/);
   return match ? match[1] : null;
 }
 
@@ -137,19 +149,18 @@ function findParentEntry(journalPath) {
   if (!found) return 'root';
   const olderSections = found.sections.slice(found.index + 1);
   for (const section of olderSections) {
-    if (/^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - /m.test(section)) {
-      const match = section.match(/entry:\s*(sha256:[a-f0-9]{64})/);
+    if (DATE_HEADING_M_REGEX.test(section)) {
+      const match = section.match(/^[ \t]*-[ \t]+entry:[ \t]*(sha256:[a-f0-9]{64})\b/m);
       if (match) {
-        let body = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
-        body = body.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
-        const clean = body.replace(/\s+$/, '');
+        const clean = canonicalEntryBody(section);
         const actualHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
         if (actualHash !== match[1]) {
           return 'tampered';
         }
         return match[1];
       }
-      if (/^Evidence:/m.test(section)) {
+      const ev = parseEvidenceBlock(section);
+      if (ev && ev.format >= 4) {
         return 'tampered';
       }
       return 'legacy';
@@ -162,19 +173,154 @@ function findParentEntry(journalPath) {
 
 function parseEvidenceBlock(body) {
   if (!body) return null;
-  const digest = body.match(/digest:\s*(sha256:[a-f0-9]{64})/);
-  const format = body.match(/digest format:\s*(\d+)/);
-  const entry = body.match(/entry:\s*(sha256:[a-f0-9]{64})/);
-  const parent = body.match(/parent-entry:\s*(\S+)/);
+  const digest = body.match(/^[ \t]*-[ \t]+digest:[ \t]*(sha256:[a-f0-9]{64})\b/m) || body.match(/digest:\s*(sha256:[a-f0-9]{64})/);
+  const format = body.match(/^[ \t]*-[ \t]+digest format:[ \t]*(\d+)/m) || body.match(/digest format:\s*(\d+)/);
+  const entry = body.match(/^[ \t]*-[ \t]+entry:[ \t]*(sha256:[a-f0-9]{64})\b/m);
+  const parent = body.match(/^[ \t]*-[ \t]+parent-entry:[ \t]*(\S+)/m);
+  const chainRoot = body.match(/^[ \t]*-[ \t]+chain root:[ \t]*(\S+)/m);
+  const authenticated = hasEntryHashFormat2(body);
   return { body, digest: digest ? digest[1] : null, format: format ? Number(format[1]) : 1,
-    entry: entry ? entry[1] : null, parentEntry: parent ? parent[1] : null };
+    entry: entry ? entry[1] : null, parentEntry: parent ? parent[1] : null,
+    chainRoot: chainRoot ? chainRoot[1] : null, authenticated };
+}
+
+function archiveEntryRecords(text) {
+  const normalized = text.replace(/\r\n/g, '\n');
+  const sections = normalized.split(/(?=^## )/m);
+  return sections.filter(section => DATE_HEADING_M_REGEX.test(section)).flatMap(section => {
+    const match = section.match(/^[ \t]*-[ \t]+entry:[ \t]*(sha256:[a-f0-9]{64})\b/m);
+    if (!match) return [];
+    const clean = canonicalEntryBody(section);
+    const actualHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
+    const evidence = hooks.entryField(section.replace(/(?:\n-{3,}[ \t]*|\n### From [^\r\n]+)*\s*$/, '\n'), 'Evidence');
+    const parsed = parseEvidenceBlock(evidence);
+    const hasExplicitFormat = Boolean(evidence && /digest format:\s*\d+/.test(evidence));
+    const authenticated = hasEntryHashFormat2(section);
+    return [{
+      hash: match[1],
+      actualHash,
+      valid: actualHash === match[1],
+      hasEvidence: Boolean(parsed && parsed.body),
+      parentEntry: parsed ? parsed.parentEntry : null,
+      chainRoot: parsed ? parsed.chainRoot : null,
+      format: (parsed && hasExplicitFormat) ? parsed.format : null,
+      authenticated,
+    }];
+  });
+}
+
+// Verification scope note: verifyArchivedChain detects chain truncation, orphaned segments,
+// duplicate copies, and hash tampering/cycles within .ai/ARCHIVE.md along the chain reached
+// from archivedParent. Complete replacement or wholesale deletion of archive segments remains
+// outside the threat model, consistent with DEC-0016.
+function verifyArchivedChain(root, archivedParent) {
+  if (!archivedParent) return { ok: true };
+
+  const archivePath = path.join(root, '.ai', 'ARCHIVE.md');
+  if (!fs.existsSync(archivePath)) {
+    return { ok: false, reason: `archived parent ${archivedParent} specified, but .ai/ARCHIVE.md does not exist.` };
+  }
+  const archiveText = fs.readFileSync(archivePath, 'utf8').replace(/\r\n/g, '\n');
+  const entryLabelCounts = new Map();
+  for (const line of archiveText.split('\n')) {
+    const match = line.trim().match(/^-[ \t]+entry:[ \t]*(sha256:[a-f0-9]{64})\b/);
+    if (match) entryLabelCounts.set(match[1], (entryLabelCounts.get(match[1]) || 0) + 1);
+  }
+  for (const [hash, count] of entryLabelCounts) {
+    if (count > 1) return { ok: false, reason: `archive contains duplicate copies of ${hash}.` };
+  }
+
+  const records = archiveEntryRecords(archiveText);
+  const byHash = new Map();
+  for (const record of records) {
+    const matches = byHash.get(record.hash) || [];
+    matches.push(record);
+    byHash.set(record.hash, matches);
+  }
+  for (const [hash, matches] of byHash) {
+    if (matches.length > 1) {
+      return { ok: false, reason: `archive contains duplicate copies of ${hash}.` };
+    }
+  }
+
+  const transitionalRecords = records.filter(r => r.chainRoot === 'transitional');
+  if (transitionalRecords.length > 1) {
+    return { ok: false, reason: 'archive contains multiple transitional root markers; history may have been truncated.' };
+  }
+
+  // Helper to determine if a record is a valid terminal root:
+  // Must have recognized Evidence; missing Evidence cannot be trusted as a terminal.
+  const isTerminal = r => (
+    r.hasEvidence && (
+      (r.format !== null && r.format < 4) ||
+      r.parentEntry === 'root' ||
+      r.parentEntry === 'legacy' ||
+      r.chainRoot === 'transitional'
+    )
+  );
+
+  const visited = new Set();
+  const reachedChain = [];
+  let current = archivedParent;
+  let reachedTerminal = null;
+
+  while (current && current !== 'root' && current !== 'legacy') {
+    if (visited.has(current)) {
+      return { ok: false, reason: `archived parent chain contains a cycle at ${current}.` };
+    }
+    visited.add(current);
+    const matches = byHash.get(current) || [];
+    if (!matches.length) {
+      return { ok: false, reason: `archived parent ${current} is missing from .ai/ARCHIVE.md.` };
+    }
+    const record = matches[0];
+    reachedChain.push(record);
+    if (!record.hasEvidence) {
+      return { ok: false, reason: `archived parent ${current} lacks recognized Evidence in .ai/ARCHIVE.md.` };
+    }
+    if (!record.valid) {
+      return { ok: false, reason: `archived parent ${current} was tampered in .ai/ARCHIVE.md (hash mismatch: expected ${current}, computed ${record.actualHash}).` };
+    }
+    if (isTerminal(record)) {
+      reachedTerminal = record;
+      break;
+    }
+    if (!record.parentEntry) {
+      return { ok: false, reason: 'archive contains an orphaned segment; history may have been truncated.' };
+    }
+    current = record.parentEntry;
+  }
+
+  if (!reachedTerminal) {
+    return { ok: false, reason: `archive chain from ${archivedParent} did not terminate at a valid root.` };
+  }
+
+  // Transitional root marker uniqueness in this chain
+  const transitionalInChain = reachedChain.filter(r => r.chainRoot === 'transitional');
+  if (transitionalInChain.length > 1) {
+    return { ok: false, reason: 'archive contains multiple transitional root markers; history may have been truncated.' };
+  }
+  if (transitionalInChain.length === 1 && reachedTerminal !== transitionalInChain[0]) {
+    return { ok: false, reason: 'archive contains multiple transitional root markers; history may have been truncated.' };
+  }
+
+  // Per-chain orphan rule: any record outside the reached set whose parent-entry points into it is an orphaned segment
+  for (const r of records) {
+    if (!visited.has(r.hash)) {
+      if (r.parentEntry && visited.has(r.parentEntry)) {
+        return { ok: false, reason: 'archive contains an orphaned segment; history may have been truncated.' };
+      }
+    }
+  }
+
+  return { ok: true };
 }
 
 function verifyJournalChain(root, journalPath, deep = false) {
   const text = fs.readFileSync(journalPath, 'utf8');
   const normalized = text.replace(/\r\n/g, '\n');
   const sections = normalized.split(/(?=^## )/m);
-  const datedSections = sections.filter(s => /^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - /m.test(s));
+  const datedSections = sections.filter(s => DATE_HEADING_M_REGEX.test(s));
   const archivedParent = findArchivedParent(normalized);
 
   for (let i = 0; i < datedSections.length; i++) {
@@ -184,9 +330,7 @@ function verifyJournalChain(root, journalPath, deep = false) {
     const ev = parseEvidenceBlock(evBody);
     if (!ev || !ev.entry) continue;
 
-    let body = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
-    body = body.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
-    const clean = body.replace(/\s+$/, '');
+    const clean = canonicalEntryBody(section);
     const actualEntryHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
     if (ev.entry !== actualEntryHash) {
       return { ok: false, reason: `historical entry at index ${i} was changed after certification. Recorded ${ev.entry}, computed ${actualEntryHash}.` };
@@ -198,9 +342,7 @@ function verifyJournalChain(root, journalPath, deep = false) {
       }
       if (i + 1 < datedSections.length) {
         const nextSection = datedSections[i + 1];
-        let nextBody = nextSection.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
-        nextBody = nextBody.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
-        const nextClean = nextBody.replace(/\s+$/, '');
+        const nextClean = canonicalEntryBody(nextSection);
         const nextHash = `sha256:${crypto.createHash('sha256').update(nextClean, 'utf8').digest('hex')}`;
         if (ev.parentEntry !== nextHash) {
           return { ok: false, reason: `historical link at index ${i} was broken. Recorded parent ${ev.parentEntry}, expected ${nextHash}.` };
@@ -210,18 +352,18 @@ function verifyJournalChain(root, journalPath, deep = false) {
           if (ev.parentEntry !== archivedParent) {
             return { ok: false, reason: `oldest entry parent ${ev.parentEntry} does not match archived-parent marker ${archivedParent}.` };
           }
-          if (deep) {
-            const archivePath = path.join(root, '.ai', 'ARCHIVE.md');
-            if (fs.existsSync(archivePath)) {
-              const archiveText = fs.readFileSync(archivePath, 'utf8');
-              if (!archiveText.includes(archivedParent)) {
-                return { ok: false, reason: `archived parent ${archivedParent} not found in .ai/ARCHIVE.md.` };
-              }
-            }
-          }
         }
       }
+    } else if (i + 1 < datedSections.length) {
+      const authenticated = /(?:^|\n)[ \t]*-[ \t]+entry hash format:[ \t]*2(?:\s|$)/m.test(section);
+      if (authenticated && !ev.parentEntry && ev.chainRoot !== 'transitional') {
+        return { ok: false, reason: `historical link at index ${i} lacks parent-entry; chain is broken.` };
+      }
     }
+  }
+  if (deep) {
+    const archiveCheck = verifyArchivedChain(root, archivedParent);
+    if (!archiveCheck.ok) return archiveCheck;
   }
   return { ok: true };
 }
@@ -231,7 +373,7 @@ function verifyJournalChain(root, journalPath, deep = false) {
 function newestSection(text) {
   const normalized = text.replace(/\r\n/g, '\n');
   const sections = normalized.split(/(?=^## )/m);
-  const index = sections.findIndex(section => /^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - .+/.test(section));
+  const index = sections.findIndex(section => DATE_HEADING_REGEX.test(section));
   if (index === -1) return null;
   return { sections, index, normalized };
 }
@@ -261,15 +403,7 @@ function entryBody(journalPath) {
   const text = fs.readFileSync(journalPath, 'utf8');
   const found = newestSection(text);
   if (!found) return null;
-  let section = found.sections[found.index];
-  // Strip in this order and anchor loosely: at record time the section still
-  // carries the `---` separating it from the entry below, and at verify time the
-  // Evidence block has swallowed it. Both must normalize to the same text or the
-  // hash can never round-trip. The first version of this did not, and every
-  // journal with a second entry failed its own receipt.
-  section = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
-  section = section.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
-  return section.replace(/\s+$/, '');
+  return canonicalEntryBody(found.sections[found.index]);
 }
 
 function entryHash(journalPath) {
@@ -306,7 +440,7 @@ function resolveJournal(root, explicit, owner) {
   return path.join(directory, candidates[0].name);
 }
 
-function reportOne(root, journalPath, state, deep = false) {
+function reportOne(root, journalPath, state, deep = false, allowLegacy = false) {
   const evidence = readEvidence(journalPath);
   const relative = path.relative(root, journalPath);
   if (!evidence) {
@@ -317,6 +451,10 @@ function reportOne(root, journalPath, state, deep = false) {
     process.stderr.write(`AI protocol: ${relative} evidence uses digest format ${evidence.format}; ` +
       `this build computes format ${state.format}. The two cannot be compared. Re-record to refresh it.\n`);
     return 1;
+  }
+  if (!evidence.authenticated) {
+    process.stderr.write(`AI protocol: ${relative} evidence is not authenticated (legacy format); re-record to refresh.\n`);
+    if (!allowLegacy) return 1;
   }
   if (evidence.entry === null) {
     process.stderr.write(`AI protocol: ${relative} evidence predates entry hashing. ` +
@@ -363,20 +501,25 @@ function main(argv) {
   for (let i = 1; i < argv.length; i += 1) {
     if (argv[i] === '--quick') { options.quick = true; continue; }
     if (argv[i] === '--deep') { options.deep = true; continue; }
+    if (argv[i] === '--allow-legacy') { options.allowLegacy = true; continue; }
     const value = argv[i + 1];
     if (!value) throw new Error(`Missing value for ${argv[i]}`);
     if (argv[i] === '--owner') options.owner = value;
     else if (argv[i] === '--journal') options.journal = value;
     else if (argv[i] === '--root') options.root = value;
     else if (argv[i] === '--reason') options.reason = value;
-    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state [--owner id] [--journal path] [--root path] [--reason text] [--quick] [--deep]');
+    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state [--owner id] [--journal path] [--root path] [--reason text] [--quick] [--deep] [--allow-legacy]');
     i += 1;
   }
   const root = fs.realpathSync(path.resolve(options.root || path.join(__dirname, '..', '..')));
-  const state = anchor(root);
+  let state = null;
+  const getState = () => {
+    if (!state) state = anchor(root);
+    return state;
+  };
 
   if (command === 'state') {
-    process.stdout.write(`${JSON.stringify(state, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify(getState(), null, 2)}\n`);
     return 0;
   }
 
@@ -386,7 +529,7 @@ function main(argv) {
     // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
     try {
       const archive = require('./protocol-archive.cjs');
-      archive.autoArchiveWorklog(root, journalPath, 150, 1);
+      archive.autoArchiveWorklog(root, journalPath, 150, 1, options.owner);
     } catch { }
     const journalText = fs.readFileSync(journalPath, 'utf8');
     const secretLeak = hooks.findSecretLeak(journalText);
@@ -401,7 +544,6 @@ function main(argv) {
     const after = anchor(root);
     // Hash the entry as it stands before the block is attached, so the
     // hash covers the claim and not itself.
-    const entryDigest = entryHash(journalPath);
     const parentEntry = findParentEntry(journalPath);
     if (parentEntry === 'tampered') {
       throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ` +
@@ -411,7 +553,14 @@ function main(argv) {
     if (!chainCheck.ok) {
       throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ${chainCheck.reason}`);
     }
-    attach(journalPath, renderEvidence(after, checks, options.owner, entryDigest, Boolean(options.quick), parentEntry));
+    const provisionalEntry = `sha256:${'0'.repeat(64)}`;
+    attach(journalPath, renderEvidence(
+      after, checks, options.owner, provisionalEntry, Boolean(options.quick), parentEntry,
+    ));
+    const entryDigest = entryHash(journalPath);
+    const updated = fs.readFileSync(journalPath, 'utf8')
+      .replace(`- entry: ${provisionalEntry}`, `- entry: ${entryDigest}`);
+    fs.writeFileSync(journalPath, updated);
     process.stdout.write(`${path.relative(root, journalPath)}: evidence recorded\n`);
     process.stdout.write('Protocol checks only; run and report the host project tests separately.\n');
     for (const check of checks) process.stdout.write(`  ${check.name}: exit ${check.code}\n`);
@@ -423,13 +572,14 @@ function main(argv) {
   }
 
   if (command === 'verify') {
+    const state = getState();
     // With an explicit target, judge that one journal. Without one, ask the
     // real question: does any journal hold evidence for the tree as it is now?
     // Picking the newest by modification time was wrong, because a checkout or
     // a merge rewrites every file and scrambles the order.
     if (options.journal || options.owner) {
       const journalPath = resolveJournal(root, options.journal, options.owner);
-      return reportOne(root, journalPath, state, Boolean(options.deep));
+      return reportOne(root, journalPath, state, Boolean(options.deep), Boolean(options.allowLegacy));
     }
     const directory = path.join(root, '.ai', 'worklog');
     if (!fs.existsSync(directory)) {
@@ -448,6 +598,7 @@ function main(argv) {
       return 1;
     }
     const matching = carrying.filter(item => {
+      if (!item.evidence.authenticated) return false;
       if (item.evidence.format !== state.format) return false;
       if (item.evidence.digest !== state.digest) return false;
       if (item.evidence.entry !== entryHash(item.file)) return false;
@@ -464,11 +615,13 @@ function main(argv) {
     }
     process.stderr.write(`AI protocol: no evidence matches the current tree ${state.digest}.\n`);
     for (const item of carrying) {
-      const why = item.evidence.entry !== null && item.evidence.entry !== entryHash(item.file)
+      const why = !item.evidence.authenticated
+        ? 'evidence is not authenticated (legacy format)'
+        : (item.evidence.entry !== null && item.evidence.entry !== entryHash(item.file)
         ? 'the entry was changed after it was certified'
         : item.evidence.format !== state.format
         ? `recorded with digest format ${item.evidence.format}, not comparable`
-        : (item.evidence.digest === state.digest ? 'records a failing check' : 'anchored to a different tree');
+        : (item.evidence.digest === state.digest ? 'records a failing check' : 'anchored to a different tree'));
       process.stderr.write(`  ${path.relative(root, item.file)}: ${why}\n`);
     }
     return 1;
@@ -481,23 +634,24 @@ function main(argv) {
     const evidence = readEvidence(journalPath);
     if (!evidence) throw new Error(`No Evidence block in ${path.relative(root, journalPath)}. Record evidence first.`);
     if (!evidence.entry) throw new Error('Evidence predates entry hashing. Re-record instead.');
+    // Add the sanitized marker before hashing because authenticated Evidence
+    // metadata is part of the canonical entry body.
+    const text = fs.readFileSync(journalPath, 'utf8');
+    const marker = `- sanitized: ${new Date().toISOString()} reason: ${options.reason}`;
+    const withMarker = text.includes('- sanitized:') ? text
+      : text.replace(/(- reproduce: node .ai\/bin\/protocol-handoff\.cjs verify)/, `${marker}\n$1`);
+    if (withMarker !== text) fs.writeFileSync(journalPath, withMarker);
     const currentHash = entryHash(journalPath);
-    if (evidence.entry === currentHash) {
+    if (evidence.entry === currentHash && withMarker === text) {
       process.stdout.write(`${path.relative(root, journalPath)}: entry hash already matches; nothing to rehash.\n`);
       return 0;
     }
-    // Replace only the entry hash line and add a sanitized marker.
-    const text = fs.readFileSync(journalPath, 'utf8');
-    const updated = text.replace(
-      /^(- entry: )sha256:[a-f0-9]{64}( of this entry without this block)$/m,
-      `$1${currentHash}$2`
+    const updated = withMarker.replace(
+      /^(- entry: )sha256:[a-f0-9]{64}( of this entry without this block)?$/m,
+      (m, p1, p2) => `${p1}${currentHash}${p2 || ''}`
     );
     if (updated === text) throw new Error('Could not locate the entry hash line in the Evidence block.');
-    // Append the sanitized marker if not already present.
-    const marker = `- sanitized: ${new Date().toISOString()} reason: ${options.reason}`;
-    const withMarker = updated.includes('- sanitized:') ? updated
-      : updated.replace(/(- reproduce: node .ai\/bin\/protocol-handoff\.cjs verify)/, `${marker}\n$1`);
-    fs.writeFileSync(journalPath, withMarker);
+    fs.writeFileSync(journalPath, updated);
     process.stdout.write(`${path.relative(root, journalPath)}: entry hash updated (was ${evidence.entry}, now ${currentHash})\n`);
     process.stdout.write(`Reason: ${options.reason}\n`);
     return 0;
@@ -510,4 +664,4 @@ if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { anchor, attach, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain };
+module.exports = { anchor, attach, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain, verifyArchivedChain, archiveEntryRecords, parseEvidenceBlock, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, ENTRY_HASH_FORMAT, hasEntryHashFormat2, canonicalEntryBody };

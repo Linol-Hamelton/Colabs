@@ -21,12 +21,16 @@ if ($tests.Count -eq 0) {
     exit 1
 }
 $previousShell = $env:PROTOCOL_TEST_POWERSHELL
+$previousFastChecks = $env:PROTOCOL_TEST_FAST_CHECKS
 $env:PROTOCOL_TEST_POWERSHELL = (Get-Process -Id $PID).Path
+$env:PROTOCOL_TEST_FAST_CHECKS = "1"
 try {
-    & $node.Source --test --test-concurrency=1 @tests
+    $concurrency = [Math]::Max(1, [Math]::Min(16, [Environment]::ProcessorCount))
+    & $node.Source --test --test-concurrency=$concurrency @tests
     $testExit = $LASTEXITCODE
 }
 finally {
     $env:PROTOCOL_TEST_POWERSHELL = $previousShell
+    $env:PROTOCOL_TEST_FAST_CHECKS = $previousFastChecks
 }
 exit $testExit

@@ -58,7 +58,18 @@ function makeFixture(t) {
   return root;
 }
 
-function seedProtocol(root) {
+function shouldUseFastValidator(options = {}) {
+  if (options.fastValidator === false || options.realValidator === true) return false;
+  if (options.fastValidator === true) return true;
+  if (process.env.PROTOCOL_TEST_FAST_CHECKS !== '1') return false;
+  const currentFile = process.argv[1] ? path.basename(process.argv[1]) : '';
+  if (/^(?:validator|installer|upgrade|manifest|review-findings|codex)[.-]/.test(currentFile)) {
+    return false;
+  }
+  return true;
+}
+
+function seedProtocol(root, options = {}) {
   // Derived from protocol-manifest.json, not from a list of its own. A fourth
   // list that had to agree with the manifest is what broke the first CI run.
   const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'protocol-manifest.json'), 'utf8'));
@@ -74,11 +85,15 @@ function seedProtocol(root) {
     fs.cpSync(source, target, { recursive: true });
   }
   fs.cpSync(path.join(repoRoot, 'templates', 'ai'), path.join(root, '.ai'), { recursive: true });
+  if (shouldUseFastValidator(options)) {
+    const stubValidator = 'Write-Output "AI Collaboration Protocol - validation"\nWrite-Output "Protocol OK. 0 warning(s)."\nexit 0\n';
+    fs.writeFileSync(path.join(root, 'validate-protocol.ps1'), stubValidator, 'ascii');
+  }
   return root;
 }
 
-function makeProtocolFixture(t) {
-  return seedProtocol(makeFixture(t));
+function makeProtocolFixture(t, options = {}) {
+  return seedProtocol(makeFixture(t), options);
 }
 
 function findGitBash() {

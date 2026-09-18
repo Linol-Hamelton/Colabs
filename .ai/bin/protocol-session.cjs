@@ -20,7 +20,17 @@
 // protocol-handoff.cjs, so one identity covers journal, lock and evidence.
 
 const crypto = require('node:crypto');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const hooks = require('./protocol-hooks.cjs');
+
+const isProcessAlive = record => {
+  if (!record || record.hostname !== os.hostname()) return null;
+  if (typeof record.pid !== 'number' || !Number.isInteger(record.pid) || record.pid <= 0) return null;
+  try { process.kill(record.pid, 0); return true; }
+  catch (error) { return error.code === 'EPERM'; }
+};
 
 function parse(argv) {
   const command = argv[0];
@@ -32,8 +42,9 @@ function parse(argv) {
     if (!value) throw new Error(`Missing value for ${argv[i]}`);
     if (argv[i] === '--agent') options.agent = value;
     else if (argv[i] === '--session') options.session = value;
+    else if (argv[i] === '--supervisor-pid') options.supervisorPid = value;
     else if (argv[i] === '--root') options.root = value;
-    else throw new Error('Usage: protocol-session.cjs start|stop|whoami|prune|cleanup-runtime --agent <name> [--session <id>] [--root <path>] [--force]');
+    else throw new Error('Usage: protocol-session.cjs start|stop|whoami|prune|cleanup-runtime --agent <name> [--session <id>] [--root <path>] [--supervisor-pid <pid>] [--force]');
     i += 1;
   }
   // prune and cleanup-runtime are about directory hygiene, not about one assistant.
@@ -51,17 +62,38 @@ function main(argv) {
   const input = { cwd: options.root || process.cwd() };
 
   if (command === 'start') {
-    // A hookless assistant has no session id of its own. One is minted here and
-    // printed, because every later command has to name the same session.
+    if (options.supervisorPid !== undefined) {
+      const supPid = Number(options.supervisorPid);
+      if (!Number.isInteger(supPid) || supPid <= 4 || supPid > 0x7fffffff) {
+        throw new Error(`Invalid --supervisor-pid: ${options.supervisorPid} (must be an integer > 4 (reserved system PID))`);
+      }
+      let isAlive = false;
+      try { process.kill(supPid, 0); isAlive = true; } catch (e) { isAlive = e.code === 'EPERM'; }
+      if (!isAlive) {
+        throw new Error(`Invalid --supervisor-pid: process ${supPid} is not alive`);
+      }
+      if (supPid !== process.pid && supPid !== process.ppid) {
+        throw new Error(`Invalid --supervisor-pid: ${supPid} must be current process PID or parent PID (process.ppid)`);
+      }
+      input.supervisor_pid = supPid;
+    }
     input.session_id = options.session || crypto.randomBytes(8).toString('hex');
     const result = hooks.run('SessionStart', input, options.agent);
     const paths = hooks.sessionPaths(
-      require('node:fs').realpathSync(input.cwd), input.session_id, options.agent);
-    const owner = require('node:path').basename(paths.worklog, '.md');
+      fs.realpathSync(input.cwd), input.session_id, options.agent);
+    const owner = path.basename(paths.worklog, '.md');
+    const state = hooks.readState(paths.state);
+    const token = state ? (state.nonce || '') : '';
     process.stdout.write(`${result.hookSpecificOutput.additionalContext}\n`);
     process.stdout.write('---\n\n');
     process.stdout.write(`Session id: ${options.session || input.session_id}\n`);
     process.stdout.write(`Owner name for the lock and for evidence: ${owner}\n`);
+    process.stdout.write(`Session token: ${token}\n`);
+    if (input.supervisor_pid) {
+      process.stdout.write(`Session supervisor PID for lock calls: ${input.supervisor_pid}\n`);
+    } else {
+      process.stdout.write(`Session PID for lock calls: ${process.pid}\n`);
+    }
     process.stdout.write(`Journal: ${paths.worklog}\n`);
     return 0;
   }
@@ -78,11 +110,11 @@ function main(argv) {
     // also happens when nothing changed and nothing was written. Saying a
     // handoff was recorded in that case was a claim the tool could not support.
     const paths = hooks.sessionPaths(
-      require('node:fs').realpathSync(input.cwd), options.session, options.agent);
-    const file = require('node:path').join(
-      require('node:fs').realpathSync(input.cwd), paths.worklog);
+      fs.realpathSync(input.cwd), options.session, options.agent);
+    const file = path.join(
+      fs.realpathSync(input.cwd), paths.worklog);
     let entry = null;
-    try { entry = hooks.latestCompleteEntry(require('node:fs').readFileSync(file, 'utf8')); }
+    try { entry = hooks.latestCompleteEntry(fs.readFileSync(file, 'utf8')); }
     catch (error) { if (error.code !== 'ENOENT') throw error; }
     process.stdout.write(entry
       ? `Nothing outstanding. ${paths.worklog} holds a complete entry.\n`
@@ -101,7 +133,8 @@ function main(argv) {
     // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
     try {
       const archive = require('./protocol-archive.cjs');
-      archive.autoArchiveWorklog(require('node:fs').realpathSync(input.cwd), paths.worklog, 150, 1);
+      const owner = path.basename(paths.worklog, '.md');
+      archive.autoArchiveWorklog(fs.realpathSync(input.cwd), paths.worklog, 150, 1, owner);
     } catch { }
     return 0;
   }
@@ -114,9 +147,7 @@ function main(argv) {
     // now counts as content; a nonstandard entry is kept, never destroyed.
     // Active sessions (whose process is alive) and active lock holders are
     // protected from accidental removal unless --force is specified.
-    const fs = require('node:fs');
-    const path = require('node:path');
-    const os = require('node:os');
+    // fs, path, os are module-level imports
     const root = fs.realpathSync(input.cwd);
     const directory = path.join(root, '.ai', 'worklog');
     if (!fs.existsSync(directory)) throw new Error('No .ai/worklog directory here.');
@@ -127,12 +158,6 @@ function main(argv) {
       activeLockOwner = lockData && lockData.owner;
     } catch { }
 
-    const isProcessAlive = record => {
-      if (!record || record.hostname !== os.hostname()) return null;
-      if (typeof record.pid !== 'number' || !Number.isInteger(record.pid) || record.pid <= 0) return null;
-      try { process.kill(record.pid, 0); return true; }
-      catch (error) { return error.code === 'EPERM'; }
-    };
 
     const holdsContent = text => /^##[ \t]/m.test(text) || /^(?:Agent|Action|Result|Next step|Open):/m.test(text);
     const empty = fs.readdirSync(directory)
@@ -178,9 +203,7 @@ function main(argv) {
   if (command === 'cleanup-runtime') {
     // Remove orphaned snapshots whose journals no longer exist, stale temporary
     // files (*.tmp), and dead session snapshots older than 24h. Shared-writer state is never touched.
-    const fs = require('node:fs');
-    const path = require('node:path');
-    const os = require('node:os');
+    // fs, path, os are module-level imports
     const root = fs.realpathSync(input.cwd);
     const runtimeDir = path.join(root, '.ai', 'runtime');
     if (!fs.existsSync(runtimeDir)) { process.stdout.write('No .ai/runtime directory.\n'); return 0; }
@@ -195,12 +218,6 @@ function main(argv) {
       activeLockOwner = lockData && lockData.owner;
     } catch { }
 
-    const isProcessAlive = record => {
-      if (!record || record.hostname !== os.hostname()) return null;
-      if (typeof record.pid !== 'number' || !Number.isInteger(record.pid) || record.pid <= 0) return null;
-      try { process.kill(record.pid, 0); return true; }
-      catch (error) { return error.code === 'EPERM'; }
-    };
 
     for (const name of fs.readdirSync(runtimeDir)) {
       const fullPath = path.join(runtimeDir, name);
@@ -241,7 +258,7 @@ function main(argv) {
 
         // Snapshots from dead session processes older than 24 hours (or if --force and process dead)
         if (options.force || stat.mtimeMs < (Date.now() - 24 * 60 * 60 * 1000)) {
-          if (isProcessAlive(state) === false || options.force) {
+          if (isProcessAlive(state) === false) {
             if (options.dryRun) { process.stdout.write(`would remove dead session snapshot ${name}\n`); continue; }
             fs.rmSync(fullPath);
             process.stdout.write(`removed dead session snapshot ${name}\n`);
@@ -250,8 +267,9 @@ function main(argv) {
           }
         }
 
-        // Stale snapshots older than 7 days
-        if (stat.mtimeMs < cutoff) {
+        // Stale snapshots older than 7 days — only if process is confirmed dead
+        // (null = unknown liveness, e.g. foreign host — preserved, not deleted)
+        if (stat.mtimeMs < cutoff && isProcessAlive(state) === false) {
           if (options.dryRun) { process.stdout.write(`would remove stale ${name}\n`); continue; }
           fs.rmSync(fullPath);
           process.stdout.write(`removed stale ${name}\n`);
@@ -292,9 +310,12 @@ function main(argv) {
   if (command === 'whoami') {
     if (!options.session) throw new Error('whoami needs the --session id that start printed');
     const paths = hooks.sessionPaths(
-      require('node:fs').realpathSync(input.cwd), options.session, options.agent);
-    const owner = require('node:path').basename(paths.worklog, '.md');
-    process.stdout.write(`${JSON.stringify({ owner, worklog: paths.worklog }, null, 2)}\n`);
+      fs.realpathSync(input.cwd), options.session, options.agent);
+    const owner = path.basename(paths.worklog, '.md');
+    const state = hooks.readState(paths.state);
+    const token = state ? (state.nonce || null) : null;
+    const supervisorPid = state ? (state.supervisorPid || null) : null;
+    process.stdout.write(`${JSON.stringify({ owner, worklog: paths.worklog, sessionToken: token, supervisorPid }, null, 2)}\n`);
     return 0;
   }
 

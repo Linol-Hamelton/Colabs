@@ -65,6 +65,17 @@ node .ai/bin/protocol-lock.cjs acquire --owner <your-session-id>
 node .ai/bin/protocol-lock.cjs release --owner <your-session-id>
 ```
 
+For long-lived supervisor processes, pass `--session-pid <pid>`. A supervisor PID can
+be registered at session start via `protocol-session.cjs start --supervisor-pid <pid>`
+(must be `process.pid` or `process.ppid`). The lock command accepts `--session-pid <pid>`
+when it matches `process.pid`, `process.ppid`, or the registered supervisor/session PID
+authenticated with `--session-token <token>`. Reserved system PIDs (`pid <= 4`) and
+unaffiliated PIDs are rejected. The session token is an anti-accident barrier (preventing
+accidental PID collision and lock squatting in cooperative environments, not an
+anti-adversary barrier against local filesystem access). Clearing an abandoned lock from a
+confirmed dead process uses `clear-lock` or `acquire --force`. Forcefully clearing a live
+registered lock requires `--force` and `--reason "<explanation>"` with an audit record.
+
 A session journal needs no lock. Each session writes only its own file.
 
 If `acquire` reports another owner, do not steal the lock. Run `status` and
@@ -151,8 +162,13 @@ in the journals but is reported as not comparable rather than stale; run
 `record` again to refresh it.
 
 The block carries a hash of the entry with the block removed, so rewriting the
-entry afterwards makes `verify` fail. Never hand-write an Evidence block: a
-hand-written one is a claim again, and its entry hash will not match.
+entry afterwards makes `verify` fail. Authenticated receipts carry `- entry hash format: 2`
+covering certified Evidence metadata. Receipts lacking this marker are classified as legacy
+unauthenticated receipts: `verify --owner <id>` fails closed unless `--allow-legacy` is passed
+for read-only review, and no-owner `verify` excludes legacy receipts from matching handoffs.
+`doctor` reports the legacy count and exits 0. To upgrade a journal to format 2, record a
+new entry with `record`; historical entries are never rewritten. Never hand-write an Evidence
+block: a hand-written one is a claim again, and its entry hash will not match.
 
 If an entry was edited after certification to redact an accidental secret or token,
 refresh its entry hash legitimately with:

@@ -13,6 +13,7 @@ $script:Failures = 0
 $script:ProtocolRole = 'source'
 $script:SupersedeRefs = @()
 $script:Warnings = 0
+$taskStatus = $null
 $StrictUtf8 = New-Object System.Text.UTF8Encoding($false, $true)
 
 function Write-Result {
@@ -168,9 +169,10 @@ function Test-ProtocolOwned {
     # Protocol-specific by name, and not installed into host projects.
     if ($Relative -eq '.github/workflows/protocol.yml') { return $true }
     $normalized = $Relative.Replace([char]92, '/')
-    foreach ($prefix in @('.ai/', 'templates/ai/', '.claude/hooks/')) {
+    foreach ($prefix in @('.ai/', 'templates/ai/', 'templates/reviews/', '.claude/hooks/')) {
         if ($normalized.StartsWith($prefix)) { return $true }
     }
+    if ($script:ProtocolRole -eq 'source' -and $normalized.StartsWith('docs/reviews/')) { return $true }
     return $false
 }
 
@@ -210,7 +212,7 @@ Write-Result "PASS" "inspected $textCount protocol-owned text files for UTF-8, B
 
 # One journal per session keeps writers from colliding, but the directory grows
 # without bound unless old journals are archived. See AGENTS.md section 8.
-$journals = @($paths | Where-Object { $_ -match '^\.ai/worklog/[^/]+\.md$' } | Sort-Object -Unique)
+$journals = @($paths | Where-Object { $_ -match '^\.ai/worklog/[^/]+\.md$' -and $_ -ne '.ai/worklog/README.md' } | Sort-Object -Unique)
 if ($journals.Count -gt 30) {
     Write-Result "WARN" ("{0} session journals in .ai/worklog; archive the oldest into .ai/ARCHIVE.md" -f $journals.Count)
 }
@@ -395,6 +397,83 @@ if (Test-Path -LiteralPath $taskPath -PathType Leaf) {
             if ($taskStatus -match '^No active task(?:[ .;:-]|$)') { Write-Result "WARN" "no active task; owner supplies the next objective" }
             elseif ($taskStatus -match '^(In progress|Active|Completed|Blocked|Planned|Pending|Ready)(?:[ .;:-]|$)') { Write-Result "PASS" "task status: $taskStatus" }
             else { Write-Result "FAIL" ".ai/TASK.md has an invalid Status; use In progress, Completed, Blocked, Planned or No active task" }
+        }
+    }
+}
+
+# A completed task must leave machine-checkable proof that the mandatory
+# adversarial review happened. In-progress work remains valid without the
+# artifacts, so this gate does not strand an active task. See AGENTS.md.
+if ($taskStatus -match '^Completed(?:[ .;:-]|$)') {
+    $gate = [regex]::Match($taskText, '(?ms)^## Completion gate[ \t]*\r?\n(?<body>.*?)(?=^## |\z)')
+    if (-not $gate.Success) {
+        Write-Result "FAIL" "completed task requires a ## Completion gate section with an adversarial prompt and independent review"
+    }
+    else {
+        $gateBody = $gate.Groups['body'].Value
+        $promptField = [regex]::Match($gateBody, '(?m)^- Adversarial review prompt:[ \t]*(\S+)[ \t]*$')
+        $reviewField = [regex]::Match($gateBody, '(?m)^- Independent review:[ \t]*(\S+)[ \t]*$')
+        $gateFiles = @(
+            [pscustomobject]@{ Label = 'adversarial review prompt'; Match = $promptField },
+            [pscustomobject]@{ Label = 'independent review'; Match = $reviewField }
+        )
+        if ($promptField.Success -and $reviewField.Success -and
+            $promptField.Groups[1].Value.Replace('\', '/') -eq $reviewField.Groups[1].Value.Replace('\', '/')) {
+            Write-Result "FAIL" "adversarial prompt and independent review must be separate artifacts"
+        }
+        foreach ($gateFile in $gateFiles) {
+            if (-not $gateFile.Match.Success) {
+                Write-Result "FAIL" ("completed task is missing its {0} field" -f $gateFile.Label)
+                continue
+            }
+            $relative = $gateFile.Match.Groups[1].Value.Replace('\', '/')
+            if (-not $relative.StartsWith('docs/reviews/') -or $relative.Contains('..')) {
+                Write-Result "FAIL" ("{0} must point inside docs/reviews/" -f $gateFile.Label)
+                continue
+            }
+            $full = Join-Path $Root $relative
+            if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
+                Write-Result "FAIL" ("completed task {0} is missing: {1}" -f $gateFile.Label, $relative)
+                continue
+            }
+            $content = Read-ProtocolText $full
+            if ($null -eq $content -or $content.Trim().Length -eq 0) {
+                Write-Result "FAIL" ("completed task {0} must not be empty: {1}" -f $gateFile.Label, $relative)
+                continue
+            }
+            if ($gateFile.Label -eq 'adversarial review prompt') {
+                if ($content -notmatch '(?is)(?:unified.{0,80}adversarial|adversarial.{0,80}unified).{0,80}prompt') {
+                    Write-Result "FAIL" ("{0} must identify a unified adversarial audit prompt: {1}" -f $gateFile.Label, $relative)
+                }
+                else { Write-Result "PASS" ("completion gate prompt found: {0}" -f $relative) }
+            }
+            else {
+                $reviewer = [regex]::Match($content, '(?mi)^(?:\*\*)?Reviewer(?:\*\*)?:?[ \t]*(\S.*)$')
+                $verdict = [regex]::Match($content, '(?mi)^(?:\*\*)?Verdict(?:\*\*)?:?[ \t]*(PASS|FAIL|BLOCKED|RECOMMENDATION)\b')
+                if (-not $reviewer.Success) {
+                    Write-Result "FAIL" ("independent review must name a Reviewer: {0}" -f $relative)
+                }
+                elseif (-not $verdict.Success -or $verdict.Groups[1].Value.ToUpperInvariant() -notin @('PASS', 'RECOMMENDATION')) {
+                    Write-Result "FAIL" ("independent review must have a PASS or RECOMMENDATION verdict: {0}" -f $relative)
+                }
+                else {
+                    Write-Result "PASS" ("independent review certified: {0}" -f $relative)
+                }
+            }
+        }
+        $citedReviews = @([regex]::Matches($taskText, '(?i)docs/reviews/[a-z0-9._-]+\.md') |
+            ForEach-Object { $_.Value.Replace('\', '/') } | Sort-Object -Unique)
+        foreach ($citedRelative in $citedReviews) {
+            $citedFull = Join-Path $Root $citedRelative
+            if (-not (Test-Path -LiteralPath $citedFull -PathType Leaf)) {
+                Write-Result "FAIL" ("completed task cites missing review artifact: {0}" -f $citedRelative)
+            }
+            else {
+                $citedContent = Read-ProtocolText $citedFull
+                if ($null -eq $citedContent -or $citedContent.Trim().Length -eq 0) {
+                    Write-Result "FAIL" ("completed task cites empty review artifact: {0}" -f $citedRelative)
+                }
+            }
         }
     }
 }

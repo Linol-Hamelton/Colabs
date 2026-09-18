@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { run, git, write, makeProtocolFixture, makeFixture, findGitBash } = require('./helpers.cjs');
+const hooks = require('../.ai/bin/protocol-hooks.cjs');
 
 function entry(title = 'Handoff', detail = 'Changed the fixture.') {
   return `## 2026-09-11 - ${title}\n\nAgent: Claude\n\nAction:\n${detail}\n\n` +
@@ -50,6 +51,14 @@ test('read-only sessions ignore pre-existing edits and ignored runtime files', t
   start(root);
   write(root, '.ai/runtime/generated.json', '{}\n');
   assert.deepEqual(hook(root, 'Stop'), {});
+});
+
+test('snapshot metadata does not collide with a file named __dirty', t => {
+  const root = fixture(t);
+  write(root, '__dirty', 'a real repository file\n');
+  const snapshot = hooks.snapshot(root);
+  assert.equal(snapshot[hooks.DIRTY_SYMBOL], true);
+  assert.ok(Object.keys(snapshot).includes('__dirty'));
 });
 
 for (const change of ['spaces and unicode', 'deletion', 'staged rename', 'more than 60 paths']) {
@@ -216,5 +225,3 @@ test('Stop warns and flags unredacted secret patterns in worklog entries', t => 
   const stop = hook(root, 'Stop', session);
   assert.match(stop.systemMessage || '', /unredacted secret pattern detected/);
 });
-
-

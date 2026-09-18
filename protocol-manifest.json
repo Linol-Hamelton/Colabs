@@ -1,6 +1,6 @@
 {
   "comment": "The only definition of what this protocol owns, read by the installer, the validator and the test fixtures. 'managed' is installed into every project. 'source' stays in this repository: a product repo has no use for the installer, the protocol's own test suite or its templates. 'integration' is merged into whatever the project already has, never replaced. See DEC-0013.",
-  "protocolVersion": "1.9.0",
+  "protocolVersion": "1.9.4",
   "role": "source",
   "managed": [
     "protocol-manifest.json",
@@ -34,6 +34,7 @@
   "tests": [
     "tests/archive.test.cjs",
     "tests/codex.test.cjs",
+    "tests/handoff-chain.test.cjs",
     "tests/handoff.test.cjs",
     "tests/helpers.cjs",
     "tests/hooks.test.cjs",
@@ -44,6 +45,7 @@
     "tests/review-findings.test.cjs",
     "tests/session.test.cjs",
     "tests/upgrade.test.cjs",
+    "tests/validator-syntax.test.cjs",
     "tests/validator.test.cjs"
   ],
   "integration": [

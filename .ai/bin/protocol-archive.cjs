@@ -9,17 +9,28 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const lockModule = require('./protocol-lock.cjs');
+const hooks = require('./protocol-hooks.cjs');
 
 function extractEntryHash(entryText) {
-  const match = entryText.match(/entry:\s*(sha256:[a-f0-9]{64})/);
+  const match = entryText.match(/^[ \t]*-[ \t]+entry:[ \t]*(sha256:[a-f0-9]{64})\b/m);
   if (match) {
-    let body = entryText.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
-    body = body.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
-    const clean = body.replace(/\s+$/, '');
+    const clean = hooks.canonicalEntryBody(entryText);
     const actualHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
     if (actualHash === match[1]) return match[1];
   }
   return null;
+}
+
+function parseArchiveEntryHashes(text) {
+  const normalized = text.replace(/\r\n/g, '\n');
+  const sections = normalized.split(/(?=^## )/m);
+  const valid = new Set();
+  for (const section of sections) {
+    if (!hooks.DATE_HEADING_M_REGEX.test(section)) continue;
+    const hash = extractEntryHash(section);
+    if (hash) valid.add(hash);
+  }
+  return valid;
 }
 
 function parseArgs(argv) {
@@ -67,6 +78,21 @@ function getLineCount(text) {
   return count;
 }
 
+function atomicRename(tempFile, targetFile, retries = 5, delayMs = 50) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      fs.renameSync(tempFile, targetFile);
+      return;
+    } catch (err) {
+      if ((err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EACCES') && i < retries - 1) {
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.floor(delayMs * Math.pow(1.5, i)));
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
   const fullWorklog = path.isAbsolute(worklogPath) ? worklogPath : path.join(root, worklogPath);
   if (!fs.existsSync(fullWorklog)) {
@@ -77,7 +103,8 @@ function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
   const content = fs.readFileSync(fullWorklog, 'utf8').replace(/\r\n/g, '\n');
 
   // Split into preamble and entries (entries start with ## YYYY-MM-DD)
-  const entryRegex = /(?=^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - )/m;
+  // Derive lookahead splitter from canonical DATE_HEADING_M_REGEX.
+  const entryRegex = new RegExp('(?=' + hooks.DATE_HEADING_M_REGEX.source + ')', 'm');
   const matchIndex = content.search(entryRegex);
 
   if (matchIndex === -1) {
@@ -111,23 +138,14 @@ function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
   const dateStamp = new Date().toISOString().split('T')[0];
   const provenanceHeader = `### From ${relativeWorklog}, archived ${dateStamp}`;
 
-  const archiveAddition = `\n---\n\n${provenanceHeader}\n\n` + cleanToArchive.join('\n\n---\n\n') + '\n';
-
   let lockAcquired = false;
   let tempOwner = null;
   const lockStatus = lockModule.operate(root, 'status');
   if (lockStatus.lock) {
     if (owner && lockStatus.lock.owner === owner) {
       lockAcquired = false;
-    } else if (lockStatus.lock.alive === true) {
-      throw new Error(`Cannot archive: .ai/ARCHIVE.md is locked by active session ${lockStatus.lock.owner}`);
-    } else if (lockStatus.lock.alive === false) {
-      lockModule.operate(root, 'clear-lock', null, true);
-      tempOwner = owner || ('archive-' + Math.random().toString(16).slice(2, 10));
-      lockModule.operate(root, 'acquire', tempOwner);
-      lockAcquired = true;
     } else {
-      throw new Error(`Cannot archive: .ai/ARCHIVE.md is locked by session ${lockStatus.lock.owner}`);
+      throw new Error(`Cannot archive: shared documents lock is held by session ${lockStatus.lock.owner}`);
     }
   } else {
     tempOwner = owner || ('archive-' + Math.random().toString(16).slice(2, 10));
@@ -135,13 +153,22 @@ function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
     lockAcquired = true;
   }
 
+  let tempFile = null;
   try {
-    fs.appendFileSync(archiveFile, archiveAddition, 'utf8');
+    // Idempotent append: skip entries whose entry hash already exists in ARCHIVE.md.
+    // This prevents duplicates when a previous run appended successfully but the
+    // journal rename failed, causing a retry to re-archive the same entries.
+    const existingArchive = fs.readFileSync(archiveFile, 'utf8');
+    const existingHashes = parseArchiveEntryHashes(existingArchive);
+    const filteredArchive = cleanToArchive.filter(entry => {
+      const hash = extractEntryHash(entry);
+      return !hash || !existingHashes.has(hash);
+    });
 
-    // Extract entry hash of the newest archived entry to preserve Merkle continuity
-    const archivedHash = toArchive.length > 0 ? extractEntryHash(toArchive[0]) : null;
+    // Extract entry hash of the newest archived entry from the clean archived text
+    const archivedHash = cleanToArchive.length > 0 ? extractEntryHash(cleanToArchive[0]) : null;
 
-    // Rewrite journal with kept entries
+    // Prepare the new journal content FIRST (tmp file), before touching ARCHIVE.md.
     let cleanPreamble = preamble
       .replace(/<!-- archived-parent:\s*sha256:[a-f0-9]{64} -->\s*/g, '')
       .replace(/\n-{3,}\s*$/, '')
@@ -154,16 +181,42 @@ function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
     const cleanKept = keptEntries.map(entry => entry.replace(/\n-{3,}\s*$/, '').trim());
     const newJournalContent = cleanPreamble + cleanKept.join('\n\n---\n\n') + '\n';
 
-    // Atomic write via temporary file in runtime
+    // Write trimmed journal to tmp file first
     const runtimeDir = path.join(root, '.ai', 'runtime');
     fs.mkdirSync(runtimeDir, { recursive: true });
-    const tempFile = path.join(runtimeDir, `worklog-atomic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.tmp`);
+    tempFile = path.join(runtimeDir, `worklog-atomic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.tmp`);
     fs.writeFileSync(tempFile, newJournalContent, 'utf8');
-    fs.renameSync(tempFile, fullWorklog);
+
+    // Now append to ARCHIVE.md (only entries not already present)
+    if (filteredArchive.length > 0) {
+      const archiveAddition = `\n---\n\n${provenanceHeader}\n\n` + filteredArchive.join('\n\n---\n\n') + '\n';
+      fs.appendFileSync(archiveFile, archiveAddition, 'utf8');
+
+      // Read back the append before replacing the journal. A failed rename
+      // must leave the journal intact, while a successful append must be
+      // provably present for the next idempotent retry.
+      const archiveAfter = fs.readFileSync(archiveFile, 'utf8');
+      if (!archiveAfter.endsWith(archiveAddition)) {
+        throw new Error('Archive append could not be verified; journal was not pruned.');
+      }
+      const archiveHashes = parseArchiveEntryHashes(archiveAfter);
+      for (const entry of filteredArchive) {
+        const hash = extractEntryHash(entry);
+        if (hash && !archiveHashes.has(hash)) {
+          throw new Error(`Archive append is missing verified entry ${hash}; journal was not pruned.`);
+        }
+      }
+    }
+
+    // Finally rename the tmp journal over the original
+    atomicRename(tempFile, fullWorklog);
     console.log(`archived ${toArchive.length} entry(s) from ${relativeWorklog} to .ai/ARCHIVE.md`);
   } finally {
     if (lockAcquired && tempOwner) {
       try { lockModule.operate(root, 'release', tempOwner); } catch (_) {}
+    }
+    if (tempFile && fs.existsSync(tempFile)) {
+      try { fs.unlinkSync(tempFile); } catch (_) {}
     }
   }
 }
@@ -242,4 +295,7 @@ if (require.main === module) {
   }
 }
 
-module.exports = { archiveWorklog, archiveStatus, autoArchiveWorklog, getLineCount };
+module.exports = {
+  archiveWorklog, archiveStatus, autoArchiveWorklog, getLineCount,
+  extractEntryHash, parseArchiveEntryHashes,
+};

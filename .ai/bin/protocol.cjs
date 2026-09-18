@@ -7,6 +7,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { execSync } = require('node:child_process');
+const hooks = require('./protocol-hooks.cjs');
 
 function findRoot(dir = process.cwd()) {
   let current = path.resolve(dir);
@@ -124,6 +125,7 @@ function doctor(root) {
     const journals = fs.readdirSync(worklogDir)
       .filter(name => name.endsWith('.md') && name !== 'README.md');
     let chainErrors = 0;
+    let unauthenticatedCount = 0;
     for (const j of journals) {
       const jPath = path.join(worklogDir, j);
       const chain = handoffModule.verifyJournalChain(root, jPath, true);
@@ -132,9 +134,28 @@ function doctor(root) {
         chainErrors++;
         issues++;
       }
+      const ev = handoffModule.readEvidence(jPath);
+      if (ev && !ev.authenticated) {
+        unauthenticatedCount++;
+      }
     }
     if (chainErrors === 0) {
       console.log(`[PASS] Merkle chains verified across ${journals.length} journal(s) (deep audit)`);
+    }
+    if (unauthenticatedCount > 0) {
+      let role = 'installed';
+      const manifestPath = path.join(root, 'protocol-manifest.json');
+      if (fs.existsSync(manifestPath)) {
+        try {
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          role = manifest.role || 'installed';
+        } catch {}
+      }
+      if (role === 'source') {
+        console.log(`[WARN] Legacy unauthenticated Evidence receipts: ${unauthenticatedCount} journal(s) (re-record to upgrade to format 2)`);
+      } else {
+        console.log(`[INFO] Legacy unauthenticated Evidence receipts: ${unauthenticatedCount} journal(s)`);
+      }
     }
   }
 
@@ -143,6 +164,7 @@ function doctor(root) {
     console.log('Verdict: Protocol Healthy. All checks passed.');
   } else {
     console.log(`Verdict: Issues Found (${issues} failure(s)). Inspect details above.`);
+    process.exitCode = 1;
   }
 }
 
@@ -204,9 +226,9 @@ function telemetry(root) {
   const agentCounts = {};
 
   function processText(text) {
-    const sections = text.split(/(?=^## \d{4}-\d{2}-\d{2} - )/m);
+    const sections = text.split(/(?=^## \d{4}-\d{2}-\d{2})/m);
     for (const section of sections) {
-      if (!/^## \d{4}-\d{2}-\d{2} - /m.test(section)) continue;
+      if (!hooks.DATE_HEADING_REGEX.test(section)) continue;
       activeEntries++;
       const agentMatch = section.match(/^Agent:\s*([^\r\n]+)/m);
       if (agentMatch) {
@@ -216,7 +238,7 @@ function telemetry(root) {
       if (/^Evidence:/m.test(section)) {
         certifiedEntries++;
       }
-      if (/parent-entry:\s*sha256:[a-f0-9]{64}/m.test(section)) {
+      if (/^[ \t]*-[ \t]+parent-entry:[ \t]*sha256:[a-f0-9]{64}/m.test(section)) {
         chainedEntries++;
       }
     }
@@ -233,7 +255,7 @@ function telemetry(root) {
   if (fs.existsSync(archivePath)) {
     try {
       const archiveText = fs.readFileSync(archivePath, 'utf8');
-      const matches = archiveText.match(/^## \d{4}-\d{2}-\d{2} - [^\r\n]+/mg);
+      const matches = archiveText.match(new RegExp(hooks.DATE_HEADING_M_REGEX.source, 'mg'));
       if (matches) archivedCount = matches.length;
     } catch { }
   }

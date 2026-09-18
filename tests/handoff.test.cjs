@@ -77,17 +77,17 @@ test('verify rejects a missing block, stale evidence and a recorded failure', t 
   assert.match(missing.stderr, /no Evidence block/);
 
   handoff.attach(full, `Evidence:\n- digest: sha256:${'d'.repeat(64)}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
-  const stale = cli(root, ['verify', '--journal', journal]);
+  const stale = cli(root, ['verify', '--journal', journal, '--allow-legacy']);
   assert.notEqual(stale.status, 0);
   assert.match(stale.stderr, /stale/);
 
   const real = handoff.anchor(root);
   handoff.attach(full, `Evidence:\n- digest: ${real.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
-  const good = cli(root, ['verify', '--journal', journal]);
+  const good = cli(root, ['verify', '--journal', journal, '--allow-legacy']);
   assert.equal(good.status, 0, good.stderr);
 
   handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- test-protocol.ps1: exit 1 in 9s`);
-  const failing = cli(root, ['verify', '--journal', journal]);
+  const failing = cli(root, ['verify', '--journal', journal, '--allow-legacy']);
   assert.notEqual(failing.status, 0);
   assert.match(failing.stderr, /failing check/);
 });
@@ -110,7 +110,7 @@ test('verify without a target asks whether any journal matches the tree', t => {
   const fresh = path.join(root, '.ai/worklog/new-session.md');
 
   handoff.attach(old, `Evidence:\n- digest: sha256:${'e'.repeat(64)}\n- validate-protocol.ps1: exit 0 in 1s`);
-  handoff.attach(fresh, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(fresh)}\n- validate-protocol.ps1: exit 0 in 1s`);
+  assert.equal(cli(root, ['record', '--owner', 'new-session', '--quick']).status, 0);
 
   // Make the stale journal the most recently touched one.
   const later = new Date(Date.now() + 60000);
@@ -283,9 +283,7 @@ test('recorded evidence still verifies after the work is committed', t => {
   const root = makeProtocolFixture(t);
   const journal = '.ai/worklog/committing.md';
   write(root, journal, `# W\n\n${entry()}\n`);
-  const full = path.join(root, journal);
-  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- entry: ${handoff.entryHash(full)}\n` +
-    `- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
+  assert.equal(cli(root, ['record', '--owner', 'committing', '--quick']).status, 0);
   assert.equal(cli(root, ['verify', '--journal', journal]).status, 0);
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'commit', '-m', 'save'], root);
@@ -429,114 +427,130 @@ test('rehash command updates entry hash after secret redaction with sanitized ma
   assert.match(verifiedAfterRehash.stdout, /evidence matches the current tree/);
 });
 
-test('evidence chains parent-entry to previous entry hash creating an auditable Merkle link', t => {
+test('P-3: legacy newest entry fails verify without --allow-legacy and passes with --allow-legacy', t => {
   const root = makeProtocolFixture(t);
-  const journal = '.ai/worklog/chain-session.md';
-  const entry1 = entry('first turn', 'initial');
-  write(root, journal, `# W\n\n${entry1}\n`);
-  const recorded1 = cli(root, ['record', '--owner', 'chain-session', '--quick']);
-  assert.equal(recorded1.status, 0, recorded1.stderr);
+  const journal = '.ai/worklog/legacy-p3.md';
+  const full = path.join(root, journal);
+  write(root, journal, `# W\n\n${entry('legacy turn')}\n`);
 
-  const fullPath = path.join(root, journal);
-  const ev1 = handoff.readEvidence(fullPath);
-  assert.equal(ev1.parentEntry, 'root');
+  const current = handoff.anchor(root);
+  // Attach format-1 legacy evidence (without entry hash format: 2)
+  handoff.attach(full, `Evidence:\n- digest: ${current.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
 
-  // Now append a second entry on top (newest first)
-  const entry2 = entry('second turn', 'subsequent');
-  const entry1WithEvidence = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
-  fs.writeFileSync(fullPath, `# W\n\n${entry2}\n---\n\n${entry1WithEvidence}`);
+  // Without --allow-legacy: must fail with non-zero and explanatory message
+  const refused = cli(root, ['verify', '--owner', 'legacy-p3']);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /evidence is not authenticated \(legacy format\); re-record to refresh/);
 
-  const recorded2 = cli(root, ['record', '--owner', 'chain-session', '--quick']);
-  assert.equal(recorded2.status, 0, recorded2.stderr);
+  // With --allow-legacy: prints warning on stderr and exits 0
+  const allowed = cli(root, ['verify', '--owner', 'legacy-p3', '--allow-legacy']);
+  assert.equal(allowed.status, 0);
+  assert.match(allowed.stderr, /evidence is not authenticated \(legacy format\); re-record to refresh/);
+  assert.match(allowed.stdout, /evidence matches the current tree/);
 
-  const ev2 = handoff.readEvidence(fullPath);
-  assert.equal(ev2.parentEntry, ev1.entry);
-
-  const verifyPass = cli(root, ['verify', '--owner', 'chain-session']);
-  assert.equal(verifyPass.status, 0, verifyPass.stderr);
+  // Fresh format-2 entry: passes without --allow-legacy
+  const journal2 = '.ai/worklog/format2-fresh.md';
+  write(root, journal2, `# W\n\n${entry('format 2 turn')}\n`);
+  const recorded = cli(root, ['record', '--owner', 'format2-fresh', '--quick']);
+  assert.equal(recorded.status, 0);
+  const verified2 = cli(root, ['verify', '--owner', 'format2-fresh']);
+  assert.equal(verified2.status, 0);
+  assert.match(verified2.stdout, /evidence matches the current tree/);
 });
 
-test('tampering with an earlier entry in the journal invalidates later parent-entry verification', t => {
+test('P-3: no-owner verify excludes legacy receipts from matching handoffs', t => {
   const root = makeProtocolFixture(t);
-  const journal = '.ai/worklog/tamper-chain.md';
-  const entry1 = entry('first turn', 'initial content');
-  write(root, journal, `# W\n\n${entry1}\n`);
-  cli(root, ['record', '--owner', 'tamper-chain', '--quick']);
+  const journal = '.ai/worklog/only-legacy.md';
+  const full = path.join(root, journal);
+  write(root, journal, `# W\n\n${entry('only legacy')}\n`);
 
-  const fullPath = path.join(root, journal);
-  const ev1 = handoff.readEvidence(fullPath);
+  const current = handoff.anchor(root);
+  handoff.attach(full, `Evidence:\n- digest: ${current.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
 
-  const entry2 = entry('second turn', 'subsequent content');
-  const entry1Recorded = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
-  fs.writeFileSync(fullPath, `# W\n\n${entry2}\n---\n\n${entry1Recorded}`);
-  cli(root, ['record', '--owner', 'tamper-chain', '--quick']);
-
-  const modified = fs.readFileSync(fullPath, 'utf8').replace('initial content', 'tampered_secret_content');
-  fs.writeFileSync(fullPath, modified);
-
-  const verifyResult = cli(root, ['verify', '--owner', 'tamper-chain']);
-  assert.notEqual(verifyResult.status, 0);
-  assert.match(verifyResult.stderr, /historical link was broken/);
+  const result = cli(root, ['verify']);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /no evidence matches the current tree/);
+  assert.match(result.stderr, /only-legacy\.md: evidence is not authenticated \(legacy format\)/);
 });
 
-test('record fails closed and refuses to stamp evidence when parent entry is tampered', t => {
+test('P-3: doctor reports legacy unauthenticated count as warning in source role and exits 0', t => {
   const root = makeProtocolFixture(t);
-  const journal = '.ai/worklog/tamper-failclosed.md';
-  const fullPath = path.join(root, journal);
+  const journal = '.ai/worklog/doc-legacy.md';
+  const full = path.join(root, journal);
+  write(root, journal, `# W\n\n${entry('doc legacy')}\n`);
+  const current = handoff.anchor(root);
+  handoff.attach(full, `Evidence:\n- digest: ${current.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
 
-  write(root, journal, `# W\n\n${entry('turn 1', 'legit')}\n`);
-  assert.equal(cli(root, ['record', '--owner', 'tamper-failclosed', '--quick']).status, 0);
-
-  const prev = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
-  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 2', 'two')}\n---\n\n${prev}`);
-  assert.equal(cli(root, ['record', '--owner', 'tamper-failclosed', '--quick']).status, 0);
-
-  const modified = fs.readFileSync(fullPath, 'utf8').replace('legit', 'FORGED');
-  fs.writeFileSync(fullPath, modified);
-
-  const prev2 = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
-  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 3', 'three')}\n---\n\n${prev2}`);
-
-  const recordResult = cli(root, ['record', '--owner', 'tamper-failclosed', '--quick']);
-  assert.notEqual(recordResult.status, 0);
-  assert.match(recordResult.stderr, /historical entry link is tampered/);
+  const res = run(process.execPath, [path.join(root, '.ai/bin/protocol.cjs'), 'doctor'], root);
+  assert.equal(res.status, 0);
+  assert.match(res.stdout, /\[WARN\] Legacy unauthenticated Evidence receipts: 1 journal\(s\)/);
+  assert.match(res.stdout, /Verdict: Protocol Healthy\. All checks passed\./);
 });
 
-test('full in-journal verification detects tampering three entries back even if latest is recorded', t => {
-  const root = makeProtocolFixture(t);
-  const journal = '.ai/worklog/deep-injournal.md';
-  const fullPath = path.join(root, journal);
+test('P-4: field order with parent-entry before entry parses correctly and does not confuse entry capture', () => {
+  const entryText = `## 2026-09-18 - Field order turn
 
-  write(root, journal, `# W\n\n${entry('turn 1', 'content one')}\n`);
-  assert.equal(cli(root, ['record', '--owner', 'deep-injournal', '--quick']).status, 0);
+Agent: tester
 
-  let prev = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
-  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 2', 'content two')}\n---\n\n${prev}`);
-  assert.equal(cli(root, ['record', '--owner', 'deep-injournal', '--quick']).status, 0);
+Action: Testing field order resilience.
 
-  prev = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
-  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 3', 'content three')}\n---\n\n${prev}`);
-  assert.equal(cli(root, ['record', '--owner', 'deep-injournal', '--quick']).status, 0);
+Result: Pass.
 
-  const modified = fs.readFileSync(fullPath, 'utf8').replace('content one', 'tampered one');
-  fs.writeFileSync(fullPath, modified);
+Next step: Verify.
 
-  const verifyResult = cli(root, ['verify', '--owner', 'deep-injournal']);
-  assert.notEqual(verifyResult.status, 0);
-  assert.match(verifyResult.stderr, /historical link was broken/);
+Open: None.
+
+Evidence:
+- anchor: none
+- digest: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+- digest format: 4
+- entry hash format: 2
+- parent-entry: sha256:1111111111111111111111111111111111111111111111111111111111111111
+- entry: sha256:2222222222222222222222222222222222222222222222222222222222222222 of this entry without this block
+`;
+
+  // parseEvidenceBlock: parentEntry and entry must be distinct and correct
+  const parsed = handoff.parseEvidenceBlock(entryText);
+  assert.equal(parsed.authenticated, true);
+  assert.equal(parsed.parentEntry, 'sha256:1111111111111111111111111111111111111111111111111111111111111111');
+  assert.equal(parsed.entry, 'sha256:2222222222222222222222222222222222222222222222222222222222222222');
+
+  // canonicalEntryBody removes - entry: and keeps - parent-entry:
+  const clean = hooks.canonicalEntryBody(entryText);
+  assert.doesNotMatch(clean, /^[ \t]*- entry:/m);
+  assert.match(clean, /^[ \t]*- parent-entry: sha256:1111/m);
+
+  // Unanchored capture resistance: a line like "- sub-entry: sha256:333..." or "parent-entry:" cannot be matched as entry
+  const withFakeEntry = `Evidence:
+- anchor: none
+- digest: sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+- digest format: 4
+- sub-entry: sha256:3333333333333333333333333333333333333333333333333333333333333333
+- parent-entry: root
+`;
+  const parsedFake = handoff.parseEvidenceBlock(withFakeEntry);
+  assert.equal(parsedFake.entry, null);
+  assert.equal(parsedFake.parentEntry, 'root');
 });
 
-test('timestamped entry headings are supported across newestSection, record, and verify', t => {
+test('P-4: findParentEntry resolves older section when parent-entry precedes entry', t => {
   const root = makeProtocolFixture(t);
-  const journal = '.ai/worklog/timestamped.md';
-  const heading = '## 2026-09-18 04:12:00 UTC - Timestamped entry\n\nAgent: tester\n\nAction: Did task.\n\nResult: Pass.\n\nNext step: Handoff.\n\nOpen:\nNone.\n';
-  write(root, journal, `# W\n\n${heading}\n`);
+  const journal = '.ai/worklog/reversed-fields.md';
+  const full = path.join(root, journal);
 
-  const recorded = cli(root, ['record', '--owner', 'timestamped', '--quick']);
-  assert.equal(recorded.status, 0, recorded.stderr);
+  // Create an older section with parent-entry BEFORE entry
+  const olderBody = `## 2026-09-17 - Older reversed\n\nAgent: tester\n\nAction: Did older.\n\nResult: Pass.\n\nNext step: Next.\n\nOpen: None.\n\nEvidence:\n- anchor: none\n- digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n- digest format: 4\n- entry hash format: 2\n- parent-entry: root\n`;
+  const olderEntryDigest = 'sha256:' + require('node:crypto').createHash('sha256').update(hooks.canonicalEntryBody(olderBody + '- entry: provisional of this entry without this block\n'), 'utf8').digest('hex');
+  const olderSection = olderBody + `- entry: ${olderEntryDigest} of this entry without this block\n`;
 
-  const verified = cli(root, ['verify', '--owner', 'timestamped']);
-  assert.equal(verified.status, 0, verified.stderr);
+  const newerSection = `## 2026-09-18 - Newer turn\n\nAgent: tester\n\nAction: Working on new.\n\nResult: Pass.\n\nNext step: None.\n\nOpen: None.\n`;
+
+  write(root, journal, `# W\n\n${newerSection}\n---\n\n${olderSection}\n`);
+
+  // findParentEntry should find olderSection's entry hash and NOT 'tampered' or 'root'
+  const resolvedParent = handoff.findParentEntry(full);
+  assert.equal(resolvedParent, olderEntryDigest);
 });
+
 
 

@@ -1251,6 +1251,128 @@ Approved by: RuslanFomenko
 
 ---
 
+### PROTO-DEC-0027
+
+Status: Accepted
+Date: 2026-09-18
+
+Context:
+Adversarial peer reviews from the Council of Models (DeepSeek, Copilot, Mistral,
+CodeGeeX, Qwen) on releases v1.9.0-v1.9.2 identified six critical kernel edge cases:
+(1) `autoArchiveWorklog` blindly cleared cooperative locks held by one-shot CLI
+sessions whose PID had exited, permitting lock theft;
+(2) Windows `fs.renameSync` in `protocol-archive.cjs` was vulnerable to transient
+antivirus/indexing file lock collisions (`EPERM`/`EBUSY`);
+(3) Historical journal entries using format < 4 lacking `entry:` lines were
+erroneously flagged as `tampered` rather than `legacy`, breaking backward compatibility;
+(4) Deep archive Merkle verification (`verify --deep`) only checked string inclusion
+rather than cryptographic SHA-256 body integrity of archived entries in `.ai/ARCHIVE.md`;
+(5) Date heading regular expressions rejected numeric timezone offsets (e.g. `+03:00`);
+(6) Runtime snapshot cleanup under `--force` bypassed process liveness checks for
+snapshots whose liveness could not be verified (e.g. foreign hostnames).
+Furthermore, post-council implementation phases lacked a formalized, mandatory
+peer-review prompt requirement, creating a risk that subsequent code changes could
+be marked complete without adversarial validation.
+
+Decision:
+1. Mandatory Adversarial Peer Review Prompt: Regardless of who implements changes
+   (human developer or AI assistant), upon completing any plan or council decision,
+   the implementer MUST formulate an exhaustive, unified adversarial audit prompt
+   covering every item of the implementation. No task may be marked `Status: Completed`
+   without subjecting it to this multi-model peer review process.
+2. Cooperative Lock Preservation: `autoArchiveWorklog` must never steal or clear
+   a cooperative lock held by another session; if locked, auto-archiving is skipped
+   with a warning on stderr. Support `--session-pid` for lock tracking.
+3. Windows Atomic Rename Resilience: `atomicRename` implements 5 retries with
+   exponential backoff (50ms base) to absorb transient Windows OS file-system locks.
+4. Backward Compatibility for Legacy Evidence: Evidence blocks with format < 4
+   lacking `entry:` hashes are classified as `legacy`, not `tampered`.
+5. Fail-Closed Deep Archive Cryptographic Audit: `verify --deep` parses `.ai/ARCHIVE.md`,
+   locates the archived parent entry, and independently re-hashes its body to ensure
+   absolute cryptographic immutability across journal pruning.
+6. Unified Heading Regular Expression: Standardize `DATE_HEADING_REGEX` across
+   handoff and archive modules, accepting numeric timezone offsets (`+03:00`, `Z`, `UTC`).
+7. Liveness-First Runtime Cleanup: `cleanup-runtime --force` preserves snapshots
+   unless process liveness is conclusively dead (`isProcessAlive(state) === false`).
+
+Reasoning:
+The AI collaboration protocol depends on absolute cryptographic integrity and
+strict multi-model consensus. A single implementer (human or AI) must never self-certify
+changes without adversarial challenge. Hardening file locks, deep archive verification,
+and backward compatibility ensures cross-platform reliability on Windows and Linux.
+
+Alternatives rejected:
+- Automatic lock stealing for non-live PIDs: rejected because one-shot CLI commands
+  intentionally exit while holding the lock across CLI invocations.
+- Optional peer review prompts: rejected because unreviewed implementations accumulate
+  silent defects and architectural divergence.
+- Shallow archive verification: rejected because string inclusion allows body forging
+  while preserving the parent hash label.
+
+Consequences:
+`AGENTS.md` and `QUICKSTART.md` mandate the peer-review prompt rule. `validate-protocol.ps1`
+enforces text encoding across `docs/reviews/` and `templates/reviews/`. Test suites
+`tests/lock.test.cjs`, `tests/handoff.test.cjs`, and `tests/session.test.cjs` enforce
+lock preservation, deep archive validation, and snapshot hygiene.
+
+Approved by: RuslanFomenko
+
+---
+
+### PROTO-DEC-0028
+
+Status: Accepted
+Date: 2026-09-18
+
+Context:
+The v1.9.4 hardening round closed the __dirty collision, Evidence authentication
+(format 2), rehash ordering and the transitional archive root, but left three
+release-blocking gaps: --session-pid accepts any live PID, allowing lock
+squatting (reproduced with Windows PID 4); format-1 Evidence receipts remain
+unauthenticated and were silently certified; and the archive terminal rule
+accepts a legacy `chain root: transitional` marker at any depth, allowing silent
+history truncation. The canonical entry-hash logic is also duplicated between
+protocol-handoff.cjs and protocol-archive.cjs.
+
+Decision:
+1. Lock liveness binds to a registered session: a nonce is generated at session
+   start and stored in .ai/runtime/<owner>.json; --session-pid is accepted only
+   for the current PID, the parent PID, or a registered PID presented with the
+   matching --session-token. System PIDs (<= 4) are rejected.
+2. Legacy Evidence is labelled, never rewritten: verify fails without
+   --allow-legacy, doctor counts unauthenticated receipts, and migration means
+   recording new evidence.
+3. Archive chain verification requires exactly one terminal root and rejects
+   orphaned segments; a non-authenticated transitional root is accepted only as
+   the unique parentless record.
+4. The canonical entry-body hash lives once in protocol-hooks.cjs and is used by
+   both handoff and archive.
+5. Audit and council participants persist prompt and report under docs/reviews/
+   before emitting the chat summary.
+6. The release version is bumped to 1.9.4, committed atomically, annotated with
+   tag v1.9.4, and the consumers D:\Block-Puzzle and D:\VPN are force-synchronized
+   and verified; their own commits remain in their own sessions.
+
+Reasoning:
+Each item replaces an unverifiable claim with either a registered secret, an
+explicit legacy label, or a graph invariant that can be tested. Fail-closed
+behaviour is preserved; no historical text is rewritten.
+
+Alternatives rejected:
+Numeric-range-only PID validation (DoS by PID 4); mass re-hashing of historical
+journals (breaks the parent chain and immutability); a hardcoded genesis hash
+(project constant in protocol source); a blocking Stop hook for missing reports
+(contradicts DEC-0003).
+
+Consequences:
+Supervisors pass a session token; old receipts report unauthenticated until
+re-recorded; archive verification gains orphan/root tests; both consumers receive
+the new managed files and commit them in their own sessions.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

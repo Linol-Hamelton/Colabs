@@ -32,9 +32,10 @@ node .ai/bin/protocol-session.cjs stop --agent <your-name> --session <your-sessi
 1. **One Writer for Shared Documents**: Always acquire the lock with `protocol-lock.cjs` before modifying `.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, or `.ai/ARCHIVE.md`.
 2. **Append-Only Decisions**: An approved decision block in `.ai/DECISIONS.md` is permanent. Never edit or delete existing decisions; write a new block with `Supersedes: DEC-xxxx` to amend.
 3. **Dedicated Session Journals**: Each session writes only to its own journal in `.ai/worklog/<agent>-<id>.md`. Never modify another session's journal.
-4. **Verifiable Evidence**: Never write or fake test results. Use `protocol-handoff.cjs record` to stamp your journal with a tamper-evident Merkle digest.
+4. **Verifiable Evidence**: Never write or fake test results. Use `protocol-handoff.cjs record` to stamp your journal with authenticated format-2 Evidence. Receipts without format 2 are legacy unauthenticated (`verify --owner` requires `--allow-legacy`).
 5. **Encoding & Standards**: UTF-8 without BOM, LF line endings for all text files. All PowerShell (`.ps1`) scripts must remain strictly ASCII-only (no Unicode characters).
 6. **Extended Analysis in docs/reviews/**: In-depth architectural evaluations, multi-agent audits, and consensus reports belong in `docs/reviews/YYYY-MM-DD-<agent>-<topic>.md` using `templates/reviews/REVIEW.md`. Journals reference the review and carry verifiable evidence; chat output is limited to a concise executive verdict.
+7. **Mandatory Adversarial Review Prompt**: Regardless of who implements changes, after finishing a plan or task the implementer must author an exhaustive unified prompt covering all changes to solicit adversarial review, defect-hunting, optimization proposals, or certification of optimality before completion. A completed task must list the prompt and an independent review under `## Completion gate` in `.ai/TASK.md`; the validator rejects missing artifacts or a `FAIL`/`BLOCKED` verdict.
 
 ---
 
@@ -56,6 +57,9 @@ node .ai/bin/protocol-lock.cjs status
   ```bash
   node .ai/bin/protocol-lock.cjs clear-operation
   ```
+
+> [!NOTE]
+> `protocol-lock.cjs` supports `--session-pid <pid>` for supervisor processes, bound to `process.pid`, `process.ppid`, or a registered session matching `--session-token <token>` (registered via `protocol-session.cjs start --supervisor-pid <pid>`). System PIDs (`pid <= 4`) and unaffiliated PIDs are rejected. The session token serves as an anti-accident barrier against collision and squatting. Clearing a live registered lock requires `--force --reason "<explanation>"`. For transient CLI sessions, locks are tracked cooperatively by owner identity.
 
 ---
 

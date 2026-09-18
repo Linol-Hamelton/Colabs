@@ -44,6 +44,7 @@ function rootFor(input, agent) {
 // working-tree file is identified by the same Git blob hash the index would
 // hold for it, including path-specific conversions. See DEC-0015 and DEC-0016.
 const SNAPSHOT_FORMAT = 4;
+const DIRTY_SYMBOL = Symbol('protocol snapshot dirty');
 
 function blobId(content) {
   const header = Buffer.from(`blob ${content.length}${String.fromCharCode(0)}`);
@@ -148,8 +149,11 @@ function snapshot(root) {
   hashWorkingFiles(root, regular, identities);
   const files = {};
   for (const name of [...identities.keys()].sort()) {
-    Object.defineProperty(files, name, { value: String(identities.get(name)), enumerable: true });
+    Object.defineProperty(files, name, {
+      value: String(identities.get(name)), enumerable: true, configurable: true,
+    });
   }
+  Object.defineProperty(files, DIRTY_SYMBOL, { value: dirty.size > 0 });
   return files;
 }
 
@@ -211,6 +215,11 @@ function saveState(filename, state, createOnly = false) {
 const REQUIRED_LABELS = ['Agent', 'Action', 'Result', 'Next step', 'Open'];
 const ENTRY_LABELS = [...REQUIRED_LABELS, 'Evidence'];
 
+// Canonical date heading patterns, shared by all protocol modules.
+// Supports: YYYY-MM-DD, optional HH:MM[:SS], optional timezone (named, +-HHMM, Z).
+const DATE_HEADING_REGEX = /^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?:[ ]?(?:[A-Za-z0-9_]+|[+-]\d{2}(?::?\d{2})?|Z))?)? - .+/;
+const DATE_HEADING_M_REGEX = /^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?:[ ]?(?:[A-Za-z0-9_]+|[+-]\d{2}(?::?\d{2})?|Z))?)? - .+/m;
+
 const SECRET_PATTERNS = [
   /(?:(?:SESSION_SECRET|ADMIN_TOKEN|API_KEY|AUTH_TOKEN|PRIVATE_KEY|SECRET_KEY|WEB_ONBOARD_[A-Z_]+)[ \t]*=[ \t]*['"][^'"]{8,}['"])/i,
   /-----BEGIN (?:RSA|EC|OPENSSH|DSA|PGP|ENCRYPTED|PRIVATE) KEY-----/,
@@ -242,7 +251,7 @@ function latestCompleteEntry(text) {
   const sections = text.replace(/\r\n/g, '\n').split(/(?=^## )/m)
     .map(section => section.replace(/\n-{3,}\s*$/, '\n'));
   return sections.find(section => {
-    if (!/^## \d{4}-\d{2}-\d{2} - .+/.test(section)) return false;
+    if (!DATE_HEADING_REGEX.test(section)) return false;
     return REQUIRED_LABELS.every(label => {
       const value = entryField(section, label);
       // A floor against stubs, not a judgement of substance: "a"/"b"/"c"/"d"
@@ -250,6 +259,26 @@ function latestCompleteEntry(text) {
       return value && value.length >= 3 && !/^_(?:What|Assumptions)/.test(value);
     });
   })?.trim() || null;
+}
+
+const ENTRY_HASH_FORMAT = 2;
+
+function hasEntryHashFormat2(section) {
+  if (!section) return false;
+  return /^[ \t]*-[ \t]+entry hash format:[ \t]*2(?:\s|$)/m.test(section);
+}
+
+// Canonical entry body hash logic: covers the entry body with its own
+// Evidence block removed (for legacy format) or with its own '- entry:' line removed
+// (for format 2). See DEC-0021 and PROTO-DEC-0028.
+function canonicalEntryBody(section) {
+  if (!section) return '';
+  const authenticated = hasEntryHashFormat2(section);
+  let body = authenticated
+    ? section.replace(/\n*^[ \t]*-[ \t]+entry:[^\r\n]*$/m, '\n')
+    : section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
+  body = body.replace(/(?:\s*\n-{3,}[ \t]*|\s*\n### From [^\r\n]+)*\s*$/, '');
+  return body.replace(/\s+$/, '');
 }
 
 function readText(root, relative) {
@@ -302,8 +331,9 @@ function context(root, worklog, agent) {
   const status = git(root, ['status', '--short', '--branch']);
   add('Git status', status.length < 2000 ? status :
     `${status.split('\n').slice(0, 20).join('\n')}\n(More paths omitted; run git status.)`, 2400);
-  const hasCommits = Number(git(root, ['rev-list', '--all', '--count']).trim()) > 0;
-  add('Recent commits', hasCommits ? git(root, ['log', '--oneline', '-10']) : '(No commits yet.)', 1800);
+  let logOutput = '';
+  try { logOutput = git(root, ['log', '--oneline', '-10']).trim(); } catch { logOutput = ''; }
+  add('Recent commits', logOutput ? logOutput : '(No commits yet.)', 1800);
   for (const relative of ['.ai/PLAN.md', '.ai/DECISIONS.md']) {
     if (!fs.existsSync(path.join(root, relative))) { add(relative, '(Missing.)'); continue; }
     const headings = readText(root, relative).split(/\r?\n/).filter(line => /^#{1,3} /.test(line));
@@ -312,7 +342,7 @@ function context(root, worklog, agent) {
   const archivePath = path.join(root, '.ai', 'ARCHIVE.md');
   if (fs.existsSync(archivePath)) {
     const archiveText = readText(root, '.ai/ARCHIVE.md');
-    const matches = archiveText.match(/^## \d{4}-\d{2}-\d{2} - [^\r\n]+/mg);
+    const matches = archiveText.match(new RegExp(DATE_HEADING_M_REGEX.source, 'mg'));
     if (matches && matches.length) {
       const newest = matches[matches.length - 1].replace(/^## /, '');
       result += `Archive ledger: .ai/ARCHIVE.md holds ${matches.length} archived entry(s); newest: ${newest}\n\n`;
@@ -400,6 +430,10 @@ function run(event, input, agent = 'claude') {
     pid: process.pid,
     hostname: os.hostname(),
     startTime: (previous && previous.startTime) ? previous.startTime : Date.now(),
+    nonce: (previous && previous.nonce) ? previous.nonce : crypto.randomBytes(32).toString('hex'),
+    supervisorPid: (input && typeof input.supervisor_pid === 'number')
+      ? input.supervisor_pid
+      : ((previous && typeof previous.supervisorPid === 'number') ? previous.supervisorPid : null),
     files: snapshot(root),
     worklogHash: logHash,
     entryHash: entry === null ? null : digest(entry),
@@ -450,11 +484,18 @@ function run(event, input, agent = 'claude') {
   // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
   try {
     const archive = require('./protocol-archive.cjs');
-    archive.autoArchiveWorklog(root, paths.worklog, 150, 1);
+    const owner = path.basename(paths.worklog, '.md');
+    archive.autoArchiveWorklog(root, paths.worklog, 150, 1, owner);
   } catch { }
   // Stop runs after every response. Successful handoffs establish the next turn's baseline.
   saveState(paths.state, current);
   return warnings.length ? { stopWarnings: warnings } : {};
+}
+
+function sessionNonce(root, owner) {
+  const stateFile = path.join(root, '.ai', 'runtime', `${owner}.json`);
+  const state = readState(stateFile);
+  return state ? (state.nonce || null) : null;
 }
 
 function main(agent = 'claude') {
@@ -469,4 +510,4 @@ function main(agent = 'claude') {
 }
 
 if (require.main === module) main();
-module.exports = { SNAPSHOT_FORMAT, AGENT_NAME, context, assignment, latestCompleteEntry, entryField, findSecretLeak, stopWarnings, sessionPaths, run, changedFiles, snapshot, fingerprint, main };
+module.exports = { SNAPSHOT_FORMAT, DIRTY_SYMBOL, ENTRY_HASH_FORMAT, AGENT_NAME, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, context, assignment, latestCompleteEntry, entryField, findSecretLeak, stopWarnings, sessionPaths, readState, sessionNonce, hasEntryHashFormat2, canonicalEntryBody, run, changedFiles, snapshot, fingerprint, main };

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.9.0
+## AI Collaboration Protocol v1.9.4
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude,
 DeepSeek, Gemini, Qwen, GLM, Mistral, Copilot, and others. They do not share chat
@@ -73,6 +73,35 @@ An implementer may not unilaterally mark a task `Status: Completed` in
 `.ai/TASK.md`. Completion requires independent verification by the assigned
 opposing reviewer or the human owner.
 
+### Mandatory Adversarial Peer Review Prompt
+
+Regardless of who implements changes in the repository (human developer or any
+AI assistant), upon completing the implementation of a plan or council decision,
+the implementer MUST compose an exhaustive, unified adversarial audit prompt
+covering every item of the implementation.
+
+The prompt must instruct opposing reviewer models to:
+1. Hunt for defects, vulnerabilities, race conditions, edge cases, and regressions.
+2. Identify shortcomings, inaccuracies, and incomplete edge-case handling.
+3. Evaluate alternative implementation paths and propose optimizations.
+4. Render an explicit verdict (PASS / FAIL / BLOCKED / RECOMMENDATION) or certify
+   that the implementation is optimal.
+
+No task may be marked `Status: Completed` without subjecting it to this mandatory
+multi-model adversarial review process.
+
+For the validator to enforce that gate, a completed task must also include a
+`## Completion gate` section in `.ai/TASK.md` with these exact fields:
+
+```markdown
+- Adversarial review prompt: docs/reviews/<prompt>.md
+- Independent review: docs/reviews/<review>.md
+```
+
+Both files must exist; the prompt must identify the unified adversarial audit
+prompt, and the review must name an independent reviewer and an explicit
+`PASS` or `RECOMMENDATION` verdict. A `FAIL` or `BLOCKED` verdict cannot
+certify completion.
 
 ---
 
@@ -101,7 +130,9 @@ Mandatory, in order:
 1. Review your own diff with `git diff`.
 2. Run the checks in section 7. Report what you actually ran.
 3. Write one entry in your session journal, with all five labels.
-4. Update `.ai/TASK.md` if the state of the task changed.
+4. Update `.ai/TASK.md` if the state of the task changed. If completing a
+   plan or council decision, compose and dispatch the Mandatory Adversarial
+   Peer Review Prompt (§2) before marking `Status: Completed`.
 5. Release the shared-document lock if you hold it.
 6. Do not commit and do not push unless the owner instructed it.
 
@@ -171,7 +202,9 @@ consensus syntheses, or extensive fault-injection probes:
    by `protocol-handoff.cjs record` to anchor the state with verifiable evidence.
 3. **Chat panel output**: Keep chat messages concise: report only the executive
    verdict, the path to the review file, and top blocking findings. Never dump
-   full analytical essays into chat history.
+   full analytical essays into chat history. An audit or council participant
+   persists its prompt and report under `docs/reviews/` before emitting the chat
+   summary; a chat-only audit is non-compliant.
 4. **Mandatory header**: Every review file must declare its baseline:
    - Reviewed commit SHA (`git rev-parse HEAD`)
    - Working tree status (`clean` or `dirty`)
@@ -209,6 +242,9 @@ a slow live holder looks exactly like a dead one. Confirm the session is
 actually over, then release it with the reported owner name. Releasing a live
 holder's lock destroys their work. If `acquire` reports that the holding process
 is dead, clear it with `clear-lock` or pass `acquire --force` to recover safely.
+`protocol-lock.cjs` supports `--session-pid <pid>` for supervisor processes;
+for transient CLI sessions, lock protection is cooperative and relies on the
+reported owner name rather than transient process liveness.
 
 Other writing rules:
 
