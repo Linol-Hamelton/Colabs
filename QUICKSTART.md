@@ -34,6 +34,7 @@ node .ai/bin/protocol-session.cjs stop --agent <your-name> --session <your-sessi
 3. **Dedicated Session Journals**: Each session writes only to its own journal in `.ai/worklog/<agent>-<id>.md`. Never modify another session's journal.
 4. **Verifiable Evidence**: Never write or fake test results. Use `protocol-handoff.cjs record` to stamp your journal with a tamper-evident Merkle digest.
 5. **Encoding & Standards**: UTF-8 without BOM, LF line endings for all text files. All PowerShell (`.ps1`) scripts must remain strictly ASCII-only (no Unicode characters).
+6. **Extended Analysis in docs/reviews/**: In-depth architectural evaluations, multi-agent audits, and consensus reports belong in `docs/reviews/YYYY-MM-DD-<agent>-<topic>.md` using `templates/reviews/REVIEW.md`. Journals reference the review and carry verifiable evidence; chat output is limited to a concise executive verdict.
 
 ---
 
@@ -80,6 +81,8 @@ node .ai/bin/protocol.cjs telemetry   # Collaboration metrics, agent participati
 ├── protocol-manifest.json     # Managed paths, tool roles, and integrity manifest
 ├── validate-protocol.ps1      # Protocol health, encoding, and size limit validator
 ├── test-protocol.ps1          # Protocol regression test suite
+├── docs/reviews/              # Architecture reviews, council syntheses, and audits
+├── templates/reviews/         # REVIEW.md template for technical reports
 └── .ai/
     ├── TASK.md                # Active task, roles, and open questions (max 80 lines)
     ├── PLAN.md                # Proposed architectural and technical approach (max 200 lines)

@@ -1193,6 +1193,64 @@ Approved by: RuslanFomenko
 
 ---
 
+### PROTO-DEC-0026
+
+Status: Accepted
+Date: 2026-09-18
+
+Context:
+Session journals are capped at 150 lines by design to maintain lean operational
+logs. In-depth architectural evaluations, multi-model consensus deliberative
+records, and extensive cryptographic/security audits often exceed 200-500 lines.
+Previously, detailed reasoning lived only in chat panels or was lost when journals
+were truncated, causing significant knowledge loss between disparate AI assistants.
+
+Decision:
+1. Long-form engineering reports, architecture reviews, security audits, and
+   council consensus syntheses must be persisted as Git-tracked documents in
+   `docs/reviews/YYYY-MM-DD-<agent>-<short-description>.md` using
+   `templates/reviews/REVIEW.md`. In host projects, the review path is defined by
+   the project owner (DEC-0013/0017).
+2. The review document is the primary engineering deliverable. The session
+   journal holds a concise entry (<= 150 lines) with all five required labels
+   linking to the review file, followed by an anchored Evidence block.
+3. Chat panel output is strictly limited to an executive verdict, the review file
+   path, and critical blocking findings. Detailed technical essays must not be
+   dumped into chat.
+4. Every review file must declare a mandatory header specifying:
+   - Reviewed commit SHA (`git rev-parse HEAD`)
+   - Working tree state (`clean` or `dirty`)
+   - Reviewer model name, date (UTC), scope, and verdict
+5. For assistants operating through chat interfaces without direct filesystem
+   access, the human owner or coordinator persists the text with a transcription
+   header (`> Transcribed from chat by <owner/agent>, model: <name>, date: <ISO>`).
+6. Review files are immutable historical records. If an analysis is revised or
+   superseded, a new review file is published or marked `Superseded by:`.
+
+Reasoning:
+Storing reviews directly in Git guarantees permanent, discoverable institutional
+memory across all AI coding assistants without burdening the human owner with
+repetitive manual copy-pasting. Placing reviews outside `.ai/` prevents churn in
+session snapshot working tree digests. Requiring commit SHA and tree status makes
+every audit reproducible.
+
+Alternatives rejected:
+- Storing reviews in `.ai/reviews/`: rejected because `.ai/` is included in working
+  tree snapshot digests, so adding reviews would invalidate active evidence receipts.
+- Permitting unconstrained worklog growth: rejected because it degrades context
+  window efficiency and breaks the lean operational focus of journals.
+- Relying on chat history: rejected because chat history is not shared between
+  different assistant families and is lost across sessions.
+
+Consequences:
+`templates/reviews/REVIEW.md` is added to the protocol source repository. `AGENTS.md`
+and `QUICKSTART.md` mandate this deliverable structure. The Grand Council consensus
+is archived in `docs/reviews/2026-09-18-grand-council-consensus-v1.9.0.md`.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

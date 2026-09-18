@@ -156,6 +156,33 @@ Next step:
 Open:
 ```
 
+### Extended Analysis & Architecture Reviews
+
+Session journals are strictly bounded operational logs (maximum 150 lines).
+When performing independent audits, deep architectural evaluations, multi-model
+consensus syntheses, or extensive fault-injection probes:
+
+1. **Save the full report in the repository**: Create
+   `docs/reviews/YYYY-MM-DD-<agent>-<short-description>.md` following
+   `templates/reviews/REVIEW.md`. In host projects, the review path is defined by
+   the project owner (DEC-0013/0017).
+2. **Link from the session journal**: In `.ai/worklog/<agent>-<id>.md`, write a
+   standard entry with all five labels referencing the review document, followed
+   by `protocol-handoff.cjs record` to anchor the state with verifiable evidence.
+3. **Chat panel output**: Keep chat messages concise: report only the executive
+   verdict, the path to the review file, and top blocking findings. Never dump
+   full analytical essays into chat history.
+4. **Mandatory header**: Every review file must declare its baseline:
+   - Reviewed commit SHA (`git rev-parse HEAD`)
+   - Working tree status (`clean` or `dirty`)
+   - Reviewer model name, date (UTC), scope, and verdict
+5. **Chat transcription fallback**: If an assistant operates through a chat panel
+   without direct filesystem access, the human owner or coordinator persists the
+   analysis with the header:
+   `> Transcribed from chat by <owner/agent>, model: <name>, date: <ISO>`
+6. **Immutability**: Review files are permanent historical records. Revisions are
+   published as new files or marked with `Superseded by:` in the header.
+
 ---
 
 ## 6. Shared documents have one writer

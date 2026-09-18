@@ -28,7 +28,8 @@
     "test-protocol.ps1",
     "LICENSE",
     "CONTRIBUTING.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "templates/reviews/REVIEW.md"
   ],
   "tests": [
     "tests/archive.test.cjs",
