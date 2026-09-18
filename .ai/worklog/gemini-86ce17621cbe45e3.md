@@ -19,7 +19,7 @@ Action:
 - Validated repository health via validate-protocol.ps1 (0 warnings) and protocol.cjs doctor (exit 0 Healthy).
 - Executed atomic release commit and annotated tag v1.9.4.
 - Synchronized consumer repositories D:\Block-Puzzle and D:\VPN using sequential -Force and -Verify invocations.
-- Composed final mandatory adversarial peer review prompt for v1.9.4 release certification.
+- Composed final mandatory adversarial peer review prompt for v1.9.4 release certification; refined prompt to address 7 gate vectors (per-chain root semantics, post-P-4 boundary canonicalization sweep, threat model boundaries, Evidence format-2 invariants, and reviewer conflict declaration).
 
 Result:
 - Protocol hardening v1.9.4 release transition complete: lock nonce/token isolation, deep archive orphan/root graph checks, legacy Evidence backward compatibility, canonical entry-body hash deduplication, review persistence ordering, and completion gate validation.
@@ -32,18 +32,19 @@ Open:
 - None.
 
 Evidence:
-- anchor: c71bdcf94545c246178b5d75e780f3fd79cb9b5a, uncommitted changes present
-- digest: sha256:11e71d7a096f56acb9d8e4ee9d95a8dd3490bb4ab54ae6554f2aa4af3bb737c1 over 99 tracked and untracked files
+- anchor: 2c64a92295542ddc55c1f6dbd8b5bc92b9a67365, uncommitted changes present
+- digest: sha256:f25b2caee4c31f4edc6b7520bf95b940b331abece47d72bcb62967ccfd38e6a5 over 99 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-18T21:34:25.793Z by gemini-86ce17621cbe45e3
+- recorded: 2026-09-18T21:42:00.617Z by gemini-86ce17621cbe45e3
 - entry hash format: 2
-- entry: sha256:d51975556a6bcba5c67a0418127859683d4ca9870101d337b704d5c6893d3911 of this entry without this block
+- entry: sha256:1cabb1184b17276191d2836b4d20a521683d7207dcd49bc992da9b90069907ad of this entry without this block
 - parent-entry: sha256:ff52dcccae7ae1d82ca48d3fafcca39e74805a56cc635c04e175d5b96d796bda
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 2s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 
 
