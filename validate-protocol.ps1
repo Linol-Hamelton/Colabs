@@ -70,6 +70,20 @@ function Get-LineCount {
     return $count
 }
 
+function Get-Sha256Hex {
+    param([string]$Path)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $stream = [System.IO.File]::OpenRead($Path)
+        try {
+            $bytes = $sha.ComputeHash($stream)
+            return (($bytes | ForEach-Object { $_.ToString('x2') }) -join '')
+        }
+        finally { $stream.Dispose() }
+    }
+    finally { $sha.Dispose() }
+}
+
 Write-Host "AI Collaboration Protocol - validation"
 Write-Host "Root: $Root"
 
@@ -321,18 +335,18 @@ $decisionPath = Join-Path $Root '.ai/DECISIONS.md'
 if (Test-Path -LiteralPath $decisionPath -PathType Leaf) {
     $decisionText = Read-ProtocolText $decisionPath
     if ($null -ne $decisionText) {
-        $blocks = [regex]::Matches($decisionText, '(?ms)^### DEC-(?<number>\d+)[^\r\n]*(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)')
+        $blocks = [regex]::Matches($decisionText, '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d+))[^\r\n]*(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)')
         $seen = @{}
         foreach ($block in $blocks) {
-            $id = 'DEC-' + $block.Groups['number'].Value
+            $id = $block.Groups['id'].Value
             if ($block.Groups['number'].Value.Length -ne 4) { Write-Result "FAIL" "$id must use four digits" }
             if ($seen.ContainsKey($id)) { Write-Result "FAIL" "duplicate decision: $id" }
             $seen[$id] = $true
             $body = $block.Groups['body'].Value
             # A Supersedes pointing at nothing makes the log unreadable: a
             # reader cannot tell which decision still stands. See DEC-0013.
-            foreach ($reference in [regex]::Matches($body, '(?m)^Supersedes:[ 	]*(.*)$')) {
-                foreach ($target in [regex]::Matches($reference.Groups[1].Value, 'DEC-\d{4}')) {
+            foreach ($reference in [regex]::Matches($body, '(?m)^Supersedes:[ \t]*(.*)$')) {
+                foreach ($target in [regex]::Matches($reference.Groups[1].Value, '(?:PROTO-)?DEC-\d{4}')) {
                     $script:SupersedeRefs += [pscustomobject]@{ From = $id; To = $target.Value }
                 }
             }
@@ -343,7 +357,9 @@ if (Test-Path -LiteralPath $decisionPath -PathType Leaf) {
                 $fields[$field] = if ($values.Count -gt 0) { $values[0].Groups[1].Value.Trim() } else { '' }
             }
             $status = $fields['Status']
-            if ($status -cnotmatch '^(Proposed|Accepted|Superseded by DEC-\d{4})$') { Write-Result "FAIL" "$id has missing or invalid Status" }
+            if ($status -cnotmatch '^(Accepted|Superseded by (?:PROTO-)?DEC-\d{4})$' -and -not ($id -eq 'DEC-0014' -and $status -eq 'Proposed')) {
+                Write-Result "FAIL" "$id has missing or invalid Status (Proposed is forbidden; drafts belong in PLAN.md)"
+            }
             $parsedDate = [datetime]::MinValue
             if (-not [datetime]::TryParseExact($fields['Date'], 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None, [ref]$parsedDate)) {
                 Write-Result "FAIL" "$id requires a valid Date: YYYY-MM-DD"
@@ -411,6 +427,125 @@ if ($gitCommand -and $script:GitUsable) {
         }
         else {
             Write-Result "WARN" ("cannot determine the ignore rule for $probe")
+        }
+    }
+}
+
+# One version, three files. Nothing compared them and they drifted. See DEC-0021.
+if ($manifest -and $manifest.PSObject.Properties['protocolVersion']) {
+    $declared = [string]$manifest.protocolVersion
+    $sources = @{}
+    $agentsPath = Join-Path $Root 'AGENTS.md'
+    if (Test-Path -LiteralPath $agentsPath -PathType Leaf) {
+        $found = [regex]::Match((Read-ProtocolText $agentsPath), '(?m)^##\s+AI Collaboration Protocol\s+v(\S+)\s*$')
+        if ($found.Success) { $sources['AGENTS.md'] = $found.Groups[1].Value }
+    }
+    $installerPathForVersion = Join-Path $Root 'setup-ai-protocol.ps1'
+    if (Test-Path -LiteralPath $installerPathForVersion -PathType Leaf) {
+        $found = [regex]::Match((Read-ProtocolText $installerPathForVersion), 'protocol v(\d+\.\d+\.\d+)')
+        if ($found.Success) { $sources['setup-ai-protocol.ps1'] = $found.Groups[1].Value }
+    }
+    $drifted = @($sources.Keys | Where-Object { $sources[$_] -ne $declared })
+    if ($drifted.Count -eq 0) { Write-Result "PASS" "one protocol version everywhere: $declared" }
+    else {
+        foreach ($name in $drifted) {
+            Write-Result "FAIL" ("{0} says {1}; protocol-manifest.json says {2}" -f $name, $sources[$name], $declared)
+        }
+    }
+}
+
+# A version string is not content. A plain install updates the manifest but
+# keeps an older managed copy, so a project could declare v1.9.0 while running
+# a previous generation of the engine, and validation stayed green. The
+# installed manifest records the hash of the bytes the install delivered; a
+# mismatch means a partial upgrade or a hand edit. Documents a host may
+# reconcile warn; runtime tooling fails. See TASK 2026-09-17.
+if ($script:ProtocolRole -ne 'source' -and $manifest -and
+    $manifest.PSObject.Properties['contentDigest'] -and $manifest.contentDigest) {
+    $docDigests = @(
+        'AGENTS.md',
+        'CLAUDE.md',
+        '.ai/docs/PROTOCOL.md',
+        '.ai/docs/CODEX.md',
+        '.ai/docs/COPILOT.md',
+        '.ai/docs/GLM.md',
+        '.github/copilot-instructions.md'
+    )
+    $digestsChecked = 0
+    foreach ($entry in $manifest.contentDigest.PSObject.Properties) {
+        $relative = $entry.Name
+        $expected = [string]$entry.Value
+        if ($expected -notmatch '^sha256:[a-f0-9]{64}$') {
+            Write-Result "FAIL" ("content digest for {0} is malformed" -f $relative)
+            continue
+        }
+        $full = Join-Path $Root $relative
+        if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
+        $digestsChecked++
+        if (('sha256:' + (Get-Sha256Hex $full)) -eq $expected) { continue }
+        if ($docDigests -contains $relative.Replace([char]92, '/')) {
+            Write-Result "WARN" ("{0} differs from the installed protocol content; it is a document the host may reconcile. Run -Force to take the canonical copy." -f $relative)
+        }
+        else {
+            Write-Result "FAIL" ("{0} is not the content this protocol version installed; a partial upgrade or a hand edit. Run setup-ai-protocol.ps1 -Force from the protocol source repository." -f $relative)
+        }
+    }
+    Write-Result "PASS" ("verified {0} managed content digest(s)" -f $digestsChecked)
+}
+
+# A written decision block is never edited again, says the rule. Nothing checked
+# it, so the text could be rewritten and validation still passed. See DEC-0021.
+if ($gitCommand -and $script:GitUsable -and (Test-Path -LiteralPath $decisionPath -PathType Leaf)) {
+    $committed = Invoke-External $gitCommand.Source @('-C', $Root, 'show', 'HEAD:.ai/DECISIONS.md')
+    if ($committed.Code -ne 0) {
+        Write-Result "WARN" "no committed .ai/DECISIONS.md to compare against; immutability guarantee is OFF until .ai/ is committed to Git (run: git add .ai && git commit)"
+    }
+    else {
+        $pattern = '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d{4}))[^\r\n]*(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)'
+        $before = @{}
+        foreach ($block in [regex]::Matches(($committed.Output -replace "`r`n", "`n"), $pattern)) {
+            $before[$block.Groups['id'].Value] = $block.Groups['body'].Value.TrimEnd()
+        }
+        $currentBlocks = @{}
+        foreach ($block in [regex]::Matches(($decisionText -replace "`r`n", "`n"), $pattern)) {
+            $currentBlocks[$block.Groups['id'].Value] = $block.Groups['body'].Value.TrimEnd()
+        }
+        $changed = @()
+        $deleted = @()
+        foreach ($id in $before.Keys) {
+            if (-not $currentBlocks.ContainsKey($id)) {
+                $deleted += $id
+            }
+            elseif ($before[$id] -cne $currentBlocks[$id]) {
+                $changed += $id
+            }
+        }
+        if ($changed.Count -eq 0 -and $deleted.Count -eq 0) {
+            Write-Result "PASS" ("{0} committed decision blocks are unchanged" -f $before.Count)
+        }
+        else {
+            foreach ($id in $changed) {
+                Write-Result "FAIL" ("$id was edited after it was written; a decision block is never rewritten")
+            }
+            foreach ($id in $deleted) {
+                Write-Result "FAIL" ("$id was deleted; a decision block is never removed")
+            }
+        }
+    }
+}
+
+# A journal belongs to one session. Nothing can enforce that inside one
+# checkout, but an entry naming a different agent is worth saying out loud.
+if (Test-Path -LiteralPath $worklogDirectory -PathType Container) {
+    foreach ($journal in (Get-ChildItem -LiteralPath $worklogDirectory -Filter '*.md' -File)) {
+        if ($journal.Name -eq 'README.md') { continue }
+        $prefix = ($journal.BaseName -split '-')[0]
+        $body = Read-ProtocolText $journal.FullName
+        if ($null -eq $body) { continue }
+        $agentLine = [regex]::Match($body, '(?m)^Agent:[ \t]*(.+)$')
+        if (-not $agentLine.Success) { continue }
+        if ($agentLine.Groups[1].Value -notmatch [regex]::Escape($prefix)) {
+            Write-Result "WARN" ("{0} holds an entry whose Agent line does not name {1}" -f $journal.Name, $prefix)
         }
     }
 }

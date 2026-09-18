@@ -61,3 +61,85 @@ test('invalid session identities cannot become worklog paths', t => {
   }
   assert.equal(fs.existsSync(path.join(root, '.ai/runtime')), false);
 });
+
+test('an abandoned lock from a dead process is diagnosed and can be cleared with clear-lock', t => {
+  const root = makeProtocolFixture(t);
+  const lockFile = path.join(root, '.ai/runtime/shared-writer.json');
+  fs.mkdirSync(path.join(root, '.ai/runtime'), { recursive: true });
+  fs.writeFileSync(lockFile, JSON.stringify({
+    owner: 'dead-agent',
+    acquiredAt: new Date().toISOString(),
+    pid: 999999,
+    hostname: require('node:os').hostname(),
+    worklog: '.ai/worklog/dead-agent.md',
+  }, null, 2) + '\n');
+
+  const blocked = invoke(root, 'acquire', 'new-agent');
+  assert.notEqual(blocked.status, 0);
+  assert.match(blocked.stderr, /process is no longer running/);
+  assert.match(blocked.stderr, /clear-lock/);
+
+  const status = JSON.parse(invoke(root, 'status').stdout);
+  assert.equal(status.lock.alive, false);
+
+  const cleared = invoke(root, 'clear-lock');
+  assert.equal(cleared.status, 0, cleared.stderr);
+  assert.equal(JSON.parse(cleared.stdout).cleared, true);
+
+  const nowAcquired = invoke(root, 'acquire', 'new-agent');
+  assert.equal(nowAcquired.status, 0, nowAcquired.stderr);
+});
+
+test('a lock held by a live process cannot be cleared with clear-lock', t => {
+  const root = makeProtocolFixture(t);
+  const lockFile = path.join(root, '.ai/runtime/shared-writer.json');
+  fs.mkdirSync(path.join(root, '.ai/runtime'), { recursive: true });
+  fs.writeFileSync(lockFile, JSON.stringify({
+    owner: 'live-agent',
+    acquiredAt: new Date().toISOString(),
+    pid: process.pid,
+    hostname: require('node:os').hostname(),
+    worklog: '.ai/worklog/live-agent.md',
+  }, null, 2) + '\n');
+
+  const refused = invoke(root, 'clear-lock');
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /still holds the lock/);
+});
+
+test('acquire with --force recovers an abandoned lock from a dead process', t => {
+  const root = makeProtocolFixture(t);
+  const lockFile = path.join(root, '.ai/runtime/shared-writer.json');
+  fs.mkdirSync(path.join(root, '.ai/runtime'), { recursive: true });
+  fs.writeFileSync(lockFile, JSON.stringify({
+    owner: 'dead-agent',
+    acquiredAt: new Date().toISOString(),
+    pid: 999999,
+    hostname: require('node:os').hostname(),
+    worklog: '.ai/worklog/dead-agent.md',
+  }, null, 2) + '\n');
+
+  const recovered = run(process.execPath, [path.join(root, '.ai/bin/protocol-lock.cjs'),
+    'acquire', '--owner', 'new-agent', '--force'], root);
+  assert.equal(recovered.status, 0, recovered.stderr);
+  assert.equal(JSON.parse(recovered.stdout).owner, 'new-agent');
+});
+
+test('acquire with --force refuses to steal a lock held by a live process', t => {
+  const root = makeProtocolFixture(t);
+  const lockFile = path.join(root, '.ai/runtime/shared-writer.json');
+  fs.mkdirSync(path.join(root, '.ai/runtime'), { recursive: true });
+  fs.writeFileSync(lockFile, JSON.stringify({
+    owner: 'live-agent',
+    acquiredAt: new Date().toISOString(),
+    pid: process.pid,
+    hostname: require('node:os').hostname(),
+    worklog: '.ai/worklog/live-agent.md',
+  }, null, 2) + '\n');
+
+  const refused = run(process.execPath, [path.join(root, '.ai/bin/protocol-lock.cjs'),
+    'acquire', '--owner', 'thief-agent', '--force'], root);
+  assert.notEqual(refused.status, 0);
+  assert.match(refused.stderr, /do not overwrite or automatically steal the lock/);
+});
+

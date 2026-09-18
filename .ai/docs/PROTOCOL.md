@@ -25,6 +25,7 @@ in `AGENTS.md`, which is the only place a rule is defined.
 | `.ai/bin/protocol-lock.cjs`| cooperative ownership of the shared documents       |
 | `validate-protocol.ps1`    | health check                                        |
 | `.ai/bin/protocol-handoff.cjs` | records and verifies protocol check evidence    |
+| `.ai/bin/protocol-archive.cjs` | automated archiving and storage status tool     |
 
 The installer, `test-protocol.ps1`, tests and templates stay in the protocol
 source repository. They are not part of an installed project's daily commands.
@@ -145,10 +146,41 @@ rules. Evidence therefore survives staging and committing unchanged work,
 including CRLF files in Windows projects. Session journals and runtime state
 are excluded, so writing the evidence does not invalidate it.
 
-Version 1.5.2 uses digest format 4. Earlier evidence remains in the journals
-but is reported as not comparable; run `record` again after upgrading.
+Digest format 4 is current. Evidence recorded under an earlier format remains
+in the journals but is reported as not comparable rather than stale; run
+`record` again to refresh it.
 
-Never hand-write an Evidence block. A hand-written one is a claim again.
+The block carries a hash of the entry with the block removed, so rewriting the
+entry afterwards makes `verify` fail. Never hand-write an Evidence block: a
+hand-written one is a claim again, and its entry hash will not match.
+
+If an entry was edited after certification to redact an accidental secret or token,
+refresh its entry hash legitimately with:
+
+```powershell
+node .ai/bin/protocol-handoff.cjs rehash --owner <session-id> --reason "<explanation>"
+```
+
+It updates the entry hash and stamps a `- sanitized:` marker.
+
+If a lock operation is interrupted, `acquire` says so and names the recovery:
+
+```powershell
+node .ai/bin/protocol-lock.cjs clear-operation
+```
+
+It refuses while the process that made the gate is still running.
+
+```powershell
+node .ai/bin/protocol-session.cjs prune
+```
+
+moves empty journals left by idle sessions into `.ai/runtime/pruned/` quarantine
+instead of deleting them permanently. An active live session or lock holder is
+never pruned.
+
+Automatic archiving runs on `stop` and `record` whenever a journal exceeds 150 lines,
+moving older entries into `.ai/ARCHIVE.md` while keeping the newest entry.
 
 ---
 

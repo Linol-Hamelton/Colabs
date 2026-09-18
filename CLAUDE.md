@@ -19,9 +19,14 @@ This repository runs a shared multi-agent protocol. The rules live in
 - The Stop hook warns when files changed but your journal has no new complete
   entry. An entry counts only with all five labels: Agent, Action, Result,
   Next step, Open.
-- Before handing off, run both checks and report what they actually printed:
+- Before handing off, run the validator and report what it actually printed:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
-powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
 ```
+
+  The protocol regression suite, `test-protocol.ps1`, exists only in the
+  protocol source repository. An installed project (`"role": "installed"` in
+  `protocol-manifest.json`) does not have it; run the host project's own test
+  command for product changes, and run the protocol suite from its source
+  repository after changing protocol tooling.

@@ -1,50 +1,50 @@
 # Current Task
 
-Status: In progress
+Status: Completed
 Owner: RuslanFomenko
-Last update: 2026-09-16
+Last update: 2026-09-18
 
 ## Objective
 
-Independent assessment of this repository by three assistants working
-separately: how well it is built, what its critical defects are, and what to
-improve first. Each writes its own verdict; the owner compares them.
+Implementation of model consensus roadmap: decision protection, lock-safe archive, Merkle chain, operator CLI, runtime cleanup, onboarding guide, telemetry, and v1.9.0 release stabilization.
+
+## Problem
+
+Kernel edge cases, historic journal tampering risks, and operator visibility gaps identified across 8-assistant consensus needed robust implementation and test regression coverage.
 
 ## Constraints
 
-- Read and verify only. No product changes, no commits, no pushes.
-- A claim counts only if the command that checked it is named in the entry.
+- A finding is closed only when a regression test reproduces it first.
 - Take the shared-document lock before editing this file.
+- Cross-platform Linux/macOS work explicitly deferred per owner instruction.
 
 ## Acceptance criteria
 
-- [ ] Each assistant leaves one journal entry with all five labels.
-- [ ] Each entry carries an Evidence block written by the handoff tool.
-- [ ] Each names at least one defect it verified by running something.
-- [ ] Disagreements between assistants land in Open questions below.
+- [x] Task 1: Decision block deletion detection in validator (tests/review-findings.test.cjs).
+- [x] Task 2: Lock-safe autoArchiveWorklog with active-lock protection (tests/archive.test.cjs).
+- [x] Task 3: Reconciled document digests (COPILOT.md, GLM.md) in validator (tests/upgrade.test.cjs).
+- [x] Task 5: Merkle parent-entry chaining & tamper detection in handoff (tests/handoff.test.cjs).
+- [x] Task 6: Unified operator CLI (.ai/bin/protocol.cjs doctor/status/clean/telemetry).
+- [x] Task 8: Routine cleanup & rotation of .ai/runtime/ snapshots (tests/session.test.cjs).
+- [x] Task 9: 1-page Quickstart & Onboarding Guide (QUICKSTART.md & README sync).
+- [x] Task 10: Collaboration telemetry and efficiency metrics in protocol CLI.
+- [x] Validator 0 warnings; 174/174 regression tests pass; consumers (Block-Puzzle, VPN) pass.
 
 ## Roles
 
-_Three independent reviews of one subject, deliberately. Duplication is a
-defect when implementing and the point when reviewing._
-
-- qwen: independent reviewer
-- deepseek: independent reviewer
-- gemini: independent reviewer, joins when connected
-- claude: consolidates the three verdicts afterwards, does not review now
+- gemini: implementer & consensus synthesizer
+- deepseek: opposing reviewer
+- qwen: peer reviewer / implementer
 
 ## Current state
 
-Version 1.8.0. 134 tests pass, the validator exits 0, CI is green on main.
-Twenty decisions are recorded. Nothing here has yet been reviewed by an
-assistant that did not help build it.
+All 8 consensus tasks implemented and verified against full 174-test regression suite and consumer repositories. Ready for clean Git commit and release tag v1.9.0.
 
 ## Open questions
 
-1. Journals accumulate one file per started session whether or not the session
-   did anything. Two empty ones exist and no archiving pass has ever run.
-2. The role line is advisory; an assistant that ignores it is not stopped.
+None.
 
 ## Next
 
-Owner compares the three verdicts and decides what to act on.
+Git commit of certified working tree and creation of official release tag v1.9.0.
+

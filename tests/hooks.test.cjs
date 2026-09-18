@@ -8,7 +8,7 @@ const { run, git, write, makeProtocolFixture, makeFixture, findGitBash } = requi
 
 function entry(title = 'Handoff', detail = 'Changed the fixture.') {
   return `## 2026-09-11 - ${title}\n\nAgent: Claude\n\nAction:\n${detail}\n\n` +
-    'Result:\nVerified the behavior.\n\nNext step:\nContinue the test.\n\nOpen:\nNone.\n';
+    'Result:\nVerified the behavior.\n\nNext step:\nContinue the test.\n\nOpen:\nNone.\n\nEvidence:\nFixture verified.\n';
 }
 
 function fixture(t) {
@@ -146,6 +146,14 @@ test('oversized entries are explicitly omitted whole, and context remains bounde
   assert.ok(context.length <= 9500);
 });
 
+test('context includes an archive summary so archived sessions are visible', t => {
+  const root = fixture(t);
+  write(root, '.ai/ARCHIVE.md', '# Archive\n\n## 2026-09-17 - Deep work\n\nAgent: DeepSeek\n\nAction: Did 7 turns.\n\nResult: Pass.\n\nNext step: Handoff.\n\nOpen: None.\n');
+  const { context } = start(root);
+  assert.match(context, /Archive ledger: \.ai\/ARCHIVE\.md holds 1 archived entry/);
+  assert.match(context, /2026-09-17 - Deep work/);
+});
+
 test('missing baseline, invalid JSON, missing session id, and corrupt state produce visible warnings', t => {
   const root = fixture(t);
   assert.match(hook(root, 'Stop').systemMessage, /no SessionStart snapshot/);
@@ -196,3 +204,17 @@ test('the configured Git Bash commands work at root, in subdirectories, and in a
   write(worktree, 'source.txt', 'Worktree edit.\n');
   warning(configured('Stop', root, root, worktree, 'worktree'));
 });
+
+test('Stop warns and flags unredacted secret patterns in worklog entries', t => {
+  const root = fixture(t);
+  const session = 'secret-test';
+  const { worklog } = start(root, session);
+  write(root, 'new-file.txt', 'New work.\n');
+  const journal = path.join(root, worklog);
+  fs.writeFileSync(journal, `# Worklog\n\n## 2026-09-17 - Work\n\nAgent: tester\n\nAction: did work\n\n` +
+    `Result: API_KEY = "sk-1234567890abcdef12345678"\n\nNext step: next\n\nOpen: none\n`);
+  const stop = hook(root, 'Stop', session);
+  assert.match(stop.systemMessage || '', /unredacted secret pattern detected/);
+});
+
+

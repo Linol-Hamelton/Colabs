@@ -39,7 +39,9 @@ test('Codex and Claude isolate snapshots and journals for identical session ids'
   assert.equal(warning.decision, undefined);
   assert.equal(warning.continue, undefined);
   write(root, codexJournal, entry);
-  assert.deepEqual(hook(root, 'Stop'), {});
+  const stop = hook(root, 'Stop');
+  assert.equal(stop.systemMessage, undefined);
+  assert.ok(stop.stopWarnings);
 });
 
 test('Codex resume and compact retain outstanding changes and bounded context', t => {

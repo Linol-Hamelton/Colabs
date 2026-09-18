@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { makeFixture, makeProtocolFixture, run, git, runPowerShell, write } = require('./helpers.cjs');
+const { repoRoot, makeFixture, makeProtocolFixture, run, git, runPowerShell, write } = require('./helpers.cjs');
 const hooks = require('../.claude/hooks/protocol-hooks.cjs');
 const handoff = require('../.ai/bin/protocol-handoff.cjs');
 
@@ -76,17 +76,17 @@ test('verify rejects a missing block, stale evidence and a recorded failure', t 
   assert.notEqual(missing.status, 0);
   assert.match(missing.stderr, /no Evidence block/);
 
-  handoff.attach(full, `Evidence:\n- digest: sha256:${'d'.repeat(64)}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(full, `Evidence:\n- digest: sha256:${'d'.repeat(64)}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
   const stale = cli(root, ['verify', '--journal', journal]);
   assert.notEqual(stale.status, 0);
   assert.match(stale.stderr, /stale/);
 
   const real = handoff.anchor(root);
-  handoff.attach(full, `Evidence:\n- digest: ${real.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(full, `Evidence:\n- digest: ${real.digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- validate-protocol.ps1: exit 0 in 1s`);
   const good = cli(root, ['verify', '--journal', journal]);
   assert.equal(good.status, 0, good.stderr);
 
-  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- test-protocol.ps1: exit 1 in 9s`);
+  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(full)}\n- test-protocol.ps1: exit 1 in 9s`);
   const failing = cli(root, ['verify', '--journal', journal]);
   assert.notEqual(failing.status, 0);
   assert.match(failing.stderr, /failing check/);
@@ -110,7 +110,7 @@ test('verify without a target asks whether any journal matches the tree', t => {
   const fresh = path.join(root, '.ai/worklog/new-session.md');
 
   handoff.attach(old, `Evidence:\n- digest: sha256:${'e'.repeat(64)}\n- validate-protocol.ps1: exit 0 in 1s`);
-  handoff.attach(fresh, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
+  handoff.attach(fresh, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- digest format: ${hooks.SNAPSHOT_FORMAT}\n- entry: ${handoff.entryHash(fresh)}\n- validate-protocol.ps1: exit 0 in 1s`);
 
   // Make the stale journal the most recently touched one.
   const later = new Date(Date.now() + 60000);
@@ -284,7 +284,7 @@ test('recorded evidence still verifies after the work is committed', t => {
   const journal = '.ai/worklog/committing.md';
   write(root, journal, `# W\n\n${entry()}\n`);
   const full = path.join(root, journal);
-  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n` +
+  handoff.attach(full, `Evidence:\n- digest: ${handoff.anchor(root).digest}\n- entry: ${handoff.entryHash(full)}\n` +
     `- digest format: ${hooks.SNAPSHOT_FORMAT}\n- validate-protocol.ps1: exit 0 in 1s`);
   assert.equal(cli(root, ['verify', '--journal', journal]).status, 0);
   run('git', ['-c', 'user.name=T', '-c', 'user.email=t@e', 'add', '-A'], root);
@@ -363,3 +363,120 @@ test('dirty hashing handles argument edge cases and files beyond the first batch
   write(root, last, 'a changed final file\n');
   assert.deepEqual(hooks.changedFiles(before, hooks.snapshot(root)), [last]);
 });
+
+test('record rejects journals containing unredacted secret patterns', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/leaky-session.md';
+  write(root, journal, `# W\n\n${entry('leak', 'SESSION_SECRET = "very-secret-token-123456"')}\n`);
+  const result = cli(root, ['record', '--owner', 'leaky-session', '--quick']);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Unredacted secret pattern detected/);
+});
+
+test('record executes manifest testCommand and stamps host test scope in evidence', t => {
+  const source = repoRoot;
+  const target = makeProtocolFixture(t);
+  fs.rmSync(path.join(target, '.ai'), { recursive: true, force: true });
+  runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit'], source);
+
+  const manifestPath = path.join(target, 'protocol-manifest.json');
+  const manifestData = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifestData.testCommand = 'node -e "process.exit(0)"';
+  fs.writeFileSync(manifestPath, JSON.stringify(manifestData, null, 2) + '\n');
+
+  const journal = '.ai/worklog/product-session.md';
+  write(target, journal, `# W\n\n${entry('product-test', 'none')}\n`);
+
+  const result = cli(target, ['record', '--owner', 'product-session']);
+  assert.equal(result.status, 0, result.stderr);
+  const text = fs.readFileSync(path.join(target, journal), 'utf8');
+  assert.match(text, /scope: protocol checks and host-project tests/);
+  assert.match(text, /node -e "process\.exit\(0\)": exit 0/);
+});
+
+test('rehash command updates entry hash after secret redaction with sanitized marker', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/redact-session.md';
+  write(root, journal, `# W\n\n${entry('initial work', 'initial details')}\n`);
+  const recorded = cli(root, ['record', '--owner', 'redact-session', '--quick']);
+  assert.equal(recorded.status, 0, recorded.stderr);
+
+  const verifiedInitial = cli(root, ['verify', '--owner', 'redact-session']);
+  assert.equal(verifiedInitial.status, 0, verifiedInitial.stderr);
+
+  // Redact a simulated leaked token in the entry
+  const textBefore = fs.readFileSync(path.join(root, journal), 'utf8');
+  const redactedText = textBefore.replace('initial details', '[REDACTED_SECRET]');
+  fs.writeFileSync(path.join(root, journal), redactedText);
+
+  // Verify should now fail because the entry was changed
+  const verifiedAfterChange = cli(root, ['verify', '--owner', 'redact-session']);
+  assert.notEqual(verifiedAfterChange.status, 0);
+  assert.match(verifiedAfterChange.stderr, /entry was changed after it was certified/);
+
+  // Run rehash with reason
+  const rehashed = cli(root, ['rehash', '--owner', 'redact-session', '--reason', 'redacted sensitive credential']);
+  assert.equal(rehashed.status, 0, rehashed.stderr);
+  assert.match(rehashed.stdout, /entry hash updated/);
+
+  // Content should contain sanitized marker
+  const textAfter = fs.readFileSync(path.join(root, journal), 'utf8');
+  assert.match(textAfter, /sanitized: .* reason: redacted sensitive credential/);
+
+  // Verify should now succeed
+  const verifiedAfterRehash = cli(root, ['verify', '--owner', 'redact-session']);
+  assert.equal(verifiedAfterRehash.status, 0, verifiedAfterRehash.stderr);
+  assert.match(verifiedAfterRehash.stdout, /evidence matches the current tree/);
+});
+
+test('evidence chains parent-entry to previous entry hash creating an auditable Merkle link', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/chain-session.md';
+  const entry1 = entry('first turn', 'initial');
+  write(root, journal, `# W\n\n${entry1}\n`);
+  const recorded1 = cli(root, ['record', '--owner', 'chain-session', '--quick']);
+  assert.equal(recorded1.status, 0, recorded1.stderr);
+
+  const fullPath = path.join(root, journal);
+  const ev1 = handoff.readEvidence(fullPath);
+  assert.equal(ev1.parentEntry, 'root');
+
+  // Now append a second entry on top (newest first)
+  const entry2 = entry('second turn', 'subsequent');
+  const entry1WithEvidence = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
+  fs.writeFileSync(fullPath, `# W\n\n${entry2}\n---\n\n${entry1WithEvidence}`);
+
+  const recorded2 = cli(root, ['record', '--owner', 'chain-session', '--quick']);
+  assert.equal(recorded2.status, 0, recorded2.stderr);
+
+  const ev2 = handoff.readEvidence(fullPath);
+  assert.equal(ev2.parentEntry, ev1.entry);
+
+  const verifyPass = cli(root, ['verify', '--owner', 'chain-session']);
+  assert.equal(verifyPass.status, 0, verifyPass.stderr);
+});
+
+test('tampering with an earlier entry in the journal invalidates later parent-entry verification', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/tamper-chain.md';
+  const entry1 = entry('first turn', 'initial content');
+  write(root, journal, `# W\n\n${entry1}\n`);
+  cli(root, ['record', '--owner', 'tamper-chain', '--quick']);
+
+  const fullPath = path.join(root, journal);
+  const ev1 = handoff.readEvidence(fullPath);
+
+  const entry2 = entry('second turn', 'subsequent content');
+  const entry1Recorded = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
+  fs.writeFileSync(fullPath, `# W\n\n${entry2}\n---\n\n${entry1Recorded}`);
+  cli(root, ['record', '--owner', 'tamper-chain', '--quick']);
+
+  const modified = fs.readFileSync(fullPath, 'utf8').replace('initial content', 'tampered_secret_content');
+  fs.writeFileSync(fullPath, modified);
+
+  const verifyResult = cli(root, ['verify', '--owner', 'tamper-chain']);
+  assert.notEqual(verifyResult.status, 0);
+  assert.match(verifyResult.stderr, /historical link was broken/);
+});
+
+

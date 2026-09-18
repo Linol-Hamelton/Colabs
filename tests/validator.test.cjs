@@ -101,9 +101,10 @@ test('each decision validates its own status, date and approval field', async t 
     ['superseded without approval', 'Status: Superseded by DEC-0002\nDate: 2026-09-11\n', /non-placeholder Approved by/],
     ['missing status', 'Date: 2026-09-11\nApproved by: Test Owner\n', /missing or invalid Status/],
     ['invalid status', 'Status: Done\nDate: 2026-09-11\nApproved by: Test Owner\n', /missing or invalid Status/],
-    ['missing date', 'Status: Proposed\n', /requires a valid Date/],
-    ['impossible date', 'Status: Proposed\nDate: 2026-02-30\n', /requires a valid Date/],
-    ['duplicate status', 'Status: Accepted\nStatus: Proposed\nDate: 2026-09-11\nApproved by: Test Owner\n', /duplicate Status fields/],
+    ['missing date', 'Status: Accepted\nApproved by: Test Owner\n', /requires a valid Date/],
+    ['impossible date', 'Status: Accepted\nDate: 2026-02-30\nApproved by: Test Owner\n', /requires a valid Date/],
+    ['proposed status forbidden', 'Status: Proposed\nDate: 2026-09-11\nApproved by: Test Owner\n', /Proposed is forbidden; drafts belong in PLAN\.md/],
+    ['duplicate status', 'Status: Accepted\nStatus: Accepted\nDate: 2026-09-11\nApproved by: Test Owner\n', /duplicate Status fields/],
     ['duplicate approval', 'Status: Accepted\nDate: 2026-09-11\nApproved by: One\nApproved by: Two\n', /duplicate Approved by fields/],
   ];
   for (const [name, fields, message] of cases) {
@@ -123,14 +124,18 @@ test('approval in a following block or template cannot approve an earlier block'
   fails(root, /DEC-0001 requires a non-placeholder Approved by field/);
 });
 
-test('proposals are allowed and numbered decisions must be unique and complete', t => {
+test('Proposed status is forbidden in DECISIONS and PROTO-DEC-nnnn is accepted', t => {
   const root = makeProtocolFixture(t);
-  write(root, '.ai/DECISIONS.md', decision('Status: Proposed\nDate: 2026-09-11\n'));
+  write(root, '.ai/DECISIONS.md', decision('Status: Proposed\nDate: 2026-09-11\nApproved by: Test Owner\n'));
+  fails(root, /Proposed is forbidden; drafts belong in PLAN\.md/);
+
+  // PROTO-DEC-nnnn prefix succeeds
+  write(root, '.ai/DECISIONS.md', '# Decisions\n\n### PROTO-DEC-0001\n\nStatus: Accepted\nDate: 2026-09-11\nApproved by: Test Owner\n');
   succeeds(root);
-  fs.appendFileSync(path.join(root, '.ai/DECISIONS.md'), '\n### DEC-0001\nStatus: Proposed\nDate: 2026-09-11\n');
-  fails(root, /duplicate decision: DEC-0001/);
-  write(root, '.ai/DECISIONS.md', '### DEC-0001');
-  fails(root, /DEC-0001 has missing or invalid Status/);
+
+  // Duplicate PROTO-DEC-0001 fails
+  fs.appendFileSync(path.join(root, '.ai/DECISIONS.md'), '\n### PROTO-DEC-0001\nStatus: Accepted\nDate: 2026-09-11\nApproved by: Test Owner\n');
+  fails(root, /duplicate decision: PROTO-DEC-0001/);
 });
 
 test('task status must be meaningful and unique', t => {

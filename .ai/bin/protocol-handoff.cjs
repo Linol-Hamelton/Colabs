@@ -9,6 +9,7 @@
 //
 //   record  --owner <session> [--journal <path>] [--quick]
 //   verify  [--journal <path>]
+//   rehash  --owner <session> --reason <text> [--journal <path>]
 //   state
 //
 // record exits non-zero when a check fails, so a red tree cannot produce a
@@ -38,7 +39,11 @@ function checksFor(root, quick) {
   if (!['source', 'installed'].includes(role)) {
     throw new Error('Protocol manifest role must be source or installed.');
   }
-  return CHECKS.filter(check => (role !== 'installed' || check.quick) && (!quick || check.quick));
+  const checks = CHECKS.filter(check => (role !== 'installed' || check.quick) && (!quick || check.quick)).map(c => ({ ...c }));
+  if (!quick && manifest.testCommand && typeof manifest.testCommand === 'string' && manifest.testCommand.trim()) {
+    checks.push({ name: manifest.testCommand.trim(), quick: false, isCustom: true });
+  }
+  return checks;
 }
 
 function git(root, args) {
@@ -80,29 +85,69 @@ function powershell() {
   return process.platform === 'win32' ? 'powershell.exe' : 'pwsh';
 }
 
-function runCheck(root, name) {
+function runCheck(root, check) {
   const started = Date.now();
-  const result = spawnSync(powershell(),
-    ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(root, name)],
-    { cwd: root, encoding: 'utf8', windowsHide: true, timeout: 900000 });
-  if (result.error) throw new Error(`${name} could not run: ${result.error.message}`);
-  return { name, code: result.status, seconds: Math.round((Date.now() - started) / 1000) };
+  let result;
+  if (check.isCustom) {
+    result = spawnSync(check.name, { cwd: root, shell: true, encoding: 'utf8', windowsHide: true, timeout: 900000 });
+  } else {
+    result = spawnSync(powershell(),
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(root, check.name)],
+      { cwd: root, encoding: 'utf8', windowsHide: true, timeout: 900000 });
+  }
+  if (result.error) throw new Error(`${check.name} could not run: ${result.error.message}`);
+  return { name: check.name, code: result.status, seconds: Math.round((Date.now() - started) / 1000), isCustom: Boolean(check.isCustom) };
 }
 
-function renderEvidence(state, checks, owner) {
+function renderEvidence(state, checks, owner, entryDigest, quick, parentEntry = 'root') {
+  const hasCustom = checks.some(c => c.isCustom);
+  let scopeLine;
+  if (quick) {
+    scopeLine = '- scope: validator only; the regression suite was NOT run; host-project tests run separately';
+  } else if (hasCustom) {
+    scopeLine = '- scope: protocol checks and host-project tests';
+  } else {
+    scopeLine = '- scope: protocol checks only; host-project tests run separately';
+  }
   const lines = [
     'Evidence:',
     `- anchor: ${state.commit || 'no commits'}${state.dirty ? ', uncommitted changes present' : ', clean tree'}`,
     `- digest: ${state.digest} over ${state.fileCount} tracked and untracked files`,
     `- digest format: ${state.format}`,
     `- recorded: ${new Date().toISOString()} by ${owner}`,
-    '- scope: protocol checks only; host-project tests run separately',
+    `- entry: ${entryDigest} of this entry without this block`,
+    `- parent-entry: ${parentEntry}`,
+    scopeLine,
   ];
   for (const check of checks) {
     lines.push(`- ${check.name}: exit ${check.code} in ${check.seconds}s`);
   }
   lines.push('- reproduce: node .ai/bin/protocol-handoff.cjs verify');
   return lines.join('\n');
+}
+
+function findParentEntry(journalPath) {
+  const text = fs.readFileSync(journalPath, 'utf8');
+  const found = newestSection(text);
+  if (!found) return 'root';
+  const olderSections = found.sections.slice(found.index + 1);
+  for (const section of olderSections) {
+    if (/^## \d{4}-\d{2}-\d{2} - /m.test(section)) {
+      const match = section.match(/entry:\s*(sha256:[a-f0-9]{64})/);
+      if (match) {
+        let body = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
+        body = body.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
+        const clean = body.replace(/\s+$/, '');
+        const actualHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
+        if (actualHash !== match[1]) {
+          return 'tampered';
+        }
+        return match[1];
+      }
+      return 'legacy';
+    }
+  }
+  return 'root';
 }
 
 // The newest dated section, complete or not: evidence attaches to what the
@@ -129,6 +174,34 @@ function attach(journalPath, block) {
   fs.writeFileSync(journalPath, found.sections.join(''));
 }
 
+// The digest deliberately excludes .ai/worklog, or writing the Evidence block
+// would invalidate the evidence the moment it was written. The consequence was
+// that the one artifact the protocol calls a record could be rewritten after
+// certification and verify would still pass. Three reviewers found it.
+//
+// The entry hash closes the loop without reintroducing the cycle: it covers the
+// entry body with its own Evidence block removed. See DEC-0021.
+function entryBody(journalPath) {
+  const text = fs.readFileSync(journalPath, 'utf8');
+  const found = newestSection(text);
+  if (!found) return null;
+  let section = found.sections[found.index];
+  // Strip in this order and anchor loosely: at record time the section still
+  // carries the `---` separating it from the entry below, and at verify time the
+  // Evidence block has swallowed it. Both must normalize to the same text or the
+  // hash can never round-trip. The first version of this did not, and every
+  // journal with a second entry failed its own receipt.
+  section = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
+  section = section.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
+  return section.replace(/\s+$/, '');
+}
+
+function entryHash(journalPath) {
+  const body = entryBody(journalPath);
+  if (body === null) return null;
+  return `sha256:${crypto.createHash('sha256').update(body, 'utf8').digest('hex')}`;
+}
+
 function readEvidence(journalPath) {
   const text = fs.readFileSync(journalPath, 'utf8');
   const found = newestSection(text);
@@ -137,7 +210,10 @@ function readEvidence(journalPath) {
   if (!body) return null;
   const digest = body.match(/digest:\s*(sha256:[a-f0-9]{64})/);
   const format = body.match(/digest format:\s*(\d+)/);
-  return { body, digest: digest ? digest[1] : null, format: format ? Number(format[1]) : 1 };
+  const entry = body.match(/entry:\s*(sha256:[a-f0-9]{64})/);
+  const parent = body.match(/parent-entry:\s*(\S+)/);
+  return { body, digest: digest ? digest[1] : null, format: format ? Number(format[1]) : 1,
+    entry: entry ? entry[1] : null, parentEntry: parent ? parent[1] : null };
 }
 
 function resolveJournal(root, explicit, owner) {
@@ -164,28 +240,41 @@ function reportOne(root, journalPath, state) {
   const evidence = readEvidence(journalPath);
   const relative = path.relative(root, journalPath);
   if (!evidence) {
-    process.stderr.write(`AI protocol: ${relative} has no Evidence block on its newest entry.
-`);
+    process.stderr.write(`AI protocol: ${relative} has no Evidence block on its newest entry.\n`);
     return 1;
   }
   if (evidence.format !== state.format) {
     process.stderr.write(`AI protocol: ${relative} evidence uses digest format ${evidence.format}; ` +
-      `this build computes format ${state.format}. The two cannot be compared. Re-record to refresh it.
-`);
+      `this build computes format ${state.format}. The two cannot be compared. Re-record to refresh it.\n`);
     return 1;
   }
+  if (evidence.entry === null) {
+    process.stderr.write(`AI protocol: ${relative} evidence predates entry hashing. ` +
+      'Re-record it so the entry itself is covered.\n');
+    return 1;
+  }
+  if (evidence.entry !== entryHash(journalPath)) {
+    process.stderr.write(`AI protocol: ${relative} entry was changed after it was certified. ` +
+      `Recorded ${evidence.entry}, the entry now hashes to ${entryHash(journalPath)}.\n`);
+    return 1;
+  }
+  if (evidence.parentEntry && evidence.parentEntry !== 'root' && evidence.parentEntry !== 'legacy') {
+    const expectedParent = findParentEntry(journalPath);
+    if (evidence.parentEntry !== expectedParent) {
+      process.stderr.write(`AI protocol: ${relative} historical link was broken. ` +
+        `Recorded parent ${evidence.parentEntry}, expected ${expectedParent}.\n`);
+      return 1;
+    }
+  }
   if (evidence.digest !== state.digest) {
-    process.stderr.write(`AI protocol: ${relative} evidence is stale. Recorded ${evidence.digest}, tree is now ${state.digest}.
-`);
+    process.stderr.write(`AI protocol: ${relative} evidence is stale. Recorded ${evidence.digest}, tree is now ${state.digest}.\n`);
     return 1;
   }
   if (/exit [^0]/.test(evidence.body)) {
-    process.stderr.write(`AI protocol: ${relative} evidence matches the tree but records a failing check.
-`);
+    process.stderr.write(`AI protocol: ${relative} evidence matches the tree but records a failing check.\n`);
     return 1;
   }
-  process.stdout.write(`${relative}: evidence matches the current tree
-`);
+  process.stdout.write(`${relative}: evidence matches the current tree\n`);
   return 0;
 }
 
@@ -199,7 +288,8 @@ function main(argv) {
     if (argv[i] === '--owner') options.owner = value;
     else if (argv[i] === '--journal') options.journal = value;
     else if (argv[i] === '--root') options.root = value;
-    else throw new Error('Usage: protocol-handoff.cjs record|verify|state [--owner id] [--journal path] [--root path] [--quick]');
+    else if (argv[i] === '--reason') options.reason = value;
+    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state [--owner id] [--journal path] [--root path] [--reason text] [--quick]');
     i += 1;
   }
   const root = fs.realpathSync(path.resolve(options.root || path.join(__dirname, '..', '..')));
@@ -213,12 +303,27 @@ function main(argv) {
   if (command === 'record') {
     if (!options.owner) throw new Error('record needs --owner <session id>');
     const journalPath = resolveJournal(root, options.journal, options.owner);
-    const checks = checksFor(root, options.quick).map(check => runCheck(root, check.name));
+    // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
+    try {
+      const archive = require('./protocol-archive.cjs');
+      archive.autoArchiveWorklog(root, journalPath, 150, 1);
+    } catch { }
+    const journalText = fs.readFileSync(journalPath, 'utf8');
+    const secretLeak = hooks.findSecretLeak(journalText);
+    if (secretLeak) {
+      throw new Error(`Unredacted secret pattern detected in ${path.relative(root, journalPath)}: "${secretLeak.slice(0, 16)}...". ` +
+        'Remove or redact secrets before recording evidence.');
+    }
+    const checks = checksFor(root, options.quick).map(check => runCheck(root, check));
     const failed = checks.filter(check => check.code !== 0);
     // Re-anchor: the checks may have touched the tree. Evidence must describe
     // the state it was actually measured against.
     const after = anchor(root);
-    attach(journalPath, renderEvidence(after, checks, options.owner));
+    // Hash the entry as it stands before the block is attached, so the
+    // hash covers the claim and not itself.
+    const entryDigest = entryHash(journalPath);
+    const parentEntry = findParentEntry(journalPath);
+    attach(journalPath, renderEvidence(after, checks, options.owner, entryDigest, Boolean(options.quick), parentEntry));
     process.stdout.write(`${path.relative(root, journalPath)}: evidence recorded\n`);
     process.stdout.write('Protocol checks only; run and report the host project tests separately.\n');
     for (const check of checks) process.stdout.write(`  ${check.name}: exit ${check.code}\n`);
@@ -255,7 +360,9 @@ function main(argv) {
       return 1;
     }
     const matching = carrying.filter(item => item.evidence.format === state.format &&
-      item.evidence.digest === state.digest && !/exit [^0]/.test(item.evidence.body));
+      item.evidence.digest === state.digest && item.evidence.entry === entryHash(item.file) &&
+      (!item.evidence.parentEntry || item.evidence.parentEntry === findParentEntry(item.file) || item.evidence.parentEntry === 'legacy' || item.evidence.parentEntry === 'root') &&
+      !/exit [^0]/.test(item.evidence.body));
     if (matching.length) {
       for (const item of matching) {
         process.stdout.write(`${path.relative(root, item.file)}: evidence matches the current tree\n`);
@@ -264,7 +371,9 @@ function main(argv) {
     }
     process.stderr.write(`AI protocol: no evidence matches the current tree ${state.digest}.\n`);
     for (const item of carrying) {
-      const why = item.evidence.format !== state.format
+      const why = item.evidence.entry !== null && item.evidence.entry !== entryHash(item.file)
+        ? 'the entry was changed after it was certified'
+        : item.evidence.format !== state.format
         ? `recorded with digest format ${item.evidence.format}, not comparable`
         : (item.evidence.digest === state.digest ? 'records a failing check' : 'anchored to a different tree');
       process.stderr.write(`  ${path.relative(root, item.file)}: ${why}\n`);
@@ -272,11 +381,40 @@ function main(argv) {
     return 1;
   }
 
-  throw new Error('Usage: protocol-handoff.cjs record|verify|state');
+  if (command === 'rehash') {
+    if (!options.owner) throw new Error('rehash needs --owner <session id>');
+    if (!options.reason) throw new Error('rehash needs --reason <text> explaining why the entry was changed');
+    const journalPath = resolveJournal(root, options.journal, options.owner);
+    const evidence = readEvidence(journalPath);
+    if (!evidence) throw new Error(`No Evidence block in ${path.relative(root, journalPath)}. Record evidence first.`);
+    if (!evidence.entry) throw new Error('Evidence predates entry hashing. Re-record instead.');
+    const currentHash = entryHash(journalPath);
+    if (evidence.entry === currentHash) {
+      process.stdout.write(`${path.relative(root, journalPath)}: entry hash already matches; nothing to rehash.\n`);
+      return 0;
+    }
+    // Replace only the entry hash line and add a sanitized marker.
+    const text = fs.readFileSync(journalPath, 'utf8');
+    const updated = text.replace(
+      /^(- entry: )sha256:[a-f0-9]{64}( of this entry without this block)$/m,
+      `$1${currentHash}$2`
+    );
+    if (updated === text) throw new Error('Could not locate the entry hash line in the Evidence block.');
+    // Append the sanitized marker if not already present.
+    const marker = `- sanitized: ${new Date().toISOString()} reason: ${options.reason}`;
+    const withMarker = updated.includes('- sanitized:') ? updated
+      : updated.replace(/(- reproduce: node .ai\/bin\/protocol-handoff\.cjs verify)/, `${marker}\n$1`);
+    fs.writeFileSync(journalPath, withMarker);
+    process.stdout.write(`${path.relative(root, journalPath)}: entry hash updated (was ${evidence.entry}, now ${currentHash})\n`);
+    process.stdout.write(`Reason: ${options.reason}\n`);
+    return 0;
+  }
+
+  throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state');
 }
 
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { anchor, attach, readEvidence, renderEvidence };
+module.exports = { anchor, attach, readEvidence, renderEvidence, entryHash, findParentEntry };

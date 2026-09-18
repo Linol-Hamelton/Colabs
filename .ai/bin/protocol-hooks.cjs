@@ -5,6 +5,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 
 const VERSION = 1;
@@ -210,9 +211,27 @@ function saveState(filename, state, createOnly = false) {
 const REQUIRED_LABELS = ['Agent', 'Action', 'Result', 'Next step', 'Open'];
 const ENTRY_LABELS = [...REQUIRED_LABELS, 'Evidence'];
 
+const SECRET_PATTERNS = [
+  /(?:(?:SESSION_SECRET|ADMIN_TOKEN|API_KEY|AUTH_TOKEN|PRIVATE_KEY|SECRET_KEY|WEB_ONBOARD_[A-Z_]+)[ \t]*=[ \t]*['"][^'"]{8,}['"])/i,
+  /-----BEGIN (?:RSA|EC|OPENSSH|DSA|PGP|ENCRYPTED|PRIVATE) KEY-----/,
+  /(?:ghp_[A-Za-z0-9_]{36}|glpat-[A-Za-z0-9\-]{20}|xox[baprs]-[A-Za-z0-9\-]{10,48}|sk_live_[0-9a-zA-Z]{24})/,
+];
+
+function findSecretLeak(text) {
+  if (!text || typeof text !== 'string') return null;
+  for (const pattern of SECRET_PATTERNS) {
+    const match = text.match(pattern);
+    if (match) return match[0];
+  }
+  return null;
+}
+
 function entryField(section, label) {
-  const following = ENTRY_LABELS.slice(ENTRY_LABELS.indexOf(label) + 1);
-  const end = following.map(next => `${next}:`).join('|') || '(?!)';
+  // Terminate on any other label, not only the ones that come later in the
+  // canonical order. Writing Open before Agent used to make Open swallow every
+  // field after it while the entry still counted as complete. See DEC-0021.
+  const others = ENTRY_LABELS.filter(name => name !== label);
+  const end = others.map(next => `${next}:`).join('|') || '(?!)';
   const match = section.match(new RegExp(`^${label}:[ \\t]*([\\s\\S]*?)(?=^(?:${end})|(?![\\s\\S]))`, 'm'));
   return match ? match[1].trim() : null;
 }
@@ -226,7 +245,9 @@ function latestCompleteEntry(text) {
     if (!/^## \d{4}-\d{2}-\d{2} - .+/.test(section)) return false;
     return REQUIRED_LABELS.every(label => {
       const value = entryField(section, label);
-      return value && !/^_(?:What|Assumptions)/.test(value);
+      // A floor against stubs, not a judgement of substance: "a"/"b"/"c"/"d"
+      // used to pass as a handoff. Nothing here can tell filler from work.
+      return value && value.length >= 3 && !/^_(?:What|Assumptions)/.test(value);
     });
   })?.trim() || null;
 }
@@ -288,6 +309,15 @@ function context(root, worklog, agent) {
     const headings = readText(root, relative).split(/\r?\n/).filter(line => /^#{1,3} /.test(line));
     add(relative, `${headings.slice(0, 35).join('\n')}\nRead the full file before changing architecture or contracts.${headings.length > 35 ? ' More headings omitted.' : ''}`, 1700);
   }
+  const archivePath = path.join(root, '.ai', 'ARCHIVE.md');
+  if (fs.existsSync(archivePath)) {
+    const archiveText = readText(root, '.ai/ARCHIVE.md');
+    const matches = archiveText.match(/^## \d{4}-\d{2}-\d{2} - [^\r\n]+/mg);
+    if (matches && matches.length) {
+      const newest = matches[matches.length - 1].replace(/^## /, '');
+      result += `Archive ledger: .ai/ARCHIVE.md holds ${matches.length} archived entry(s); newest: ${newest}\n\n`;
+    }
+  }
   const directory = path.join(root, '.ai', 'worklog');
   const logs = fs.readdirSync(directory).filter(name => name.endsWith('.md'))
     .sort((a, b) => fs.statSync(path.join(directory, b)).mtimeMs - fs.statSync(path.join(directory, a)).mtimeMs);
@@ -307,6 +337,57 @@ function context(root, worklog, agent) {
   return result;
 }
 
+// Advisory stop-time warnings. These are surfaced as informational hints, not
+// blocking errors. Each returns null when the condition is not relevant or the
+// check passes, and a short human string when it fires.
+function stopWarnings(root, paths, entry, agent) {
+  const warnings = [];
+  // BAD-6: Journal has content but no Evidence block.
+  if (entry && !entryField(entry, 'Evidence')) {
+    warnings.push(
+      `This session's latest entry has no Evidence block. ` +
+      `Run 'node .ai/bin/protocol-handoff.cjs record --owner ${path.basename(paths.worklog, '.md')}' ` +
+      `before ending to attach verifiable evidence.`
+    );
+  }
+  // CP-6: Non-standard entry format (ATX sub-headings instead of label lines).
+  if (entry === null) {
+    try {
+      const text = readText(root, paths.worklog);
+      if (/^### (?:Agent|Action|Result)\b/m.test(text)) {
+        warnings.push(
+          'Non-standard entry format detected: use "Agent:" on its own line, not "### Agent". ' +
+          'The canonical format is: ## YYYY-MM-DD - title, then Agent:, Action:, Result:, Next step:, Open: as label lines.'
+        );
+      }
+    } catch { /* journal may not exist yet */ }
+  }
+  // BAD-5: Agent working outside its assigned role.
+  const roles = assignment(root);
+  if (roles.length && entry) {
+    const mine = roles.find(r => r.agent === agent);
+    if (mine) {
+      const others = roles.filter(r => r.agent !== agent);
+      for (const other of others) {
+        // Simple keyword check: if the entry's Action mentions code/files in another
+        // agent's described area and this agent is an implementer, warn.
+        // Lightweight: only fire when the agent explicitly names the other's role keywords.
+        const roleWords = other.role.split(/[,;]\s*/).map(w => w.trim().toLowerCase()).filter(w => w.length > 3);
+        const actionText = (entryField(entry, 'Action') || '').toLowerCase();
+        // Only warn for role descriptions that are specific enough (>= 2 distinctive words)
+        if (roleWords.length >= 2 && roleWords.every(w => actionText.includes(w))) {
+          warnings.push(
+            `This session's work may overlap with ${other.agent}'s assigned area (${other.role}). ` +
+            `If this was intentional, note the reason in the journal.`
+          );
+          break;
+        }
+      }
+    }
+  }
+  return warnings;
+}
+
 function run(event, input, agent = 'claude') {
   if (!['SessionStart', 'Stop'].includes(event)) throw new Error(`Unknown hook event: ${event}`);
   const root = rootFor(input, agent);
@@ -316,6 +397,9 @@ function run(event, input, agent = 'claude') {
   const entry = logHash === null ? null : latestCompleteEntry(readText(root, paths.worklog));
   const current = {
     version: VERSION,
+    pid: process.pid,
+    hostname: os.hostname(),
+    startTime: (previous && previous.startTime) ? previous.startTime : Date.now(),
     files: snapshot(root),
     worklogHash: logHash,
     entryHash: entry === null ? null : digest(entry),
@@ -348,15 +432,29 @@ function run(event, input, agent = 'claude') {
   }
   const changed = changedFiles(previous.files, current.files);
   const complete = current.entryHash !== null && current.entryHash !== previous.entryHash;
+  if (entry) {
+    const secretLeak = findSecretLeak(entry);
+    if (secretLeak) {
+      return { systemMessage: `AI protocol: unredacted secret pattern detected in ${paths.worklog}: ` +
+        `"${secretLeak.slice(0, 16)}...". Never commit or record credentials in protocol journals; redact them immediately.` };
+    }
+  }
   if (changed.length && !complete) {
     return { systemMessage: `AI protocol: ${changed.length} file(s) changed since this session's last handoff, ` +
       `but ${paths.worklog} has no new complete entry. Prepend what changed, verification, and open issues ` +
       '(Agent, Action, Result, Next step, Open). Changes in a shared checkout may belong to another agent; ' +
       'review the diff before describing them.' };
   }
+  // Advisory warnings: these inform but do not block the session.
+  const warnings = stopWarnings(root, paths, entry, agent);
+  // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
+  try {
+    const archive = require('./protocol-archive.cjs');
+    archive.autoArchiveWorklog(root, paths.worklog, 150, 1);
+  } catch { }
   // Stop runs after every response. Successful handoffs establish the next turn's baseline.
   saveState(paths.state, current);
-  return {};
+  return warnings.length ? { stopWarnings: warnings } : {};
 }
 
 function main(agent = 'claude') {
@@ -371,4 +469,4 @@ function main(agent = 'claude') {
 }
 
 if (require.main === module) main();
-module.exports = { SNAPSHOT_FORMAT, AGENT_NAME, context, assignment, latestCompleteEntry, entryField, sessionPaths, run, changedFiles, snapshot, fingerprint, main };
+module.exports = { SNAPSHOT_FORMAT, AGENT_NAME, context, assignment, latestCompleteEntry, entryField, findSecretLeak, stopWarnings, sessionPaths, run, changedFiles, snapshot, fingerprint, main };

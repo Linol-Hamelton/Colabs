@@ -136,3 +136,97 @@ test('only well-formed role lines are read', t => {
   withRoles(root, '- qwen: implementer\nnot a list item: ignored\n- ../escape: nope\n- Capitals: nope');
   assert.deepEqual(hooks.assignment(root), [{ agent: 'qwen', role: 'implementer' }]);
 });
+
+test('prune protects an empty journal when its owning session process is still alive', t => {
+  const root = makeProtocolFixture(t);
+  session(root, ['start', '--agent', 'qwen', '--session', 'live-session']);
+  const paths = hooks.sessionPaths(fs.realpathSync(root), 'live-session', 'qwen');
+  const stateFile = paths.state;
+  const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+  state.pid = process.pid;
+  state.hostname = require('node:os').hostname();
+  fs.writeFileSync(stateFile, JSON.stringify(state) + '\n');
+
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(path.join(root, paths.worklog)), 'an active live session was pruned');
+  assert.match(pruned.stdout, /skipping qwen-.*active session/);
+});
+
+test('prune protects an empty journal when its owner holds the shared lock', t => {
+  const root = makeProtocolFixture(t);
+  const started = session(root, ['start', '--agent', 'qwen', '--session', 'locked-session']);
+  const owner = started.stdout.match(/Owner name for the lock and for evidence: (\S+)/)[1];
+  const paths = hooks.sessionPaths(fs.realpathSync(root), 'locked-session', 'qwen');
+  run(process.execPath, [path.join(root, '.ai/bin/protocol-lock.cjs'), 'acquire', '--owner', owner, '--root', root], root);
+
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(path.join(root, paths.worklog)), 'an active lock holder was pruned');
+  assert.match(pruned.stdout, /skipping qwen-.*active lock holder/);
+});
+
+test('glm, mistral and copilot assistants initialize sessions, acquire locks and isolate journals', t => {
+  const root = makeProtocolFixture(t);
+  const glmStart = session(root, ['start', '--agent', 'glm', '--session', 'glm-task']);
+  assert.equal(glmStart.status, 0, glmStart.stderr);
+  assert.match(glmStart.stdout, /Owner name for the lock and for evidence: glm-[a-f0-9]{16}/);
+
+  const mistralStart = session(root, ['start', '--agent', 'mistral', '--session', 'mistral-task']);
+  assert.equal(mistralStart.status, 0, mistralStart.stderr);
+  assert.match(mistralStart.stdout, /Owner name for the lock and for evidence: mistral-[a-f0-9]{16}/);
+
+  const copilotStart = session(root, ['start', '--agent', 'copilot', '--session', 'copilot-task']);
+  assert.equal(copilotStart.status, 0, copilotStart.stderr);
+  assert.match(copilotStart.stdout, /Owner name for the lock and for evidence: copilot-[a-f0-9]{16}/);
+
+  const glmJournal = glmStart.stdout.match(/Journal: (\S+)/)[1];
+  const mistralJournal = mistralStart.stdout.match(/Journal: (\S+)/)[1];
+  const copilotJournal = copilotStart.stdout.match(/Journal: (\S+)/)[1];
+  assert.ok(fs.existsSync(path.join(root, glmJournal)));
+  assert.ok(fs.existsSync(path.join(root, mistralJournal)));
+  assert.ok(fs.existsSync(path.join(root, copilotJournal)));
+  assert.notEqual(glmJournal, mistralJournal);
+  assert.notEqual(copilotJournal, glmJournal);
+
+  // All can lock independently
+  const copilotOwner = copilotStart.stdout.match(/Owner name for the lock and for evidence: (\S+)/)[1];
+  const lock = run(process.execPath,
+    [path.join(root, '.ai/bin/protocol-lock.cjs'), 'acquire', '--owner', copilotOwner, '--root', root], root);
+  assert.equal(lock.status, 0, lock.stderr);
+  const unlock = run(process.execPath,
+    [path.join(root, '.ai/bin/protocol-lock.cjs'), 'release', '--owner', copilotOwner, '--root', root], root);
+  assert.equal(unlock.status, 0, unlock.stderr);
+});
+
+test('cleanup-runtime removes orphan snapshots and stale temp files while protecting active sessions', t => {
+  const root = makeProtocolFixture(t);
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+
+  // 1. Orphan snapshot (no journal in .ai/worklog)
+  const orphanJson = path.join(runtimeDir, 'qwen-orphan12345678.json');
+  fs.writeFileSync(orphanJson, JSON.stringify({ version: 1, files: {}, entryHash: null }));
+
+  // 2. Active session with journal
+  const started = session(root, ['start', '--agent', 'qwen', '--session', 'active-sess']);
+  const activeOwner = started.stdout.match(/Owner name for the lock and for evidence: (\S+)/)[1];
+  const activeJson = path.join(runtimeDir, `${activeOwner}.json`);
+  assert.ok(fs.existsSync(activeJson));
+
+  // 3. Stale temporary file
+  const staleTmp = path.join(runtimeDir, 'temp-file.tmp');
+  fs.writeFileSync(staleTmp, 'temporary');
+  const pastTime = (Date.now() - 2 * 3600 * 1000) / 1000;
+  fs.utimesSync(staleTmp, pastTime, pastTime);
+
+  // Run cleanup-runtime
+  const cleaned = session(root, ['cleanup-runtime']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+
+  // Assertions
+  assert.ok(!fs.existsSync(orphanJson), 'orphan snapshot was not removed');
+  assert.ok(!fs.existsSync(staleTmp), 'stale tmp file was not removed');
+  assert.ok(fs.existsSync(activeJson), 'active session snapshot was mistakenly removed');
+});
+

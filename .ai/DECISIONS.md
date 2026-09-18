@@ -951,11 +951,202 @@ Approved by: RuslanFomenko
 
 ---
 
+### DEC-0021
+
+Status: Accepted
+Date: 2026-09-16
+Supersedes: nothing; it repairs what three independent reviews found
+
+Context:
+Three assistants that did not build this repository reviewed it: DeepSeek, Qwen
+and Gemini. Ten findings survived reproduction. The full account is in
+docs/reviews/2026-09-16-council-review.md.
+
+The one that mattered: the evidence digest excluded `.ai/worklog/`, so the
+artifact the protocol calls a record could be rewritten after it was certified
+and `verify` still reported a match. The exclusion was deliberate, to stop the
+evidence invalidating itself the moment it was written, but the consequence was
+never closed, never recorded in DEC-0011 and never tested. Six rounds of
+internal work had not seen it, because we kept checking the mechanism and never
+asked what the mechanism was for.
+
+Decision:
+Each Evidence block now carries a hash of its own entry with the block removed,
+so the hash covers the claim and not itself. `verify` recomputes it and fails
+when the entry changed since it was certified. Evidence recorded before this is
+reported as predating entry hashing rather than as stale.
+
+A lock operation gate now records the process that made it. An abandoned gate
+is named as abandoned and cleared with `clear-operation`, which refuses while
+that process is alive and refuses without `--force` when it cannot tell.
+`stop` no longer reports a handoff when no entry was written. Fields parse the
+same in any order, so a permuted entry no longer has one field swallow the
+rest. The validator compares each committed decision block against `HEAD` and
+fails when a written block was edited; it compares the version in the manifest,
+the rules and the installer and fails on drift; and it warns when a journal
+holds an entry naming a different agent. A field shorter than three characters
+no longer counts, which stops a stub but judges nothing. `prune` removes
+journals that hold no entry. A `--quick` receipt states that the suite was not
+run.
+
+Journal ownership stays unenforced and is now said plainly: nothing inside one
+checkout can stop a session writing into another session's journal, and the
+warning above catches accident rather than intent.
+
+Reasoning:
+Nine of the ten were mechanisms that could be made to disagree with their own
+rules, which is the class DEC-0011 exists to remove. The tenth, journal
+ownership, cannot be enforced by cooperative tooling in a shared checkout, so
+the honest repair is to say so rather than to add a check that pretends.
+
+Alternatives rejected:
+Including journals in the digest. That is the cycle the exclusion was there to
+break: writing the evidence would invalidate it. Hashing the entry without its
+own block gives the same guarantee with no cycle. A length floor high enough to
+judge substance: no number distinguishes work from filler, and pretending
+otherwise is the false confidence this protocol is built against.
+
+Consequences:
+Evidence recorded before today cannot be compared and must be re-recorded; the
+tool says which of the two cases it found. The immutability check needs a
+committed `.ai/DECISIONS.md` and warns when there is none. A stub entry now
+fails the Stop check, which will surface in any session that was writing
+placeholders. Ten regressions were added, one per finding, each named for the
+finding it holds down.
+
+Approved by: RuslanFomenko
+
+---
+
+### PROTO-DEC-0022
+
+Status: Accepted
+Date: 2026-09-18
+Supersedes: DEC-0014
+
+Context:
+Decisions of the protocol core and product decisions shared the same `DEC-nnnn`
+namespace and both started at 0001, causing protocol citations in installed
+tooling to collide with unrelated product decisions. Furthermore, the `Proposed`
+status in `DECISIONS.md` invited mutable drafts into an append-only log, leaving
+DEC-0014 unapproved in the core and causing illegal in-place edits in consumer
+projects (VPN DEC-0004).
+
+Decision:
+All core decisions in this repository use the `PROTO-DEC-nnnn` prefix starting
+with PROTO-DEC-0022. The validator accepts both `DEC-nnnn` and `PROTO-DEC-nnnn`.
+The `Proposed` status is strictly forbidden in `DECISIONS.md` across all projects;
+decision drafts belong in `.ai/PLAN.md` or `.ai/TASK.md` Open questions and are
+recorded in `DECISIONS.md` only once approved by the human owner.
+This decision formally supersedes DEC-0014 and ratifies the MIT license for
+this repository under copyright of Ruslan Fomenko.
+
+Reasoning:
+Separating the namespace eliminates collision between core protocol engineering
+and host product decisions without breaking existing history. Forbidding
+unapproved blocks guarantees 100% append-only immutability.
+
+Alternatives rejected:
+Installing a separate PROTOCOL-DECISIONS.md index into every consumer project:
+increases repository footprint unnecessarily. Allowing in-place amendment of
+status: weakens the validator's cryptographic immutability guarantees.
+
+Consequences:
+New protocol decisions are numbered PROTO-DEC-0022 onward. The validator fails
+any decision carrying Status: Proposed. DEC-0014 is closed and replaced.
+
+Approved by: RuslanFomenko
+
+---
+
+### PROTO-DEC-0023
+
+Status: Accepted
+Date: 2026-09-18
+Supersedes: nothing; it resolves consumer line-limit churn and prune data loss
+
+Context:
+In active repositories, the 150-line journal limit forced agents to perform
+manual archiving multiple times per day (e.g., 5 manual archives in VPN in a
+single day). Additionally, `protocol-session.cjs prune` permanently unlinked
+empty journals via `fs.unlinkSync`, which destroyed substantive work when
+non-standard headers were encountered.
+
+Decision:
+1. `protocol-archive.cjs` provides `autoArchiveWorklog(root, worklogPath, 150, 1)`,
+which is automatically called during `protocol-session.cjs stop`, the Stop hook,
+and `protocol-handoff.cjs record`. When a journal exceeds 150 lines, its older
+entries are automatically moved to `.ai/ARCHIVE.md` while keeping the newest entry,
+preventing line-limit failures without manual toil.
+2. `protocol-session.cjs prune` moves empty journals to `.ai/runtime/pruned/`
+quarantine instead of unlinking them. Live sessions and active lock holders are
+preserved. `cleanup-runtime` purges quarantine items older than 30 days.
+
+Reasoning:
+Automating repetitive archiving preserves developer and agent focus while
+maintaining strictly bounded context sizes. Moving deleted files to a quarantine
+directory provides safe, reversible cleanup.
+
+Alternatives rejected:
+Raising journal line limits to 300+: increases context consumption on multi-log
+reads. Keeping unlink with manual dry-run: prone to permanent data loss on regex
+misses.
+
+Consequences:
+Journals stay below 150 lines automatically. Pruned journals are recoverable from
+`.ai/runtime/pruned/`.
+
+Approved by: RuslanFomenko
+
+---
+
+### PROTO-DEC-0024
+
+Status: Accepted
+Date: 2026-09-18
+Supersedes: nothing; it resolves credential redaction and expands assistant support
+
+Context:
+When an entry is certified with an Evidence block, the entry's content hash is
+permanently sealed. If an unredacted secret or sensitive token is later discovered
+and redacted, the Evidence block fails verification with "entry was changed after
+it was certified". Furthermore, collaborative work requires first-class protocol
+infrastructure for additional LLM assistants, specifically GLM and Mistral.
+
+Decision:
+1. `protocol-handoff.cjs` introduces `rehash --owner <id> --reason <text>`.
+When a certified entry is edited post-hoc to redact credentials, `rehash`
+recalculates the entry hash, updates the `entry: sha256:...` line, and appends
+`- sanitized: <iso-date> reason: <text>` to the Evidence block, restoring valid
+verification while recording the sanitization.
+2. Infrastructure and documentation are expanded to natively support GLM (`glm`)
+and Mistral (`mistral`) as registered multi-agent assistants alongside Claude,
+Codex, DeepSeek, Gemini, and Qwen.
+
+Reasoning:
+Credential leaks require immediate scrubbing; invalidating certified handoff history
+permanently discourages proper security hygiene. Providing a sanctioned `rehash`
+command preserves both cryptographic authenticity and security. Explicitly
+supporting GLM and Mistral expands team interoperability.
+
+Alternatives rejected:
+Requiring an entirely new session and abandoning previous handoff evidence:
+leaves broken records in the audit trail. Hand-editing hashes: violates protocol
+verification rules.
+
+Consequences:
+Redacted journals can be restored to verified status with full audit provenance.
+GLM and Mistral can participate across all protocol commands and roles.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
 
-Status: Proposed | Accepted
+Status: Accepted
 Date:
 Supersedes: _the DEC this one replaces, or omit the line_
 

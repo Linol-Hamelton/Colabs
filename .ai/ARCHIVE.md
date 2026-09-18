@@ -285,3 +285,66 @@ A journal passed its 150-line limit:
    holds the shared-document lock.
 
 Never rewrite an entry while moving it.
+
+## From .ai/worklog/claude-5b5c238fef561932.md, archived 2026-09-16
+
+Moved when the journal reached its 150-line limit. Text unchanged.
+
+### 2026-09-16 - Widening the council, and what the proposal actually does
+
+Agent: Claude (Opus 5), session claude-5b5c238fef561932
+
+Action:
+Tested the proposal instead of reasoning about it. Applied its two files
+verbatim to a throwaway clone of this repository and ran the validator. It
+failed twice: the rewritten `.ai/TASK.md` has no `Status` line, and a chat log
+pasted under `.ai/knowledge_base/` carries CRLF, which `.ai/**` does not allow
+because that tree is protocol-owned. Followed literally, the instructions break
+the repository at step one.
+
+Then looked for the real blocker and found it in the engine: `sessionPaths`
+accepted only `claude` and `codex` and threw on anything else. Section 5 of
+AGENTS.md described what an assistant without hooks should do but gave it no
+way to do it, so Qwen and DeepSeek could not have joined at all.
+
+Replaced the allowlist with a slug rule and added
+`.ai/bin/protocol-session.cjs`, which starts a session for any named assistant:
+it creates the journal the hooks create, prints the context the hooks inject,
+and prints one owner name used for the journal, the lock and the evidence.
+`stop` runs the same check the Stop hook runs. Aligned the version to 1.7.0,
+which also closes the 1.6.1 against 1.6.2 mismatch Codex recorded.
+
+Result:
+Started real sessions as `qwen` and as `deepseek` and confirmed each received
+the same context a hooked session receives, with a journal and an identity the
+lock accepts. Path traversal and malformed names are refused and create
+nothing. 130 tests pass, eight of them new. Recorded as DEC-0019.
+
+Next step:
+Owner decides where the simulation project lives. It needs its own repository
+with the protocol installed, as Block-Puzzle has, and its task and chat logs
+belong there rather than here.
+
+Open:
+- The proposal's split of gross value added sums to exactly 1.0, leaving
+  nothing for intermediate consumption or capital expenditure. I am not an
+  economist and this is the owner's field, but it is a modelling assumption
+  presented as an invariant to encode, and it belongs in that project's
+  DECISIONS before any code assumes it.
+- The proposal gives one round to two assistants at once. The first pilot
+  measured that outcome already: two plans for one task.
+- Codex and Kimi are at their weekly limit and Gemini is not connected, so the
+  three-round cascade cannot run as written today.
+- Journals accumulate one file per started session even when the session does
+  nothing. Two empty ones exist now. The thirty-file limit is the only backstop
+  and no archiving pass has run in this repository.
+
+Evidence:
+- anchor: 2f42f7eec67b01c1bb952e3ddfbaac4725c9c94b, uncommitted changes present
+- digest: sha256:3be8a36170a707d2fee1e16e674501dc451d5f972f16e7bb4ddd6ed465a666fb over 46 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-15T22:07:12.717Z by claude-5b5c238fef561932
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 255s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

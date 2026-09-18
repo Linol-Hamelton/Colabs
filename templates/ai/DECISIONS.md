@@ -13,7 +13,8 @@ whether a decision still stands, read forward for a later block that supersedes
 it.
 
 A proposal by an AI agent is not a decision. A decision needs `Approved by:`
-with a human name.
+with a human name. Proposals belong in `.ai/PLAN.md`; `Proposed` status is
+forbidden in `DECISIONS.md`.
 
 ---
 
@@ -27,7 +28,7 @@ None yet.
 
 ### DEC-nnnn
 
-Status: Proposed | Accepted
+Status: Accepted
 Date:
 Supersedes: _the DEC this one replaces, or omit the line_
 

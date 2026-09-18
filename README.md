@@ -5,6 +5,7 @@ repository without sharing chat history. GPT/Codex, Claude, and any other agent
 coordinate through the filesystem, which is the only channel all of them see.
 
 This repository is the protocol home. Install it into a project from here.
+See [QUICKSTART.md](QUICKSTART.md) for the 1-page onboarding and quick reference guide.
 
 ---
 
@@ -16,8 +17,9 @@ session has to be written down. The protocol defines where.
 | File                      | Holds                                            |
 | ------------------------- | ------------------------------------------------ |
 | `AGENTS.md`               | the rules; the only place a rule is defined      |
+| `QUICKSTART.md`           | 1-page onboarding guide and runbook              |
 | `CLAUDE.md`               | a pointer so Claude Code loads those rules       |
-| `.ai/docs/PROTOCOL.md`        | the operator guide installed into every project  |
+| `.ai/docs/PROTOCOL.md`    | the operator guide installed into every project  |
 | `.ai/TASK.md`             | the current task and the open questions          |
 | `.ai/PLAN.md`             | the proposed approach for larger work            |
 | `.ai/DECISIONS.md`        | approved decisions; append-only, never rewritten |
@@ -110,9 +112,9 @@ already had its own README, ignore rules, Claude permissions and a
 | `.gitattributes`            | a scoped block naming protocol paths only          |
 | line endings in your code   | not inspected; the protocol checks its own files   |
 
-The protocol configures its own hooks and nothing else. It installs 22 files:
-the rules, the two host adapters, the shared hook engine, the lock, the handoff
-tool and the validator. The installer, this test suite and the templates stay
+The protocol configures its own hooks and nothing else. It installs the rules,
+the host adapters, the shared hook engine, the lock, the handoff tool, the
+operator CLI and the validator. The installer, this test suite and the templates stay
 in this repository, because a product repository cannot use them.
 
 Review `git status` before committing.
@@ -135,6 +137,15 @@ node .ai/bin/protocol-lock.cjs acquire --owner <session-id>   # before editing T
 node .ai/bin/protocol-lock.cjs release --owner <session-id>
 node .ai/bin/protocol-handoff.cjs record --owner <session-id> # before handing off
 node .ai/bin/protocol-handoff.cjs verify                      # when picking work up
+```
+
+### Operator CLI
+
+```powershell
+node .ai/bin/protocol.cjs doctor      # full diagnostic health check
+node .ai/bin/protocol.cjs status      # inspect lock status and document limits
+node .ai/bin/protocol.cjs clean       # clean empty journals and stale runtime state
+node .ai/bin/protocol.cjs telemetry   # view collaboration metrics and agent activity
 ```
 
 With active Claude/Codex hooks, use the assigned journal basename (without

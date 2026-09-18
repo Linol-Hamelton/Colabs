@@ -1,4 +1,4 @@
-# AI Collaboration Protocol installer, protocol v1.8.2. ASCII-only for PS 5.1.
+# AI Collaboration Protocol installer, protocol v1.9.0. ASCII-only for PS 5.1.
 # No arguments: read-only check of this checkout.
 # -Target <path> [-InitGit]: initialize missing state and merge integration.
 # -Force: update managed tooling with backups, preserving existing .ai state.
@@ -43,6 +43,21 @@ function Same-Bytes([string]$A, [string]$B) {
         if ($left[$i] -ne $right[$i]) { return $false }
     }
     return $true
+}
+
+function Get-Sha256Hex([string]$Path) {
+    # The identity of the bytes an install delivered. A version string can be
+    # updated without the file it names; a hash cannot.
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $stream = [System.IO.File]::OpenRead($Path)
+        try {
+            $bytes = $sha.ComputeHash($stream)
+            return (($bytes | ForEach-Object { $_.ToString('x2') }) -join '')
+        }
+        finally { $stream.Dispose() }
+    }
+    finally { $sha.Dispose() }
 }
 
 function Assert-SafeDestination([string]$Relative) {
@@ -232,6 +247,19 @@ function Prepare-ManifestWrite($Manifest) {
         integration = @($Manifest.integration)
         state = @($Manifest.state)
     }
+    # Record the digest of the canonical bytes for every managed file, so a
+    # plain install that keeps an older managed copy can no longer update the
+    # manifest to a version it did not deliver. The validator compares these.
+    # protocol-manifest.json describes itself and cannot carry its own hash.
+    $contentDigest = [ordered]@{}
+    foreach ($relative in @($Manifest.managed)) {
+        if ($relative -eq 'protocol-manifest.json') { continue }
+        $source = Join-Path $SourceRoot $relative
+        if ([System.IO.File]::Exists($source)) {
+            $contentDigest[$relative] = 'sha256:' + (Get-Sha256Hex $source)
+        }
+    }
+    $installed.contentDigest = $contentDigest
     # Running the installer against its own repository must never downgrade the
     # source manifest to an installed one: that would delete the record of the
     # installer, the tests and the templates from the only place they exist.
