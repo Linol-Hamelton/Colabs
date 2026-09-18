@@ -6,39 +6,39 @@ Last update: 2026-09-18
 
 ## Objective
 
-Implementation of model consensus roadmap: decision protection, lock-safe archive, Merkle chain, operator CLI, runtime cleanup, onboarding guide, telemetry, and v1.9.0 release stabilization.
+Implementation of protocol v1.9.1 stabilization based on Grand Council consensus (PROTO-DEC-0025) and resolution of edge cases from DeepSeek, Copilot, and Mistral audits.
 
 ## Problem
 
-Kernel edge cases, historic journal tampering risks, and operator visibility gaps identified across 8-assistant consensus needed robust implementation and test regression coverage.
+Council review revealed Merkle fail-closed bypass, archive tree digest invalidation, in-journal verification blind spots, worklog crash-consistency risks, and missing operator CLI tests.
 
 ## Constraints
 
 - A finding is closed only when a regression test reproduces it first.
-- Take the shared-document lock before editing this file.
-- Cross-platform Linux/macOS work explicitly deferred per owner instruction.
+- Take the shared-document lock before editing shared docs.
+- Line limit <= 80 lines.
 
 ## Acceptance criteria
 
-- [x] Task 1: Decision block deletion detection in validator (tests/review-findings.test.cjs).
-- [x] Task 2: Lock-safe autoArchiveWorklog with active-lock protection (tests/archive.test.cjs).
-- [x] Task 3: Reconciled document digests (COPILOT.md, GLM.md) in validator (tests/upgrade.test.cjs).
-- [x] Task 5: Merkle parent-entry chaining & tamper detection in handoff (tests/handoff.test.cjs).
-- [x] Task 6: Unified operator CLI (.ai/bin/protocol.cjs doctor/status/clean/telemetry).
-- [x] Task 8: Routine cleanup & rotation of .ai/runtime/ snapshots (tests/session.test.cjs).
-- [x] Task 9: 1-page Quickstart & Onboarding Guide (QUICKSTART.md & README sync).
-- [x] Task 10: Collaboration telemetry and efficiency metrics in protocol CLI.
-- [x] Validator 0 warnings; 174/174 regression tests pass; consumers (Block-Puzzle, VPN) pass.
+- [x] Merkle chain fails closed on tampered parent (no laundering via record).
+- [x] In-journal verify checks complete active journal history by default.
+- [x] Archive-aware chaining with archived-parent marker across journal pruning.
+- [x] Exclude .ai/ARCHIVE.md from session snapshot tree digest in protocol-hooks.
+- [x] Atomic worklog write in auto-archiving and stderr logging uniformity.
+- [x] Liveness-first guard in runtime cleanup before applying 24h TTL.
+- [x] Operator clean accumulates exit errors; doctor runs deep Merkle check.
+- [x] Dedicated tests in tests/operator.test.cjs; 181/181 tests pass; validator 0 warnings.
 
 ## Roles
 
 - gemini: implementer & consensus synthesizer
-- deepseek: opposing reviewer
-- qwen: peer reviewer / implementer
+- deepseek: primary opposing reviewer
+- copilot: architectural reviewer
+- mistral: code reviewer / tooling auditor
 
 ## Current state
 
-All 8 consensus tasks implemented and verified against full 174-test regression suite and consumer repositories. Ready for clean Git commit and release tag v1.9.0.
+Consolidated decision PROTO-DEC-0025 accepted and implemented. All 181 regression tests pass cleanly. Ready for v1.9.1 atomic release commit.
 
 ## Open questions
 
@@ -46,5 +46,5 @@ None.
 
 ## Next
 
-Git commit of certified working tree and creation of official release tag v1.9.0.
+Atomic commit of v1.9.1 and annotated release tag creation.
 

@@ -120,8 +120,8 @@ function snapshot(root) {
   const identities = new Map();
   const regular = [];
   for (const name of [...names].sort()) {
-    // Runtime is disposable. Each worklog has its own writer and is checked separately.
-    if (name.startsWith('.ai/runtime/') || name.startsWith('.ai/worklog/')) continue;
+    // Runtime is disposable. Worklogs and cold archive are checked separately.
+    if (name.startsWith('.ai/runtime/') || name.startsWith('.ai/worklog/') || name === '.ai/ARCHIVE.md') continue;
     const staged = index.get(name);
     // Clean tracked entries need no file reads or extra Git subprocesses.
     if (staged && !dirty.has(name)) {

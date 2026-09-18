@@ -479,4 +479,64 @@ test('tampering with an earlier entry in the journal invalidates later parent-en
   assert.match(verifyResult.stderr, /historical link was broken/);
 });
 
+test('record fails closed and refuses to stamp evidence when parent entry is tampered', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/tamper-failclosed.md';
+  const fullPath = path.join(root, journal);
+
+  write(root, journal, `# W\n\n${entry('turn 1', 'legit')}\n`);
+  assert.equal(cli(root, ['record', '--owner', 'tamper-failclosed', '--quick']).status, 0);
+
+  const prev = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
+  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 2', 'two')}\n---\n\n${prev}`);
+  assert.equal(cli(root, ['record', '--owner', 'tamper-failclosed', '--quick']).status, 0);
+
+  const modified = fs.readFileSync(fullPath, 'utf8').replace('legit', 'FORGED');
+  fs.writeFileSync(fullPath, modified);
+
+  const prev2 = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
+  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 3', 'three')}\n---\n\n${prev2}`);
+
+  const recordResult = cli(root, ['record', '--owner', 'tamper-failclosed', '--quick']);
+  assert.notEqual(recordResult.status, 0);
+  assert.match(recordResult.stderr, /historical entry link is tampered/);
+});
+
+test('full in-journal verification detects tampering three entries back even if latest is recorded', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/deep-injournal.md';
+  const fullPath = path.join(root, journal);
+
+  write(root, journal, `# W\n\n${entry('turn 1', 'content one')}\n`);
+  assert.equal(cli(root, ['record', '--owner', 'deep-injournal', '--quick']).status, 0);
+
+  let prev = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
+  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 2', 'content two')}\n---\n\n${prev}`);
+  assert.equal(cli(root, ['record', '--owner', 'deep-injournal', '--quick']).status, 0);
+
+  prev = fs.readFileSync(fullPath, 'utf8').replace(/^# W\n\n/, '');
+  fs.writeFileSync(fullPath, `# W\n\n${entry('turn 3', 'content three')}\n---\n\n${prev}`);
+  assert.equal(cli(root, ['record', '--owner', 'deep-injournal', '--quick']).status, 0);
+
+  const modified = fs.readFileSync(fullPath, 'utf8').replace('content one', 'tampered one');
+  fs.writeFileSync(fullPath, modified);
+
+  const verifyResult = cli(root, ['verify', '--owner', 'deep-injournal']);
+  assert.notEqual(verifyResult.status, 0);
+  assert.match(verifyResult.stderr, /historical link was broken/);
+});
+
+test('timestamped entry headings are supported across newestSection, record, and verify', t => {
+  const root = makeProtocolFixture(t);
+  const journal = '.ai/worklog/timestamped.md';
+  const heading = '## 2026-09-18 04:12:00 UTC - Timestamped entry\n\nAgent: tester\n\nAction: Did task.\n\nResult: Pass.\n\nNext step: Handoff.\n\nOpen:\nNone.\n';
+  write(root, journal, `# W\n\n${heading}\n`);
+
+  const recorded = cli(root, ['record', '--owner', 'timestamped', '--quick']);
+  assert.equal(recorded.status, 0, recorded.stderr);
+
+  const verified = cli(root, ['verify', '--owner', 'timestamped']);
+  assert.equal(verified.status, 0, verified.stderr);
+});
+
 

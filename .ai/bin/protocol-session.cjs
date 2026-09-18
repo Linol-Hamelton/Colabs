@@ -223,14 +223,31 @@ function main(argv) {
         const owner = name.replace(/\.json$/, '');
         if (activeLockOwner && owner === activeLockOwner) continue;
 
+        let state = null;
+        try { state = JSON.parse(fs.readFileSync(fullPath, 'utf8')); } catch { }
+
+        // Never clean snapshots belonging to active live processes
+        if (isProcessAlive(state) === true) continue;
+
         const journal = name.replace(/\.json$/, '.md');
-        // Orphaned snapshots: .json files whose journal no longer exists.
+        // Orphaned snapshots: .json files whose journal no longer exists
         if (!fs.existsSync(path.join(worklogDir, journal))) {
           if (options.dryRun) { process.stdout.write(`would remove orphan ${name}\n`); continue; }
           fs.rmSync(fullPath);
           process.stdout.write(`removed orphan ${name}\n`);
           cleaned += 1;
           continue;
+        }
+
+        // Snapshots from dead session processes older than 24 hours (or if --force and process dead)
+        if (options.force || stat.mtimeMs < (Date.now() - 24 * 60 * 60 * 1000)) {
+          if (isProcessAlive(state) === false || options.force) {
+            if (options.dryRun) { process.stdout.write(`would remove dead session snapshot ${name}\n`); continue; }
+            fs.rmSync(fullPath);
+            process.stdout.write(`removed dead session snapshot ${name}\n`);
+            cleaned += 1;
+            continue;
+          }
         }
 
         // Stale snapshots older than 7 days
@@ -242,19 +259,6 @@ function main(argv) {
           continue;
         }
 
-        // Snapshots from dead session processes older than 24 hours (or if --force)
-        if (options.force || stat.mtimeMs < (Date.now() - 24 * 60 * 60 * 1000)) {
-          try {
-            const state = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
-            if (isProcessAlive(state) === false) {
-              if (options.dryRun) { process.stdout.write(`would remove dead session snapshot ${name}\n`); continue; }
-              fs.rmSync(fullPath);
-              process.stdout.write(`removed dead session snapshot ${name}\n`);
-              cleaned += 1;
-              continue;
-            }
-          } catch { }
-        }
         continue;
       }
 

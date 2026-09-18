@@ -126,13 +126,18 @@ function renderEvidence(state, checks, owner, entryDigest, quick, parentEntry = 
   return lines.join('\n');
 }
 
+function findArchivedParent(text) {
+  const match = text.match(/<!-- archived-parent:\s*(sha256:[a-f0-9]{64}) -->/);
+  return match ? match[1] : null;
+}
+
 function findParentEntry(journalPath) {
   const text = fs.readFileSync(journalPath, 'utf8');
   const found = newestSection(text);
   if (!found) return 'root';
   const olderSections = found.sections.slice(found.index + 1);
   for (const section of olderSections) {
-    if (/^## \d{4}-\d{2}-\d{2} - /m.test(section)) {
+    if (/^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - /m.test(section)) {
       const match = section.match(/entry:\s*(sha256:[a-f0-9]{64})/);
       if (match) {
         let body = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
@@ -144,10 +149,81 @@ function findParentEntry(journalPath) {
         }
         return match[1];
       }
+      if (/^Evidence:/m.test(section)) {
+        return 'tampered';
+      }
       return 'legacy';
     }
   }
+  const archived = findArchivedParent(text);
+  if (archived) return archived;
   return 'root';
+}
+
+function parseEvidenceBlock(body) {
+  if (!body) return null;
+  const digest = body.match(/digest:\s*(sha256:[a-f0-9]{64})/);
+  const format = body.match(/digest format:\s*(\d+)/);
+  const entry = body.match(/entry:\s*(sha256:[a-f0-9]{64})/);
+  const parent = body.match(/parent-entry:\s*(\S+)/);
+  return { body, digest: digest ? digest[1] : null, format: format ? Number(format[1]) : 1,
+    entry: entry ? entry[1] : null, parentEntry: parent ? parent[1] : null };
+}
+
+function verifyJournalChain(root, journalPath, deep = false) {
+  const text = fs.readFileSync(journalPath, 'utf8');
+  const normalized = text.replace(/\r\n/g, '\n');
+  const sections = normalized.split(/(?=^## )/m);
+  const datedSections = sections.filter(s => /^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - /m.test(s));
+  const archivedParent = findArchivedParent(normalized);
+
+  for (let i = 0; i < datedSections.length; i++) {
+    const section = datedSections[i];
+    const evBody = hooks.entryField(section.replace(/\n-{3,}\s*$/, '\n'), 'Evidence');
+    if (!evBody) continue;
+    const ev = parseEvidenceBlock(evBody);
+    if (!ev || !ev.entry) continue;
+
+    let body = section.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
+    body = body.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
+    const clean = body.replace(/\s+$/, '');
+    const actualEntryHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
+    if (ev.entry !== actualEntryHash) {
+      return { ok: false, reason: `historical entry at index ${i} was changed after certification. Recorded ${ev.entry}, computed ${actualEntryHash}.` };
+    }
+
+    if (ev.parentEntry && ev.parentEntry !== 'root' && ev.parentEntry !== 'legacy') {
+      if (ev.parentEntry === 'tampered') {
+        return { ok: false, reason: `historical entry at index ${i} recorded a tampered parent entry.` };
+      }
+      if (i + 1 < datedSections.length) {
+        const nextSection = datedSections[i + 1];
+        let nextBody = nextSection.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
+        nextBody = nextBody.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
+        const nextClean = nextBody.replace(/\s+$/, '');
+        const nextHash = `sha256:${crypto.createHash('sha256').update(nextClean, 'utf8').digest('hex')}`;
+        if (ev.parentEntry !== nextHash) {
+          return { ok: false, reason: `historical link at index ${i} was broken. Recorded parent ${ev.parentEntry}, expected ${nextHash}.` };
+        }
+      } else {
+        if (archivedParent) {
+          if (ev.parentEntry !== archivedParent) {
+            return { ok: false, reason: `oldest entry parent ${ev.parentEntry} does not match archived-parent marker ${archivedParent}.` };
+          }
+          if (deep) {
+            const archivePath = path.join(root, '.ai', 'ARCHIVE.md');
+            if (fs.existsSync(archivePath)) {
+              const archiveText = fs.readFileSync(archivePath, 'utf8');
+              if (!archiveText.includes(archivedParent)) {
+                return { ok: false, reason: `archived parent ${archivedParent} not found in .ai/ARCHIVE.md.` };
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return { ok: true };
 }
 
 // The newest dated section, complete or not: evidence attaches to what the
@@ -155,7 +231,7 @@ function findParentEntry(journalPath) {
 function newestSection(text) {
   const normalized = text.replace(/\r\n/g, '\n');
   const sections = normalized.split(/(?=^## )/m);
-  const index = sections.findIndex(section => /^## \d{4}-\d{2}-\d{2} - .+/.test(section));
+  const index = sections.findIndex(section => /^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - .+/.test(section));
   if (index === -1) return null;
   return { sections, index, normalized };
 }
@@ -207,13 +283,7 @@ function readEvidence(journalPath) {
   const found = newestSection(text);
   if (!found) return null;
   const body = hooks.entryField(found.sections[found.index].replace(/\n-{3,}\s*$/, '\n'), 'Evidence');
-  if (!body) return null;
-  const digest = body.match(/digest:\s*(sha256:[a-f0-9]{64})/);
-  const format = body.match(/digest format:\s*(\d+)/);
-  const entry = body.match(/entry:\s*(sha256:[a-f0-9]{64})/);
-  const parent = body.match(/parent-entry:\s*(\S+)/);
-  return { body, digest: digest ? digest[1] : null, format: format ? Number(format[1]) : 1,
-    entry: entry ? entry[1] : null, parentEntry: parent ? parent[1] : null };
+  return parseEvidenceBlock(body);
 }
 
 function resolveJournal(root, explicit, owner) {
@@ -236,7 +306,7 @@ function resolveJournal(root, explicit, owner) {
   return path.join(directory, candidates[0].name);
 }
 
-function reportOne(root, journalPath, state) {
+function reportOne(root, journalPath, state, deep = false) {
   const evidence = readEvidence(journalPath);
   const relative = path.relative(root, journalPath);
   if (!evidence) {
@@ -256,6 +326,15 @@ function reportOne(root, journalPath, state) {
   if (evidence.entry !== entryHash(journalPath)) {
     process.stderr.write(`AI protocol: ${relative} entry was changed after it was certified. ` +
       `Recorded ${evidence.entry}, the entry now hashes to ${entryHash(journalPath)}.\n`);
+    return 1;
+  }
+  if (evidence.parentEntry === 'tampered') {
+    process.stderr.write(`AI protocol: ${relative} historical link was broken. Entry recorded a tampered parent entry.\n`);
+    return 1;
+  }
+  const chainCheck = verifyJournalChain(root, journalPath, deep);
+  if (!chainCheck.ok) {
+    process.stderr.write(`AI protocol: ${relative} historical link was broken. ${chainCheck.reason}\n`);
     return 1;
   }
   if (evidence.parentEntry && evidence.parentEntry !== 'root' && evidence.parentEntry !== 'legacy') {
@@ -283,13 +362,14 @@ function main(argv) {
   const options = {};
   for (let i = 1; i < argv.length; i += 1) {
     if (argv[i] === '--quick') { options.quick = true; continue; }
+    if (argv[i] === '--deep') { options.deep = true; continue; }
     const value = argv[i + 1];
     if (!value) throw new Error(`Missing value for ${argv[i]}`);
     if (argv[i] === '--owner') options.owner = value;
     else if (argv[i] === '--journal') options.journal = value;
     else if (argv[i] === '--root') options.root = value;
     else if (argv[i] === '--reason') options.reason = value;
-    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state [--owner id] [--journal path] [--root path] [--reason text] [--quick]');
+    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state [--owner id] [--journal path] [--root path] [--reason text] [--quick] [--deep]');
     i += 1;
   }
   const root = fs.realpathSync(path.resolve(options.root || path.join(__dirname, '..', '..')));
@@ -323,6 +403,14 @@ function main(argv) {
     // hash covers the claim and not itself.
     const entryDigest = entryHash(journalPath);
     const parentEntry = findParentEntry(journalPath);
+    if (parentEntry === 'tampered') {
+      throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ` +
+        'Previous entry hash does not match its contents.');
+    }
+    const chainCheck = verifyJournalChain(root, journalPath);
+    if (!chainCheck.ok) {
+      throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ${chainCheck.reason}`);
+    }
     attach(journalPath, renderEvidence(after, checks, options.owner, entryDigest, Boolean(options.quick), parentEntry));
     process.stdout.write(`${path.relative(root, journalPath)}: evidence recorded\n`);
     process.stdout.write('Protocol checks only; run and report the host project tests separately.\n');
@@ -341,7 +429,7 @@ function main(argv) {
     // a merge rewrites every file and scrambles the order.
     if (options.journal || options.owner) {
       const journalPath = resolveJournal(root, options.journal, options.owner);
-      return reportOne(root, journalPath, state);
+      return reportOne(root, journalPath, state, Boolean(options.deep));
     }
     const directory = path.join(root, '.ai', 'worklog');
     if (!fs.existsSync(directory)) {
@@ -359,10 +447,15 @@ function main(argv) {
         'Run: node .ai/bin/protocol-handoff.cjs record --owner <session-id>\n');
       return 1;
     }
-    const matching = carrying.filter(item => item.evidence.format === state.format &&
-      item.evidence.digest === state.digest && item.evidence.entry === entryHash(item.file) &&
-      (!item.evidence.parentEntry || item.evidence.parentEntry === findParentEntry(item.file) || item.evidence.parentEntry === 'legacy' || item.evidence.parentEntry === 'root') &&
-      !/exit [^0]/.test(item.evidence.body));
+    const matching = carrying.filter(item => {
+      if (item.evidence.format !== state.format) return false;
+      if (item.evidence.digest !== state.digest) return false;
+      if (item.evidence.entry !== entryHash(item.file)) return false;
+      if (item.evidence.parentEntry === 'tampered') return false;
+      if (/exit [^0]/.test(item.evidence.body)) return false;
+      const chain = verifyJournalChain(root, item.file, Boolean(options.deep));
+      return chain.ok;
+    });
     if (matching.length) {
       for (const item of matching) {
         process.stdout.write(`${path.relative(root, item.file)}: evidence matches the current tree\n`);
@@ -417,4 +510,4 @@ if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { anchor, attach, readEvidence, renderEvidence, entryHash, findParentEntry };
+module.exports = { anchor, attach, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain };

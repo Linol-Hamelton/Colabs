@@ -7,7 +7,20 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const lockModule = require('./protocol-lock.cjs');
+
+function extractEntryHash(entryText) {
+  const match = entryText.match(/entry:\s*(sha256:[a-f0-9]{64})/);
+  if (match) {
+    let body = entryText.replace(/\n*^Evidence:[\s\S]*$/m, '\n');
+    body = body.replace(/(?:\s*\n-{3,}[ \t]*)+\s*$/, '\n');
+    const clean = body.replace(/\s+$/, '');
+    const actualHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
+    if (actualHash === match[1]) return match[1];
+  }
+  return null;
+}
 
 function parseArgs(argv) {
   const command = argv[0];
@@ -64,7 +77,7 @@ function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
   const content = fs.readFileSync(fullWorklog, 'utf8').replace(/\r\n/g, '\n');
 
   // Split into preamble and entries (entries start with ## YYYY-MM-DD)
-  const entryRegex = /(?=^## \d{4}-\d{2}-\d{2} - )/m;
+  const entryRegex = /(?=^## \d{4}-\d{2}-\d{2}(?: \d{2}:\d{2}(?::\d{2})?(?: [A-Z0-9_]+)?)? - )/m;
   const matchIndex = content.search(entryRegex);
 
   if (matchIndex === -1) {
@@ -125,14 +138,28 @@ function archiveWorklog(root, worklogPath, keep = 1, owner = null) {
   try {
     fs.appendFileSync(archiveFile, archiveAddition, 'utf8');
 
+    // Extract entry hash of the newest archived entry to preserve Merkle continuity
+    const archivedHash = toArchive.length > 0 ? extractEntryHash(toArchive[0]) : null;
+
     // Rewrite journal with kept entries
-    let cleanPreamble = preamble.replace(/\n-{3,}\s*$/, '').trim();
+    let cleanPreamble = preamble
+      .replace(/<!-- archived-parent:\s*sha256:[a-f0-9]{64} -->\s*/g, '')
+      .replace(/\n-{3,}\s*$/, '')
+      .trim();
+    if (archivedHash) {
+      cleanPreamble += `\n\n<!-- archived-parent: ${archivedHash} -->`;
+    }
     if (cleanPreamble.length > 0) cleanPreamble += '\n\n---\n\n';
 
     const cleanKept = keptEntries.map(entry => entry.replace(/\n-{3,}\s*$/, '').trim());
     const newJournalContent = cleanPreamble + cleanKept.join('\n\n---\n\n') + '\n';
 
-    fs.writeFileSync(fullWorklog, newJournalContent, 'utf8');
+    // Atomic write via temporary file in runtime
+    const runtimeDir = path.join(root, '.ai', 'runtime');
+    fs.mkdirSync(runtimeDir, { recursive: true });
+    const tempFile = path.join(runtimeDir, `worklog-atomic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.tmp`);
+    fs.writeFileSync(tempFile, newJournalContent, 'utf8');
+    fs.renameSync(tempFile, fullWorklog);
     console.log(`archived ${toArchive.length} entry(s) from ${relativeWorklog} to .ai/ARCHIVE.md`);
   } finally {
     if (lockAcquired && tempOwner) {
@@ -188,7 +215,7 @@ function autoArchiveWorklog(root, worklogPath, maxLines = 150, keep = 1, owner =
       archiveWorklog(root, worklogPath, keep, owner);
       return true;
     } catch (err) {
-      console.warn(`[archive] autoArchiveWorklog skipped: ${err.message}`);
+      process.stderr.write(`[WARN] autoArchiveWorklog skipped: ${err.message}\n`);
       return false;
     }
   }

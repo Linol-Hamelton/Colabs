@@ -116,6 +116,28 @@ function doctor(root) {
   const archiveModule = require('./protocol-archive.cjs');
   archiveModule.archiveStatus(root);
 
+  // 5. Merkle chain integrity audit
+  console.log('\n=== 5. Merkle Chain & Integrity Audit ===');
+  const handoffModule = require('./protocol-handoff.cjs');
+  const worklogDir = path.join(root, '.ai', 'worklog');
+  if (fs.existsSync(worklogDir)) {
+    const journals = fs.readdirSync(worklogDir)
+      .filter(name => name.endsWith('.md') && name !== 'README.md');
+    let chainErrors = 0;
+    for (const j of journals) {
+      const jPath = path.join(worklogDir, j);
+      const chain = handoffModule.verifyJournalChain(root, jPath, true);
+      if (!chain.ok) {
+        console.log(`[FAIL] .ai/worklog/${j}: ${chain.reason}`);
+        chainErrors++;
+        issues++;
+      }
+    }
+    if (chainErrors === 0) {
+      console.log(`[PASS] Merkle chains verified across ${journals.length} journal(s) (deep audit)`);
+    }
+  }
+
   console.log('\n======================================');
   if (issues === 0) {
     console.log('Verdict: Protocol Healthy. All checks passed.');
@@ -140,17 +162,29 @@ function clean(root, options = {}) {
   console.log(`Repository Root: ${root}\n`);
   const sessionModule = require('./protocol-session.cjs');
 
+  let errors = 0;
+
   console.log('--- 1. Quarantining empty journals ---');
   const pruneArgs = ['prune', '--root', root];
   if (options.dryRun) pruneArgs.push('--dry-run');
   if (options.force) pruneArgs.push('--force');
-  try { sessionModule.main(pruneArgs); } catch (e) { console.log(`Prune: ${e.message}`); }
+  try { sessionModule.main(pruneArgs); } catch (e) {
+    process.stderr.write(`Prune error: ${e.message}\n`);
+    errors++;
+  }
 
   console.log('\n--- 2. Cleaning runtime snapshots & temporary files ---');
   const cleanArgs = ['cleanup-runtime', '--root', root];
   if (options.dryRun) cleanArgs.push('--dry-run');
   if (options.force) cleanArgs.push('--force');
-  try { sessionModule.main(cleanArgs); } catch (e) { console.log(`Cleanup: ${e.message}`); }
+  try { sessionModule.main(cleanArgs); } catch (e) {
+    process.stderr.write(`Cleanup error: ${e.message}\n`);
+    errors++;
+  }
+
+  if (errors > 0) {
+    process.exitCode = 1;
+  }
 }
 
 function telemetry(root) {

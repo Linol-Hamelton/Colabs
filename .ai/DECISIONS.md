@@ -1142,6 +1142,57 @@ Approved by: RuslanFomenko
 
 ---
 
+### PROTO-DEC-0025
+
+Status: Accepted
+Date: 2026-09-18
+Supersedes: nothing; it establishes consensus rules for releases, Merkle traversal, runtime TTL, and repository isolation
+
+Context:
+Consensus review of protocol v1.9.0 across 7 independent assistants (Claude, DeepSeek,
+Copilot, Mistral, Qwen, GLM, Gemini) surfaced five architectural forks requiring
+formal governance: release commit granularity, Merkle verification depth,
+runtime snapshot retention, consumer repository commit isolation, and cross-platform
+validator migration.
+
+Decision:
+1. Release commits in the protocol source repository are atomic and paired with an
+   annotated Git tag (`git tag -a`). Intermediate commits during release transitions
+   are prohibited to avoid non-bisectable, broken protocol states.
+2. In-journal Merkle verification defaults to complete traversal of the active
+   journal file (bounded by the 150-line file limit). Cross-file traversal into
+   `.ai/ARCHIVE.md` is explicit via `--deep` and enforced in `protocol.cjs doctor` and CI.
+   Evidence recording fails closed if parent tampering is detected.
+3. Runtime snapshots in `.ai/runtime/` retain a 24-hour TTL and are pruned lazily only
+   when the owning process is confirmed dead. Active sessions are never pruned.
+4. The protocol source repository never executes git commits in consumer repositories.
+   Consumer projects manage protocol upgrades within their own active sessions under
+   their own task context and Evidence blocks.
+5. Cross-platform validation engine migration to Node.js is scheduled for the v2.0
+   roadmap, requiring differential verification against the PowerShell reference implementation.
+
+Reasoning:
+Atomic release commits guarantee that every tagged revision is green and fully
+verified. In-journal full verification eliminates historical tampering blind spots
+within active journals with negligible runtime overhead (<2ms). 24-hour snapshot
+retention guarantees crash recovery without risk of orphaned process interference.
+Repository isolation preserves the integrity of foreign working trees and task evidence.
+
+Alternatives rejected:
+- Multi-commit releases: rejected due to producing broken, non-bisectable intermediate states.
+- O(1) single-entry verification: rejected for permitting undetected tampering inside active journals.
+- Immediate runtime deletion on session stop: rejected for destroying crash forensics.
+- Automated foreign commits: rejected for violating repository isolation boundaries.
+
+Consequences:
+`protocol-handoff.cjs verify` inspects the full active journal by default. `protocol.cjs
+clean` respects process liveness and the 24-hour TTL. Consumer upgrade procedures
+remain session-driven.
+
+Approved by: RuslanFomenko
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
