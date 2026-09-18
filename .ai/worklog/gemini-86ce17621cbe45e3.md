@@ -32,18 +32,19 @@ Open:
 - None.
 
 Evidence:
-- anchor: a2dc1c67192bae74309c3b52ac158158f81d54d8, uncommitted changes present
-- digest: sha256:2e0860a38f7e4ab622384b04ac49ce299e0716248892cc8643cda547e5d22e37 over 99 tracked and untracked files
+- anchor: 29d38c762f10162c35701711e50dcc3729f34abc, uncommitted changes present
+- digest: sha256:736b246c3b196c04254655cd0e3509f5f4ffdf5dc829504698b99e17f185c9d6 over 99 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-18T21:45:18.351Z by gemini-86ce17621cbe45e3
+- recorded: 2026-09-18T21:47:15.380Z by gemini-86ce17621cbe45e3
 - entry hash format: 2
-- entry: sha256:592aa3ec19e598e4735aa66b8b63f6f8162c7ac90ceb3d0c165805b4d521aad1 of this entry without this block
+- entry: sha256:2884db47cf4aab42d89859d62c76ca9999ffacbe0cec29a6634ad8c10a3eb25e of this entry without this block
 - parent-entry: sha256:ff52dcccae7ae1d82ca48d3fafcca39e74805a56cc635c04e175d5b96d796bda
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
+- validate-protocol.ps1: exit 0 in 3s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 
 
