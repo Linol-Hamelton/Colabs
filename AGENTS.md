@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.9.4
+## AI Collaboration Protocol v1.9.5
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude,
 DeepSeek, Gemini, Qwen, GLM, Mistral, Copilot, and others. They do not share chat

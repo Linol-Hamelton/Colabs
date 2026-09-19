@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - Item 6 remediation audited PASS; delta re-certification requested
+## 2026-09-19 - Pre-freeze: cap restored, version bumped to 1.9.5, completion gate set; ordered records follow
 
 Agent: deepseek-flash
 
-Action: Audited the five Item 6 fixes. Independent checks: registry 8/8, gate 16/16, session 33/33, validator tests 12/12, full suite 241/241, validator exit 0 with one process-state warning (`32 session journals`), implementer receipt fresh. Independent clone probe matrix: F-001 case mutation now yields the three expected warnings; F-002a header `Date: 2026-09-25` with body `Date: 2026-01-01` -> exit 1 missing `Mode`; F-002b body-only `Date` -> exit 1 missing/invalid Date; F-003 `supervisorPid: 4` -> `false` and `pid: 4` -> `null`; F-004 `.bak` citation -> exit 1 `does not mention`, exact citation -> exit 0 bound; AUD-C1 end-to-end on a Completed task: `record` exit 0, `gate-check` exit 0, standalone validator exit 0 with no FAILs. Diff review: Ordinal `Dictionary`/`HashSet` and `-cne`; deterministic header region; `> 4` bounds consistent with `start` and the lock; escaped-path negative-lookahead citation; the required unified-prompt phrase present. Notes recorded: the implementer report miscounted `validator.test.cjs` (12 actual; the 241-test suite is authoritative), and the repository now holds 32 journals, so at least two unprotected journals must be archived before the freeze to restore 0 warnings. Wrote `docs/reviews/2026-09-19-deepseek-flash-item6-audit.md` (verdict PASS) and `docs/reviews/2026-09-19-claude-opus-delta-certification-request.md` (re-run F-001..F-004 and AUD-C1 on the fixed HEAD; deliver a `Mode: CERTIFYING` delta review with a receipt).
+Action: Accepted Claude Opus's delta re-certification: verdict PASS, all four findings and AUD-C1 closed, 241/241 suite, receipt verified fresh, and its journal entry names the delta report path (binding satisfiable). Pre-freeze housekeeping: quarantined the empty stray journal `claude-b738c7f405ed7dc3.md` and removed three v1.9.4-era journals (`claude-123ff4a27989f7af`, `gemini-2da9379ddcd247b6`, `copilot-13595b63-cf45-4860-a3e7-05c7972c5702`) with `--keep 0` plus `prune --force` and staged deletions; the recency window defers freshly emptied journals, so `prune --force` is required for deliberate removals - documented in PROTOCOL.md. Count 29/30 with 0 warnings before the release writes. Release preparation under the shared-doc lock: bumped the version to `1.9.5` in `protocol-manifest.json`, the AGENTS.md header and `setup-ai-protocol.ps1` (validator: "one protocol version everywhere: 1.9.5"); set `.ai/TASK.md` to `Completed` with the completion gate citing the final adversarial prompt and Claude's delta review; added the `prune --force` note to PROTOCOL.md. Immediately after those digest-visible writes the standalone validator reports the expected gate-check failure (Claude's receipt is stale against the new tree); the ordered record pass now re-anchors claude-opus, gemini and this session, after which the standalone validator must pass with 0 warnings.
 
-Result: Item 6 is ready to commit; the delta re-certification by Claude Opus is the next external step, followed by the pre-freeze housekeeping, the `Completed` completion gate, the ordered record pass and the tag decision.
+Result: The pre-freeze state is set; the ordered record pass is running in this entry's session.
 
-Next step: Owner commits and pushes Item 6 and dispatches the delta request to Claude; the controller then archives journals to the cap and prepares the completion gate.
+Next step: verify all three receipts deep, run the standalone validator with the gate active, then the release commit; the owner pushes and decides the annotated tag `v1.9.5`.
 
-Open: Item 6 commit/push; Claude delta re-certification; pre-freeze archival; `TASK.md` completion gate; freeze and records; tag `v1.9.5`.
+Open: release commit; owner tag/push; consumer re-sync decision; Track C dispatch.
 
 Evidence:
-- anchor: 47cf55fcf7610d77e48a68a212f78b28cd3a7c81, uncommitted changes present
-- digest: sha256:56bccfcc82fde562576ae0db18e607d49935eb962fefed6d4c14f51bbfe1ede1 over 150 tracked and untracked files
+- anchor: 1fb0580908a3aa31e0756fea5f27879651aadc61, uncommitted changes present
+- digest: sha256:3ae81239f4e8978df743cc158f5dce643148b2308c9a417fcb2b6905ce6402a3 over 151 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T05:16:50.233Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T05:40:16.866Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:36da7c311e46787d805d3176e3929328e83a4ff851fc550906c1f42e54c76aad of this entry without this block
+- entry: sha256:255f11fee5ffa2390aeee347eb87bd2341e72a35561e6578bbe5e42a80f196a8 of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 105s
+- test-protocol.ps1: exit 0 in 108s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---

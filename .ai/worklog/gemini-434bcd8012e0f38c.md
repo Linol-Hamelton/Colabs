@@ -21,19 +21,20 @@ Next step: DeepSeek-flash performs adversarial audit on Item 6 remediation; Clau
 Open: DeepSeek adversarial audit verdict; Claude Opus delta re-certification.
 
 Evidence:
-- anchor: 47cf55fcf7610d77e48a68a212f78b28cd3a7c81, uncommitted changes present
-- digest: sha256:736c4a2b84531a0efd587a74837a53cfba7063ceed47009010edb79ec3e8ba42 over 148 tracked and untracked files
+- anchor: 1fb0580908a3aa31e0756fea5f27879651aadc61, uncommitted changes present
+- digest: sha256:3ae81239f4e8978df743cc158f5dce643148b2308c9a417fcb2b6905ce6402a3 over 151 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T05:08:41.197Z by gemini-434bcd8012e0f38c
+- recorded: 2026-09-19T05:38:25.892Z by gemini-434bcd8012e0f38c
 - entry hash format: 2
-- entry: sha256:534d735df36f5d8e28b6fcca07e01610a9066d6f9f0d8d1e0c46cb1e68fd5466 of this entry without this block
+- entry: sha256:49ffa8151ffdcf6c4b8ae3e681b03652549e037e0f289f6199eeb3054d597e43 of this entry without this block
 - parent-entry: sha256:fdabcbf666f7136e29c2b8dbcc3615553a8cb72498bf4fcf4be097b4565e0594
 - scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 108s
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 112s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 
 ## 2026-09-19 - v1.9.5 adversarial release certification and whole-scope audit

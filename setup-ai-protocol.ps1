@@ -1,4 +1,4 @@
-# AI Collaboration Protocol installer, protocol v1.9.4. ASCII-only for PS 5.1.
+# AI Collaboration Protocol installer, protocol v1.9.5. ASCII-only for PS 5.1.
 # No arguments: read-only check of this checkout.
 # -Target <path> [-InitGit]: initialize missing state and merge integration.
 # -Force: update managed tooling with backups, preserving existing .ai state.

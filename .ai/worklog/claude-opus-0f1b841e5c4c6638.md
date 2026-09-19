@@ -6,6 +6,35 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - Delta re-certification of v1.9.5 (1fb0580)
+
+Agent: claude-opus
+
+Action: Delta re-certification of release candidate 1fb0580 (Item 6 remediation: F-001..F-004, AUD-C1). Ran full regression suite (241/241 pass, 110.9s), protocol validator (exit 0, 1 warning: 32 journals), targeted test suites (registry 8/8, gate 16/16, session 33/33), and custom delta probe suite (6 tests, all pass). Verified each finding with live negative tests: F-001 case-mutated row produces 3 WARNs; F-002a header Date > cutoff with body Date after --- fails on missing Mode; F-002b body-only Date fails on missing/invalid Date; F-003 supervisorPid:4 with dead pid returns false; F-004 .bak citation rejected, exact citation passes; AUD-C1 Completed task citing final prompt passes validator. Report: docs/reviews/2026-09-19-claude-opus-v1.9.5-delta-certification.md
+
+Result: PASS. All four findings (F-001..F-004) and AUD-C1 confirmed closed. No new release-blocking defects found. Release candidate 1fb0580 is ready for v1.9.5 tag.
+
+Next step: Controller archives journals to cap, sets TASK.md to Completed with completion gate, performs freeze, ordered records, and tag.
+
+Open: 32 journals need archival before freeze (advisory WARN, not a code defect).
+
+Evidence:
+- anchor: 1fb0580908a3aa31e0756fea5f27879651aadc61, uncommitted changes present
+- digest: sha256:3ae81239f4e8978df743cc158f5dce643148b2308c9a417fcb2b6905ce6402a3 over 151 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T05:36:30.507Z by claude-opus-0f1b841e5c4c6638
+- entry hash format: 2
+- entry: sha256:2a32f14a76adc314720798de25311dc8358a59b7f8f7b7307d2e3563b83ec895 of this entry without this block
+- parent-entry: sha256:cff37b1fba7ec88b88250a2b4dd5b03aa2fee9661cb35e4a6d54a4cefa4afdbd
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 108s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+
 ## 2026-09-19 - Final adversarial certification of v1.9.5 release candidate
 
 Agent: claude-opus

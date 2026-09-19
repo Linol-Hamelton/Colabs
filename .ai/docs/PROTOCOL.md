@@ -219,6 +219,8 @@ Decommissioning a session journal is a three-step procedure:
 2. `node .ai/bin/protocol-session.cjs prune` (quarantine the empty journal)
 3. `git add -A -- <removed-path>` (stage the removal in the index, keeping the index count <= 30)
 
+If the emptied journal is still inside `RECENT_WINDOW`, `prune` defers it (recent empty journals are preserved); for a deliberate removal of a journal you have just emptied, run `prune --force`, which overrides the recency window for empty, non-live journals.
+
 When a second batch is archived into an existing `.ai/ARCHIVE.md`, the boundary entry's canonicalized body must hash-match its `- entry:` label. This boundary canonicalization deviation was resolved and is pinned by `tests/archive.test.cjs` ("P5-F2: second batch boundary in ARCHIVE.md remains valid across archive batches and verify --deep"). For historical context and proofs, see `docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md`.
 
 ### Review modes and capability model
