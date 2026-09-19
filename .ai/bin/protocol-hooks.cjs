@@ -588,5 +588,6 @@ function main(agent = 'claude') {
   }
 }
 
-if (require.main === module) main();
 module.exports = { SNAPSHOT_FORMAT, DIRTY_SYMBOL, ENTRY_HASH_FORMAT, AGENT_NAME, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, context, assignment, latestCompleteEntry, entryField, findSecretLeak, stopWarnings, sessionPaths, readState, sessionNonce, hasEntryHashFormat2, canonicalEntryBody, run, changedFiles, snapshot, fingerprint, main, recordSessionMetric, METRICS_MAX_BYTES };
+
+if (require.main === module) main();

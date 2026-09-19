@@ -381,10 +381,6 @@ function main(argv) {
   throw new Error('Usage: protocol-session.cjs start|stop|whoami|prune|cleanup-runtime --agent <name> [--session <id>]');
 }
 
-if (require.main === module) {
-  try { process.exitCode = main(process.argv.slice(2)); }
-  catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
-}
 module.exports = {
   main,
   parse,
@@ -393,3 +389,8 @@ module.exports = {
   checkProcessAlive,
   RECENT_WINDOW_MS,
 };
+
+if (require.main === module) {
+  try { process.exitCode = main(process.argv.slice(2)); }
+  catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
+}

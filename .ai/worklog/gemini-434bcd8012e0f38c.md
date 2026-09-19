@@ -8,6 +8,34 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - Fix circular dependency in protocol-session.cjs and protocol-hooks.cjs
+
+Agent: gemini
+
+Action: Executed dispatch prompt docs/reviews/2026-09-19-gemini-stop-cycle-fix-prompt.md to resolve circular dependency warnings during CLI stop execution: (1) In .ai/bin/protocol-session.cjs, moved module.exports assignment before the if (require.main === module) block so exports are populated when lazy-required by protocol-archive -> protocol-lock during CLI runs; (2) Symmetrically moved module.exports before if (require.main === module) in .ai/bin/protocol-hooks.cjs; (3) Added cycle guard test in tests/session.test.cjs asserting requiring protocol-session then protocol-lock exposes callable isSessionAlive/checkProcessAlive/operate functions without circular dependency warnings; (4) Added CLI stop regression test in tests/session.test.cjs asserting a >150-line journal triggers auto-archive to .ai/ARCHIVE.md without circular dependency warnings or errors.
+
+Result: Reproduction before fix verified (produced Node circular dependency warnings on stop); after fix verified clean (no warnings, exit 0). node --test tests/session.test.cjs passed (36/36); node --test tests/hooks.test.cjs passed (20/20); node --test tests/codex.test.cjs passed (7/7); test-protocol.ps1 passed (250/250 tests across 18 test files, exit 0); validate-protocol.ps1 exit 0 (0 warnings).
+
+Next step: DeepSeek performs audit of the circular dependency fix; commit changes upon audit approval.
+
+Open: DeepSeek audit verdict.
+
+Evidence:
+- anchor: 5b34ae0aeefbf354160d79064cbe0b3e469e031c, uncommitted changes present
+- digest: sha256:39b779b09cac445083b67eae821b78d1af46127caa9b7524905cab7282cf35d1 over 165 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T14:00:13.219Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:f2f8eb26ce8eddc15cfabb2da843a41da581dc463e0d412186c3eb6d0043ed0c of this entry without this block
+- parent-entry: sha256:ee86e6410f0684ce35e2f5e4cf9e63ef0f98d7cabf6812faac55437df3949522
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 121s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-19 - C1 doc-fix: H1 pilot design corrections D-1..D-3
 
 Agent: gemini

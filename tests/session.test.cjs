@@ -803,3 +803,51 @@ test('AUD-4: active lock holder empty journal is preserved by prune even under -
   assert.equal(unlock.status, 0, unlock.stderr);
 });
 
+test('cycle guard: requiring protocol-session then protocol-lock exposes callable liveness functions without undefined exports', () => {
+  const code = `
+    const sess = require('./.ai/bin/protocol-session.cjs');
+    const lock = require('./.ai/bin/protocol-lock.cjs');
+    if (typeof sess.isSessionAlive !== 'function') process.exit(1);
+    if (typeof sess.checkProcessAlive !== 'function') process.exit(2);
+    if (typeof lock.operate !== 'function') process.exit(3);
+  `;
+  const res = run(process.execPath, ['-e', code], repoRoot);
+  assert.equal(res.status, 0, res.stderr);
+  assert.doesNotMatch(res.stderr, /circular dependency/i);
+});
+
+test('CLI stop executes auto-archive without circular dependency warnings when journal exceeds 150 lines', t => {
+  const root = makeProtocolFixture(t);
+  const sessionName = 'archive-stop-session';
+  const startRes = session(root, ['start', '--agent', 'qwen', '--session', sessionName]);
+  assert.equal(startRes.status, 0, startRes.stderr);
+  const journalRel = startRes.stdout.match(/Journal: (\S+)/)[1];
+  const journalPath = path.join(root, journalRel);
+
+  // Construct a journal exceeding 150 lines with two valid complete entries
+  const entry1 = `## 2026-09-19 - Latest entry\n\nAgent: qwen\n\nAction: latest work done\n\nResult: verified latest\n\nNext step: handoff\n\nOpen: none\n\nEvidence:\nClean.\n`;
+  const fillerLines = Array.from({ length: 160 }, (_, i) => `Detail line ${i}.`).join('\n');
+  const entry2 = `## 2026-09-18 - Older entry to archive\n\nAgent: qwen\n\nAction:\n${fillerLines}\n\nResult: verified\n\nNext step: handoff\n\nOpen: none\n\nEvidence:\nClean.\n`;
+  fs.writeFileSync(journalPath, `# Worklog: ${sessionName}\n\n${entry1}\n---\n\n${entry2}\n`);
+
+  const linesBefore = fs.readFileSync(journalPath, 'utf8').trim().split(/\r?\n/).length;
+  assert.ok(linesBefore > 150, `journal should exceed 150 lines before stop, got ${linesBefore}`);
+
+  // Execute CLI stop
+  const stopRes = session(root, ['stop', '--agent', 'qwen', '--session', sessionName]);
+  assert.equal(stopRes.status, 0, stopRes.stderr);
+  assert.doesNotMatch(stopRes.stderr, /circular dependency/i, 'stderr must not contain circular dependency warnings');
+
+  // Verify that auto-archive actually moved the older entry to .ai/ARCHIVE.md
+  const journalAfter = fs.readFileSync(journalPath, 'utf8');
+  const linesAfter = journalAfter.trim().split(/\r?\n/).length;
+  assert.ok(linesAfter <= 150, `journal should be <= 150 lines after auto-archive, got ${linesAfter}`);
+  assert.match(journalAfter, /Latest entry/);
+  assert.doesNotMatch(journalAfter, /Older entry to archive/);
+
+  const archivePath = path.join(root, '.ai/ARCHIVE.md');
+  assert.ok(fs.existsSync(archivePath));
+  const archiveContent = fs.readFileSync(archivePath, 'utf8');
+  assert.match(archiveContent, /Older entry to archive/);
+});
+
