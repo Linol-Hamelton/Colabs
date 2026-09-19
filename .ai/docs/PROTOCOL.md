@@ -67,14 +67,16 @@ node .ai/bin/protocol-lock.cjs release --owner <your-session-id>
 
 For long-lived supervisor processes, pass `--session-pid <pid>`. A supervisor PID can
 be registered at session start via `protocol-session.cjs start --supervisor-pid <pid>`
-(must be `process.pid` or `process.ppid`). The lock command accepts `--session-pid <pid>`
-when it matches `process.pid`, `process.ppid`, or the registered supervisor/session PID
-authenticated with `--session-token <token>`. Reserved system PIDs (`pid <= 4`) and
-unaffiliated PIDs are rejected. The session token is an anti-accident barrier (preventing
-accidental PID collision and lock squatting in cooperative environments, not an
-anti-adversary barrier against local filesystem access). Clearing an abandoned lock from a
-confirmed dead process uses `clear-lock` or `acquire --force`. Forcefully clearing a live
-registered lock requires `--force` and `--reason "<explanation>"` with an audit record.
+(accepts any live integer PID > 4; registration protects the session's empty journal and
+snapshot from premature pruning by external orchestrators, functioning as an anti-accident
+guard). The lock command accepts `--session-pid <pid>` when it matches `process.pid`,
+`process.ppid`, or the registered supervisor/session PID authenticated with
+`--session-token <token>`. Reserved system PIDs (`pid <= 4`) and unaffiliated PIDs are
+rejected. The session token is an anti-accident barrier (preventing accidental PID
+collision and lock squatting in cooperative environments, not an anti-adversary barrier
+against local filesystem access). Clearing an abandoned lock from a confirmed dead
+process uses `clear-lock` or `acquire --force`. Forcefully clearing a live registered
+lock requires `--force` and `--reason "<explanation>"` with an audit record.
 
 A session journal needs no lock. Each session writes only its own file.
 
@@ -192,8 +194,14 @@ node .ai/bin/protocol-session.cjs prune
 ```
 
 moves empty journals left by idle sessions into `.ai/runtime/pruned/` quarantine
-instead of deleting them permanently. An active live session or lock holder is
-never pruned.
+instead of deleting them permanently. An active live session (evaluated supervisor-first,
+falling through to the transient process PID) or active lock holder is never pruned,
+even with `--force`. If the session state is present but liveness cannot be verified (for
+example a foreign host), the journal is preserved during standard runs and quarantined
+only under `--force` with an explicit audit warning. If the state file is missing or
+unreadable, the empty journal is treated as unknown liveness and falls back to the
+recency window; once it is older than `RECENT_WINDOW` it is quarantined. Content-bearing
+journals are always protected by `holdsContent` and never quarantined.
 
 Automatic archiving runs on `stop` and `record` whenever a journal exceeds 150 lines,
 moving older entries into `.ai/ARCHIVE.md` while keeping the newest entry.

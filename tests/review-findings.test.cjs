@@ -134,6 +134,9 @@ test('prune removes journals with no entry and keeps the rest', t => {
   const root = makeProtocolFixture(t);
   tool(root, 'protocol-session.cjs', ['start', '--agent', 'empty', '--session', 'm2a', '--root', root]);
   journalWith(root, 'busy', 'm2b', ENTRY);
+  const emptyJournal = fs.readdirSync(path.join(root, '.ai/worklog')).find(name => name.startsWith('empty-'));
+  const aged = (Date.now() - 30 * 60 * 1000) / 1000;
+  fs.utimesSync(path.join(root, '.ai/worklog', emptyJournal), aged, aged);
   const pruned = tool(root, 'protocol-session.cjs', ['prune', '--root', root]);
   assert.equal(pruned.status, 0, pruned.stderr);
   const left = fs.readdirSync(path.join(root, '.ai/worklog'));
@@ -162,6 +165,8 @@ test('prune still removes a journal that holds nothing', t => {
   const file = path.join(root, '.ai/worklog/tester-empty.md');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, '# Worklog: tester\n\nSession journal.\n\n---\n');
+  const aged = (Date.now() - 30 * 60 * 1000) / 1000;
+  fs.utimesSync(file, aged, aged);
   const pruned = tool(root, 'protocol-session.cjs', ['prune', '--root', root]);
   assert.equal(pruned.status, 0, pruned.stderr);
   assert.ok(!fs.existsSync(file), 'an empty journal survived prune');

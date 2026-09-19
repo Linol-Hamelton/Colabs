@@ -3,9 +3,17 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 const { repoRoot, makeProtocolFixture, run, write } = require('./helpers.cjs');
 const hooks = require('../.ai/bin/protocol-hooks.cjs');
+const { isSessionAlive, checkProcessAlive, RECENT_WINDOW_MS } = require('../.ai/bin/protocol-session.cjs');
+
+function ageArtifact(filePath, minutesAgo = 30) {
+  const past = (Date.now() - minutesAgo * 60 * 1000) / 1000;
+  fs.utimesSync(filePath, past, past);
+}
 
 function session(root, args) {
   return run(process.execPath, [path.join(repoRoot, '.ai/bin/protocol-session.cjs'), ...args,
@@ -292,5 +300,426 @@ test('cleanup-runtime preserves foreign-host stale snapshot older than 7 days (n
   assert.equal(cleaned.status, 0, cleaned.stderr);
   assert.ok(fs.existsSync(staleSnapshot),
     'foreign-host snapshot with unknown liveness must survive 7-day rule');
+});
+
+test('isSessionAlive contract matches 6-state specification', t => {
+  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 10000)'], { windowsHide: true });
+  t.after(() => { try { child.kill(); } catch {} });
+  const livePid = child.pid;
+  const deadPid = 2147483640;
+
+  // 1. hostname mismatch -> null
+  assert.equal(isSessionAlive({ hostname: 'other-machine', pid: livePid, supervisorPid: livePid }), null);
+  assert.equal(isSessionAlive({ hostname: null, pid: livePid }), null);
+  assert.equal(isSessionAlive(null), null);
+
+  // 2. supervisorPid integer > 0 and alive -> true
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: livePid, pid: deadPid }), true);
+
+  // 3. supervisorPid integer > 0 and dead -> fall through to pid
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: deadPid, pid: livePid }), true);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: deadPid, pid: deadPid }), false);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: deadPid, pid: null }), null);
+
+  // 4. pid integer > 0 and alive -> true
+  assert.equal(isSessionAlive({ hostname: os.hostname(), pid: livePid }), true);
+
+  // 5. pid integer > 0 and dead -> false
+  assert.equal(isSessionAlive({ hostname: os.hostname(), pid: deadPid }), false);
+
+  // 6. no usable pid fields (legacy null state) -> null
+  assert.equal(isSessionAlive({ hostname: os.hostname(), pid: null }), null);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), pid: -1 }), null);
+  assert.equal(isSessionAlive({ hostname: os.hostname() }), null);
+});
+
+test('A1 branch 1: supervisor alive, transient dead, aged -> journal + snapshot preserved', t => {
+  const root = makeProtocolFixture(t);
+  const sup = spawn(process.execPath, ['-e', 'setInterval(() => {}, 10000)'], { windowsHide: true });
+  t.after(() => { try { sup.kill(); } catch {} });
+  const liveSupPid = sup.pid;
+  const deadPid = 2147483640;
+
+  const owner = 'qwen-sup-alive-test';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: liveSupPid,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  // prune must preserve journal
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'journal must be preserved with live supervisor');
+  assert.match(pruned.stdout, /skipping qwen-sup-alive-test.*active session/);
+
+  // cleanup-runtime --force must preserve snapshot
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(snapshotPath), 'snapshot must be preserved with live supervisor even with --force');
+});
+
+test('A1 branch 2: supervisor dead, transient dead, aged -> journal quarantined, snapshot removable', t => {
+  const root = makeProtocolFixture(t);
+  const deadSupPid = 2147483639;
+  const deadPid = 2147483640;
+
+  const owner = 'qwen-all-dead-test';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: deadSupPid,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(!fs.existsSync(journalPath), 'journal must be quarantined when everything is dead');
+  assert.ok(fs.existsSync(path.join(runtimeDir, 'pruned', `${owner}.md`)));
+
+  // Re-create snapshot for cleanup test (since prune deletes state file for quarantined journal)
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: deadSupPid,
+    hostname: os.hostname(),
+    files: {},
+  }));
+  ageArtifact(snapshotPath, 30);
+
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(!fs.existsSync(snapshotPath), 'snapshot must be removed with --force when dead');
+});
+
+test('A1 branch 3: supervisor dead, transient alive -> preserved', t => {
+  const root = makeProtocolFixture(t);
+  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 10000)'], { windowsHide: true });
+  t.after(() => { try { child.kill(); } catch {} });
+  const livePid = child.pid;
+  const deadSupPid = 2147483639;
+
+  const owner = 'qwen-transient-alive';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: livePid,
+    supervisorPid: deadSupPid,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'journal must be preserved when transient pid is alive');
+
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(snapshotPath), 'snapshot must be preserved when transient pid is alive');
+});
+
+test('A1 branch 4: no supervisor, dead, aged -> prunable/removable', t => {
+  const root = makeProtocolFixture(t);
+  const deadPid = 2147483640;
+
+  const owner = 'qwen-nosup-dead-aged';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: null,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(!fs.existsSync(journalPath), 'aged empty journal must be quarantined');
+
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: null,
+    hostname: os.hostname(),
+    files: {},
+  }));
+  ageArtifact(snapshotPath, 30);
+
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(!fs.existsSync(snapshotPath), 'snapshot must be removed with --force when dead and aged');
+});
+
+test('A1 branch 5: no supervisor, dead, fresh -> preserved by recency', t => {
+  const root = makeProtocolFixture(t);
+  const deadPid = 2147483640;
+
+  const owner = 'qwen-nosup-dead-fresh';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: null,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  // Artifact is fresh (within 15 minutes)
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'fresh empty journal must be preserved by recency');
+  assert.match(pruned.stdout, /skipping qwen-nosup-dead-fresh.*recent empty journal/);
+});
+
+test('A1 branch 6: foreign host, aged -> prune preserves without --force; cleanup preserves even with --force', t => {
+  const root = makeProtocolFixture(t);
+  const owner = 'qwen-foreign-aged';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: 999999,
+    supervisorPid: 999998,
+    hostname: 'foreign-remote-machine',
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  // prune without --force preserves foreign host
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'foreign host journal must be preserved without --force');
+
+  // cleanup-runtime preserves even with --force
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(snapshotPath), 'foreign host snapshot must be preserved even with --force');
+});
+
+test('A1 branch 7: journal with content, everything dead -> never quarantined', t => {
+  const root = makeProtocolFixture(t);
+  const deadPid = 2147483640;
+  const owner = 'qwen-content-dead';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n## 2026-09-19 - Content test\n\nAgent: qwen\n\nAction: test\n\nResult: test\n\nNext step: test\n\nOpen: none\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: deadPid,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  const pruned = session(root, ['prune', '--force']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'journal with content must NEVER be quarantined, even with --force');
+});
+
+test('A1 branch 8: --force + live supervisor -> preserved (both commands)', t => {
+  const root = makeProtocolFixture(t);
+  const sup = spawn(process.execPath, ['-e', 'setInterval(() => {}, 10000)'], { windowsHide: true });
+  t.after(() => { try { sup.kill(); } catch {} });
+  const liveSupPid = sup.pid;
+  const deadPid = 2147483640;
+
+  const owner = 'qwen-force-livesup';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: deadPid,
+    supervisorPid: liveSupPid,
+    hostname: os.hostname(),
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  const pruned = session(root, ['prune', '--force']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'journal with live supervisor must be preserved even under --force');
+
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(snapshotPath), 'snapshot with live supervisor must be preserved even under --force');
+});
+
+test('A1 branch 9: --force + foreign host -> prune may quarantine (audited), cleanup preserves', t => {
+  const root = makeProtocolFixture(t);
+  const owner = 'qwen-force-foreign';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai/runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: 999999,
+    supervisorPid: 999998,
+    hostname: 'other-foreign-host',
+    files: {},
+  }));
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  // prune --force quarantines with audit warning
+  const pruned = session(root, ['prune', '--force']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.match(pruned.stderr, /\[AUDIT WARN\] quarantining foreign host or unknown liveness journal/);
+  assert.ok(!fs.existsSync(journalPath), 'foreign host empty journal quarantined under --force');
+
+  // cleanup-runtime --force preserves foreign host snapshot
+  fs.writeFileSync(snapshotPath, JSON.stringify({
+    version: 1,
+    pid: 999999,
+    supervisorPid: 999998,
+    hostname: 'other-foreign-host',
+    files: {},
+  }));
+  // create worklog for cleanup check
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+  ageArtifact(snapshotPath, 30);
+
+  const cleaned = session(root, ['cleanup-runtime', '--force']);
+  assert.equal(cleaned.status, 0, cleaned.stderr);
+  assert.ok(fs.existsSync(snapshotPath), 'foreign host snapshot preserved in cleanup even with --force');
+});
+
+test('A1 branch 10: missing state file, empty journal fresh / aged -> preserved / quarantined', t => {
+  const root = makeProtocolFixture(t);
+
+  // Fresh empty journal without state file
+  const freshOwner = 'qwen-nostate-fresh';
+  const freshJournal = path.join(root, `.ai/worklog/${freshOwner}.md`);
+  write(root, `.ai/worklog/${freshOwner}.md`, `# Worklog: ${freshOwner}\n\n`);
+
+  const prunedFresh = session(root, ['prune']);
+  assert.equal(prunedFresh.status, 0, prunedFresh.stderr);
+  assert.ok(fs.existsSync(freshJournal), 'fresh empty journal without state file preserved by recency');
+
+  // Aged empty journal without state file
+  const agedOwner = 'qwen-nostate-aged';
+  const agedJournal = path.join(root, `.ai/worklog/${agedOwner}.md`);
+  write(root, `.ai/worklog/${agedOwner}.md`, `# Worklog: ${agedOwner}\n\n`);
+  ageArtifact(agedJournal, 30);
+
+  const prunedAged = session(root, ['prune']);
+  assert.equal(prunedAged.status, 0, prunedAged.stderr);
+  assert.ok(!fs.existsSync(agedJournal), 'aged empty journal without state file quarantined');
+});
+
+test('A1 branch 11: certify two entries, archive the older (--keep 1), verify --deep -> exit 0', t => {
+  const root = makeProtocolFixture(t, { fastValidator: true });
+  const started = session(root, ['start', '--agent', 'qwen', '--session', 'archive-verify-test']);
+  assert.equal(started.status, 0, started.stderr);
+  const owner = started.stdout.match(/Owner name for the lock and for evidence: (\S+)/)[1];
+  const journalPath = path.join(root, `.ai/worklog/${owner}.md`);
+
+  // Write entry 1
+  const entry1 = `## 2026-09-19 - First entry\n\nAgent: qwen\n\nAction: action 1\n\nResult: result 1\n\nNext step: step 1\n\nOpen: none\n`;
+  write(root, `.ai/worklog/${owner}.md`, `# Worklog: ${owner}\n\n${entry1}\n`);
+
+  const rec1 = run(process.execPath, [
+    path.join(root, '.ai/bin/protocol-handoff.cjs'), 'record',
+    '--owner', owner, '--root', root,
+  ], root);
+  assert.equal(rec1.status, 0, rec1.stderr);
+
+  // Read journal with evidence 1, prepend entry 2
+  const journalContent1 = fs.readFileSync(journalPath, 'utf8');
+  const entry2 = `## 2026-09-19 - Second entry\n\nAgent: qwen\n\nAction: action 2\n\nResult: result 2\n\nNext step: step 2\n\nOpen: none\n`;
+  const updatedJournal = journalContent1.replace(/^(# Worklog: [^\n]+\n\n)/, `$1${entry2}\n---\n\n`);
+  fs.writeFileSync(journalPath, updatedJournal);
+
+  const rec2 = run(process.execPath, [
+    path.join(root, '.ai/bin/protocol-handoff.cjs'), 'record',
+    '--owner', owner, '--root', root,
+  ], root);
+  assert.equal(rec2.status, 0, rec2.stderr);
+
+  // Archive older entry keeping 1 (entry 2 kept in journal, entry 1 moved to ARCHIVE.md)
+  const arch = run(process.execPath, [
+    path.join(root, '.ai/bin/protocol-archive.cjs'), 'worklog',
+    journalPath, '--keep', '1', '--root', root,
+  ], root);
+  assert.equal(arch.status, 0, arch.stderr);
+
+  // Verify --deep must exit 0
+  const verify = run(process.execPath, [
+    path.join(root, '.ai/bin/protocol-handoff.cjs'), 'verify',
+    '--owner', owner, '--deep', '--root', root,
+  ], root);
+  assert.equal(verify.status, 0, verify.stderr);
 });
 

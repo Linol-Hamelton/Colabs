@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
+const { isSessionAlive, checkProcessAlive } = require('./protocol-session.cjs');
 
 // A lock older than this is reported as stale. It is never stolen automatically:
 // DEC-0009 requires inspection before recovery, because a live holder that is
@@ -26,10 +27,7 @@ function isRegisteredLock(root, lock) {
   const targetPid = (typeof lock.sessionPid === 'number' && Number.isInteger(lock.sessionPid) && lock.sessionPid > 0)
     ? lock.sessionPid
     : lock.pid;
-  if (typeof targetPid !== 'number' || !Number.isInteger(targetPid) || targetPid <= 0) return false;
-  let alive = false;
-  try { process.kill(targetPid, 0); alive = true; } catch (e) { alive = e.code === 'EPERM'; }
-  if (!alive) return false;
+  if (!checkProcessAlive(targetPid)) return false;
 
   const stateFile = path.join(root, '.ai', 'runtime', `${lock.owner}.json`);
   try {
@@ -63,17 +61,7 @@ function operate(root, command, owner, forceOrOptions = false) {
     try { return JSON.parse(fs.readFileSync(path.join(gate, 'operation.json'), 'utf8')); }
     catch (error) { return null; }
   };
-  const processAlive = record => {
-    // pid 0 and negatives are not processes; on Windows process.kill(0, 0)
-    // does not throw, which would report an abandoned gate as live.
-    if (!record || record.hostname !== os.hostname()) return null;
-    const targetPid = (typeof record.sessionPid === 'number' && Number.isInteger(record.sessionPid) && record.sessionPid > 0)
-      ? record.sessionPid
-      : record.pid;
-    if (typeof targetPid !== 'number' || !Number.isInteger(targetPid) || targetPid <= 0) return null;
-    try { process.kill(targetPid, 0); return true; }
-    catch (error) { return error.code === 'EPERM'; }
-  };
+  const processAlive = isSessionAlive;
   if (command === 'clear-operation') {
     if (!fs.existsSync(gate)) return { cleared: false, reason: 'no operation gate is present' };
     const record = gateRecord();
@@ -190,9 +178,7 @@ function operate(root, command, owner, forceOrOptions = false) {
         if (!Number.isInteger(num) || num <= 4 || num > 0x7fffffff) {
           throw new Error(`Invalid --session-pid value: ${sessionPidArg} (must be a positive integer > 4 (reserved system PID) and <= 2147483647)`);
         }
-        let isAlive = false;
-        try { process.kill(num, 0); isAlive = true; } catch (e) { isAlive = e.code === 'EPERM'; }
-        if (!isAlive) {
+        if (!checkProcessAlive(num)) {
           throw new Error(`Invalid --session-pid value: ${sessionPidArg} (target process is not running)`);
         }
 

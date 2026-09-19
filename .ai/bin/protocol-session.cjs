@@ -25,12 +25,32 @@ const os = require('node:os');
 const path = require('node:path');
 const hooks = require('./protocol-hooks.cjs');
 
-const isProcessAlive = record => {
+const RECENT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes (D2 heuristic)
+
+function checkProcessAlive(pid) {
+  if (typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === 'EPERM';
+  }
+}
+
+function isSessionAlive(record) {
   if (!record || record.hostname !== os.hostname()) return null;
-  if (typeof record.pid !== 'number' || !Number.isInteger(record.pid) || record.pid <= 0) return null;
-  try { process.kill(record.pid, 0); return true; }
-  catch (error) { return error.code === 'EPERM'; }
-};
+  if (typeof record.supervisorPid === 'number' && Number.isInteger(record.supervisorPid) && record.supervisorPid > 0) {
+    if (checkProcessAlive(record.supervisorPid)) return true;
+    // dead supervisorPid falls through to pid
+  }
+  const targetPid = (typeof record.sessionPid === 'number' && Number.isInteger(record.sessionPid) && record.sessionPid > 0)
+    ? record.sessionPid
+    : record.pid;
+  if (typeof targetPid !== 'number' || !Number.isInteger(targetPid) || targetPid <= 0) return null;
+  return checkProcessAlive(targetPid);
+}
+
+const isProcessAlive = isSessionAlive;
 
 function parse(argv) {
   const command = argv[0];
@@ -67,13 +87,8 @@ function main(argv) {
       if (!Number.isInteger(supPid) || supPid <= 4 || supPid > 0x7fffffff) {
         throw new Error(`Invalid --supervisor-pid: ${options.supervisorPid} (must be an integer > 4 (reserved system PID))`);
       }
-      let isAlive = false;
-      try { process.kill(supPid, 0); isAlive = true; } catch (e) { isAlive = e.code === 'EPERM'; }
-      if (!isAlive) {
+      if (!checkProcessAlive(supPid)) {
         throw new Error(`Invalid --supervisor-pid: process ${supPid} is not alive`);
-      }
-      if (supPid !== process.pid && supPid !== process.ppid) {
-        throw new Error(`Invalid --supervisor-pid: ${supPid} must be current process PID or parent PID (process.ppid)`);
       }
       input.supervisor_pid = supPid;
     }
@@ -170,29 +185,62 @@ function main(argv) {
     let removedCount = 0;
     for (const name of empty) {
       const owner = path.basename(name, '.md');
+      const journalPath = path.join(directory, name);
+      const journalStat = fs.statSync(journalPath);
+      const isRecent = journalStat.mtimeMs >= (Date.now() - RECENT_WINDOW_MS);
+
+      if (activeLockOwner && owner === activeLockOwner) {
+        process.stdout.write(`skipping ${name} (active lock holder)\n`);
+        continue;
+      }
+
+      const stateFile = path.join(root, '.ai', 'runtime', `${owner}.json`);
+      let state = null;
+      let hasState = false;
+      if (fs.existsSync(stateFile)) {
+        try {
+          state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+          hasState = true;
+        } catch { }
+      }
+
+      const liveness = hasState ? isSessionAlive(state) : null;
+
+      // Table 5.2: true -> skip (even with --force)
+      if (liveness === true) {
+        const livePid = (state && (state.supervisorPid || state.pid)) || 'unknown';
+        process.stdout.write(`skipping ${name} (active session process ${livePid})\n`);
+        continue;
+      }
+
       if (!options.force) {
-        if (activeLockOwner && owner === activeLockOwner) {
-          process.stdout.write(`skipping ${name} (active lock holder)\n`);
+        // Table 5.2: null -> preserve
+        if (hasState && liveness === null) {
+          process.stdout.write(`skipping ${name} (unknown liveness or foreign host)\n`);
           continue;
         }
-        const stateFile = path.join(root, '.ai', 'runtime', `${owner}.json`);
-        if (fs.existsSync(stateFile)) {
-          try {
-            const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
-            if (isProcessAlive(state) === true) {
-              process.stdout.write(`skipping ${name} (active session process ${state.pid})\n`);
-              continue;
-            }
-          } catch { }
+
+        // 5.3 Recency fallback: when liveness is false or null (e.g. missing state),
+        // treat as active while mtime >= now - RECENT_WINDOW (15 min)
+        if (isRecent) {
+          process.stdout.write(`skipping ${name} (recent empty journal)\n`);
+          continue;
         }
+      } else {
+        // With --force:
+        // Table 5.2: null -> --force may quarantine with an audit message
+        if (hasState && liveness === null) {
+          process.stderr.write(`[AUDIT WARN] quarantining foreign host or unknown liveness journal ${name} with --force\n`);
+        }
+        // --force overrides recency for liveness === false or missing state
       }
+
       if (options.dryRun) { process.stdout.write(`would quarantine ${name}\n`); continue; }
       const quarantine = path.join(root, '.ai', 'runtime', 'pruned');
       fs.mkdirSync(quarantine, { recursive: true });
-      fs.renameSync(path.join(directory, name), path.join(quarantine, name));
+      fs.renameSync(journalPath, path.join(quarantine, name));
       // Its snapshot is disposable too and belongs to a session that is gone.
-      const state = path.join(root, '.ai', 'runtime', `${owner}.json`);
-      if (fs.existsSync(state)) fs.rmSync(state);
+      if (fs.existsSync(stateFile)) fs.rmSync(stateFile);
       process.stdout.write(`quarantined ${name}\n`);
       removedCount += 1;
     }
@@ -243,8 +291,10 @@ function main(argv) {
         let state = null;
         try { state = JSON.parse(fs.readFileSync(fullPath, 'utf8')); } catch { }
 
-        // Never clean snapshots belonging to active live processes
-        if (isProcessAlive(state) === true) continue;
+        const liveness = isSessionAlive(state);
+
+        // Table 5.2 (:247): true -> skip (even with --force)
+        if (liveness === true) continue;
 
         const journal = name.replace(/\.json$/, '.md');
         // Orphaned snapshots: .json files whose journal no longer exists
@@ -256,9 +306,13 @@ function main(argv) {
           continue;
         }
 
+        // Table 5.2 (:247): null -> preserve (even with --force)
+        if (liveness === null) continue;
+
         // Snapshots from dead session processes older than 24 hours (or if --force and process dead)
+        // Table 5.2 (:261): false -> existing --force/24h rule
         if (options.force || stat.mtimeMs < (Date.now() - 24 * 60 * 60 * 1000)) {
-          if (isProcessAlive(state) === false) {
+          if (liveness === false) {
             if (options.dryRun) { process.stdout.write(`would remove dead session snapshot ${name}\n`); continue; }
             fs.rmSync(fullPath);
             process.stdout.write(`removed dead session snapshot ${name}\n`);
@@ -268,8 +322,8 @@ function main(argv) {
         }
 
         // Stale snapshots older than 7 days — only if process is confirmed dead
-        // (null = unknown liveness, e.g. foreign host — preserved, not deleted)
-        if (stat.mtimeMs < cutoff && isProcessAlive(state) === false) {
+        // Table 5.2 (:272): false -> existing 7d rule
+        if (stat.mtimeMs < cutoff && liveness === false) {
           if (options.dryRun) { process.stdout.write(`would remove stale ${name}\n`); continue; }
           fs.rmSync(fullPath);
           process.stdout.write(`removed stale ${name}\n`);
@@ -326,4 +380,11 @@ if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { main, parse };
+module.exports = {
+  main,
+  parse,
+  isSessionAlive,
+  isProcessAlive,
+  checkProcessAlive,
+  RECENT_WINDOW_MS,
+};

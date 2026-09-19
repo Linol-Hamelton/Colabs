@@ -1373,6 +1373,46 @@ Approved by: RuslanFomenko
 
 ---
 
+### PROTO-DEC-0029
+
+Status: Accepted
+Date: 2026-09-19
+
+Context:
+In release v1.9.4, session liveness evaluation in protocol-session.cjs (`isProcessAlive`) checked only `record.pid` and `record.hostname`. Registered supervisor processes passed via `--supervisor-pid` (`record.supervisorPid`) were ignored during hygiene passes. As a result, `prune` quarantined empty journals and `cleanup-runtime --force` deleted session snapshots even when a live supervisor process was actively running (defect C0, violating PROTO-DEC-0025 item 3). Furthermore, `--supervisor-pid` artificially restricted registration to `process.pid` or `process.ppid`, preventing shell-spawned and external orchestrators from managing session lifecycles. In addition, `prune`'s binary polarity (`=== true`) incorrectly treated unknown liveness (such as foreign hostnames) as prunable, and lacked a recency window to protect legitimate hookless sessions between `start` and initial journal authoring.
+
+Decision:
+1. Unified Three-Way Liveness Contract: Replace `isProcessAlive` across `protocol-session.cjs` and `protocol-lock.cjs` with centralized `isSessionAlive(record)` and `checkProcessAlive(pid)`. Evaluation proceeds supervisor-first:
+   - Foreign host mismatch (`hostname !== os.hostname()`): returns `null`.
+   - `supervisorPid` integer > 0 and alive: returns `true`.
+   - `supervisorPid` integer > 0 and dead: falls through to `pid`/`sessionPid`.
+   - `pid`/`sessionPid` integer > 0 and alive: returns `true`.
+   - `pid`/`sessionPid` integer > 0 and dead: returns `false`.
+   - No usable PID fields (legacy null state): returns `null`.
+2. Explicit Call-Site Polarity:
+   - `prune` (:182): `true` skips (even with `--force`); `false` quarantines aged empty journals; `null` preserves during standard runs and quarantines only under `--force` with an explicit audit warning.
+   - `cleanup-runtime` live check (:247): `true` skips (even with `--force`).
+   - `cleanup-runtime` orphan / foreign check: non-orphan snapshots with `null` liveness are preserved (even with `--force`).
+   - `cleanup-runtime` dead check (:261): `false` follows existing 24h / `--force` removal rules.
+   - `cleanup-runtime` stale check (:272): `false` follows existing 7d removal rules.
+3. Recency Heuristic Fallback: When liveness is `false` or `null`, empty journals and snapshots are treated as active while within a 15-minute `RECENT_WINDOW` (`mtime >= now - 15min`), protecting hookless sessions during initial task ingestion. `--force` overrides the recency fallback, but never overrides confirmed live sessions (`true`). Content-bearing journals remain protected unconditionally by `holdsContent`.
+4. Relaxed Supervisor Registration: Accept any live integer PID > 4 for `--supervisor-pid` at session start. Registration functions as an anti-accident mechanism preventing accidental quarantine by external supervisors, rather than a privilege boundary. Lock commands require `--session-token` to bind to registered non-parent PIDs.
+
+Reasoning:
+Supervisor-first liveness restores the guarantee that active multi-process AI sessions are never pruned. Three-way polarity prevents accidental destruction of foreign-host artifacts. The 15-minute recency window bridges the operational gap between session initialization and first handoff entry without preventing cleanup of genuinely abandoned sessions. Centralizing process liveness logic in `protocol-session.cjs` eliminates duplication across protocol tools.
+
+Alternatives rejected:
+- Supervisor-only without recency: rejected because hookless interactive CLI sessions would remain vulnerable to immediate pruning prior to first entry write.
+- Recency-only without supervisor check: rejected because long-running tasks exceeding the window would be quarantined while actively supervised.
+- Restricting `--supervisor-pid` to `own`/`ppid`: rejected because shell-spawned CLI wrappers run with transient shell parent PIDs that detach immediately.
+
+Consequences:
+`protocol-session.cjs` and `protocol-lock.cjs` share liveness helpers. Test suite `tests/session.test.cjs` validates the 11-branch matrix. Protocol documentation in `.ai/docs/PROTOCOL.md` reflects the supervisor-first model, three-way polarity, and recency window.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
