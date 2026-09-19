@@ -723,3 +723,54 @@ test('A1 branch 11: certify two entries, archive the older (--keep 1), verify --
   assert.equal(verify.status, 0, verify.stderr);
 });
 
+test('AUD-4: corrupt or unreadable state JSON with an aged empty journal is quarantined by prune', t => {
+  const root = makeProtocolFixture(t);
+  const owner = 'qwen-corrupt-state';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  const runtimeDir = path.join(root, '.ai', 'runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  const snapshotPath = path.join(runtimeDir, `${owner}.json`);
+  fs.writeFileSync(snapshotPath, '{ malformed-json: [unclosed');
+
+  ageArtifact(journalPath, 30);
+  ageArtifact(snapshotPath, 30);
+
+  const pruned = session(root, ['prune']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(!fs.existsSync(journalPath), 'aged empty journal with corrupt state file should be quarantined');
+  assert.doesNotMatch(pruned.stderr, /\[AUDIT WARN\]/, 'corrupt state file should fall back to recency without AUDIT WARN');
+});
+
+test('AUD-4: active lock holder empty journal is preserved by prune even under --force', t => {
+  const root = makeProtocolFixture(t);
+  const owner = 'qwen-lock-holder';
+  const journalRel = `.ai/worklog/${owner}.md`;
+  const journalPath = path.join(root, journalRel);
+  write(root, journalRel, `# Worklog: ${owner}\n\n`);
+
+  // Acquire cooperative lock for this owner
+  const lock = run(process.execPath, [
+    path.join(root, '.ai/bin/protocol-lock.cjs'), 'acquire',
+    '--owner', owner, '--root', root,
+  ], root);
+  assert.equal(lock.status, 0, lock.stderr);
+
+  // Age the journal past RECENT_WINDOW
+  ageArtifact(journalPath, 30);
+
+  const pruned = session(root, ['prune', '--force']);
+  assert.equal(pruned.status, 0, pruned.stderr);
+  assert.ok(fs.existsSync(journalPath), 'active lock holder empty journal must be preserved under prune --force');
+  assert.match(pruned.stdout, /skipping qwen-lock-holder\.md \(active lock holder\)/);
+
+  // Release the lock
+  const unlock = run(process.execPath, [
+    path.join(root, '.ai/bin/protocol-lock.cjs'), 'release',
+    '--owner', owner, '--root', root,
+  ], root);
+  assert.equal(unlock.status, 0, unlock.stderr);
+});
+

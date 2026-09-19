@@ -20,6 +20,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const hooks = require('./protocol-hooks.cjs');
+const archive = require('./protocol-archive.cjs');
 
 const CHECKS = [
   { name: 'validate-protocol.ps1', quick: true },
@@ -378,18 +379,25 @@ function newestSection(text) {
   return { sections, index, normalized };
 }
 
-function attach(journalPath, block) {
-  const text = fs.readFileSync(journalPath, 'utf8');
+function formatWithEvidence(text, block) {
   const found = newestSection(text);
-  if (!found) throw new Error(`No dated entry in ${journalPath}. Write the entry first, then record evidence.`);
+  if (!found) return null;
   let section = found.sections[found.index];
   const trailing = section.match(/\n(-{3,}\s*)$/);
   const separator = trailing ? `\n${trailing[1]}` : '';
   if (trailing) section = section.slice(0, section.length - separator.length);
   section = section.replace(/\n*Evidence:[\s\S]*$/, '\n');
   section = `${section.replace(/\n+$/, '')}\n\n${block}\n${separator ? `${separator}\n` : ''}`;
-  found.sections[found.index] = section;
-  fs.writeFileSync(journalPath, found.sections.join(''));
+  const sections = [...found.sections];
+  sections[found.index] = section;
+  return sections.join('');
+}
+
+function attach(journalPath, block) {
+  const text = fs.readFileSync(journalPath, 'utf8');
+  const updated = formatWithEvidence(text, block);
+  if (updated === null) throw new Error(`No dated entry in ${journalPath}. Write the entry first, then record evidence.`);
+  fs.writeFileSync(journalPath, updated);
 }
 
 // The digest deliberately excludes .ai/worklog, or writing the Evidence block
@@ -528,7 +536,6 @@ function main(argv) {
     const journalPath = resolveJournal(root, options.journal, options.owner);
     // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
     try {
-      const archive = require('./protocol-archive.cjs');
       archive.autoArchiveWorklog(root, journalPath, 150, 1, options.owner);
     } catch { }
     const journalText = fs.readFileSync(journalPath, 'utf8');
@@ -544,19 +551,62 @@ function main(argv) {
     const after = anchor(root);
     // Hash the entry as it stands before the block is attached, so the
     // hash covers the claim and not itself.
-    const parentEntry = findParentEntry(journalPath);
+    let parentEntry = findParentEntry(journalPath);
     if (parentEntry === 'tampered') {
       throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ` +
         'Previous entry hash does not match its contents.');
     }
-    const chainCheck = verifyJournalChain(root, journalPath);
+    let chainCheck = verifyJournalChain(root, journalPath);
     if (!chainCheck.ok) {
       throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ${chainCheck.reason}`);
     }
     const provisionalEntry = `sha256:${'0'.repeat(64)}`;
-    attach(journalPath, renderEvidence(
+    let evidenceBlock = renderEvidence(
       after, checks, options.owner, provisionalEntry, Boolean(options.quick), parentEntry,
-    ));
+    );
+
+    let currentJournalText = fs.readFileSync(journalPath, 'utf8');
+    let projected = formatWithEvidence(currentJournalText, evidenceBlock);
+    if (projected === null) {
+      throw new Error(`No dated entry in ${path.relative(root, journalPath)}. Write the entry first, then record evidence.`);
+    }
+
+    if (archive.getLineCount(projected) > 150) {
+      const foundSection = newestSection(currentJournalText);
+      const firstHeading = currentJournalText.replace(/\r\n/g, '\n').search(/^## /m);
+      const preamble = firstHeading !== -1 ? currentJournalText.slice(0, firstHeading) : '';
+      const dummyArchivedMarker = '<!-- archived-parent: sha256:' + '0'.repeat(64) + ' -->\n\n---\n\n';
+      const singleEntryText = (preamble.trim() ? preamble.trim() + '\n\n' : '') + dummyArchivedMarker + foundSection.sections[foundSection.index];
+      const singleProjected = formatWithEvidence(singleEntryText, evidenceBlock);
+      if (archive.getLineCount(singleProjected) > 150) {
+        throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: journal entry is too long; split the entry before recording.`);
+      }
+
+      // Archive older entries first (keep newest = 1)
+      archive.autoArchiveWorklog(root, journalPath, 0, 1, options.owner);
+      currentJournalText = fs.readFileSync(journalPath, 'utf8');
+
+      // Re-evaluate chain links in case parent entry moved to archive
+      parentEntry = findParentEntry(journalPath);
+      if (parentEntry === 'tampered') {
+        throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ` +
+          'Previous entry hash does not match its contents.');
+      }
+      chainCheck = verifyJournalChain(root, journalPath);
+      if (!chainCheck.ok) {
+        throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: historical entry link is tampered. ${chainCheck.reason}`);
+      }
+
+      evidenceBlock = renderEvidence(
+        after, checks, options.owner, provisionalEntry, Boolean(options.quick), parentEntry,
+      );
+      projected = formatWithEvidence(currentJournalText, evidenceBlock);
+      if (archive.getLineCount(projected) > 150) {
+        throw new Error(`Cannot record evidence in ${path.relative(root, journalPath)}: journal entry is too long; split the entry before recording.`);
+      }
+    }
+
+    fs.writeFileSync(journalPath, projected);
     const entryDigest = entryHash(journalPath);
     const updated = fs.readFileSync(journalPath, 'utf8')
       .replace(`- entry: ${provisionalEntry}`, `- entry: ${entryDigest}`);
@@ -664,4 +714,4 @@ if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { anchor, attach, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain, verifyArchivedChain, archiveEntryRecords, parseEvidenceBlock, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, ENTRY_HASH_FORMAT, hasEntryHashFormat2, canonicalEntryBody };
+module.exports = { anchor, attach, formatWithEvidence, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain, verifyArchivedChain, archiveEntryRecords, parseEvidenceBlock, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, ENTRY_HASH_FORMAT, hasEntryHashFormat2, canonicalEntryBody };

@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - Owner approved Item 1 gate; PROTO-DEC-0029 recorded; Item 2 prompt dispatched
+## 2026-09-19 - Item 2 (A2) audited PASS; B5 approval provenance implemented
 
 Agent: deepseek-flash
 
-Action: Applied the owner's gate approval. Inserted PROTO-DEC-0029 into `.ai/DECISIONS.md` under the shared-doc lock, appended before the template section: Status Accepted, the approved liveness text, and `Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)`. Updated `.ai/TASK.md` under the same lock (A1 checked with audit status; current state and next steps point to AUD-1 then Item 2). Post-insertion validator: exit 0, 0 warnings, 29 decision blocks inspected, 28 committed blocks unchanged, TASK 28 lines. Wrote the Item 2 dispatch prompt `docs/reviews/2026-09-19-gemini-v1.9.5-item2-prompt.md`: Step 0 applies the AUD-1 wording fix to PROTOCOL.md, re-runs the checks and commits Item 1 atomically with an exact pathspec (code, tests, docs, DEC-0029, TASK, both journals, the audit report; MCP report and the prompt excluded; no push); Step 1 defines Item 2 (A2) - the record ordering fix with projected-size check and actionable failure, near-cap regression tests, the three-step cap maintenance procedure, creation of `.github/workflows/protocol.yml` (none exists today) failing on validator WARN, short PROTOCOL.md documentation, AUD-4 tests (corrupt state; lock holder under `prune --force`), and evidence plus stop-for-audit rules.
+Action: Audited Gemini's Item 2 independently. Ran the checks myself: session 33/33, handoff 32/32, full suite 216/216, validator exit 0 with 0 warnings and 29 journals, Gemini receipt `verify --deep` exit 0. Reviewed the diff: `formatWithEvidence` is a pure projection shared by `attach` and `record`; the pre-write projection simulates the archived-parent marker and the single-entry case; the forced archive uses `autoArchiveWorklog(root, path, 0, 1, owner)`; parent re-resolution falls back to `findArchivedParent`; the failure path throws before any write. Ran independent E2E probes in a genuine shallow clone with the real validator (no fastValidator): near-cap journal 140 lines -> record -> 85 lines with `verify --deep` exit 0; re-record leaves 85 lines and verifies; an oversized single entry exits 1 with the exact actionable message and an unchanged journal SHA-256; the CI workflow's exact snippet detected an injected `[WARN]` (31 journals) and exited non-zero; the validator passes in a shallow clone, which is the CI checkout mode. Implemented B5 on the owner's instruction: AGENTS.md section 2 now carries the approval-transcription rule with provenance; `PROTO-DEC-0030` records it; the plan's decision numbers shifted (A4 = 0031, A3 = 0032, B registry = 0033); post-change validator: 30 decision blocks inspected, installer self-check PASS, 0 warnings. Wrote `docs/reviews/2026-09-19-deepseek-flash-a2-audit.md` with verdict PASS, the probe matrix, and the exact two-commit instruction for the owner.
 
-Result: The owner's approval is now recorded in the repository rather than only in chat: decision block, TASK state and audit report. The implementer is unblocked to apply AUD-1, commit Item 1, and start Item 2. No implementation file was touched by this session; the only writes were DECISIONS.md and TASK.md under the lock, the prompt file and this journal.
+Result: Item 2 verified and ready to commit; B5 live and validated. No implementation file was modified by this session; the writes were AGENTS.md, `.ai/DECISIONS.md`, `.ai/TASK.md`, the plan, the audit report and this journal, with the shared-doc lock taken and released for the decision and task files.
 
-Next step: Gemini executes the Item 2 prompt; DeepSeek audits Item 2 before its commit.
+Next step: Owner approves; Gemini commits Item 2 and B5 as two atomic commits, then implements Item 3 (A4 capability/evidence discipline); DeepSeek audits before its commit.
 
-Open: AUD-1 before the Item 1 commit; AUD-4 with Item 2; owner Y/N on the proposed AGENTS.md approval-provenance clarification (B5).
+Open: Item 2/B5 commits; owner push; Item 3 dispatch.
 
 Evidence:
-- anchor: 6624c8c218505fd4e18d9f44d61d5734c4533cff, uncommitted changes present
-- digest: sha256:ebc7e0e871280d617902682180a26e09fef0abd3d9339a79626fcf1a0d11998e over 126 tracked and untracked files
+- anchor: 8beca2b9346f8341f20a945e7f29eff969c36680, uncommitted changes present
+- digest: sha256:6f42b05016d89f49f458bb6ffd3b8a978aa8e6311763b5ec93999a8228e9642c over 127 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T01:38:50.635Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T02:02:31.430Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:69e964bbc211bbe1a761e5ce5269dce9dc7f33e72499765fec574b8062795cd5 of this entry without this block
+- entry: sha256:ce9f5fe298bc38d8bf937090eb6af5f5b3c144ba60ed5d039f5fdbe83c141868 of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 95s
+- test-protocol.ps1: exit 0 in 97s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---

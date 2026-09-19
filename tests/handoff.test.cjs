@@ -552,5 +552,73 @@ test('P-4: findParentEntry resolves older section when parent-entry precedes ent
   assert.equal(resolvedParent, olderEntryDigest);
 });
 
+test('Fact 11: journal at limit-minus-10 lines auto-archives older entries during record to keep total lines <= 150', t => {
+  const root = makeProtocolFixture(t, { fastValidator: true });
+  const owner = 'test-near-cap';
+  const journal = `.ai/worklog/${owner}.md`;
+  const full = path.join(root, journal);
+
+  // Write entry 1 and record it
+  const filler1 = Array.from({ length: 45 }, (_, i) => `note line ${i + 1}`).join('\n');
+  const entry1 = `## 2026-09-18 - Older turn\n\nAgent: tester\n\nAction:\n${filler1}\n\nResult: Pass.\n\nNext step: Next.\n\nOpen: None.\n`;
+  write(root, journal, `# Worklog: ${owner}\n\n${entry1}\n`);
+  const rec1 = cli(root, ['record', '--owner', owner, '--quick']);
+  assert.equal(rec1.status, 0, rec1.stderr);
+
+  // Read recorded journal with evidence 1
+  const textAfterRec1 = fs.readFileSync(full, 'utf8');
+  const archiveMod = require('../.ai/bin/protocol-archive.cjs');
+  const lines1 = archiveMod.getLineCount(textAfterRec1);
+
+  // We want total journal lines to be ~140 (limit-minus-10) before record 2
+  const neededFillerLines = 140 - lines1 - 14;
+  const filler2 = Array.from({ length: Math.max(neededFillerLines, 10) }, (_, i) => `action step ${i + 1}`).join('\n');
+  const entry2 = `## 2026-09-19 - Newest turn\n\nAgent: tester\n\nAction:\n${filler2}\n\nResult: Pass.\n\nNext step: Next.\n\nOpen: None.\n`;
+
+  const updatedJournal = textAfterRec1.replace(/^(# Worklog: [^\n]+\n\n)/, `$1${entry2}\n---\n\n`);
+  fs.writeFileSync(full, updatedJournal);
+
+  const countBefore = archiveMod.getLineCount(fs.readFileSync(full, 'utf8'));
+  assert.ok(countBefore >= 135 && countBefore <= 145, `Expected countBefore near 140, got ${countBefore}`);
+
+  // Running record without the fix would push 140 + ~14 = 154 lines > 150
+  // With the fix, it must auto-archive entry 1 and keep entry 2 with fresh evidence <= 150 lines
+  const rec2 = cli(root, ['record', '--owner', owner, '--quick']);
+  assert.equal(rec2.status, 0, rec2.stderr);
+
+  const contentAfterRec2 = fs.readFileSync(full, 'utf8');
+  const countAfter = archiveMod.getLineCount(contentAfterRec2);
+  assert.ok(countAfter <= 150, `Expected journal length <= 150, got ${countAfter}`);
+
+  // verify --deep must exit 0
+  const verified = cli(root, ['verify', '--owner', owner, '--deep']);
+  assert.equal(verified.status, 0, verified.stderr);
+
+  // ARCHIVE.md must contain entry 1
+  const archiveContent = fs.readFileSync(path.join(root, '.ai', 'ARCHIVE.md'), 'utf8');
+  assert.match(archiveContent, /Older turn/);
+});
+
+test('Fact 11: simulated oversized single entry causes record to exit non-zero with actionable message and leaves journal unchanged', t => {
+  const root = makeProtocolFixture(t, { fastValidator: true });
+  const owner = 'test-oversized';
+  const journal = `.ai/worklog/${owner}.md`;
+  const full = path.join(root, journal);
+
+  // Single entry whose body is 142 lines (so + Evidence will exceed 150)
+  const filler = Array.from({ length: 135 }, (_, i) => `detailed explanation step ${i + 1}`).join('\n');
+  const oversizedEntry = `## 2026-09-19 - Oversized turn\n\nAgent: tester\n\nAction:\n${filler}\n\nResult: Pass.\n\nNext step: Next.\n\nOpen: None.\n`;
+  const initialJournal = `# Worklog: ${owner}\n\n${oversizedEntry}\n`;
+  write(root, journal, initialJournal);
+
+  const rec = cli(root, ['record', '--owner', owner, '--quick']);
+  assert.notEqual(rec.status, 0);
+  assert.match(rec.stderr, /journal entry is too long; split the entry before recording/);
+
+  // Journal on disk must be completely unchanged
+  const currentContent = fs.readFileSync(full, 'utf8');
+  assert.equal(currentContent, initialJournal, 'Journal content was modified despite record failure');
+});
+
 
 

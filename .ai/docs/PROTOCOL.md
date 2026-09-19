@@ -204,7 +204,18 @@ recency window; once it is older than `RECENT_WINDOW` it is quarantined. Content
 journals are always protected by `holdsContent` and never quarantined.
 
 Automatic archiving runs on `stop` and `record` whenever a journal exceeds 150 lines,
-moving older entries into `.ai/ARCHIVE.md` while keeping the newest entry.
+moving older entries into `.ai/ARCHIVE.md` while keeping the newest entry. During
+`record`, the final line count is computed with the fresh Evidence block *before*
+writing; if the projected journal exceeds 150 lines, older entries are auto-archived
+first. If the single newest entry plus preamble and fresh Evidence still exceeds 150
+lines, `record` exits non-zero with an actionable error and leaves the journal unmodified,
+guaranteeing that `record` never produces an invalid journal over 150 lines.
+
+The 30-journal cap is evaluated across the Git index (`git ls-files --cached --others --exclude-standard`).
+Decommissioning a session journal is a three-step procedure:
+1. `node .ai/bin/protocol-archive.cjs worklog <path> --keep 0` (move all entries to `.ai/ARCHIVE.md`)
+2. `node .ai/bin/protocol-session.cjs prune` (quarantine the empty journal)
+3. `git add -A -- <removed-path>` (stage the removal in the index, keeping the index count <= 30)
 
 ---
 
