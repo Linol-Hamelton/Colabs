@@ -135,8 +135,13 @@ function main(argv) {
       ? `Nothing outstanding. ${paths.worklog} holds a complete entry.\n`
       : `Nothing changed in the tree, and ${paths.worklog} holds no complete entry. Nothing was handed off.\n`);
     if (result && (result.durationSec !== undefined || result.changedFiles !== undefined)) {
-      const elapsed = result.durationSec ? ` in ~${result.durationSec}s` : '';
-      process.stdout.write(`Session telemetry: ${result.changedFiles || 0} file(s) changed${elapsed}.\n`);
+      const elapsed = (result.durationSec !== undefined && result.durationSec !== null)
+        ? ` in ~${result.durationSec}s` : '';
+      const firstEdit = (result.firstEditMs !== undefined && result.firstEditMs !== null)
+        ? `, first edit at +${result.firstEditMs}ms` : '';
+      const handoff = result.handoffComplete !== undefined
+        ? `, handoff ${result.handoffComplete ? 'complete' : 'incomplete'}` : '';
+      process.stdout.write(`Session telemetry: ${result.changedFiles || 0} file(s) changed${elapsed}${firstEdit}${handoff}.\n`);
     }
     // Surface advisory warnings (missing Evidence, non-standard format, out-of-role work).
     if (result && result.stopWarnings && result.stopWarnings.length) {

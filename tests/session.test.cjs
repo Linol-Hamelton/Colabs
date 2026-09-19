@@ -87,6 +87,28 @@ test('stop reports a changed tree with no new complete entry', t => {
   assert.match(stopped.stderr, /no new complete entry/);
 });
 
+test('stop prints extended telemetry including wall time and handoff status', t => {
+  const root = makeProtocolFixture(t);
+  const startRes = session(root, ['start', '--agent', 'qwen', '--session', 'telemetry-stop']);
+  assert.equal(startRes.status, 0, startRes.stderr);
+  const journal = startRes.stdout.match(/Journal: (\S+)/)[1];
+
+  // Stop with clean tree
+  const cleanStop = session(root, ['stop', '--agent', 'qwen', '--session', 'telemetry-stop']);
+  assert.equal(cleanStop.status, 0, cleanStop.stderr);
+  assert.match(cleanStop.stdout, /Session telemetry: 0 file\(s\) changed in ~\d+s, handoff incomplete\./);
+
+  // Edit file and add complete journal entry
+  write(root, 'new-file.txt', 'Edits made.\n');
+  const entryText = `## 2026-09-19 - Test entry\n\nAgent: qwen\n\nAction: did work\n\nResult: verified\n\nNext step: handoff\n\nOpen: none\n`;
+  const existingJournal = fs.readFileSync(path.join(root, journal), 'utf8');
+  fs.writeFileSync(path.join(root, journal), existingJournal + '\n' + entryText);
+
+  const editedStop = session(root, ['stop', '--agent', 'qwen', '--session', 'telemetry-stop']);
+  assert.equal(editedStop.status, 0, editedStop.stderr);
+  assert.match(editedStop.stdout, /Session telemetry: 1 file\(s\) changed in ~\d+s, first edit at \+\d+ms, handoff complete\./);
+});
+
 test('whoami names the journal without creating one', t => {
   const root = makeProtocolFixture(t);
   const who = session(root, ['whoami', '--agent', 'qwen', '--session', 'never-started']);

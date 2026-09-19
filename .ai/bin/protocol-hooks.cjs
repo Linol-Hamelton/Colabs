@@ -487,9 +487,88 @@ function run(event, input, agent = 'claude') {
     const owner = path.basename(paths.worklog, '.md');
     archive.autoArchiveWorklog(root, paths.worklog, 150, 1, owner);
   } catch { }
+
+  const startTime = (previous && typeof previous.startTime === 'number')
+    ? previous.startTime
+    : (typeof current.startTime === 'number' ? current.startTime : null);
+  const durationSec = typeof startTime === 'number'
+    ? Math.max(0, Math.round((Date.now() - startTime) / 1000))
+    : 0;
+
+  // Compute firstEditMs: when changed.length > 0, the earliest filesystem mtime
+  // among the changed paths minus startTime (in ms); skip vanished paths; null when
+  // nothing changed or no mtime is readable.
+  // Note: filesystem mtime records the last write timestamp, so mtime - startTime is
+  // an upper bound of the true first edit time.
+  let firstEditMs = null;
+  if (changed.length > 0 && typeof startTime === 'number') {
+    let earliestMtime = Infinity;
+    for (const name of changed) {
+      try {
+        const stat = fs.statSync(path.join(root, name));
+        if (stat.mtimeMs < earliestMtime) {
+          earliestMtime = stat.mtimeMs;
+        }
+      } catch {
+        // Vanished paths (e.g. deleted files) or unreadable entries are skipped.
+      }
+    }
+    if (earliestMtime !== Infinity) {
+      firstEditMs = Math.max(0, Math.round(earliestMtime - startTime));
+    }
+  }
+
+  const telemetry = {
+    changedFiles: changed.length,
+    durationSec,
+    firstEditMs,
+    handoffComplete: complete,
+  };
+
+  // Append machine-readable metrics line to .ai/runtime/metrics/sessions.jsonl (fail-safe).
+  let gitHead = null;
+  try {
+    gitHead = git(root, ['rev-parse', 'HEAD']).trim() || null;
+  } catch {
+    gitHead = null;
+  }
+  recordSessionMetric(root, {
+    ts: new Date().toISOString(),
+    session: (input && input.session_id) || path.basename(paths.worklog, '.md'),
+    agent,
+    changedFiles: changed.length,
+    durationSec,
+    firstEditMs,
+    handoffComplete: complete,
+    gitHead,
+  });
+
   // Stop runs after every response. Successful handoffs establish the next turn's baseline.
   saveState(paths.state, current);
-  return warnings.length ? { stopWarnings: warnings } : {};
+  return warnings.length ? { stopWarnings: warnings, ...telemetry } : { ...telemetry };
+}
+
+const METRICS_MAX_BYTES = 1024 * 1024; // ~1 MB
+
+function recordSessionMetric(root, record) {
+  try {
+    const metricsDir = path.join(root, '.ai', 'runtime', 'metrics');
+    fs.mkdirSync(metricsDir, { recursive: true });
+    const logFile = path.join(metricsDir, 'sessions.jsonl');
+    const rotatedFile = path.join(metricsDir, 'sessions.1.jsonl');
+    try {
+      if (fs.existsSync(logFile)) {
+        const stat = fs.statSync(logFile);
+        if (stat.size >= METRICS_MAX_BYTES) {
+          if (fs.existsSync(rotatedFile)) fs.unlinkSync(rotatedFile);
+          fs.renameSync(logFile, rotatedFile);
+        }
+      }
+    } catch { }
+    fs.appendFileSync(logFile, JSON.stringify(record) + '\n', 'utf8');
+  } catch {
+    // Fail-safe: metrics failure must never fail or block a hook.
+  }
 }
 
 function sessionNonce(root, owner) {
@@ -510,4 +589,4 @@ function main(agent = 'claude') {
 }
 
 if (require.main === module) main();
-module.exports = { SNAPSHOT_FORMAT, DIRTY_SYMBOL, ENTRY_HASH_FORMAT, AGENT_NAME, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, context, assignment, latestCompleteEntry, entryField, findSecretLeak, stopWarnings, sessionPaths, readState, sessionNonce, hasEntryHashFormat2, canonicalEntryBody, run, changedFiles, snapshot, fingerprint, main };
+module.exports = { SNAPSHOT_FORMAT, DIRTY_SYMBOL, ENTRY_HASH_FORMAT, AGENT_NAME, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, context, assignment, latestCompleteEntry, entryField, findSecretLeak, stopWarnings, sessionPaths, readState, sessionNonce, hasEntryHashFormat2, canonicalEntryBody, run, changedFiles, snapshot, fingerprint, main, recordSessionMetric, METRICS_MAX_BYTES };

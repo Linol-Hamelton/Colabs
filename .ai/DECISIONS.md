@@ -1567,6 +1567,38 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0035
+
+Status: Accepted
+Date: 2026-09-19
+Reopen-trigger: none
+
+Context:
+In accordance with owner decisions M1-M5 and plan revision 2 section 6 (C1), evaluating the empirical utility of a universal repository digest layer requires telemetry that is independent of handoff evidence, alongside pre-registered thresholds that prevent confirmation bias or schema-tax creep.
+
+Decision:
+1. Stop telemetry instrumentation: extend the Stop hook return object with additive fields - `changedFiles` (integer), `durationSec` (integer wall time), `firstEditMs` (earliest filesystem mtime among changed files minus `startTime`, or `null` when clean; mtime is an upper bound of the true first edit), and `handoffComplete` (boolean). `protocol-session.cjs stop` prints these fields without destabilizing the existing message prefix. Fail-safe machine-readable metrics: one JSONL record per Stop event to `.ai/runtime/metrics/sessions.jsonl` (`{ts, session, agent, changedFiles, durationSec, firstEditMs, handoffComplete, gitHead}`) with rotation at 1 MB to `sessions.1.jsonl`; metrics are never written into journals or committed files.
+2. Pilot design and pre-registered adoption thresholds: the experimental protocol in `docs/reviews/2026-09-19-h1-pilot-design.md` across three isolated arms (Arm A control, Arm B Repomix CLI on demand, Arm C Repomix MCP sandboxed) over ten crossed tasks (five broad audits, five narrow edits).
+   - Adoption gate (Arm B): adopt the universal CLI digest layer (M1) only if median total session tokens drop by at least 25% on broad tasks, narrow-task token growth stays within 5%, and the handoff-completeness rate does not decrease relative to the Arm A baseline.
+   - MCP gate (Arm C): adopt the sandboxed Repomix MCP (M2) only if Arm B passes and tool-schema overhead stays within 1500 tokens without quality regression.
+   - Stop rule: if Arm B breaches any threshold, document the negative result and terminate without MCP adoption.
+   - Projections: the 35%/50%/65% savings forecast remains an unverified hypothesis and is not established fact until the pilot verifies it.
+
+Reasoning:
+Telemetry that does not depend on handoff Evidence enables objective measurement without disturbing the certified audit chain, and runtime-only metrics keep the completion gate independent of external state as required by PROTO-DEC-0034. Pre-registering the thresholds prevents post-hoc goalpost shifting: the pilot can only confirm or refute the hypothesis, not redefine it.
+
+Alternatives rejected:
+- Measuring resource usage from handoff Evidence: rejected because Evidence certifies content, not consumption, and lives inside the journal format.
+- Deciding adoption without pre-registered thresholds: rejected because the unverified projections would harden into conclusions.
+- Writing metrics into journals or committed files: rejected because it would pollute the audit chain and the tree digest.
+
+Consequences:
+Telemetry is backward-compatible and available to all participating models; the pilot produces an objective basis for M1-M3; no external dependency, network call or gate change is introduced.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

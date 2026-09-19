@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - C1 dispatch prompt prepared (H1 instrumentation and pilot design)
+## 2026-09-19 - C1 doc-fix re-verified PASS; item ready to commit
 
 Agent: deepseek-flash
 
-Action: Prepared the C1 item. Reconnaissance confirmed the wiring points: `protocol-hooks.cjs` `run('Stop')` computes the changed-file list and the snapshot state carries `startTime`; `protocol-session.cjs` already has the telemetry print branch that never fires; `.claude/hooks/protocol-hooks.cjs` is a thin wrapper, so only the canonical hook module changes. Wrote `docs/reviews/2026-09-19-gemini-c1-instrumentation-prompt.md`: Part A wires the Stop telemetry (`changedFiles`, `durationSec`, `firstEditMs` with the documented mtime approximation, `handoffComplete`) and appends fail-safe JSONL metrics to `.ai/runtime/metrics/sessions.jsonl` with 1 MB rotation, plus tests; Part B specifies the design-only Repomix pilot (arms A/B/C, ten crossed tasks, pre-registered thresholds - >= 25% median token reduction on broad tasks, <= 5% narrow regression, schema <= 1500 tokens, no handoff-completeness drop, the 35/50/65 forecast staying unverified); Part C drafts `PROTO-DEC-0035` for owner approval. The cooperation matrix and Serena/Qdrant remain deferred until after the pilot.
+Action: Re-verified the three required document corrections. D-1: the pilot design now carries a clean design-document header (`Author: Gemini (implementer)`, `Status: Design - not a review artifact`) and a grep for review header fields returns zero. D-2: the handoff threshold row now reads `R(handoff) >= R(Arm A)` with consistent prose. D-3: the freeze baseline no longer references `a8f8985` but "the commit that includes this C1 instrumentation (created after the audit)". Checks: context-policy 2/2, validator exit 0 with 0 warnings, implementer receipt fresh. Wrote `docs/reviews/2026-09-19-deepseek-flash-c1-audit-addendum.md` with verdict PASS.
 
-Result: C1 is ready to dispatch; no implementation file touched; the new artifacts are the prompt and this journal.
+Result: The C1 item (telemetry instrumentation plus the corrected pilot design and the transcribed `PROTO-DEC-0035`) is ready for the owner's commit. No implementation file was modified by this session.
 
-Next step: Owner dispatches the C1 prompt to Gemini; DeepSeek audits before the commit; then the Repomix pilot and the external audit round.
+Next step: Owner commits C1 and pushes; then the Repomix pilot runs per the design and produces `docs/reviews/2026-09-19-h1-pilot-report.md`.
 
-Open: C1 implementation and audit; `PROTO-DEC-0035` approval; pilot execution; cleanup/v2.0 decision.
+Open: C1 commit; pilot execution; external audit round and the cleanup/v2.0 decision afterwards.
 
 Evidence:
-- anchor: d10df834261c4c8a7aeb165c86cd5349f7ee154b, uncommitted changes present
-- digest: sha256:000c0888eee4fe7ba2e269e0fd53bfaba8f21636c3edaa64db62356df67bac76 over 159 tracked and untracked files
+- anchor: a8f8985ed96b8099a7c2b012cabfacf0b8ed98ff, uncommitted changes present
+- digest: sha256:4968f9f39c12e8fe07302cbebe414b519b9b7206d41c242b92746defcadb3210 over 163 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T12:49:09.344Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T13:30:38.919Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:5b2256432a0052165ceac9493548b8374d30c641cb39a16a795cd68955295195 of this entry without this block
+- entry: sha256:9a85baaca2e576cadf7b730a88aa635c731a7e1ef6962e78be110b2c80b980de of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 114s
+- test-protocol.ps1: exit 0 in 117s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---

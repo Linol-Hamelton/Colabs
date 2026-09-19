@@ -44,13 +44,24 @@ function warning(result) {
   assert.equal(result.decision, undefined, 'Stop must never block');
 }
 
+function okStop(result, expected = {}) {
+  assert.equal(result.systemMessage, expected.systemMessage, result.systemMessage);
+  assert.equal(typeof result.changedFiles, 'number');
+  assert.equal(typeof result.durationSec, 'number');
+  assert.ok(result.firstEditMs === null || typeof result.firstEditMs === 'number');
+  assert.equal(typeof result.handoffComplete, 'boolean');
+  if (expected.changedFiles !== undefined) assert.equal(result.changedFiles, expected.changedFiles);
+  if (expected.firstEditMs !== undefined) assert.equal(result.firstEditMs, expected.firstEditMs);
+  if (expected.handoffComplete !== undefined) assert.equal(result.handoffComplete, expected.handoffComplete);
+}
+
 test('read-only sessions ignore pre-existing edits and ignored runtime files', t => {
   const root = fixture(t);
   write(root, 'source.txt', 'Already dirty before this session.\n');
   write(root, 'pre-existing untracked.txt', 'Other work.\n');
   start(root);
   write(root, '.ai/runtime/generated.json', '{}\n');
-  assert.deepEqual(hook(root, 'Stop'), {});
+  okStop(hook(root, 'Stop'), { changedFiles: 0, firstEditMs: null });
 });
 
 test('snapshot metadata does not collide with a file named __dirty', t => {
@@ -84,7 +95,7 @@ test('same timestamp, touched worklog, and header-only edits do not count as a h
   const root = fixture(t);
   const { worklog } = start(root);
   write(root, worklog, entry('Earlier handoff'));
-  assert.deepEqual(hook(root, 'Stop'), {});
+  okStop(hook(root, 'Stop'), { changedFiles: 0, firstEditMs: null });
   const fixedTime = new Date('2026-09-11T00:00:00Z');
   write(root, 'source.txt', 'A new change.\n');
   fs.utimesSync(path.join(root, 'source.txt'), fixedTime, fixedTime);
@@ -93,7 +104,7 @@ test('same timestamp, touched worklog, and header-only edits do not count as a h
   fs.appendFileSync(path.join(root, worklog), '\n## Entry template\nChanged boilerplate.\n');
   warning(hook(root, 'Stop'));
   write(root, worklog, `${entry('Current handoff')}\n${entry('Earlier handoff')}`);
-  assert.deepEqual(hook(root, 'Stop'), {});
+  okStop(hook(root, 'Stop'), { changedFiles: 1, handoffComplete: true });
   write(root, 'source.txt', 'Next turn, same timestamp.\n');
   fs.utimesSync(path.join(root, 'source.txt'), fixedTime, fixedTime);
   warning(hook(root, 'Stop'));
@@ -106,8 +117,8 @@ test('an incomplete entry cannot acknowledge changes; a new complete entry can',
   write(root, worklog, '## 2026-09-11 - Incomplete\n\nAgent: Claude\n\nAction:\nStarted.\n');
   warning(hook(root, 'Stop'));
   write(root, worklog, entry());
-  assert.deepEqual(hook(root, 'Stop'), {});
-  assert.deepEqual(hook(root, 'Stop'), {});
+  okStop(hook(root, 'Stop'), { changedFiles: 1, handoffComplete: true });
+  okStop(hook(root, 'Stop'), { changedFiles: 0, handoffComplete: false });
 });
 
 test('session-specific worklogs prevent another Claude session satisfying the check', t => {
@@ -118,7 +129,7 @@ test('session-specific worklogs prevent another Claude session satisfying the ch
   assert.match(second.worklog, /^\.ai\/worklog\/claude-[a-f0-9]{16}\.md$/);
   write(root, 'source.txt', 'Changed.\n');
   write(root, first.worklog, entry());
-  assert.deepEqual(hook(root, 'Stop', 'first'), {});
+  okStop(hook(root, 'Stop', 'first'), { changedFiles: 1, handoffComplete: true });
   warning(hook(root, 'Stop', '../second/session'));
 });
 
@@ -202,7 +213,7 @@ test('the configured Git Bash commands work at root, in subdirectories, and in a
   ]) {
     const result = configured('SessionStart', cwd, projectDir, cwd, session);
     assert.match(result.hookSpecificOutput?.additionalContext || JSON.stringify(result), /Your worklog:/);
-    assert.deepEqual(configured('Stop', cwd, projectDir, cwd, session), {});
+    okStop(configured('Stop', cwd, projectDir, cwd, session), { changedFiles: 0, firstEditMs: null });
   }
   const worktree = path.join(makeFixture(t), 'worktree with spaces');
   const added = git(root, ['worktree', 'add', '--detach', worktree, 'HEAD']);
@@ -225,3 +236,81 @@ test('Stop warns and flags unredacted secret patterns in worklog entries', t => 
   const stop = hook(root, 'Stop', session);
   assert.match(stop.systemMessage || '', /unredacted secret pattern detected/);
 });
+
+test('Stop returns telemetry fields and records JSONL line in .ai/runtime/metrics/sessions.jsonl', t => {
+  const root = fixture(t);
+  const sessionName = 'telemetry-test';
+  const { worklog } = start(root, sessionName);
+  write(root, 'changed.txt', 'Hello telemetry\n');
+  write(root, worklog, entry('Telemetry test'));
+  const res = hook(root, 'Stop', sessionName);
+  okStop(res, { changedFiles: 1, handoffComplete: true });
+  assert.equal(typeof res.firstEditMs, 'number');
+
+  const metricsPath = path.join(root, '.ai/runtime/metrics/sessions.jsonl');
+  assert.ok(fs.existsSync(metricsPath));
+  const lines = fs.readFileSync(metricsPath, 'utf8').trim().split('\n');
+  assert.equal(lines.length, 1);
+  const record = JSON.parse(lines[0]);
+  assert.ok(record.ts);
+  assert.equal(record.session, sessionName);
+  assert.equal(record.agent, 'claude');
+  assert.equal(record.changedFiles, 1);
+  assert.equal(typeof record.durationSec, 'number');
+  assert.equal(typeof record.firstEditMs, 'number');
+  assert.equal(record.handoffComplete, true);
+  assert.ok(Object.prototype.hasOwnProperty.call(record, 'gitHead'));
+});
+
+test('Stop produces changedFiles: 0 and firstEditMs: null when tree is clean', t => {
+  const root = fixture(t);
+  const sessionName = 'clean-session';
+  start(root, sessionName);
+  const res = hook(root, 'Stop', sessionName);
+  okStop(res, { changedFiles: 0, firstEditMs: null, handoffComplete: false });
+
+  const metricsPath = path.join(root, '.ai/runtime/metrics/sessions.jsonl');
+  const lines = fs.readFileSync(metricsPath, 'utf8').trim().split('\n');
+  const record = JSON.parse(lines[lines.length - 1]);
+  assert.equal(record.changedFiles, 0);
+  assert.equal(record.firstEditMs, null);
+  assert.equal(record.handoffComplete, false);
+});
+
+test('vanished path between snapshot and stat is skipped gracefully', t => {
+  const root = fixture(t);
+  const sessionName = 'vanish-session';
+  start(root, sessionName);
+  write(root, 'vanish.txt', 'Going away\n');
+  // Delete the file so it's vanished
+  fs.unlinkSync(path.join(root, 'vanish.txt'));
+  const res = hook(root, 'Stop', sessionName);
+  okStop(res, { changedFiles: 0, firstEditMs: null });
+});
+
+test('metrics file rotates to sessions.1.jsonl when exceeding 1 MB', t => {
+  const root = fixture(t);
+  const sessionName = 'rotation-test';
+  start(root, sessionName);
+  const metricsDir = path.join(root, '.ai/runtime/metrics');
+  fs.mkdirSync(metricsDir, { recursive: true });
+  const metricsFile = path.join(metricsDir, 'sessions.jsonl');
+  const rotatedFile = path.join(metricsDir, 'sessions.1.jsonl');
+
+  // Seed with 1 MB of dummy data
+  const chunk = '{"dummy":true}\n';
+  const repeatCount = Math.ceil((1024 * 1024) / chunk.length);
+  fs.writeFileSync(metricsFile, chunk.repeat(repeatCount));
+  assert.ok(fs.statSync(metricsFile).size >= 1024 * 1024);
+
+  // Trigger recordSessionMetric directly or via hook
+  const res = hook(root, 'Stop', sessionName);
+  okStop(res);
+
+  assert.ok(fs.existsSync(rotatedFile), 'sessions.1.jsonl must exist after rotation');
+  assert.ok(fs.statSync(rotatedFile).size >= 1024 * 1024);
+  const newContent = fs.readFileSync(metricsFile, 'utf8').trim().split('\n');
+  assert.equal(newContent.length, 1);
+  assert.equal(JSON.parse(newContent[0]).session, 'rotation-test');
+});
+

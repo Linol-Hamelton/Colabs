@@ -86,7 +86,12 @@ test('configured Codex commands run in native shell and Bash from a Unicode subf
       assert.equal(result.status, 0, result.stderr);
       const output = JSON.parse(result.stdout);
       if (event === 'SessionStart') assert.match(journal(output), /codex-/);
-      else assert.deepEqual(output, {});
+      else {
+        assert.equal(output.systemMessage, undefined);
+        assert.equal(output.changedFiles, 0);
+        assert.equal(output.firstEditMs, null);
+        assert.equal(output.handoffComplete, false);
+      }
     }
   }
 });
