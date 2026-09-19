@@ -41,3 +41,8 @@ v1.9.5 published (tag at `1b1deab`; the erratum documents the docs-only red CI o
 ## Next
 
 Prepare and dispatch the C1 item (H1 instrumentation plus pilot design); then the Repomix pilot and the external audit round; the owner decides cleanup/v2.0.
+
+## Open questions
+
+- Codex external audit of `001af50` plus pilot artifacts: report at `docs/reviews/2026-09-19-codex-trackc-h1-audit.md`. Reproduced missing Stop telemetry on incomplete handoffs, smoke/retry contamination of pilot medians, and a trial-row/archived-metric handoff mismatch. Correct these before package acceptance; the no-MCP conclusion remains supported. No decision is reopened by this note.
+- Current-state/Next text above predates committed C1 and the preliminary pilot. Coordinator should reconcile it with the audit and restore the 30-journal limit without removing history.
