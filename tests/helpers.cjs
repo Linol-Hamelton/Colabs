@@ -63,7 +63,7 @@ function shouldUseFastValidator(options = {}) {
   if (options.fastValidator === true) return true;
   if (process.env.PROTOCOL_TEST_FAST_CHECKS !== '1') return false;
   const currentFile = process.argv[1] ? path.basename(process.argv[1]) : '';
-  if (/^(?:validator|installer|upgrade|manifest|review-findings|codex)[.-]/.test(currentFile)) {
+  if (/^(?:validator|installer|upgrade|manifest|review-findings|codex|registry)[.-]/.test(currentFile)) {
     return false;
   }
   return true;

@@ -6,29 +6,31 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - Item 4 remediation re-audited PASS; PROTO-DEC-0032 recorded
+## 2026-09-19 - Post-transcription suite failure: registry test hardcodes the seed count; micro-fix dispatched
 
 Agent: deepseek-flash
 
-Action: Re-audited the A3 remediation. Independent checks: gate tests 12/12, handoff 32/32, session 33/33, validator tests 12/12, full suite 229/229, validator exit 0 with 0 warnings, implementer receipt fresh. Independent probe matrix in a fresh clone carrying the remediated code: B1 missing `Date` -> exit 1; B1b malformed `Date` -> exit 1; B2 future date without `Mode` -> exit 1; B3 genuine legacy (`Date: 2026-09-19`, no fields, fresh receipt, path named) -> exit 0 with WARN; B4 bold template headers (`**Mode**:`) parse and bind; A1 `record` on a Completed task with no prior Evidence -> exit 0; A2 `verify --deep` -> 0; A3 standalone `gate-check` -> 0; A4 mutation of a tracked file -> stale failure; A5 re-record -> 0; A6 `gate-check` -> 0. Both blocking findings (A3-1 deadlock, A3-2 missing-Date bypass) are closed. Wrote `docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md` (verdict PASS) with residual notes: the skip flag is currently inherited by every check spawned by record (recommend narrowing to the validator), genuine legacy grandfathering remains bounded to pre-cutoff dates, and a manually set `PROTOCOL_SKIP_GATE=1` is visible in validator output while CI never sets it. Transcribed `PROTO-DEC-0032` under the shared-doc lock in normalized form (`### PROTO-DEC-0032`, `Status: Accepted`) with the amended Date clause and the record-time gate exemption; post-change validator: 32 decision blocks inspected, 31 committed unchanged, 0 warnings.
+Action: After transcribing `PROTO-DEC-0033` and appending five registry rows, the validator stayed green (33 decision blocks, 37 registry entries, 0 warnings) but `test-protocol.ps1` failed. Diagnosis: `tests/registry.test.cjs:32` asserts `inspected decision registry with 32 entries`, a hardcoded seed count that an append-only registry necessarily invalidates; the actual output is `inspected decision registry with 37 entries`. Grep confirmed this is the only hardcoded registry or decision count in the suite. Wrote the micro-fix prompt `docs/reviews/2026-09-19-gemini-v1.9.5-item5-testfix-prompt.md`: derive the expected count from the registry content, keep the other assertions, re-run the suites, record and stop for re-audit. My receipt currently records the failing check on the preceding entry; the re-record follows once the suite is green.
 
-Result: Item 4 is ready to commit with all four owner-approved policy decisions recorded (`PROTO-DEC-0029`..`0032`). No implementation file was modified by this session; the writes were the re-audit report, `.ai/DECISIONS.md` under the lock and this journal.
+Result: Item 5 remains uncommitted; one test-brittleness fix is in flight. Root cause: the test pinned the seed row count instead of deriving it, and the sanctioned transcription grew the registry as designed.
 
-Next step: Owner commits Item 4, then the plan continues with A5 documentation closure and the Track B registry before the final certification cycle.
+Update: the micro-fix landed and was verified independently - registry tests 7/7, full suite 236/236, validator exit 0 with 0 warnings and 37 registry entries, Gemini receipt fresh. The brittleness finding is recorded and closed in `docs/reviews/2026-09-19-deepseek-flash-a5-b-audit-addendum.md` (AUD5-5); the green re-record of this entry follows.
 
-Open: Item 4 commit; A5 and B1-B4; final freeze, ordered records, standalone gate validation, commit, push, optional tag.
+Next step: Owner dispatches the micro-fix prompt; Gemini fixes and records; DeepSeek re-audits and re-records green; then the owner commits and pushes Items 4 and 5.
+
+Open: micro-fix and re-record; pushes for `032efeb` and Item 5; final certification cycle.
 
 Evidence:
-- anchor: 3baebed397c72dc08dc2ffdae54f1927fa9f07a3, uncommitted changes present
-- digest: sha256:18dba3bf2a956c42bfc6bdc4c6e62b9f49cea555c533f7336f2bd21a71db8ae2 over 135 tracked and untracked files
+- anchor: 032efeb4b7edac4a5f9a0cf4449de8f3f3409c82, uncommitted changes present
+- digest: sha256:096c7aa5909927273b3a0df15f58250ec680be41213b986e3c5f65c627df4f1a over 141 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T03:33:14.947Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T04:16:29.807Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:d9a32b6d5f86e876302b035c77769d5e40dd3324502551f1cfe5c57034ea9605 of this entry without this block
+- entry: sha256:f345002461977325b0fe510ddac0ba636c6de9b19859a9ecc2c6c39fad98fd02 of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 100s
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 106s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---

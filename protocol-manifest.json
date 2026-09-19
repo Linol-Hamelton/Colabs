@@ -43,6 +43,7 @@
     "tests/lock.test.cjs",
     "tests/manifest.test.cjs",
     "tests/operator.test.cjs",
+    "tests/registry.test.cjs",
     "tests/review-findings.test.cjs",
     "tests/session.test.cjs",
     "tests/upgrade.test.cjs",

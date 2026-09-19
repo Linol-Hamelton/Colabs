@@ -172,7 +172,7 @@ function Test-ProtocolOwned {
     foreach ($prefix in @('.ai/', 'templates/ai/', 'templates/reviews/', '.claude/hooks/')) {
         if ($normalized.StartsWith($prefix)) { return $true }
     }
-    if ($script:ProtocolRole -eq 'source' -and $normalized.StartsWith('docs/reviews/')) { return $true }
+    if ($script:ProtocolRole -eq 'source' -and ($normalized.StartsWith('docs/reviews/') -or $normalized.StartsWith('docs/decisions/'))) { return $true }
     return $false
 }
 
@@ -382,6 +382,98 @@ if (Test-Path -LiteralPath $decisionPath -PathType Leaf) {
             elseif ($reference.To -eq $reference.From) {
                 Write-Result "FAIL" ("{0} supersedes itself" -f $reference.From)
             }
+        }
+    }
+}
+
+# Decision registry checks (role: source, WARN-first)
+if ($script:ProtocolRole -eq 'source') {
+    $registryRel = 'docs/decisions/REGISTRY.md'
+    $registryPath = Join-Path $Root $registryRel
+    if (-not (Test-Path -LiteralPath $registryPath -PathType Leaf)) {
+        Write-Result "WARN" "docs/decisions/REGISTRY.md is missing; decision registry should track accepted/frozen status"
+    }
+    else {
+        $registryText = Read-ProtocolText $registryPath
+        if ($null -ne $registryText) {
+            $regRows = @()
+            $validTriggers = @('invariant-broken', 'metric-drop', 'new-external-data', 'security-finding', 'owner-directive', 'higher-source-contradiction', 'none')
+            $regLines = $registryText -split '\r?\n'
+            foreach ($line in $regLines) {
+                if ($line -match '^\s*\|\s*((?:PROTO-)?DEC-\d{4})\s*\|\s*([^|]+)\|\s*([^|]+)\|\s*([^|]*)\|\s*([^|]*)\|\s*([^|]*)\|') {
+                    $regRows += [pscustomobject]@{
+                        Raw = $line.Trim()
+                        Id = $matches[1].Trim()
+                        Status = $matches[2].Trim()
+                        ReopenTrigger = $matches[3].Trim()
+                        FrozenAt = $matches[4].Trim()
+                        Supersedes = $matches[5].Trim()
+                        Evidence = $matches[6].Trim()
+                    }
+                }
+            }
+            $regIds = @($regRows | ForEach-Object { $_.Id } | Select-Object -Unique)
+            $regIdSet = @{}
+            foreach ($rid in $regIds) { $regIdSet[$rid] = $true }
+
+            if ($seen) {
+                foreach ($decId in ($seen.Keys | Sort-Object)) {
+                    if (-not $regIdSet.ContainsKey($decId)) {
+                        Write-Result "WARN" ("decision registry missing entry for decision {0}" -f $decId)
+                    }
+                }
+                foreach ($rid in ($regIds | Sort-Object)) {
+                    if (-not $seen.ContainsKey($rid)) {
+                        Write-Result "WARN" ("decision registry contains unknown decision {0} not present in .ai/DECISIONS.md" -f $rid)
+                    }
+                }
+            }
+
+            if ($script:GitUsable -and $gitCommand) {
+                $headReg = Invoke-External $gitCommand.Source @('-C', $Root, 'show', ('HEAD:' + $registryRel))
+                if ($headReg.Code -eq 0 -and -not [string]::IsNullOrWhiteSpace($headReg.Output)) {
+                    $headLines = @(($headReg.Output -split '\r?\n') | Where-Object { $_ -match '^\s*\|\s*(?:PROTO-)?DEC-\d{4}\s*\|' } | ForEach-Object { $_.Trim() })
+                    $currLines = @(($registryText -split '\r?\n') | Where-Object { $_ -match '^\s*\|\s*(?:PROTO-)?DEC-\d{4}\s*\|' } | ForEach-Object { $_.Trim() })
+                    $idx = 0
+                    $immutableOk = $true
+                    foreach ($hLine in $headLines) {
+                        if ($idx -ge $currLines.Count -or $currLines[$idx] -ne $hLine) {
+                            $immutableOk = $false
+                            break
+                        }
+                        $idx++
+                    }
+                    if (-not $immutableOk) {
+                        Write-Result "WARN" "docs/decisions/REGISTRY.md modified or removed existing rows from HEAD; registry is append-only"
+                    }
+                }
+
+                $headDec = Invoke-External $gitCommand.Source @('-C', $Root, 'show', 'HEAD:.ai/DECISIONS.md')
+                if ($headDec.Code -eq 0 -and -not [string]::IsNullOrWhiteSpace($headDec.Output)) {
+                    $headDecIds = @([regex]::Matches($headDec.Output, '(?m)^###\s+((?:PROTO-)?DEC-\d{4})') | ForEach-Object { $_.Groups[1].Value })
+                    $headDecSet = @{}
+                    foreach ($hid in $headDecIds) { $headDecSet[$hid] = $true }
+                    if ($blocks) {
+                        foreach ($block in $blocks) {
+                            $bId = $block.Groups['id'].Value
+                            if (-not $headDecSet.ContainsKey($bId)) {
+                                $bBody = $block.Groups['body'].Value
+                                $triggerMatch = [regex]::Match($bBody, '(?m)^Reopen-trigger:[ \t]*(.*)$')
+                                if (-not $triggerMatch.Success -or [string]::IsNullOrWhiteSpace($triggerMatch.Groups[1].Value)) {
+                                    Write-Result "WARN" ("new decision block {0} missing Reopen-trigger field" -f $bId)
+                                }
+                                else {
+                                    $val = $triggerMatch.Groups[1].Value.Trim().ToLowerInvariant()
+                                    if ($validTriggers -notcontains $val) {
+                                        Write-Result "WARN" ("new decision block {0} has unknown Reopen-trigger: {1}" -f $bId, $val)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Write-Result "PASS" ("inspected decision registry with {0} entries" -f $regRows.Count)
         }
     }
 }

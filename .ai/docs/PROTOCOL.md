@@ -166,7 +166,9 @@ in the journals but is reported as not comparable rather than stale; run
 The block carries a hash of the entry with the block removed, so rewriting the
 entry afterwards makes `verify` fail. Authenticated receipts carry `- entry hash format: 2`
 covering certified Evidence metadata. Receipts lacking this marker are classified as legacy
-unauthenticated receipts: `verify --owner <id>` fails closed unless `--allow-legacy` is passed
+unauthenticated receipts: legacy unauthenticated receipts are editable and not tamper-evident;
+`- entry hash format: 2` is the only authenticated format; upgrade by recording a new entry.
+`verify --owner <id>` fails closed unless `--allow-legacy` is passed
 for read-only review, and no-owner `verify` excludes legacy receipts from matching handoffs.
 `doctor` reports the legacy count and exits 0. To upgrade a journal to format 2, record a
 new entry with `record`; historical entries are never rewritten. Never hand-write an Evidence
@@ -217,6 +219,8 @@ Decommissioning a session journal is a three-step procedure:
 2. `node .ai/bin/protocol-session.cjs prune` (quarantine the empty journal)
 3. `git add -A -- <removed-path>` (stage the removal in the index, keeping the index count <= 30)
 
+When a second batch is archived into an existing `.ai/ARCHIVE.md`, the boundary entry's canonicalized body must hash-match its `- entry:` label. This boundary canonicalization deviation was resolved and is pinned by `tests/archive.test.cjs` ("P5-F2: second batch boundary in ARCHIVE.md remains valid across archive batches and verify --deep"). For historical context and proofs, see `docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md`.
+
 ### Review modes and capability model
 
 Reviews under `docs/reviews/` operate in one of two modes:
@@ -230,6 +234,18 @@ When a task is marked `Status: Completed`, `node .ai/bin/protocol-handoff.cjs ga
 - **Legacy cutoff (`2026-09-19`)**: Legacy grandfathering applies strictly to reviews with a valid, present `Date <= 2026-09-19`; omitting `Mode` or `Receipt-Owner` emits a warning (`[WARN]`) rather than failing validation, provided their evidence verifies. Reviews dated after `2026-09-19` strictly require `Mode: CERTIFYING` and `Receipt-Owner`. A missing or invalid `Date` fails the gate immediately.
 - **Installed role**: In `role: installed`, `gate-check` is skipped by the validator because consumer repositories do not retain protocol session journals.
 - **Empty Receipt field**: The `Receipt:` field in the review header is optional and informational; an empty or omitted field passes verification.
+
+### Decision registry
+
+The repository maintains an append-only decision ledger at `docs/decisions/REGISTRY.md` mapping every decision ID to its current lifecycle status (`accepted`, `frozen`, `reopened`, `superseded`), reopen trigger, freeze commit, supersedes link, and evidence reference:
+- **Format and status**: The table follows `| id | status | reopen-trigger | frozen-at | supersedes | evidence |`. The effective status of any decision ID is strictly its last appended row. Existing rows are never modified or removed.
+- **Trigger taxonomy**: Reopening an accepted decision strictly requires an appended row with an authorized reopen-trigger: `invariant-broken`, `metric-drop`, `new-external-data`, `security-finding`, `owner-directive`, or `higher-source-contradiction` (or `none` for standard acceptance).
+- **WARN-first validation**: In `role: source`, `validate-protocol.ps1` runs non-blocking checks emitting warnings (`[WARN]`):
+  1. Missing registry (`docs/decisions/REGISTRY.md`).
+  2. Incomplete coverage (missing registry entries for IDs in `.ai/DECISIONS.md`, or unrecognized IDs in the registry).
+  3. Immutability violation (modifications or deletions of existing rows relative to `HEAD:docs/decisions/REGISTRY.md`).
+  4. New decision block without `Reopen-trigger:` (any new decision ID present in working copy `.ai/DECISIONS.md` but not in `HEAD` must declare `Reopen-trigger:`).
+- **Shared-document lock**: Modifications to `docs/decisions/REGISTRY.md` are covered by the shared-document lock protocol (`protocol-lock.cjs`).
 
 ---
 

@@ -239,8 +239,9 @@ consensus syntheses, or extensive fault-injection probes:
 
 ## 6. Shared documents have one writer
 
-`.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md` and `.ai/ARCHIVE.md` are
-edited by one session at a time, through a cooperative lock.
+`.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, `.ai/ARCHIVE.md`, and
+`docs/decisions/REGISTRY.md` are edited by one session at a time, through a
+cooperative lock.
 
 ```bash
 node .ai/bin/protocol-lock.cjs acquire --owner <your-session-id>
@@ -267,17 +268,30 @@ reported owner name rather than transient process liveness.
 
 Other writing rules:
 
-| File               | Rule                                               |
-| ------------------ | -------------------------------------------------- |
-| `.ai/DECISIONS.md` | append only; a written block is never edited again; proposals belong in `.ai/PLAN.md` |
-| `.ai/TASK.md`      | replace sections; it is short by design             |
-| `.ai/PLAN.md`      | replaced by the session that owns the task          |
-| `.ai/ARCHIVE.md`   | append only                                         |
+| File                         | Rule                                               |
+| ---------------------------- | -------------------------------------------------- |
+| `.ai/DECISIONS.md`           | append only; a written block is never edited again; proposals belong in `.ai/PLAN.md` |
+| `.ai/TASK.md`                | replace sections; it is short by design             |
+| `.ai/PLAN.md`                | replaced by the session that owns the task          |
+| `.ai/ARCHIVE.md`             | append only                                         |
+| `docs/decisions/REGISTRY.md` | append only; status transitions are appended rows   |
 
 To replace a decision, append a new approved block with a `Supersedes:` line
 naming the old one. Do not edit the old block, not even its status. The
 decision log is the one file safe to trust precisely because nothing in it is
 ever rewritten.
+
+Reopening an accepted decision requires a recorded trigger row in
+`docs/decisions/REGISTRY.md`; without an explicit trigger row, no decision may
+be reopened, and any doubt remains a note in `.ai/TASK.md` or a session journal.
+The registry is append-only and is covered by the shared-document lock. Trigger
+semantics are strictly bounded: `invariant-broken` requires an explicit regression
+proof; `metric-drop` requires a measured drop against an established baseline;
+`new-external-data` requires reproducible external evidence or upstream contract
+changes; `security-finding` requires a reproducible proof of concept or
+CVE/audit reference; `owner-directive` requires an explicit, dated human owner
+confirmation; and `higher-source-contradiction` requires citing the specific
+conflicting path in a higher-ranked source of truth.
 
 ---
 

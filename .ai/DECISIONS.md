@@ -1507,6 +1507,38 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0033
+
+Status: Accepted
+Date: 2026-09-19
+Reopen-trigger: none
+
+Context:
+Architectural decisions in `.ai/DECISIONS.md` are permanent and immutable, but tracking whether a decision remains active, is frozen against further changes, or is reopened due to new evidence or broken invariants lacked a machine-checkable registry. Superseded decisions were visible only through the successor's `Supersedes:` line, and nothing checked that a newly appended decision block declared how it could legitimately be reopened.
+
+Decision:
+1. Maintain `docs/decisions/REGISTRY.md` as an append-only markdown table recording decision lifecycle status. The current status of any decision id is its last row; existing rows are never edited, reordered or deleted; status transitions are appended as new rows.
+2. Status values: `accepted`, `frozen`, `reopened`, `superseded`.
+3. Reopen triggers form a closed taxonomy: `invariant-broken`, `metric-drop`, `new-external-data`, `security-finding`, `owner-directive`, `higher-source-contradiction`, and `none`. Reopening an accepted decision strictly requires an appended row carrying an authorized trigger; without a trigger row no decision may be reopened, and any doubt remains a note in `.ai/TASK.md` or a session journal.
+4. `docs/decisions/REGISTRY.md` is covered by the shared-document cooperative lock (AGENTS.md section 6).
+5. `validate-protocol.ps1` enforces WARN-first checks in `role: source`: registry presence; full id coverage against `.ai/DECISIONS.md`; immutability of committed rows against `git show HEAD:docs/decisions/REGISTRY.md`; and a valid `Reopen-trigger:` field on newly introduced decision blocks. Enforcement may be upgraded from WARN to FAIL by a later decision.
+6. Legacy decision ids are seeded as `accepted`; the superseded ids `DEC-0003`, `DEC-0005`, `DEC-0008` (superseded by `PROTO-DEC-0009`) and `DEC-0014` (superseded by `PROTO-DEC-0022`) are recorded with the `superseded` status.
+
+Reasoning:
+A decision log without lifecycle status invites silent re-litigation: nothing distinguishes an active decision from a frozen or superseded one, and reopening can be asserted without evidence. A registry makes lifecycle machine-checkable while DECISIONS.md remains the immutable text. WARN-first enforcement lets installed repositories migrate without breaking, and the closed trigger taxonomy forces a reopening claim to name the kind of evidence that justifies it.
+
+Alternatives rejected:
+- A JSON-only registry: rejected because reviewers read Markdown directly and a hand-maintained twin drifts; a generated twin can be added later in CI if wanted.
+- FAIL-level enforcement from day one: rejected because installed projects need a migration window (owner decision D3: WARN-first).
+- Validating status vocabulary in the validator now: rejected because coverage, immutability and trigger checks already catch the dangerous cases; the vocabulary is documented and review-checked.
+
+Consequences:
+The registry becomes the lifecycle source of truth for decision status while DECISIONS.md stays the immutable text log. Superseded ids are explicit; new decision blocks must declare `Reopen-trigger:` or produce a warning. The registry is under the shared-document lock, so transitions are single-writer and auditable.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

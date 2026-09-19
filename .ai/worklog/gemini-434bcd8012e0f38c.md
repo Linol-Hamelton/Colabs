@@ -4,141 +4,59 @@ Session journal. Owned by this session. No other session writes here.
 
 Newest entry first. Limit 150 lines.
 
+<!-- archived-parent: sha256:daa313a6e91d4eda957c6d14879af970a467993594d39adeabfbc52a955756bf -->
+
 ---
 
-## 2026-09-19 - Item 4 (A3) remediation: fix A3-1 bootstrap deadlock and A3-2 date validation
+## 2026-09-19 - Item 5 testfix: dynamic expected entry count in tests/registry.test.cjs
 
 Agent: gemini
 
-Action: Executed remediation prompt docs/reviews/2026-09-19-gemini-v1.9.5-item4-remediation-prompt.md addressing DeepSeek audit findings A3-1 and A3-2. (1) Fix 1 (A3-1): In .ai/bin/protocol-handoff.cjs runCheck, passed PROTOCOL_SKIP_GATE=1 to spawnSync env. In validate-protocol.ps1, added conditional skip when PROTOCOL_SKIP_GATE=1 emitting PASS 'gate-check skipped during evidence recording', resolving record deadlock on completed tasks while preserving standalone gate enforcement. Added deadlock regression test in tests/gate.test.cjs (test 11). (2) Fix 2 (A3-2): In .ai/bin/protocol-handoff.cjs gateCheck, strictly required a valid ISO Date in cited independent review; missing or unparseable Date fails immediately. Restricted legacy grandfathering strictly to reviews with valid present Date <= 2026-09-19. Added tests 9 (missing Date) and 10 (invalid Date) to tests/gate.test.cjs. Updated .ai/docs/PROTOCOL.md legacy cutoff specification. Added Date: 2026-09-19 to review fixtures in tests/validator.test.cjs. (3) A3-3: Tightened Mode, Verdict, Date, Receipt-Owner, and Receipt header regexes requiring word boundary and mandatory colon.
+Action: Executed testfix prompt docs/reviews/2026-09-19-gemini-v1.9.5-item5-testfix-prompt.md. Replaced hardcoded registry entry count 32 in tests/registry.test.cjs test 1 with dynamic count derived from validRegistryContent table rows (/^\s*\|\s*(?:PROTO-)?DEC-\d{4}\s*\|/), ensuring compatibility with ongoing appends to docs/decisions/REGISTRY.md (now 37 rows following PROTO-DEC-0033 and AUD5-1 transcription).
 
-Result: Remediation verified. node --test tests/gate.test.cjs (12/12 pass), tests/handoff.test.cjs (32/32 pass), tests/session.test.cjs (33/33 pass), tests/validator.test.cjs (12/12 pass), full test-protocol.ps1 (229/229 pass, exit 0), validate-protocol.ps1 (exit 0, 0 warnings). Stopped before commit for DeepSeek re-audit per instruction.
+Result: Fix verified. node --test tests/registry.test.cjs passed (7/7), full test-protocol.ps1 passed (236/236, exit 0), validate-protocol.ps1 passed with 0 warnings/failures (exit 0). Stopped before commit for DeepSeek re-audit per instruction.
 
-Next step: DeepSeek-flash performs adversarial re-audit on Item 4 (A3) remediation; owner reviews verdict; commit Item 4 once certified.
+Next step: DeepSeek-flash performs adversarial re-audit on Item 5 testfix; commit Item 5 once certified.
 
 Open: DeepSeek adversarial re-audit verdict.
 
 Evidence:
-- anchor: 3baebed397c72dc08dc2ffdae54f1927fa9f07a3, uncommitted changes present
-- digest: sha256:83d98e54a45037f45e625044f541fc7d43edb3b62df7d5644293a4a78bb5893a over 134 tracked and untracked files
+- anchor: 032efeb4b7edac4a5f9a0cf4449de8f3f3409c82, uncommitted changes present
+- digest: sha256:4c13ea1412252c00520d93dee3f1b875634d58a7dba22cf66e154d732244960d over 140 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T03:21:58.127Z by gemini-434bcd8012e0f38c
+- recorded: 2026-09-19T04:10:08.040Z by gemini-434bcd8012e0f38c
 - entry hash format: 2
-- entry: sha256:daa313a6e91d4eda957c6d14879af970a467993594d39adeabfbc52a955756bf of this entry without this block
-- parent-entry: sha256:2d784dd8e2f333b7308a8cc44483a5707008bde3dac2bc87b09252c256f5f46f
+- entry: sha256:41cc00d031a7d13dd9f07dd072afec1a4fb5df567b25c3d5ed06a61eec6203d7 of this entry without this block
+- parent-entry: sha256:231c68ac1d61fd6fed273e9db9603f7025945140990e74af3aa5e6d4890bc814
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 103s
+- test-protocol.ps1: exit 0 in 100s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
 
 
-## 2026-09-19 - Item 4 (A3) implementation: gate-check subcommand, validator integration, tests, docs
+## 2026-09-19 - Item 5 implementation: A5 documentation closure and Track B decision registry
 
 Agent: gemini
 
-Action: Implemented Item 4 (A3) gate freshness per v1.9.5 plan r2 and dispatch prompt docs/reviews/2026-09-19-gemini-v1.9.5-item4-prompt.md under owner decision D4. (1) Refactored .ai/bin/protocol-handoff.cjs extracting checkOwnerReceipt(root, owner, options) in-process helper from reportOne/verify without subprocess recursion. (2) Implemented gate-check subcommand: parses TASK.md status (exits 0 with not applicable for in-progress tasks), parses Completion gate section, verifies adversarial prompt and independent review paths exist under docs/reviews/ and are non-empty, checks verdict (PASS or RECOMMENDATION), evaluates Mode and Receipt-Owner (strictly requires Mode: CERTIFYING and Receipt-Owner for Date > 2026-09-19, warns for legacy), allows optional/empty Receipt field, verifies receipt binding (scans owner journal for explicit review path mention and verifies deep evidence against current tree). (3) Integrated gate-check into validate-protocol.ps1 for source role only (skips in installed role). (4) Registered tests/gate.test.cjs in protocol-manifest.json and implemented 9 comprehensive tests covering all 8 required scenarios and validator integration. (5) Added Gate freshness check documentation in .ai/docs/PROTOCOL.md and updated completion-gate paragraph in AGENTS.md section 2. (6) Prepared PROTO-DEC-0032 draft for owner approval.
+Action: Executed Item 5 per v1.9.5 plan r2 and dispatch prompt docs/reviews/2026-09-19-gemini-v1.9.5-item5-prompt.md under owner decisions D3 and D4. (1) Part A (A5 closure): Added legacy receipt editability and format 2 exclusivity sentence to .ai/docs/PROTOCOL.md. Verified canonical docs (AGENTS.md, .ai/docs/*.md) have 0 hits for nonce (stale 16-byte note absent). Verified clean-tree wording across docs preserves digest-visibility of untracked files. Added P5-F2 deviation paragraph to PROTOCOL.md recording archive batch boundary canonicalization fix pinned by tests/archive.test.cjs. (2) Part B (Track B registry): Created docs/decisions/REGISTRY.md seeded with all 32 decisions from .ai/DECISIONS.md (accepted, none, supersedes links). Documented trigger taxonomy and reopening rules in AGENTS.md section 6; added REGISTRY.md to shared-document lock and writing rules. Added WARN-first validation in validate-protocol.ps1 (role: source) covering registry presence, full ID coverage against .ai/DECISIONS.md, immutability of committed rows vs HEAD, and Reopen-trigger on new decision blocks. Included docs/decisions/ in Test-ProtocolOwned. Registered tests/registry.test.cjs in protocol-manifest.json and added 7 tests covering all WARN/PASS branches. Added Decision registry subsection in .ai/docs/PROTOCOL.md. (3) Optional micro-fix R-1: In protocol-handoff.cjs runCheck, scoped PROTOCOL_SKIP_GATE=1 strictly to check.quick (validator). (4) Prepared PROTO-DEC-0033 draft for owner review.
 
-Result: Item 4 implementation complete. node --test tests/gate.test.cjs passed (9/9), node --test tests/handoff.test.cjs passed (32/32), node --test tests/session.test.cjs passed (33/33), node --test tests/validator.test.cjs passed (12/12), test-protocol.ps1 passed (226/226), validate-protocol.ps1 passed with 0 warnings/failures. Synthetic gate-check demo executed and captured (pass, stale, advisory). Stopped before commit for DeepSeek adversarial audit.
+Result: Item 5 complete. node --test tests/registry.test.cjs passed (7/7), tests/gate.test.cjs passed (12/12), tests/archive.test.cjs passed (8/8), test-protocol.ps1 passed (236/236), validate-protocol.ps1 passed with 0 warnings/failures. Stopped before commit for DeepSeek adversarial audit.
 
-Next step: DeepSeek-flash performs adversarial audit on Item 4 (A3); owner reviews audit verdict and approves PROTO-DEC-0032; commit Item 4 once approved.
+Next step: DeepSeek-flash performs adversarial audit on Item 5; owner reviews audit verdict and approves PROTO-DEC-0033; controller transcribes decision and registry row; commit Item 5 once approved.
 
-Open: Owner approval of PROTO-DEC-0032.
-
-Evidence:
-- anchor: 3baebed397c72dc08dc2ffdae54f1927fa9f07a3, uncommitted changes present
-- digest: sha256:9cd4413220e1b7239b5a2ede5ff4bf54e784bbc0dbca6af72f82353b6d422a15 over 132 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-19T03:03:15.319Z by gemini-434bcd8012e0f38c
-- entry hash format: 2
-- entry: sha256:2d784dd8e2f333b7308a8cc44483a5707008bde3dac2bc87b09252c256f5f46f of this entry without this block
-- parent-entry: sha256:46fdadc10de614c8e5687078fd81b300be8ca57a49fa87e8a52985db4aa37107
-- scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 98s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-
----
-
-
-## 2026-09-19 - Item 3 (A4) implementation: capability model, review template mode, CI restoration
-
-Agent: gemini
-
-Action: Executed Item 3 (A4) per v1.9.5 plan r2 and dispatch prompt docs/reviews/2026-09-19-gemini-v1.9.5-item3-prompt.md. Step 0: Restored .github/workflows/protocol.yml to the exact YAML specified in docs/reviews/2026-09-19-deepseek-flash-a2-audit-addendum.md (restoring branches: ['**'], workflow_dispatch, DEC-0009 comment, tree anchor, clean-directory installer validation, reinstall idempotency check, while keeping the [WARN]/[FAIL] escalation wrapper). Step 1 (A4): (1) Updated templates/reviews/REVIEW.md adding Mode (CERTIFYING | ADVISORY), Receipt-Owner (<owner id>, with legacy Session: accepted), and Receipt (<path or digest>) header fields, and documented the four required capabilities (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ) set by orchestrator profile. (2) Updated AGENTS.md section 2 mandating four capabilities and Mode: CERTIFYING with Receipt-Owner for certifying reviews, [MODE: READ-ONLY ADVISORY] for advisory outputs persisted via section 5.5 chat transcription, and requiring at least one reproduction per claim for FAIL/BLOCKED verdicts. (3) Updated .ai/docs/PROTOCOL.md with a dedicated subsection defining review modes, capabilities, and reviewer receipt binding. (4) Added regression test in tests/review-findings.test.cjs pinning Mode, Receipt-Owner, Receipt, and capability definitions against silent removal. (5) Drafted PROTO-DEC-0031 for owner review.
-
-Result: Item 3 implementation complete. node --test tests/review-findings.test.cjs passed (16/16), test-protocol.ps1 passed (217/217), validate-protocol.ps1 passed with 0 warnings/failures. Stopped before commit for DeepSeek adversarial audit.
-
-Next step: DeepSeek-flash performs adversarial audit on Item 3 (A4); owner reviews audit verdict and approves PROTO-DEC-0031; commit Item 3 once approved.
-
-Open: Owner approval of PROTO-DEC-0031.
+Open: DeepSeek adversarial audit verdict; owner approval of PROTO-DEC-0033.
 
 Evidence:
-- anchor: ebd777e6779273b831d63664469de429fa80d196, uncommitted changes present
-- digest: sha256:e18cf9b78ed459baa2aaca8f0fee6227bb4542aa1d79cc200619a3a5a248132b over 129 tracked and untracked files
+- anchor: 032efeb4b7edac4a5f9a0cf4449de8f3f3409c82, uncommitted changes present
+- digest: sha256:725029b9a796bb37f1a9dbe77daf6ee83da9c428d58aad4b920fef856edf2eea over 138 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T02:22:45.856Z by gemini-434bcd8012e0f38c
+- recorded: 2026-09-19T03:50:35.837Z by gemini-434bcd8012e0f38c
 - entry hash format: 2
-- entry: sha256:46fdadc10de614c8e5687078fd81b300be8ca57a49fa87e8a52985db4aa37107 of this entry without this block
-- parent-entry: sha256:eac22e11ec9cdcb61bb902e0c4b9938c668977fde6921afd0cd0d178b95483fe
-- scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 101s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-
----
-
-
-## 2026-09-19 - Item 2 (A2) implementation: record line guarantee, CI escalation, AUD-4 tests
-
-Agent: gemini
-
-Action: Implemented Item 2 (A2) per v1.9.5 plan r2, DeepSeek audit findings, and owner dispatch. (1) Fixed record ordering defect (Fact 11) in .ai/bin/protocol-handoff.cjs by calculating projected journal line count with rendered Evidence before writing; if projected > 150 lines, auto-archives older entries first; if single entry alone exceeds 150 lines, halts cleanly with actionable error leaving journal unmodified. Exported formatWithEvidence. (2) Added Fact 11 regression tests to tests/handoff.test.cjs (limit-minus-10 line near-cap auto-archive verification and oversized single entry rejection). (3) Added AUD-4 regression tests to tests/session.test.cjs (corrupt state JSON prune recency fallback and lock-holder prune --force protection). (4) Updated .github/workflows/protocol.yml with minimal CI workflow triggering on push/PR with warning/failure escalation. (5) Updated .ai/docs/PROTOCOL.md documenting record ordering guarantee and 3-step journal cap removal procedure. (6) Verified E2E proof in throwaway clone/fixture.
-
-Result: Item 2 implementation complete. node --test tests/session.test.cjs (33/33 pass), node --test tests/handoff.test.cjs (32/32 pass), test-protocol.ps1 passed (216/216 pass), validate-protocol.ps1 passed with 0 warnings/failures. E2E near-cap auto-archive proof verified. Stoppped before commit for DeepSeek adversarial audit.
-
-Next step: DeepSeek-flash performs adversarial audit on Item 2 (A2); owner reviews audit verdict; commit Item 2 once approved.
-
-Open: None.
-
-Evidence:
-- anchor: 8beca2b9346f8341f20a945e7f29eff969c36680, uncommitted changes present
-- digest: sha256:b39c6ca72ff8b3816ef48be1be777263b3b3e6f0c5f4c19ae494d1cd2fd4be17 over 126 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-19T01:53:44.399Z by gemini-434bcd8012e0f38c
-- entry hash format: 2
-- entry: sha256:eac22e11ec9cdcb61bb902e0c4b9938c668977fde6921afd0cd0d178b95483fe of this entry without this block
-- parent-entry: sha256:b6e750931e976f4ca5cc00754a2d43815aeac1f39c92672bc00a07e1b1c0ab49
+- entry: sha256:231c68ac1d61fd6fed273e9db9603f7025945140990e74af3aa5e6d4890bc814 of this entry without this block
+- parent-entry: sha256:daa313a6e91d4eda957c6d14879af970a467993594d39adeabfbc52a955756bf
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 91s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-
----
-
-
-## 2026-09-19 - Item 1 (A1) implementation: C0 session liveness fix, tests, and documentation
-
-Agent: gemini
-
-Action: Implemented Item 1 (A1) per approved v1.9.5 plan (revision 2) and owner dispatch. Refactored protocol-session.cjs to replace isProcessAlive with centralized isSessionAlive(record) and checkProcessAlive(pid). Enforced three-way liveness contract (foreign host mismatch -> null; live supervisor -> true; dead supervisor falls through to transient pid; live transient pid -> true; dead transient pid -> false; no usable pid -> null). Relaxed supervisor registration per D1 (option a) to accept any live integer PID > 4. Implemented call-site polarity and 15-minute RECENT_WINDOW fallback (D2) in prune and cleanup-runtime: live sessions skip even with --force; foreign host/unknown liveness preserved in standard runs and audited under --force in prune; fresh empty journals preserved by recency; content-bearing journals protected by holdsContent. Reused isSessionAlive and checkProcessAlive in protocol-lock.cjs. Added comprehensive unit tests and full 11-branch test matrix to tests/session.test.cjs. Updated tests/review-findings.test.cjs for RECENT_WINDOW. Updated .ai/docs/PROTOCOL.md lines 68-73 and 194-196. Executed probe reproduction in isolated clone.
-
-Result: Item 1 (A1) complete. node --test tests/session.test.cjs passed (31/31). powershell .\test-protocol.ps1 passed (212/212, exit 0). powershell .\validate-protocol.ps1 passed (exit 0, 0 warnings). Clone reproduction passed (journal and snapshot survived live supervisor under prune, prune --force, and cleanup-runtime --force). Drafted PROTO-DEC-0029 for owner approval. Ready for DeepSeek audit.
-
-Next step: DeepSeek audits Item 1 (A1) adversarially; owner reviews findings and approves gate; implementer commits Item 1 upon approval before starting Item 2.
-
-Open: Owner approval of PROTO-DEC-0029 draft.
-
-Evidence:
-- anchor: 6624c8c218505fd4e18d9f44d61d5734c4533cff, uncommitted changes present
-- digest: sha256:c74f96bfc7af7aa7aab91d20c15827aa30b40d95578c96a9afd979cc3cc1460a over 124 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-19T01:08:21.630Z by gemini-434bcd8012e0f38c
-- entry hash format: 2
-- entry: sha256:b6e750931e976f4ca5cc00754a2d43815aeac1f39c92672bc00a07e1b1c0ab49 of this entry without this block
-- parent-entry: root
-- scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 98s
+- test-protocol.ps1: exit 0 in 96s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify

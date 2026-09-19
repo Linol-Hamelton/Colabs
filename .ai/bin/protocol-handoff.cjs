@@ -94,7 +94,7 @@ function powershell() {
 function runCheck(root, check) {
   const started = Date.now();
   let result;
-  const env = { ...process.env, PROTOCOL_SKIP_GATE: '1' };
+  const env = check.quick ? { ...process.env, PROTOCOL_SKIP_GATE: '1' } : process.env;
   if (check.isCustom) {
     result = spawnSync(check.name, { cwd: root, shell: true, encoding: 'utf8', windowsHide: true, timeout: 900000, env });
   } else {
