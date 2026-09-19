@@ -214,3 +214,22 @@ test('deleting a committed decision block fails validation', t => {
   assert.equal(result.status, 1, 'validation passed despite deletion of DEC-0001');
   assert.match(result.stdout + result.stderr, /DEC-0001 was deleted; a decision block is never removed/);
 });
+
+// A4 - capability and evidence discipline policy text protection.
+test('A4: review template and AGENTS.md define Mode, Receipt-Owner, and capabilities', () => {
+  const templatePath = path.join(repoRoot, 'templates/reviews/REVIEW.md');
+  const templateText = fs.readFileSync(templatePath, 'utf8');
+  assert.match(templateText, /\*\*Mode\*\*:\s*CERTIFYING\s*\|\s*ADVISORY/i);
+  assert.match(templateText, /\*\*Receipt-Owner\*\*:\s*<owner id>/i);
+  assert.match(templateText, /\*\*Receipt\*\*:\s*<path or digest>/i);
+
+  const agentsPath = path.join(repoRoot, 'AGENTS.md');
+  const agentsText = fs.readFileSync(agentsPath, 'utf8');
+  assert.match(agentsText, /\bFS_WRITE\b/);
+  assert.match(agentsText, /\bSHELL_EXEC\b/);
+  assert.match(agentsText, /\bEVIDENCE_SIGN\b/);
+  assert.match(agentsText, /\bREPO_READ\b/);
+  assert.match(agentsText, /\bMode:\s*CERTIFYING\b/);
+  assert.match(agentsText, /\bReceipt-Owner\b/);
+  assert.match(agentsText, /\[MODE:\s*READ-ONLY ADVISORY\]/);
+});

@@ -217,6 +217,12 @@ Decommissioning a session journal is a three-step procedure:
 2. `node .ai/bin/protocol-session.cjs prune` (quarantine the empty journal)
 3. `git add -A -- <removed-path>` (stage the removal in the index, keeping the index count <= 30)
 
+### Review modes and capability model
+
+Reviews under `docs/reviews/` operate in one of two modes:
+- **CERTIFYING**: Requires four orchestrator-verified capabilities: `FS_WRITE`, `SHELL_EXEC`, `EVIDENCE_SIGN`, and `REPO_READ`. The review header declares `Mode: CERTIFYING` and identifies its session via `Receipt-Owner: <owner-id>` (or legacy `Session:`). The reviewer binds its verdict by recording verifiable handoff evidence in its session journal mentioning the review document path.
+- **ADVISORY**: Applied whenever any capability is absent (e.g. read-only models, chat panels, or external audits). Advisory reviews carry `Mode: ADVISORY` (or `[MODE: READ-ONLY ADVISORY]`), are persisted via the section 5.5 chat transcription fallback, and are explicitly marked non-certifying. An advisory review cannot satisfy the independent-review completion gate.
+
 ---
 
 ## Installing and upgrading

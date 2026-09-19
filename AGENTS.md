@@ -108,6 +108,18 @@ prompt, and the review must name an independent reviewer and an explicit
 `PASS` or `RECOMMENDATION` verdict. A `FAIL` or `BLOCKED` verdict cannot
 certify completion.
 
+A certifying verdict requires four capabilities: `FS_WRITE`, `SHELL_EXEC`,
+`EVIDENCE_SIGN`, and `REPO_READ`. Capability is determined by the orchestrator
+profile, never self-declared. The review header must declare `Mode: CERTIFYING`
+and identify its session in `Receipt-Owner: <owner-id>` (or legacy `Session:`).
+Advisory outputs (from models lacking direct repository access or verification
+capability) carry `[MODE: READ-ONLY ADVISORY]` and are persisted only through
+the section 5.5 transcription fallback, always explicitly marked non-certifying.
+An advisory review cannot satisfy the independent-review completion gate.
+
+A `FAIL` or `BLOCKED` verdict requires at least one reproduction per claim;
+otherwise it is advisory and cannot reopen a decision or block completion.
+
 ---
 
 ## 3. Session start

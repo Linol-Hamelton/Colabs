@@ -6,6 +6,18 @@
 **Reviewer**: <model name>  
 **Scope**: [audit | council | architecture | consensus | security | edge-cases]  
 **Verdict**: [PASS | FAIL | BLOCKED | RECOMMENDATION]  
+**Mode**: CERTIFYING | ADVISORY  
+**Receipt-Owner**: <owner id>  
+**Receipt**: <path or digest>  
+
+<!-- Mode explanation:
+- CERTIFYING: Requires all four capabilities: FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ.
+  Capability is set by the orchestrator profile, never self-declared. Requires Receipt-Owner (<owner id> of
+  the session journal) and binds the review to verifiable handoff evidence (Session: is accepted as a legacy fallback).
+- ADVISORY: Applied when any capability is missing (read-only models, chat interfaces, external audits).
+  Advisory outputs carry [MODE: READ-ONLY ADVISORY] and are persisted via the section 5.5 transcription fallback,
+  always explicitly marked non-certifying. An advisory review cannot satisfy the completion gate.
+-->
 
 <!-- If transcribed from chat or web panel without direct filesystem access: -->
 <!-- > Transcribed from chat by <owner/agent>, model: <name>, date: YYYY-MM-DDTHH:MM:SSZ -->
