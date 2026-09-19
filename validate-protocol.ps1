@@ -475,6 +475,27 @@ if ($taskStatus -match '^Completed(?:[ .;:-]|$)') {
                 }
             }
         }
+        if ($script:ProtocolRole -eq 'source' -and $nodeCommand) {
+            if ($env:PROTOCOL_SKIP_GATE -eq '1') {
+                Write-Result "PASS" "gate-check skipped during evidence recording"
+            }
+            else {
+                $gateScript = Join-Path $Root '.ai/bin/protocol-handoff.cjs'
+                if (Test-Path -LiteralPath $gateScript -PathType Leaf) {
+                    $gateRes = Invoke-External $nodeCommand.Source @($gateScript, 'gate-check', '--root', $Root)
+                    if ($gateRes.Code -ne 0) {
+                        $combined = ($gateRes.Error + "`n" + $gateRes.Output).Trim()
+                        $lastLine = ($combined.Split("`n") | Where-Object { $_.Trim() } | Select-Object -Last 1)
+                        if (-not $lastLine) { $lastLine = "gate-check failed" }
+                        $msg = $lastLine.Trim() -replace '^(?:AI protocol:\s*)?(?:gate-check:\s*)?', ''
+                        Write-Result "FAIL" ("gate-check: " + $msg)
+                    }
+                    else {
+                        Write-Result "PASS" "completion gate verified fresh by gate-check"
+                    }
+                }
+            }
+        }
     }
 }
 

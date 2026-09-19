@@ -1474,6 +1474,39 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0032
+
+Status: Accepted
+Date: 2026-09-19
+
+Context:
+In protocol v1.9.4, completion gate validation verified the physical existence and header syntax of the independent review artifact but did not bind the cited review to a verified session journal or verify tree freshness. A completed task could cite an obsolete or detached review without detection.
+
+Decision:
+1. Introduce the `node .ai/bin/protocol-handoff.cjs gate-check` subcommand, invoked by `validate-protocol.ps1` in `role: source` whenever `.ai/TASK.md` is marked `Status: Completed`.
+2. The independent review cited under `## Completion gate` must declare `Mode: CERTIFYING` and specify `Receipt-Owner: <owner-id>` (or legacy `Session:`).
+3. The specified owner's session journal (`.ai/worklog/<owner-id>.md`) must contain at least one dated entry explicitly referencing the cited review path (normalized forward slashes) whose Evidence block passes deep receipt verification against the current working tree.
+4. A cited independent review must carry a valid ISO `Date`. Reviews with a Date after `2026-09-19` strictly require `Mode: CERTIFYING` and `Receipt-Owner`; a missing or invalid Date fails the gate. Legacy reviews (a present Date on or before `2026-09-19`) emit non-blocking `[WARN]` notices for missing fields.
+5. Reviews carrying `Mode: ADVISORY` or transcription fallback notices cannot satisfy the independent review gate.
+6. The `Receipt:` field in review headers is optional and informational only.
+7. In `role: installed`, `gate-check` is skipped by the validator because consumer checkouts do not retain session journals.
+8. Evidence recording runs its internal validator with `PROTOCOL_SKIP_GATE=1` so the cited owner's receipt can be produced on a completed task; the standalone validator and CI enforce the gate against the frozen tree without that flag.
+
+Reasoning:
+A completion gate is only as strong as the binding between the cited review and a verifiable handoff receipt. Binding the review path to the owner's certified entry closes the stale-citation gap found in v1.9.4, while the legacy cutoff avoids invalidating pre-existing reviews. The recording exemption exists because the gate otherwise deadlocks the very receipt it requires, and CI remains the enforcement point.
+
+Alternatives rejected:
+- Trusting header existence and verdict only: rejected because the v1.9.4 gate accepted a stale Copilot receipt.
+- Treating a missing Date as legacy: rejected because it allowed a new review to bypass the certifying requirements wholesale (reproduced defect A3-2).
+- Running the gate during evidence recording: rejected because it makes the cited owner's receipt unreachable (reproduced deadlock A3-1).
+
+Consequences:
+`gate-check` runs in the source role and in CI; consumer repositories skip it. Reviews carry Mode, Receipt-Owner and an optional Receipt; the first block recorded under this rule is enforcement of the completed task's gate. Local runs can set `PROTOCOL_SKIP_GATE=1` manually, which is visible in the validator output; CI never sets it.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

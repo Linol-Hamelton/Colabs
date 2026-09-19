@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - PROTO-DEC-0031 transcribed; Item 4 (A3) prompt prepared
+## 2026-09-19 - Item 4 remediation re-audited PASS; PROTO-DEC-0032 recorded
 
 Agent: deepseek-flash
 
-Action: The owner approved `PROTO-DEC-0031` in chat. Verified the block was absent from the committed tree (the A4 commit pathspec named `.ai/DECISIONS.md`, but the file was unchanged, so the block had not been written), acquired the shared-doc lock and transcribed the approved text verbatim with the `PROTO-DEC-0030` provenance line: `Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)`. Post-change validator: 31 decision blocks inspected, 30 committed blocks unchanged, exit 0 with 0 warnings. Wrote the Item 4 dispatch prompt `docs/reviews/2026-09-19-gemini-v1.9.5-item4-prompt.md` for A3 `gate-check`: extract `checkOwnerReceipt(root, owner, { deep })` from the verify command with identical behavior; implement the subcommand (TASK gate parsing, verdict whitelist, Mode and Receipt-Owner rules with the 2026-09-19 legacy cutoff, review-path mention plus deep receipt binding, advisory reviews can never satisfy the independent slot, empty `Receipt` allowed, exit 0/1, no subprocess recursion); validator integration in the source role only; `tests/gate.test.cjs` with eight scenarios; a PROTOCOL.md subsection; one AGENTS.md sentence; and the `PROTO-DEC-0032` draft for owner approval.
+Action: Re-audited the A3 remediation. Independent checks: gate tests 12/12, handoff 32/32, session 33/33, validator tests 12/12, full suite 229/229, validator exit 0 with 0 warnings, implementer receipt fresh. Independent probe matrix in a fresh clone carrying the remediated code: B1 missing `Date` -> exit 1; B1b malformed `Date` -> exit 1; B2 future date without `Mode` -> exit 1; B3 genuine legacy (`Date: 2026-09-19`, no fields, fresh receipt, path named) -> exit 0 with WARN; B4 bold template headers (`**Mode**:`) parse and bind; A1 `record` on a Completed task with no prior Evidence -> exit 0; A2 `verify --deep` -> 0; A3 standalone `gate-check` -> 0; A4 mutation of a tracked file -> stale failure; A5 re-record -> 0; A6 `gate-check` -> 0. Both blocking findings (A3-1 deadlock, A3-2 missing-Date bypass) are closed. Wrote `docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md` (verdict PASS) with residual notes: the skip flag is currently inherited by every check spawned by record (recommend narrowing to the validator), genuine legacy grandfathering remains bounded to pre-cutoff dates, and a manually set `PROTOCOL_SKIP_GATE=1` is visible in validator output while CI never sets it. Transcribed `PROTO-DEC-0032` under the shared-doc lock in normalized form (`### PROTO-DEC-0032`, `Status: Accepted`) with the amended Date clause and the record-time gate exemption; post-change validator: 32 decision blocks inspected, 31 committed unchanged, 0 warnings.
 
-Result: The decision log now carries all three owner-approved policy decisions (`PROTO-DEC-0029`, `0030`, `0031`). Item 4 is ready to dispatch. The transcription, this journal and the new prompt are uncommitted.
+Result: Item 4 is ready to commit with all four owner-approved policy decisions recorded (`PROTO-DEC-0029`..`0032`). No implementation file was modified by this session; the writes were the re-audit report, `.ai/DECISIONS.md` under the lock and this journal.
 
-Next step: Owner commits the decision transcription and dispatches the Item 4 prompt to Gemini; DeepSeek audits Item 4 before its commit.
+Next step: Owner commits Item 4, then the plan continues with A5 documentation closure and the Track B registry before the final certification cycle.
 
-Open: commit of `.ai/DECISIONS.md`, this journal and the Item 4 prompt; Item 4 implementation and audit.
+Open: Item 4 commit; A5 and B1-B4; final freeze, ordered records, standalone gate validation, commit, push, optional tag.
 
 Evidence:
-- anchor: 77c131234b5cb60571c1ece87fa76e5a3849be4c, uncommitted changes present
-- digest: sha256:aeb692bf3fb40965789c3224c7a639b57c0caf4b476940d390a2ecae31ca47b4 over 131 tracked and untracked files
+- anchor: 3baebed397c72dc08dc2ffdae54f1927fa9f07a3, uncommitted changes present
+- digest: sha256:18dba3bf2a956c42bfc6bdc4c6e62b9f49cea555c533f7336f2bd21a71db8ae2 over 135 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T02:44:26.989Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T03:33:14.947Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:20082f1c18613ff2a8fc078424ec006c0ec6e21db28581d8c36aee9891b8e42e of this entry without this block
+- entry: sha256:d9a32b6d5f86e876302b035c77769d5e40dd3324502551f1cfe5c57034ea9605 of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 102s
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 100s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---

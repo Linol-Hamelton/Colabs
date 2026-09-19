@@ -6,6 +6,62 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - Item 4 (A3) remediation: fix A3-1 bootstrap deadlock and A3-2 date validation
+
+Agent: gemini
+
+Action: Executed remediation prompt docs/reviews/2026-09-19-gemini-v1.9.5-item4-remediation-prompt.md addressing DeepSeek audit findings A3-1 and A3-2. (1) Fix 1 (A3-1): In .ai/bin/protocol-handoff.cjs runCheck, passed PROTOCOL_SKIP_GATE=1 to spawnSync env. In validate-protocol.ps1, added conditional skip when PROTOCOL_SKIP_GATE=1 emitting PASS 'gate-check skipped during evidence recording', resolving record deadlock on completed tasks while preserving standalone gate enforcement. Added deadlock regression test in tests/gate.test.cjs (test 11). (2) Fix 2 (A3-2): In .ai/bin/protocol-handoff.cjs gateCheck, strictly required a valid ISO Date in cited independent review; missing or unparseable Date fails immediately. Restricted legacy grandfathering strictly to reviews with valid present Date <= 2026-09-19. Added tests 9 (missing Date) and 10 (invalid Date) to tests/gate.test.cjs. Updated .ai/docs/PROTOCOL.md legacy cutoff specification. Added Date: 2026-09-19 to review fixtures in tests/validator.test.cjs. (3) A3-3: Tightened Mode, Verdict, Date, Receipt-Owner, and Receipt header regexes requiring word boundary and mandatory colon.
+
+Result: Remediation verified. node --test tests/gate.test.cjs (12/12 pass), tests/handoff.test.cjs (32/32 pass), tests/session.test.cjs (33/33 pass), tests/validator.test.cjs (12/12 pass), full test-protocol.ps1 (229/229 pass, exit 0), validate-protocol.ps1 (exit 0, 0 warnings). Stopped before commit for DeepSeek re-audit per instruction.
+
+Next step: DeepSeek-flash performs adversarial re-audit on Item 4 (A3) remediation; owner reviews verdict; commit Item 4 once certified.
+
+Open: DeepSeek adversarial re-audit verdict.
+
+Evidence:
+- anchor: 3baebed397c72dc08dc2ffdae54f1927fa9f07a3, uncommitted changes present
+- digest: sha256:83d98e54a45037f45e625044f541fc7d43edb3b62df7d5644293a4a78bb5893a over 134 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T03:21:58.127Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:daa313a6e91d4eda957c6d14879af970a467993594d39adeabfbc52a955756bf of this entry without this block
+- parent-entry: sha256:2d784dd8e2f333b7308a8cc44483a5707008bde3dac2bc87b09252c256f5f46f
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 103s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+## 2026-09-19 - Item 4 (A3) implementation: gate-check subcommand, validator integration, tests, docs
+
+Agent: gemini
+
+Action: Implemented Item 4 (A3) gate freshness per v1.9.5 plan r2 and dispatch prompt docs/reviews/2026-09-19-gemini-v1.9.5-item4-prompt.md under owner decision D4. (1) Refactored .ai/bin/protocol-handoff.cjs extracting checkOwnerReceipt(root, owner, options) in-process helper from reportOne/verify without subprocess recursion. (2) Implemented gate-check subcommand: parses TASK.md status (exits 0 with not applicable for in-progress tasks), parses Completion gate section, verifies adversarial prompt and independent review paths exist under docs/reviews/ and are non-empty, checks verdict (PASS or RECOMMENDATION), evaluates Mode and Receipt-Owner (strictly requires Mode: CERTIFYING and Receipt-Owner for Date > 2026-09-19, warns for legacy), allows optional/empty Receipt field, verifies receipt binding (scans owner journal for explicit review path mention and verifies deep evidence against current tree). (3) Integrated gate-check into validate-protocol.ps1 for source role only (skips in installed role). (4) Registered tests/gate.test.cjs in protocol-manifest.json and implemented 9 comprehensive tests covering all 8 required scenarios and validator integration. (5) Added Gate freshness check documentation in .ai/docs/PROTOCOL.md and updated completion-gate paragraph in AGENTS.md section 2. (6) Prepared PROTO-DEC-0032 draft for owner approval.
+
+Result: Item 4 implementation complete. node --test tests/gate.test.cjs passed (9/9), node --test tests/handoff.test.cjs passed (32/32), node --test tests/session.test.cjs passed (33/33), node --test tests/validator.test.cjs passed (12/12), test-protocol.ps1 passed (226/226), validate-protocol.ps1 passed with 0 warnings/failures. Synthetic gate-check demo executed and captured (pass, stale, advisory). Stopped before commit for DeepSeek adversarial audit.
+
+Next step: DeepSeek-flash performs adversarial audit on Item 4 (A3); owner reviews audit verdict and approves PROTO-DEC-0032; commit Item 4 once approved.
+
+Open: Owner approval of PROTO-DEC-0032.
+
+Evidence:
+- anchor: 3baebed397c72dc08dc2ffdae54f1927fa9f07a3, uncommitted changes present
+- digest: sha256:9cd4413220e1b7239b5a2ede5ff4bf54e784bbc0dbca6af72f82353b6d422a15 over 132 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T03:03:15.319Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:2d784dd8e2f333b7308a8cc44483a5707008bde3dac2bc87b09252c256f5f46f of this entry without this block
+- parent-entry: sha256:46fdadc10de614c8e5687078fd81b300be8ca57a49fa87e8a52985db4aa37107
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 98s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-19 - Item 3 (A4) implementation: capability model, review template mode, CI restoration
 
 Agent: gemini

@@ -223,6 +223,14 @@ Reviews under `docs/reviews/` operate in one of two modes:
 - **CERTIFYING**: Requires four orchestrator-verified capabilities: `FS_WRITE`, `SHELL_EXEC`, `EVIDENCE_SIGN`, and `REPO_READ`. The review header declares `Mode: CERTIFYING` and identifies its session via `Receipt-Owner: <owner-id>` (or legacy `Session:`). The reviewer binds its verdict by recording verifiable handoff evidence in its session journal mentioning the review document path.
 - **ADVISORY**: Applied whenever any capability is absent (e.g. read-only models, chat panels, or external audits). Advisory reviews carry `Mode: ADVISORY` (or `[MODE: READ-ONLY ADVISORY]`), are persisted via the section 5.5 chat transcription fallback, and are explicitly marked non-certifying. An advisory review cannot satisfy the independent-review completion gate.
 
+### Gate freshness check
+
+When a task is marked `Status: Completed`, `node .ai/bin/protocol-handoff.cjs gate-check` (invoked by `validate-protocol.ps1` in `role: source`) enforces that the completion gate's independent review is genuinely bound to a verified session:
+- **Binding rule**: The review header specifies `Receipt-Owner: <owner-id>` (or `Session:`). That owner's journal (`.ai/worklog/<owner-id>.md`) must contain a dated entry explicitly mentioning the cited review path (normalized forward slashes), and that entry's Evidence block must verify against the current tree via deep receipt check (`verify --deep`).
+- **Legacy cutoff (`2026-09-19`)**: Legacy grandfathering applies strictly to reviews with a valid, present `Date <= 2026-09-19`; omitting `Mode` or `Receipt-Owner` emits a warning (`[WARN]`) rather than failing validation, provided their evidence verifies. Reviews dated after `2026-09-19` strictly require `Mode: CERTIFYING` and `Receipt-Owner`. A missing or invalid `Date` fails the gate immediately.
+- **Installed role**: In `role: installed`, `gate-check` is skipped by the validator because consumer repositories do not retain protocol session journals.
+- **Empty Receipt field**: The `Receipt:` field in the review header is optional and informational; an empty or omitted field passes verification.
+
 ---
 
 ## Installing and upgrading

@@ -46,10 +46,10 @@ test('completed tasks require a prompt and independent review completion gate', 
     '- Independent review: docs/reviews/review.md\n');
   write(root, 'docs/reviews/prompt.md', '# Unified adversarial audit prompt\n\n' +
     'This unified adversarial review prompt covers every changed item.\n');
-  write(root, 'docs/reviews/review.md', '# Independent review\n\nReviewer: opposing-agent\n\nVerdict: PASS\n');
+  write(root, 'docs/reviews/review.md', '# Independent review\n\nDate: 2026-09-19\nReviewer: opposing-agent\n\nVerdict: PASS\n');
   succeeds(root);
 
-  write(root, 'docs/reviews/review.md', '# Independent review\n\nReviewer: opposing-agent\n\nVerdict: BLOCKED\n');
+  write(root, 'docs/reviews/review.md', '# Independent review\n\nDate: 2026-09-19\nReviewer: opposing-agent\n\nVerdict: BLOCKED\n');
   fails(root, /must have a PASS or RECOMMENDATION verdict/);
 
   // Separate artifacts required
@@ -62,11 +62,11 @@ test('completed tasks require a prompt and independent review completion gate', 
   write(root, '.ai/TASK.md', '# Current Task\n\nStatus: Completed.\n\n## Completion gate\n\n' +
     '- Adversarial review prompt: docs/reviews/prompt.md\n' +
     '- Independent review: docs/reviews/review.md\n');
-  write(root, 'docs/reviews/review.md', '# Independent review\n\nVerdict: PASS\n');
+  write(root, 'docs/reviews/review.md', '# Independent review\n\nDate: 2026-09-19\nVerdict: PASS\n');
   fails(root, /must name a Reviewer/);
 
   // Unified adversarial prompt required
-  write(root, 'docs/reviews/review.md', '# Independent review\n\nReviewer: opposing-agent\n\nVerdict: RECOMMENDATION\n');
+  write(root, 'docs/reviews/review.md', '# Independent review\n\nDate: 2026-09-19\nReviewer: opposing-agent\n\nVerdict: RECOMMENDATION\n');
   write(root, 'docs/reviews/prompt.md', '# Regular prompt\n\nPlease review.\n');
   fails(root, /must identify a unified adversarial audit prompt/);
 
@@ -82,7 +82,7 @@ test('completed tasks require a prompt and independent review completion gate', 
   // Empty review fails
   write(root, 'docs/reviews/review.md', '');
   fails(root, /must not be empty/);
-  write(root, 'docs/reviews/review.md', '# Independent review\n\nReviewer: opposing-agent\n\nVerdict: PASS\n');
+  write(root, 'docs/reviews/review.md', '# Independent review\n\nDate: 2026-09-19\nReviewer: opposing-agent\n\nVerdict: PASS\n');
 
   // Completed task citing missing review artifact in TASK.md fails
   write(root, '.ai/TASK.md', '# Current Task\n\nStatus: Completed.\n\nSee docs/reviews/missing-analysis.md.\n\n## Completion gate\n\n' +

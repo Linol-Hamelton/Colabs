@@ -94,12 +94,13 @@ function powershell() {
 function runCheck(root, check) {
   const started = Date.now();
   let result;
+  const env = { ...process.env, PROTOCOL_SKIP_GATE: '1' };
   if (check.isCustom) {
-    result = spawnSync(check.name, { cwd: root, shell: true, encoding: 'utf8', windowsHide: true, timeout: 900000 });
+    result = spawnSync(check.name, { cwd: root, shell: true, encoding: 'utf8', windowsHide: true, timeout: 900000, env });
   } else {
     result = spawnSync(powershell(),
       ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(root, check.name)],
-      { cwd: root, encoding: 'utf8', windowsHide: true, timeout: 900000 });
+      { cwd: root, encoding: 'utf8', windowsHide: true, timeout: 900000, env });
   }
   if (result.error) throw new Error(`${check.name} could not run: ${result.error.message}`);
   return { name: check.name, code: result.status, seconds: Math.round((Date.now() - started) / 1000), isCustom: Boolean(check.isCustom) };
@@ -448,58 +449,227 @@ function resolveJournal(root, explicit, owner) {
   return path.join(directory, candidates[0].name);
 }
 
-function reportOne(root, journalPath, state, deep = false, allowLegacy = false) {
-  const evidence = readEvidence(journalPath);
-  const relative = path.relative(root, journalPath);
-  if (!evidence) {
-    process.stderr.write(`AI protocol: ${relative} has no Evidence block on its newest entry.\n`);
-    return 1;
-  }
-  if (evidence.format !== state.format) {
-    process.stderr.write(`AI protocol: ${relative} evidence uses digest format ${evidence.format}; ` +
-      `this build computes format ${state.format}. The two cannot be compared. Re-record to refresh it.\n`);
-    return 1;
-  }
-  if (!evidence.authenticated) {
-    process.stderr.write(`AI protocol: ${relative} evidence is not authenticated (legacy format); re-record to refresh.\n`);
-    if (!allowLegacy) return 1;
-  }
-  if (evidence.entry === null) {
-    process.stderr.write(`AI protocol: ${relative} evidence predates entry hashing. ` +
-      'Re-record it so the entry itself is covered.\n');
-    return 1;
-  }
-  if (evidence.entry !== entryHash(journalPath)) {
-    process.stderr.write(`AI protocol: ${relative} entry was changed after it was certified. ` +
-      `Recorded ${evidence.entry}, the entry now hashes to ${entryHash(journalPath)}.\n`);
-    return 1;
-  }
-  if (evidence.parentEntry === 'tampered') {
-    process.stderr.write(`AI protocol: ${relative} historical link was broken. Entry recorded a tampered parent entry.\n`);
-    return 1;
-  }
-  const chainCheck = verifyJournalChain(root, journalPath, deep);
-  if (!chainCheck.ok) {
-    process.stderr.write(`AI protocol: ${relative} historical link was broken. ${chainCheck.reason}\n`);
-    return 1;
-  }
-  if (evidence.parentEntry && evidence.parentEntry !== 'root' && evidence.parentEntry !== 'legacy') {
-    const expectedParent = findParentEntry(journalPath);
-    if (evidence.parentEntry !== expectedParent) {
-      process.stderr.write(`AI protocol: ${relative} historical link was broken. ` +
-        `Recorded parent ${evidence.parentEntry}, expected ${expectedParent}.\n`);
-      return 1;
+function checkOwnerReceipt(root, owner, options = {}) {
+  let journalPath = options.journalPath;
+  if (!journalPath) {
+    if (options.journal) {
+      journalPath = path.resolve(root, options.journal);
+    } else if (owner) {
+      if (owner.endsWith('.md') || owner.includes('/') || owner.includes('\\')) {
+        journalPath = path.resolve(root, owner);
+      } else {
+        journalPath = path.join(root, '.ai', 'worklog', `${owner}.md`);
+      }
     }
   }
+  if (!journalPath) {
+    return { ok: false, reason: 'missing-owner', message: 'no owner or journal specified' };
+  }
+  const relative = path.relative(root, journalPath);
+  if (!fs.existsSync(journalPath)) {
+    return {
+      ok: false,
+      reason: 'missing-journal',
+      message: `journal does not exist: ${relative}`,
+      relative,
+      journalPath,
+    };
+  }
+
+  const sectionIndex = typeof options.sectionIndex === 'number' ? options.sectionIndex : 0;
+  const journalText = fs.readFileSync(journalPath, 'utf8');
+  const normalized = journalText.replace(/\r\n/g, '\n');
+  const sections = normalized.split(/(?=^## )/m);
+  const datedSections = sections.filter(s => DATE_HEADING_M_REGEX.test(s));
+
+  if (datedSections.length === 0) {
+    return {
+      ok: false,
+      reason: 'no-dated-entries',
+      message: 'has no dated entry',
+      relative,
+      journalPath,
+    };
+  }
+
+  if (sectionIndex >= datedSections.length) {
+    return {
+      ok: false,
+      reason: 'section-not-found',
+      message: `dated section ${sectionIndex} not found`,
+      relative,
+      journalPath,
+    };
+  }
+
+  const section = datedSections[sectionIndex];
+  const evBody = hooks.entryField(section.replace(/\n-{3,}\s*$/, '\n'), 'Evidence');
+  if (!evBody) {
+    return {
+      ok: false,
+      reason: 'no-evidence',
+      message: sectionIndex === 0
+        ? 'has no Evidence block on its newest entry.'
+        : `has no Evidence block on dated section ${sectionIndex}.`,
+      relative,
+      journalPath,
+    };
+  }
+
+  const evidence = parseEvidenceBlock(evBody);
+  if (!evidence) {
+    return {
+      ok: false,
+      reason: 'no-evidence',
+      message: sectionIndex === 0
+        ? 'has no Evidence block on its newest entry.'
+        : `has no Evidence block on dated section ${sectionIndex}.`,
+      relative,
+      journalPath,
+    };
+  }
+
+  const state = options.state || anchor(root);
+
+  if (evidence.format !== state.format) {
+    return {
+      ok: false,
+      reason: 'format-mismatch',
+      message: `evidence uses digest format ${evidence.format}; ` +
+        `this build computes format ${state.format}. The two cannot be compared. Re-record to refresh it.`,
+      evidence,
+      relative,
+      journalPath,
+    };
+  }
+
+  let warning = null;
+  if (!evidence.authenticated) {
+    warning = 'evidence is not authenticated (legacy format); re-record to refresh.';
+    if (!options.allowLegacy) {
+      return {
+        ok: false,
+        reason: 'unauthenticated',
+        message: warning,
+        warning,
+        evidence,
+        relative,
+        journalPath,
+      };
+    }
+  }
+
+  if (evidence.entry === null) {
+    return {
+      ok: false,
+      reason: 'predates-hashing',
+      message: 'evidence predates entry hashing. Re-record it so the entry itself is covered.',
+      warning,
+      evidence,
+      relative,
+      journalPath,
+    };
+  }
+
+  const clean = canonicalEntryBody(section);
+  const actualHash = `sha256:${crypto.createHash('sha256').update(clean, 'utf8').digest('hex')}`;
+  if (evidence.entry !== actualHash) {
+    return {
+      ok: false,
+      reason: 'entry-changed',
+      message: `entry was changed after it was certified. Recorded ${evidence.entry}, the entry now hashes to ${actualHash}.`,
+      warning,
+      evidence,
+      relative,
+      journalPath,
+    };
+  }
+
+  if (evidence.parentEntry === 'tampered') {
+    return {
+      ok: false,
+      reason: 'tampered-parent',
+      message: 'historical link was broken. Entry recorded a tampered parent entry.',
+      warning,
+      evidence,
+      relative,
+      journalPath,
+    };
+  }
+
+  const chainCheck = verifyJournalChain(root, journalPath, Boolean(options.deep));
+  if (!chainCheck.ok) {
+    return {
+      ok: false,
+      reason: 'chain-broken',
+      message: `historical link was broken. ${chainCheck.reason}`,
+      warning,
+      evidence,
+      relative,
+      journalPath,
+    };
+  }
+
+  if (sectionIndex === 0 && evidence.parentEntry && evidence.parentEntry !== 'root' && evidence.parentEntry !== 'legacy') {
+    const expectedParent = findParentEntry(journalPath);
+    if (evidence.parentEntry !== expectedParent) {
+      return {
+        ok: false,
+        reason: 'parent-mismatch',
+        message: `historical link was broken. Recorded parent ${evidence.parentEntry}, expected ${expectedParent}.`,
+        warning,
+        evidence,
+        relative,
+        journalPath,
+      };
+    }
+  }
+
   if (evidence.digest !== state.digest) {
-    process.stderr.write(`AI protocol: ${relative} evidence is stale. Recorded ${evidence.digest}, tree is now ${state.digest}.\n`);
-    return 1;
+    return {
+      ok: false,
+      reason: 'stale',
+      message: `evidence is stale. Recorded ${evidence.digest}, tree is now ${state.digest}.`,
+      warning,
+      evidence,
+      relative,
+      journalPath,
+    };
   }
+
   if (/exit [^0]/.test(evidence.body)) {
-    process.stderr.write(`AI protocol: ${relative} evidence matches the tree but records a failing check.\n`);
+    return {
+      ok: false,
+      reason: 'failing-check',
+      message: 'evidence matches the tree but records a failing check.',
+      warning,
+      evidence,
+      relative,
+      journalPath,
+    };
+  }
+
+  return {
+    ok: true,
+    reason: 'matches-current-tree',
+    message: 'evidence matches the current tree',
+    warning,
+    evidence,
+    relative,
+    journalPath,
+  };
+}
+
+function reportOne(root, journalPath, state, deep = false, allowLegacy = false) {
+  const result = checkOwnerReceipt(root, journalPath, { journalPath, state, deep, allowLegacy });
+  if (result.warning) {
+    process.stderr.write(`AI protocol: ${result.relative} ${result.warning}\n`);
+  }
+  if (!result.ok) {
+    process.stderr.write(`AI protocol: ${result.relative} ${result.message}\n`);
     return 1;
   }
-  process.stdout.write(`${relative}: evidence matches the current tree\n`);
+  process.stdout.write(`${result.relative}: evidence matches the current tree\n`);
   return 0;
 }
 
@@ -516,7 +686,7 @@ function main(argv) {
     else if (argv[i] === '--journal') options.journal = value;
     else if (argv[i] === '--root') options.root = value;
     else if (argv[i] === '--reason') options.reason = value;
-    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state [--owner id] [--journal path] [--root path] [--reason text] [--quick] [--deep] [--allow-legacy]');
+    else throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state|gate-check [--owner id] [--journal path] [--root path] [--reason text] [--quick] [--deep] [--allow-legacy]');
     i += 1;
   }
   const root = fs.realpathSync(path.resolve(options.root || path.join(__dirname, '..', '..')));
@@ -707,11 +877,242 @@ function main(argv) {
     return 0;
   }
 
-  throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state');
+  if (command === 'gate-check') {
+    return gateCheck(root, options);
+  }
+
+  throw new Error('Usage: protocol-handoff.cjs record|verify|rehash|state|gate-check');
+}
+
+function gateCheck(root, options = {}) {
+  const taskPath = path.join(root, '.ai', 'TASK.md');
+  if (!fs.existsSync(taskPath)) {
+    process.stderr.write('AI protocol: gate-check: .ai/TASK.md does not exist.\n');
+    return 1;
+  }
+  const taskText = fs.readFileSync(taskPath, 'utf8');
+  const statusMatch = taskText.match(/^Status:[ \t]*(\S.*)$/m);
+  const taskStatus = statusMatch ? statusMatch[1].trim() : 'Unknown';
+
+  if (!taskStatus.match(/^Completed(?:[ .;:-]|$)/i)) {
+    process.stdout.write(`not applicable: task status is ${taskStatus}\n`);
+    return 0;
+  }
+
+  const gateMatch = taskText.match(/(?:^|\n)## Completion gate[ \t]*\r?\n([\s\S]*?)(?=(?:\n## )|$)/);
+  if (!gateMatch) {
+    process.stderr.write('AI protocol: gate-check: completed task requires a ## Completion gate section.\n');
+    return 1;
+  }
+  const gateBody = gateMatch[1];
+  const promptMatch = gateBody.match(/^[ \t]*-[ \t]+Adversarial review prompt:[ \t]*(\S+)[ \t]*$/m);
+  const reviewMatch = gateBody.match(/^[ \t]*-[ \t]+Independent review:[ \t]*(\S+)[ \t]*$/m);
+
+  if (!promptMatch) {
+    process.stderr.write('AI protocol: gate-check: completed task is missing its adversarial review prompt field.\n');
+    return 1;
+  }
+  if (!reviewMatch) {
+    process.stderr.write('AI protocol: gate-check: completed task is missing its independent review field.\n');
+    return 1;
+  }
+
+  const promptRel = promptMatch[1].replace(/\\/g, '/').replace(/^\.\//, '');
+  const reviewRel = reviewMatch[1].replace(/\\/g, '/').replace(/^\.\//, '');
+
+  if (promptRel === reviewRel) {
+    process.stderr.write('AI protocol: gate-check: adversarial prompt and independent review must be separate artifacts.\n');
+    return 1;
+  }
+
+  const gateFiles = [
+    { label: 'adversarial review prompt', rel: promptRel },
+    { label: 'independent review', rel: reviewRel },
+  ];
+
+  for (const item of gateFiles) {
+    if (!item.rel.startsWith('docs/reviews/') || item.rel.includes('..')) {
+      process.stderr.write(`AI protocol: gate-check: ${item.label} must point inside docs/reviews/: ${item.rel}\n`);
+      return 1;
+    }
+    const full = path.join(root, item.rel);
+    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) {
+      process.stderr.write(`AI protocol: gate-check: ${item.label} file does not exist: ${item.rel}\n`);
+      return 1;
+    }
+    const content = fs.readFileSync(full, 'utf8');
+    if (!content.trim()) {
+      process.stderr.write(`AI protocol: gate-check: ${item.label} file is empty: ${item.rel}\n`);
+      return 1;
+    }
+  }
+
+  const reviewContent = fs.readFileSync(path.join(root, reviewRel), 'utf8');
+
+  // Mode: ADVISORY or transcribed reviews cannot satisfy independent slot
+  const modeMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const declaredMode = modeMatch ? modeMatch[1].trim() : null;
+  if (declaredMode && declaredMode.toUpperCase() === 'ADVISORY') {
+    process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} has Mode: ADVISORY; advisory reviews cannot satisfy the independent review gate.\n`);
+    return 1;
+  }
+  if (/(?:transcribed\s+(?:from\s+chat\s+)?by|transcription\s+fallback)/i.test(reviewContent)) {
+    process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is transcribed; transcribed reviews cannot satisfy the independent review gate.\n`);
+    return 1;
+  }
+
+  // Verdict check: must be PASS or RECOMMENDATION
+  const verdictMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bVerdict\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  if (!verdictMatch) {
+    process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is missing a Verdict.\n`);
+    return 1;
+  }
+  const rawVerdict = verdictMatch[1].trim();
+  const verdictToken = rawVerdict.toUpperCase();
+  if (verdictToken !== 'PASS' && verdictToken !== 'RECOMMENDATION') {
+    process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} verdict must be PASS or RECOMMENDATION, got ${rawVerdict}.\n`);
+    return 1;
+  }
+
+  // Date check for legacy cutoff (legacy: valid Date <= 2026-09-19; new reviews: Date > 2026-09-19)
+  const dateMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bDate\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const dateIsoMatch = dateMatch ? dateMatch[1].match(/\b\d{4}-\d{2}-\d{2}\b/) : null;
+  if (!dateIsoMatch) {
+    process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is missing or has an invalid Date.\n`);
+    return 1;
+  }
+  const reviewDate = dateIsoMatch[0];
+  const isLegacy = reviewDate <= '2026-09-19';
+  const isNew = !isLegacy;
+
+  // Mode: CERTIFYING required for new reviews
+  if (!declaredMode) {
+    if (isNew) {
+      process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is missing Mode: CERTIFYING.\n`);
+      return 1;
+    }
+    process.stdout.write(`[WARN] legacy review ${reviewRel} missing Mode: CERTIFYING\n`);
+  } else if (declaredMode.toUpperCase() !== 'CERTIFYING') {
+    process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} mode must be CERTIFYING, got ${declaredMode}.\n`);
+    return 1;
+  }
+
+  // Receipt-Owner (Session fallback)
+  const ownerMatch = reviewContent.match(/^[ \t]*(?:\*\*)?(?:\bReceipt-Owner\b|\bSession\b)(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const receiptOwner = ownerMatch ? ownerMatch[1].trim() : null;
+
+  if (!receiptOwner) {
+    if (isNew) {
+      process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is missing Receipt-Owner.\n`);
+      return 1;
+    }
+    process.stdout.write(`[WARN] legacy review ${reviewRel} missing Receipt-Owner\n`);
+  }
+
+  // Receipt field is optional and informational only (empty is valid)
+  const receiptMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bReceipt\b(?:\*\*)?\s*:\s*([^\r\n]*)/im);
+
+  const state = options.state || anchor(root);
+
+  // Candidate journals to check
+  let candidateJournals = [];
+  if (receiptOwner) {
+    const ownerJournal = path.join(root, '.ai', 'worklog', `${receiptOwner}.md`);
+    if (!fs.existsSync(ownerJournal)) {
+      process.stderr.write(`AI protocol: gate-check: journal for Receipt-Owner "${receiptOwner}" not found: ${path.relative(root, ownerJournal)}.\n`);
+      return 1;
+    }
+    candidateJournals.push({ owner: receiptOwner, journalPath: ownerJournal });
+  } else {
+    // Legacy without Receipt-Owner: scan .ai/worklog
+    const worklogDir = path.join(root, '.ai', 'worklog');
+    if (fs.existsSync(worklogDir)) {
+      const files = fs.readdirSync(worklogDir).filter(f => f.endsWith('.md') && f !== 'README.md');
+      for (const file of files) {
+        candidateJournals.push({ owner: path.basename(file, '.md'), journalPath: path.join(worklogDir, file) });
+      }
+    }
+  }
+
+  if (candidateJournals.length === 0) {
+    if (isLegacy && !receiptOwner) {
+      process.stdout.write(`[WARN] legacy review ${reviewRel} has no session journals in .ai/worklog\n`);
+      return 0;
+    }
+    process.stderr.write(`AI protocol: gate-check: no session journals available in .ai/worklog to verify review ${reviewRel}.\n`);
+    return 1;
+  }
+
+  // Find a section that satisfies the binding
+  let reviewPathFound = false;
+  let evidenceFound = false;
+  let lastFailureReason = null;
+  let verifiedBinding = null;
+
+  for (const cand of candidateJournals) {
+    const journalText = fs.readFileSync(cand.journalPath, 'utf8');
+    const norm = journalText.replace(/\r\n/g, '\n');
+    const sections = norm.split(/(?=^## )/m);
+    const datedSections = sections.filter(s => DATE_HEADING_M_REGEX.test(s));
+
+    for (let i = 0; i < datedSections.length; i++) {
+      const sectionText = datedSections[i];
+      const normSection = sectionText.replace(/\\/g, '/');
+      if (!normSection.includes(reviewRel)) {
+        continue;
+      }
+      reviewPathFound = true;
+      const evBody = hooks.entryField(sectionText.replace(/\n-{3,}\s*$/, '\n'), 'Evidence');
+      if (!evBody) {
+        lastFailureReason = 'entry has no Evidence block';
+        continue;
+      }
+      evidenceFound = true;
+      const checkRes = checkOwnerReceipt(root, cand.owner, {
+        journalPath: cand.journalPath,
+        sectionIndex: i,
+        deep: true,
+        allowLegacy: isLegacy,
+        state,
+      });
+      if (checkRes.ok) {
+        verifiedBinding = { owner: cand.owner, journalPath: cand.journalPath, sectionIndex: i };
+        break;
+      } else {
+        lastFailureReason = checkRes.message;
+      }
+    }
+    if (verifiedBinding) break;
+  }
+
+  if (verifiedBinding) {
+    const relJournal = path.relative(root, verifiedBinding.journalPath);
+    process.stdout.write(`completion gate verified: ${reviewRel} bound to ${relJournal} (section ${verifiedBinding.sectionIndex})\n`);
+    return 0;
+  }
+
+  // Binding failed; provide distinguished error message
+  const primaryOwner = receiptOwner || candidateJournals[0].owner;
+  const primaryRel = path.relative(root, path.join(root, '.ai', 'worklog', `${primaryOwner}.md`));
+
+  if (!reviewPathFound) {
+    if (isLegacy && !receiptOwner) {
+      process.stdout.write(`[WARN] legacy review ${reviewRel} not mentioned in any journal in .ai/worklog\n`);
+      return 0;
+    }
+    process.stderr.write(`AI protocol: gate-check: journal ${primaryRel} does not mention independent review ${reviewRel}.\n`);
+    return 1;
+  }
+  if (!evidenceFound) {
+    process.stderr.write(`AI protocol: gate-check: journal ${primaryRel} entry mentioning ${reviewRel} has no Evidence block.\n`);
+    return 1;
+  }
+  process.stderr.write(`AI protocol: gate-check: journal ${primaryRel} evidence failed verification: ${lastFailureReason || 'receipt does not verify'}.\n`);
+  return 1;
 }
 
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); }
   catch (error) { process.stderr.write(`AI protocol: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { anchor, attach, formatWithEvidence, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain, verifyArchivedChain, archiveEntryRecords, parseEvidenceBlock, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, ENTRY_HASH_FORMAT, hasEntryHashFormat2, canonicalEntryBody };
+module.exports = { anchor, attach, formatWithEvidence, readEvidence, renderEvidence, entryHash, findParentEntry, verifyJournalChain, verifyArchivedChain, archiveEntryRecords, parseEvidenceBlock, DATE_HEADING_REGEX, DATE_HEADING_M_REGEX, ENTRY_HASH_FORMAT, hasEntryHashFormat2, canonicalEntryBody, checkOwnerReceipt, gateCheck };

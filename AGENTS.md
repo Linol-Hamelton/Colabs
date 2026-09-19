@@ -105,8 +105,10 @@ For the validator to enforce that gate, a completed task must also include a
 
 Both files must exist; the prompt must identify the unified adversarial audit
 prompt, and the review must name an independent reviewer and an explicit
-`PASS` or `RECOMMENDATION` verdict. A `FAIL` or `BLOCKED` verdict cannot
-certify completion.
+`PASS` or `RECOMMENDATION` verdict. The independent review must carry
+`Mode: CERTIFYING` with a `Receipt-Owner` whose receipt verifies against the
+current tree and whose journal entry explicitly names the review path.
+A `FAIL` or `BLOCKED` verdict cannot certify completion.
 
 A certifying verdict requires four capabilities: `FS_WRITE`, `SHELL_EXEC`,
 `EVIDENCE_SIGN`, and `REPO_READ`. Capability is determined by the orchestrator
