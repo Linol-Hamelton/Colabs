@@ -25,9 +25,10 @@ Repeated reading of kernel code and historical prose burns context across models
 - [x] C2 PROTOCOL.md policy subsection plus the AGENTS.md pointer (35f37af).
 - [x] Policy-pin test registered in the manifest (35f37af).
 - [x] PROTO-DEC-0034 approved and transcribed (99befee).
-- [ ] C1 instrumentation (telemetry) and H1 pilot design with pre-registered thresholds.
-- [ ] Repomix pilot run and report (evidence for or against M1 adoption).
-- [ ] External audit round and the owner decision on repository cleanup or v2.0.
+- [x] C1 instrumentation (telemetry) and H1 pilot design with pre-registered thresholds.
+- [ ] C1a Stop telemetry fail-safe fix (external audit F-001: every Stop exit emits a metrics row) plus regressions.
+- [x] Repomix pilot run and report (evidence for or against M1 adoption): negative result, stop rule executed, correction addendum published.
+- [ ] External audit round closure (Qoder receipt re-issue or downgrade; codex receipt re-record at freeze).
 
 ## Roles
 
@@ -36,11 +37,11 @@ Repeated reading of kernel code and historical prose burns context across models
 
 ## Current state
 
-v1.9.5 published (tag at `1b1deab`; the erratum documents the docs-only red CI on the tagged commit). Track C M0+C2 committed (`35f37af`) with audit PASS; `PROTO-DEC-0034` recorded (`99befee`); CI green on `99befee`. MCP cooperation matrix discussion deferred by the owner until after the Repomix pilot.
+v1.9.5 published (tag at `1b1deab`; erratum recorded). Track C M0+C2 committed with audit PASS; `PROTO-DEC-0034/0035` recorded; H1 repetition 1 produced a negative result for the raw digest (corrected numbers in the pilot-report addendum; stop rule executed, no MCP, no Arm C). External audit round: Codex and Gemini FAIL on package acceptance (F-001..F-004), Qoder RECOMMENDATION with a broken receipt binding. F-002/F-003/F-004 fixed (data corrected, journals 29/30, validator 0 warnings); F-001 queued as C1a. Owner run policy recorded (tests on free models only; paid for analysis/coding; Gemini exception).
 
 ## Next
 
-Prepare and dispatch the C1 item (H1 instrumentation plus pilot design); then the Repomix pilot and the external audit round; the owner decides cleanup/v2.0.
+Gemini implements C1a (fail-safe Stop telemetry) and stops for DeepSeek's audit; the owner decides on repository cleanup/v2.0 after the audit round closes.
 
 ## Open questions
 

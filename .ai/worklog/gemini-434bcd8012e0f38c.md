@@ -8,6 +8,34 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - C1a fail-safe Stop telemetry implementation
+
+Agent: gemini
+
+Action: Executed dispatch prompt docs/reviews/2026-09-19-gemini-c1a-prompt.md to address external audit finding F-001: (1) In .ai/bin/protocol-hooks.cjs, updated run('Stop') so every exit path (missing SessionStart baseline, changed-without-journal, secret warning, clean tree, and normal complete handoff) writes exactly one metrics row to .ai/runtime/metrics/sessions.jsonl; failure paths use explicit nulls for missing baseline fields (changedFiles, durationSec, firstEditMs) and handoffComplete: false; systemMessage, stopWarnings, and exit semantics preserved unchanged; (2) In .ai/docs/PROTOCOL.md, added "### Telemetry and session metrics" subsection with consumer rule to select first event per session/trial; (3) In tests/hooks.test.cjs, added tests verifying all 6 requirement cases: changed without journal, missing baseline, secret warning, clean/normal, metrics write failure fail-safe, and absence of secret/journal text.
+
+Result: node --test tests/hooks.test.cjs tests/session.test.cjs tests/codex.test.cjs passed (68/68); test-protocol.ps1 passed (255/255 across 18 test files, exit 0); validate-protocol.ps1 exit 0 with 0 warnings. Verified before/after fixture transcript showing rows now emitted on previously silent paths.
+
+Next step: DeepSeek audits C1a implementation and verification before commit.
+
+Open: DeepSeek audit verdict.
+
+Evidence:
+- anchor: 66755cdd3e6ffe05812362165a0862355cf12bc4, uncommitted changes present
+- digest: sha256:22d666799a1fd7112aa9a10350a02f58fe2c20d5f855ecab36cfd1b750fb6dd3 over 181 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T19:20:19.054Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:de04f0d77622dbfb96f296ab51e5250f88fa2f6fedbf2fff8ceb5048534db497 of this entry without this block
+- parent-entry: sha256:f2f8eb26ce8eddc15cfabb2da843a41da581dc463e0d412186c3eb6d0043ed0c
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 138s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-19 - Fix circular dependency in protocol-session.cjs and protocol-hooks.cjs
 
 Agent: gemini

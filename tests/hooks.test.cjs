@@ -314,3 +314,105 @@ test('metrics file rotates to sessions.1.jsonl when exceeding 1 MB', t => {
   assert.equal(JSON.parse(newContent[0]).session, 'rotation-test');
 });
 
+test('changed-without-journal Stop writes row with handoffComplete: false and preserves warning', t => {
+  const root = fixture(t);
+  const sessionName = 'changed-no-journal';
+  start(root, sessionName);
+  write(root, 'uncommitted.txt', 'Uncommitted edit\n');
+  const res = hook(root, 'Stop', sessionName);
+  assert.match(res.systemMessage || '', /file\(s\) changed/);
+
+  const metricsPath = path.join(root, '.ai/runtime/metrics/sessions.jsonl');
+  assert.ok(fs.existsSync(metricsPath));
+  const lines = fs.readFileSync(metricsPath, 'utf8').trim().split('\n');
+  assert.equal(lines.length, 1);
+  const record = JSON.parse(lines[0]);
+  assert.equal(record.session, sessionName);
+  assert.equal(record.agent, 'claude');
+  assert.equal(record.changedFiles, 1);
+  assert.equal(typeof record.durationSec, 'number');
+  assert.equal(typeof record.firstEditMs, 'number');
+  assert.equal(record.handoffComplete, false);
+  assert.ok(Object.prototype.hasOwnProperty.call(record, 'gitHead'));
+});
+
+test('Stop without SessionStart writes row with null baseline-dependent fields and preserves warning', t => {
+  const root = fixture(t);
+  const sessionName = 'no-start-session';
+  const res = hook(root, 'Stop', sessionName);
+  assert.match(res.systemMessage || '', /no SessionStart snapshot/);
+
+  const metricsPath = path.join(root, '.ai/runtime/metrics/sessions.jsonl');
+  assert.ok(fs.existsSync(metricsPath));
+  const lines = fs.readFileSync(metricsPath, 'utf8').trim().split('\n');
+  assert.equal(lines.length, 1);
+  const record = JSON.parse(lines[0]);
+  assert.equal(record.session, sessionName);
+  assert.equal(record.agent, 'claude');
+  assert.equal(record.changedFiles, null);
+  assert.equal(record.durationSec, null);
+  assert.equal(record.firstEditMs, null);
+  assert.equal(record.handoffComplete, false);
+  assert.ok(Object.prototype.hasOwnProperty.call(record, 'gitHead'));
+});
+
+test('secret-warning Stop writes row with handoffComplete: false and preserves warning', t => {
+  const root = fixture(t);
+  const sessionName = 'secret-metrics-test';
+  const { worklog } = start(root, sessionName);
+  write(root, 'file.txt', 'Edit\n');
+  const journal = path.join(root, worklog);
+  fs.writeFileSync(journal, `# Worklog\n\n## 2026-09-17 - Work\n\nAgent: tester\n\nAction: did work\n\n` +
+    `Result: API_KEY = "sk-1234567890abcdef12345678"\n\nNext step: next\n\nOpen: none\n`);
+  const res = hook(root, 'Stop', sessionName);
+  assert.match(res.systemMessage || '', /unredacted secret pattern detected/);
+
+  const metricsPath = path.join(root, '.ai/runtime/metrics/sessions.jsonl');
+  assert.ok(fs.existsSync(metricsPath));
+  const lines = fs.readFileSync(metricsPath, 'utf8').trim().split('\n');
+  assert.equal(lines.length, 1);
+  const record = JSON.parse(lines[0]);
+  assert.equal(record.session, sessionName);
+  assert.equal(record.agent, 'claude');
+  assert.equal(record.changedFiles, 1);
+  assert.equal(typeof record.durationSec, 'number');
+  assert.equal(typeof record.firstEditMs, 'number');
+  assert.equal(record.handoffComplete, false);
+});
+
+test('metrics write failure (read-only directory in a fixture) hook still succeeds and does not throw', t => {
+  const root = fixture(t);
+  const sessionName = 'fail-safe-test';
+  const { worklog } = start(root, sessionName);
+  write(root, 'work.txt', 'Work\n');
+  write(root, worklog, entry('Fail-safe metric test'));
+
+  const metricsDir = path.join(root, '.ai/runtime/metrics');
+  fs.writeFileSync(metricsDir, 'blocker file to force ENOTDIR');
+
+  const res = hook(root, 'Stop', sessionName);
+  okStop(res, { changedFiles: 1, handoffComplete: true });
+});
+
+test('no journal text, diffs, or secrets appear in any metrics row across exits', t => {
+  const root = fixture(t);
+  const sessionName = 'hygiene-test';
+  const secret = 'sk-1234567890abcdef12345678';
+  const uniqueActionText = 'UNIQUE_PROPRIETARY_ACTION_TEXT_12345';
+  const { worklog } = start(root, sessionName);
+  write(root, 'work.txt', 'Work\n');
+  const journal = path.join(root, worklog);
+  fs.writeFileSync(journal, `# Worklog\n\n## 2026-09-17 - Work\n\nAgent: tester\n\n` +
+    `Action: ${uniqueActionText}\n\n` +
+    `Result: API_KEY = "${secret}"\n\nNext step: next\n\nOpen: none\n`);
+
+  hook(root, 'Stop', sessionName);
+
+  const metricsPath = path.join(root, '.ai/runtime/metrics/sessions.jsonl');
+  const content = fs.readFileSync(metricsPath, 'utf8');
+  assert.ok(!content.includes(secret), 'Metrics row must not contain secret');
+  assert.ok(!content.includes(uniqueActionText), 'Metrics row must not contain journal action text');
+  assert.ok(!content.includes('UNIQUE_PROPRIETARY'), 'Metrics row must not contain journal content');
+  assert.ok(!content.includes('diff --git'), 'Metrics row must not contain diffs');
+});
+

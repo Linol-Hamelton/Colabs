@@ -272,6 +272,10 @@ The repository maintains an append-only decision ledger at `docs/decisions/REGIS
 4. **Disposable storage and graceful degradation**: Derived indexes and caches live under `.ai/runtime/` (disposable); capability differences between agents must not change gate weight; when a server is unavailable the workflow degrades to identical gate semantics.
 5. **Secret hygiene**: Tool output can carry credentials; the journal scanner is pattern-based only; never paste raw tool output containing secrets into journals or reviews.
 
+### Telemetry and session metrics
+
+Stop hooks emit fail-safe session telemetry to `.ai/runtime/metrics/sessions.jsonl` (`{ts, session, agent, changedFiles, durationSec, firstEditMs, handoffComplete, gitHead}`) with automatic rotation at 1 MB to `sessions.1.jsonl`. Metrics are disposable runtime data, never written into journals, and never cited as Evidence or gate inputs. Every Stop exit records exactly one metrics row, including missing baselines, changed files without journal updates, and secret warnings. Consumers select the first event per session/trial because failed handoffs are now recorded too, and the metric of interest is the initial Stop outcome.
+
 ---
 
 ## Installing and upgrading

@@ -460,40 +460,35 @@ function run(event, input, agent = 'claude') {
     } };
   }
   if (event !== 'Stop') throw new Error(`Unknown hook event: ${event}`);
+  const sessionId = (input && input.session_id) || path.basename(paths.worklog, '.md');
+  let gitHead = null;
+  try {
+    gitHead = git(root, ['rev-parse', 'HEAD']).trim() || null;
+  } catch {
+    gitHead = null;
+  }
+
   if (!previous) {
+    recordSessionMetric(root, {
+      ts: new Date().toISOString(),
+      session: sessionId,
+      agent,
+      changedFiles: null,
+      durationSec: null,
+      firstEditMs: null,
+      handoffComplete: false,
+      gitHead,
+    });
     return { systemMessage: 'AI protocol: no SessionStart snapshot for this session in the active checkout. ' +
       `Changes cannot be compared. Record the handoff in ${paths.worklog}; restart or resume here to enable tracking.` };
   }
   const changed = changedFiles(previous.files, current.files);
   const complete = current.entryHash !== null && current.entryHash !== previous.entryHash;
-  if (entry) {
-    const secretLeak = findSecretLeak(entry);
-    if (secretLeak) {
-      return { systemMessage: `AI protocol: unredacted secret pattern detected in ${paths.worklog}: ` +
-        `"${secretLeak.slice(0, 16)}...". Never commit or record credentials in protocol journals; redact them immediately.` };
-    }
-  }
-  if (changed.length && !complete) {
-    return { systemMessage: `AI protocol: ${changed.length} file(s) changed since this session's last handoff, ` +
-      `but ${paths.worklog} has no new complete entry. Prepend what changed, verification, and open issues ` +
-      '(Agent, Action, Result, Next step, Open). Changes in a shared checkout may belong to another agent; ' +
-      'review the diff before describing them.' };
-  }
-  // Advisory warnings: these inform but do not block the session.
-  const warnings = stopWarnings(root, paths, entry, agent);
-  // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
-  try {
-    const archive = require('./protocol-archive.cjs');
-    const owner = path.basename(paths.worklog, '.md');
-    archive.autoArchiveWorklog(root, paths.worklog, 150, 1, owner);
-  } catch { }
 
-  const startTime = (previous && typeof previous.startTime === 'number')
-    ? previous.startTime
-    : (typeof current.startTime === 'number' ? current.startTime : null);
+  const startTime = typeof previous.startTime === 'number' ? previous.startTime : null;
   const durationSec = typeof startTime === 'number'
     ? Math.max(0, Math.round((Date.now() - startTime) / 1000))
-    : 0;
+    : null;
 
   // Compute firstEditMs: when changed.length > 0, the earliest filesystem mtime
   // among the changed paths minus startTime (in ms); skip vanished paths; null when
@@ -518,23 +513,58 @@ function run(event, input, agent = 'claude') {
     }
   }
 
+  if (entry) {
+    const secretLeak = findSecretLeak(entry);
+    if (secretLeak) {
+      recordSessionMetric(root, {
+        ts: new Date().toISOString(),
+        session: sessionId,
+        agent,
+        changedFiles: changed.length,
+        durationSec,
+        firstEditMs,
+        handoffComplete: false,
+        gitHead,
+      });
+      return { systemMessage: `AI protocol: unredacted secret pattern detected in ${paths.worklog}: ` +
+        `"${secretLeak.slice(0, 16)}...". Never commit or record credentials in protocol journals; redact them immediately.` };
+    }
+  }
+  if (changed.length && !complete) {
+    recordSessionMetric(root, {
+      ts: new Date().toISOString(),
+      session: sessionId,
+      agent,
+      changedFiles: changed.length,
+      durationSec,
+      firstEditMs,
+      handoffComplete: false,
+      gitHead,
+    });
+    return { systemMessage: `AI protocol: ${changed.length} file(s) changed since this session's last handoff, ` +
+      `but ${paths.worklog} has no new complete entry. Prepend what changed, verification, and open issues ` +
+      '(Agent, Action, Result, Next step, Open). Changes in a shared checkout may belong to another agent; ' +
+      'review the diff before describing them.' };
+  }
+  // Advisory warnings: these inform but do not block the session.
+  const warnings = stopWarnings(root, paths, entry, agent);
+  // Auto-archive older entries if journal exceeded 150 lines (Fork 2).
+  try {
+    const archive = require('./protocol-archive.cjs');
+    const owner = path.basename(paths.worklog, '.md');
+    archive.autoArchiveWorklog(root, paths.worklog, 150, 1, owner);
+  } catch { }
+
   const telemetry = {
     changedFiles: changed.length,
-    durationSec,
+    durationSec: typeof durationSec === 'number' ? durationSec : 0,
     firstEditMs,
     handoffComplete: complete,
   };
 
-  // Append machine-readable metrics line to .ai/runtime/metrics/sessions.jsonl (fail-safe).
-  let gitHead = null;
-  try {
-    gitHead = git(root, ['rev-parse', 'HEAD']).trim() || null;
-  } catch {
-    gitHead = null;
-  }
   recordSessionMetric(root, {
     ts: new Date().toISOString(),
-    session: (input && input.session_id) || path.basename(paths.worklog, '.md'),
+    session: sessionId,
     agent,
     changedFiles: changed.length,
     durationSec,
