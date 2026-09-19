@@ -308,3 +308,113 @@ test('gate-check 11: deadlock regression - record succeeds on Completed task wit
   assert.equal(resFail.status, 1);
   assert.match(resFail.stderr, /stale/i);
 });
+
+test('gate-check 12: new review with proper Date in header and older Date in body after --- is treated as new (fails on missing Mode)', t => {
+  const root = makeProtocolFixture(t, { fastValidator: true });
+  const promptRel = 'docs/reviews/2026-09-20-prompt.md';
+  const reviewRel = 'docs/reviews/2026-09-20-review.md';
+  makeTaskCompleted(root, promptRel, reviewRel);
+  makePrompt(root, promptRel);
+
+  // Proper Date in header (> 2026-09-19), but missing Mode; older Date in body after ---
+  const reviewContent = `# Review\n\nDate: 2026-09-25\nReviewer: auditor\nReceipt-Owner: session-audit\nVerdict: PASS\n\n---\n\n## Body\nDate: 2026-01-01\nBody text.\n`;
+  write(root, reviewRel, reviewContent);
+
+  const journal = '.ai/worklog/session-audit.md';
+  const journalContent = `# Worklog: session-audit\n\n## 2026-09-20 - independent review audit\n\nAgent: auditor\n\nAction: audited ${reviewRel}\n\nResult: PASS\n\nNext step: handoff\n\nOpen: none\n`;
+  write(root, journal, journalContent);
+
+  const rec = handoffCli(root, ['record', '--owner', 'session-audit', '--quick']);
+  assert.equal(rec.status, 0, rec.stderr);
+
+  const res = handoffCli(root, ['gate-check']);
+  assert.equal(res.status, 1);
+  assert.match(res.stderr, /missing Mode: CERTIFYING/i);
+});
+
+test('gate-check 13: review whose header has no Date but whose body has one fails with missing or invalid Date', t => {
+  const root = makeProtocolFixture(t, { fastValidator: true });
+  const promptRel = 'docs/reviews/2026-09-19-prompt.md';
+  const reviewRel = 'docs/reviews/2026-09-19-review.md';
+  makeTaskCompleted(root, promptRel, reviewRel);
+  makePrompt(root, promptRel);
+
+  // No Date in header, older Date in body after ---
+  const reviewContent = `# Review\n\nReviewer: auditor\nReceipt-Owner: session-audit\nVerdict: PASS\n\n---\n\n## Body\nDate: 2026-01-01\nBody text.\n`;
+  write(root, reviewRel, reviewContent);
+
+  const journal = '.ai/worklog/session-audit.md';
+  const journalContent = `# Worklog: session-audit\n\n## 2026-09-19 - independent review audit\n\nAgent: auditor\n\nAction: audited ${reviewRel}\n\nResult: PASS\n\nNext step: handoff\n\nOpen: none\n`;
+  write(root, journal, journalContent);
+
+  const rec = handoffCli(root, ['record', '--owner', 'session-audit', '--quick']);
+  assert.equal(rec.status, 0, rec.stderr);
+
+  const res = handoffCli(root, ['gate-check']);
+  assert.equal(res.status, 1);
+  assert.match(res.stderr, /missing or has an invalid Date/i);
+});
+
+test('gate-check 14: review-path citation is boundary-aware (.bak and -draft citations fail with does not mention)', t => {
+  const root = makeProtocolFixture(t, { fastValidator: true });
+  const promptRel = 'docs/reviews/2026-09-19-prompt.md';
+  const reviewRel = 'docs/reviews/2026-09-19-review.md';
+  makeTaskCompleted(root, promptRel, reviewRel);
+  makePrompt(root, promptRel);
+
+  const reviewContent = `# Review\n\nDate: 2026-09-19\nReviewer: auditor\nMode: CERTIFYING\nReceipt-Owner: session-audit\nVerdict: PASS\n\nCertified.\n`;
+  write(root, reviewRel, reviewContent);
+
+  const journal = '.ai/worklog/session-audit.md';
+
+  // Subtest 1: citation with .bak
+  write(root, journal, `# Worklog: session-audit\n\n## 2026-09-19 - audit\n\nAgent: auditor\n\nAction: audited ${reviewRel}.bak\n\nResult: PASS\n\nNext step: handoff\n\nOpen: none\n`);
+  let rec = handoffCli(root, ['record', '--owner', 'session-audit', '--quick']);
+  assert.equal(rec.status, 0, rec.stderr);
+  let res = handoffCli(root, ['gate-check']);
+  assert.equal(res.status, 1);
+  assert.match(res.stderr, /does not mention independent review/i);
+
+  // Subtest 2: citation with -draft
+  write(root, journal, `# Worklog: session-audit\n\n## 2026-09-19 - audit\n\nAgent: auditor\n\nAction: audited ${reviewRel}-draft\n\nResult: PASS\n\nNext step: handoff\n\nOpen: none\n`);
+  rec = handoffCli(root, ['record', '--owner', 'session-audit', '--quick']);
+  assert.equal(rec.status, 0, rec.stderr);
+  res = handoffCli(root, ['gate-check']);
+  assert.equal(res.status, 1);
+  assert.match(res.stderr, /does not mention independent review/i);
+});
+
+test('gate-check 15: review-path citation passes for exact, backtick, quote, space, closing paren, and end-of-line', t => {
+  const promptRel = 'docs/reviews/2026-09-19-prompt.md';
+  const reviewRel = 'docs/reviews/2026-09-19-review.md';
+
+  const validCitations = [
+    `${reviewRel}`,                    // exact
+    `\`${reviewRel}\``,                // followed by backtick
+    `"${reviewRel}"`,                  // followed by quote
+    `${reviewRel} for release`,        // followed by space
+    `(${reviewRel})`,                  // followed by )
+    `${reviewRel}\nMore details`,      // end-of-line
+  ];
+
+  for (const cite of validCitations) {
+    const root = makeProtocolFixture(t, { fastValidator: true });
+    makeTaskCompleted(root, promptRel, reviewRel);
+    makePrompt(root, promptRel);
+
+    const reviewContent = `# Review\n\nDate: 2026-09-19\nReviewer: auditor\nMode: CERTIFYING\nReceipt-Owner: session-audit\nVerdict: PASS\n\nCertified.\n`;
+    write(root, reviewRel, reviewContent);
+
+    const journal = '.ai/worklog/session-audit.md';
+    const journalContent = `# Worklog: session-audit\n\n## 2026-09-19 - independent review audit\n\nAgent: auditor\n\nAction: audited ${cite}\n\nResult: PASS\n\nNext step: handoff\n\nOpen: none\n`;
+    write(root, journal, journalContent);
+
+    const rec = handoffCli(root, ['record', '--owner', 'session-audit', '--quick']);
+    assert.equal(rec.status, 0, rec.stderr);
+
+    const res = handoffCli(root, ['gate-check']);
+    assert.equal(res.status, 0, `Failed for cite pattern [${cite}]: ${res.stderr}`);
+    assert.match(res.stdout, /completion gate verified/);
+  }
+});
+

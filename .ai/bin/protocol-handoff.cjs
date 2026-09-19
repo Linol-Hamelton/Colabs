@@ -949,8 +949,28 @@ function gateCheck(root, options = {}) {
 
   const reviewContent = fs.readFileSync(path.join(root, reviewRel), 'utf8');
 
+  // Define the header region deterministically: the text before the first line equal to '---';
+  // if there is no such line, before the first '## ' heading; if neither exists, the whole file.
+  const reviewLines = reviewContent.split(/\r?\n/);
+  let headerEnd = -1;
+  for (let i = 0; i < reviewLines.length; i++) {
+    if (reviewLines[i].trim() === '---') {
+      headerEnd = i;
+      break;
+    }
+  }
+  if (headerEnd === -1) {
+    for (let i = 0; i < reviewLines.length; i++) {
+      if (reviewLines[i].startsWith('## ')) {
+        headerEnd = i;
+        break;
+      }
+    }
+  }
+  const headerRegion = headerEnd === -1 ? reviewContent : reviewLines.slice(0, headerEnd).join('\n');
+
   // Mode: ADVISORY or transcribed reviews cannot satisfy independent slot
-  const modeMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const modeMatch = headerRegion.match(/^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
   const declaredMode = modeMatch ? modeMatch[1].trim() : null;
   if (declaredMode && declaredMode.toUpperCase() === 'ADVISORY') {
     process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} has Mode: ADVISORY; advisory reviews cannot satisfy the independent review gate.\n`);
@@ -962,7 +982,7 @@ function gateCheck(root, options = {}) {
   }
 
   // Verdict check: must be PASS or RECOMMENDATION
-  const verdictMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bVerdict\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const verdictMatch = headerRegion.match(/^[ \t]*(?:\*\*)?\bVerdict\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
   if (!verdictMatch) {
     process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is missing a Verdict.\n`);
     return 1;
@@ -975,7 +995,7 @@ function gateCheck(root, options = {}) {
   }
 
   // Date check for legacy cutoff (legacy: valid Date <= 2026-09-19; new reviews: Date > 2026-09-19)
-  const dateMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bDate\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const dateMatch = headerRegion.match(/^[ \t]*(?:\*\*)?\bDate\b(?:\*\*)?\s*:\s*([^\r\n]+)/im);
   const dateIsoMatch = dateMatch ? dateMatch[1].match(/\b\d{4}-\d{2}-\d{2}\b/) : null;
   if (!dateIsoMatch) {
     process.stderr.write(`AI protocol: gate-check: independent review ${reviewRel} is missing or has an invalid Date.\n`);
@@ -998,7 +1018,7 @@ function gateCheck(root, options = {}) {
   }
 
   // Receipt-Owner (Session fallback)
-  const ownerMatch = reviewContent.match(/^[ \t]*(?:\*\*)?(?:\bReceipt-Owner\b|\bSession\b)(?:\*\*)?\s*:\s*([^\r\n]+)/im);
+  const ownerMatch = headerRegion.match(/^[ \t]*(?:\*\*)?(?:\bReceipt-Owner\b|\bSession\b)(?:\*\*)?\s*:\s*([^\r\n]+)/im);
   const receiptOwner = ownerMatch ? ownerMatch[1].trim() : null;
 
   if (!receiptOwner) {
@@ -1010,7 +1030,7 @@ function gateCheck(root, options = {}) {
   }
 
   // Receipt field is optional and informational only (empty is valid)
-  const receiptMatch = reviewContent.match(/^[ \t]*(?:\*\*)?\bReceipt\b(?:\*\*)?\s*:\s*([^\r\n]*)/im);
+  const receiptMatch = headerRegion.match(/^[ \t]*(?:\*\*)?\bReceipt\b(?:\*\*)?\s*:\s*([^\r\n]*)/im);
 
   const state = options.state || anchor(root);
 
@@ -1049,6 +1069,10 @@ function gateCheck(root, options = {}) {
   let lastFailureReason = null;
   let verifiedBinding = null;
 
+  const normReviewRel = reviewRel.replace(/\\/g, '/');
+  const escapedReviewRel = normReviewRel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const reviewPathRegex = new RegExp(escapedReviewRel + '(?![A-Za-z0-9._/-])');
+
   for (const cand of candidateJournals) {
     const journalText = fs.readFileSync(cand.journalPath, 'utf8');
     const norm = journalText.replace(/\r\n/g, '\n');
@@ -1058,7 +1082,7 @@ function gateCheck(root, options = {}) {
     for (let i = 0; i < datedSections.length; i++) {
       const sectionText = datedSections[i];
       const normSection = sectionText.replace(/\\/g, '/');
-      if (!normSection.includes(reviewRel)) {
+      if (!reviewPathRegex.test(normSection)) {
         continue;
       }
       reviewPathFound = true;

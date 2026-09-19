@@ -124,3 +124,24 @@ test('registry check 7: new decision block with unknown Reopen-trigger emits WAR
   assert.equal(res.status, 0, res.output);
   assert.match(res.output, /\[WARN\] new decision block PROTO-DEC-0099 has unknown Reopen-trigger: invalid-trigger-name/);
 });
+
+test('registry check 8: case-mutated row vs HEAD emits immutability and unknown-id WARN', t => {
+  const root = makeProtocolFixture(t, { realValidator: true });
+  write(root, '.ai/DECISIONS.md', validDecisionsContent);
+  write(root, 'docs/decisions/REGISTRY.md', validRegistryContent);
+  git(root, ['add', '.ai/DECISIONS.md', 'docs/decisions/REGISTRY.md']);
+  git(root, ['commit', '-m', 'Commit registry to HEAD']);
+
+  const mutatedContent = validRegistryContent.replace(
+    '| DEC-0001 | accepted | none | | | |',
+    '| dec-0001 | ACCEPTED | none | | | |'
+  );
+  write(root, 'docs/decisions/REGISTRY.md', mutatedContent);
+
+  const res = validate(root);
+  assert.equal(res.status, 0, res.output);
+  assert.match(res.output, /\[WARN\] docs\/decisions\/REGISTRY\.md modified or removed existing rows from HEAD/);
+  assert.match(res.output, /\[WARN\] decision registry missing entry for decision DEC-0001/);
+  assert.match(res.output, /\[WARN\] decision registry contains unknown decision dec-0001/);
+});
+

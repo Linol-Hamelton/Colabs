@@ -338,7 +338,7 @@ if (Test-Path -LiteralPath $decisionPath -PathType Leaf) {
     $decisionText = Read-ProtocolText $decisionPath
     if ($null -ne $decisionText) {
         $blocks = [regex]::Matches($decisionText, '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d+))[^\r\n]*(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)')
-        $seen = @{}
+        $seen = New-Object 'System.Collections.Generic.Dictionary[string,bool]' ([System.StringComparer]::Ordinal)
         foreach ($block in $blocks) {
             $id = $block.Groups['id'].Value
             if ($block.Groups['number'].Value.Length -ne 4) { Write-Result "FAIL" "$id must use four digits" }
@@ -413,12 +413,12 @@ if ($script:ProtocolRole -eq 'source') {
                 }
             }
             $regIds = @($regRows | ForEach-Object { $_.Id } | Select-Object -Unique)
-            $regIdSet = @{}
-            foreach ($rid in $regIds) { $regIdSet[$rid] = $true }
+            $regIdSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+            foreach ($rid in $regIds) { [void]$regIdSet.Add($rid) }
 
             if ($seen) {
                 foreach ($decId in ($seen.Keys | Sort-Object)) {
-                    if (-not $regIdSet.ContainsKey($decId)) {
+                    if (-not $regIdSet.Contains($decId)) {
                         Write-Result "WARN" ("decision registry missing entry for decision {0}" -f $decId)
                     }
                 }
@@ -437,7 +437,7 @@ if ($script:ProtocolRole -eq 'source') {
                     $idx = 0
                     $immutableOk = $true
                     foreach ($hLine in $headLines) {
-                        if ($idx -ge $currLines.Count -or $currLines[$idx] -ne $hLine) {
+                        if ($idx -ge $currLines.Count -or $currLines[$idx] -cne $hLine) {
                             $immutableOk = $false
                             break
                         }

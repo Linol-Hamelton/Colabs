@@ -28,7 +28,7 @@ const hooks = require('./protocol-hooks.cjs');
 const RECENT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes (D2 heuristic)
 
 function checkProcessAlive(pid) {
-  if (typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 0) return false;
+  if (typeof pid !== 'number' || !Number.isInteger(pid) || pid <= 4) return false;
   try {
     process.kill(pid, 0);
     return true;
@@ -39,14 +39,14 @@ function checkProcessAlive(pid) {
 
 function isSessionAlive(record) {
   if (!record || record.hostname !== os.hostname()) return null;
-  if (typeof record.supervisorPid === 'number' && Number.isInteger(record.supervisorPid) && record.supervisorPid > 0) {
+  if (typeof record.supervisorPid === 'number' && Number.isInteger(record.supervisorPid) && record.supervisorPid > 4) {
     if (checkProcessAlive(record.supervisorPid)) return true;
     // dead supervisorPid falls through to pid
   }
-  const targetPid = (typeof record.sessionPid === 'number' && Number.isInteger(record.sessionPid) && record.sessionPid > 0)
+  const targetPid = (typeof record.sessionPid === 'number' && Number.isInteger(record.sessionPid) && record.sessionPid > 4)
     ? record.sessionPid
     : record.pid;
-  if (typeof targetPid !== 'number' || !Number.isInteger(targetPid) || targetPid <= 0) return null;
+  if (typeof targetPid !== 'number' || !Number.isInteger(targetPid) || targetPid <= 4) return null;
   return checkProcessAlive(targetPid);
 }
 

@@ -313,23 +313,30 @@ test('isSessionAlive contract matches 6-state specification', t => {
   assert.equal(isSessionAlive({ hostname: null, pid: livePid }), null);
   assert.equal(isSessionAlive(null), null);
 
-  // 2. supervisorPid integer > 0 and alive -> true
+  // 2. supervisorPid integer > 4 and alive -> true
   assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: livePid, pid: deadPid }), true);
 
-  // 3. supervisorPid integer > 0 and dead -> fall through to pid
+  // 3. supervisorPid integer > 4 and dead -> fall through to pid
   assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: deadPid, pid: livePid }), true);
   assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: deadPid, pid: deadPid }), false);
   assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: deadPid, pid: null }), null);
 
-  // 4. pid integer > 0 and alive -> true
+  // supervisorPid <= 4 is treated as unusable and falls through to pid; supervisorPid: 4 with dead pid yields false
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: 4, pid: deadPid }), false);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: 4, pid: livePid }), true);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), supervisorPid: 4, pid: 4 }), null);
+
+  // 4. pid integer > 4 and alive -> true
   assert.equal(isSessionAlive({ hostname: os.hostname(), pid: livePid }), true);
 
-  // 5. pid integer > 0 and dead -> false
+  // 5. pid integer > 4 and dead -> false
   assert.equal(isSessionAlive({ hostname: os.hostname(), pid: deadPid }), false);
 
-  // 6. no usable pid fields (legacy null state) -> null
+  // 6. no usable pid fields (legacy null state, or <= 4) -> null
   assert.equal(isSessionAlive({ hostname: os.hostname(), pid: null }), null);
   assert.equal(isSessionAlive({ hostname: os.hostname(), pid: -1 }), null);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), pid: 0 }), null);
+  assert.equal(isSessionAlive({ hostname: os.hostname(), pid: 4 }), null);
   assert.equal(isSessionAlive({ hostname: os.hostname() }), null);
 });
 

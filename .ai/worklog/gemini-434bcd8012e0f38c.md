@@ -8,6 +8,34 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - Item 6 remediation: certification findings and prompt repair
+
+Agent: gemini
+
+Action: Executed dispatch prompt docs/reviews/2026-09-19-gemini-v1.9.5-item6-remediation-prompt.md addressing confirmed certification adjudication findings. (1) F-001: Made registry positional row comparison case-sensitive (-cne) and id coverage case-sensitive (HashSet[string] with StringComparer.Ordinal) in validate-protocol.ps1; added registry check 8 in tests/registry.test.cjs. (2) F-002: Defined deterministic header region (before first '---', else before first '## ', else whole file) in protocol-handoff.cjs gateCheck and scoped Date, Mode, Verdict, Receipt-Owner, Receipt parsing to header region; added tests 12 and 13 in tests/gate.test.cjs. (3) F-003: Replaced > 0 with > 4 bound for supervisorPid and pid fallback in protocol-session.cjs isSessionAlive and checkProcessAlive; updated 6-state test in tests/session.test.cjs. (4) F-004: Enforced boundary-aware matching (?![A-Za-z0-9._/-]) for review path citations in gateCheck; added tests 14 and 15 in tests/gate.test.cjs. (5) AUD-C1: Added required phrase to docs/reviews/2026-09-19-final-v1.9.5-adversarial-review-prompt.md.
+
+Result: All 5 fixes verified. node --test tests/registry.test.cjs (8/8), tests/gate.test.cjs (16/16), tests/session.test.cjs (33/33), tests/validator.test.cjs (21/21) all passed; full test-protocol.ps1 passed (241/241, exit 0). Stopped before commit for DeepSeek audit.
+
+Next step: DeepSeek-flash performs adversarial audit on Item 6 remediation; Claude Opus performs delta re-certification.
+
+Open: DeepSeek adversarial audit verdict; Claude Opus delta re-certification.
+
+Evidence:
+- anchor: 47cf55fcf7610d77e48a68a212f78b28cd3a7c81, uncommitted changes present
+- digest: sha256:736c4a2b84531a0efd587a74837a53cfba7063ceed47009010edb79ec3e8ba42 over 148 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T05:08:41.197Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:534d735df36f5d8e28b6fcca07e01610a9066d6f9f0d8d1e0c46cb1e68fd5466 of this entry without this block
+- parent-entry: sha256:fdabcbf666f7136e29c2b8dbcc3615553a8cb72498bf4fcf4be097b4565e0594
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 108s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-19 - v1.9.5 adversarial release certification and whole-scope audit
 
 Agent: gemini
