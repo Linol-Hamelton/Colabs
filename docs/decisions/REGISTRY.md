@@ -48,3 +48,4 @@ Rules:
 | DEC-0005 | superseded | none | | | PROTO-DEC-0009 |
 | DEC-0008 | superseded | none | | | PROTO-DEC-0009 |
 | DEC-0014 | superseded | none | | | PROTO-DEC-0022 |
+| PROTO-DEC-0034 | accepted | none | | | |

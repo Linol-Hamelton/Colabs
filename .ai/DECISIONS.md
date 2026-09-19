@@ -1539,6 +1539,34 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0034
+
+Status: Accepted
+Date: 2026-09-19
+Reopen-trigger: none
+
+Context:
+Whole-kernel reading across multiple AI assistants creates token overhead. The analysis in `docs/reviews/2026-09-19-deepseek-flash-mcp-selection-analysis.md` confirmed that external MCP servers incur significant schema taxes (roughly 600-8,650 tokens per turn) and that half of the participating assistants have no MCP client. A deterministic, MCP-free filesystem digest provides a universal baseline, while strict policies are required for external tooling.
+
+Decision:
+1. Universal context digest (M0): pinned to `repomix@1.18.0`, generated strictly on demand into `.ai/runtime/kernel-digest.xml` (disposable, excluded from Git and from tree digests). Advisory only: never auto-injected into SessionStart, never cited in Evidence, never a gate input. Lossy `--compress` is permitted strictly for orientation, never for audits or implementation.
+2. MCP and external tooling policy (C2): external tool or MCP output is never Evidence and never influences completion gates. At most one MCP server per adoption phase, local-only, workspace-sandboxed (`--sandbox`), version-pinned, with a total tool-schema budget of 1500 tokens or less. Hooks must never auto-install or spawn MCP servers. When a server is unavailable the workflow degrades to normal file operations without gate or weight differences.
+
+Reasoning:
+The digest layer must work for every assistant, including web panels that cannot consume MCP; a deterministic file under `.ai/runtime/` costs nothing until requested and never becomes a gate dependency. The policy keeps external state strictly advisory so that no server, index or cache can become a second source of truth or a hidden prerequisite for validation.
+
+Alternatives rejected:
+- MCP-only context economy: rejected because half of the participating assistants have no MCP client and per-client configuration drifts.
+- Automatic digest injection at SessionStart: rejected because it taxes every session with the measured compressed size (about 18.2k tokens) including narrow edits that need one file.
+- A persistent memory outside the repository: rejected because the filesystem remains the only project memory.
+
+Consequences:
+The digest is an on-demand helper; no dependency, no package.json entry and no network call is added. Policy-pin tests protect the wording. Adoption of any MCP server remains an owner-approved, phased decision with a schema budget, and the completion gate never depends on external state.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
