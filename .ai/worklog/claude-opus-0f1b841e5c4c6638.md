@@ -19,19 +19,20 @@ Next step: Controller archives journals to cap, sets TASK.md to Completed with c
 Open: 32 journals need archival before freeze (advisory WARN, not a code defect).
 
 Evidence:
-- anchor: 1fb0580908a3aa31e0756fea5f27879651aadc61, uncommitted changes present
-- digest: sha256:3ae81239f4e8978df743cc158f5dce643148b2308c9a417fcb2b6905ce6402a3 over 151 tracked and untracked files
+- anchor: 28f1e0174949720c56ff429caf29251bf272c692, uncommitted changes present
+- digest: sha256:98a8061f6a533fec30b2a7268fe412b87cfb1ba9103bb4624a3227be72b8cbe9 over 154 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T05:36:30.507Z by claude-opus-0f1b841e5c4c6638
+- recorded: 2026-09-19T06:18:54.222Z by claude-opus-0f1b841e5c4c6638
 - entry hash format: 2
-- entry: sha256:2a32f14a76adc314720798de25311dc8358a59b7f8f7b7307d2e3563b83ec895 of this entry without this block
+- entry: sha256:880fa4d92f761226387f2492ba26e5422c3681c0e88c677e06b2ea697626d676 of this entry without this block
 - parent-entry: sha256:cff37b1fba7ec88b88250a2b4dd5b03aa2fee9661cb35e4a6d54a4cefa4afdbd
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 108s
+- test-protocol.ps1: exit 0 in 110s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 
 
