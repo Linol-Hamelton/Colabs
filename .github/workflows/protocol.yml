@@ -1,9 +1,15 @@
 name: protocol
 
+# DEC-0009 recorded that the regression suite runs locally and in CI. Only the
+# local half was true until this workflow existed. Windows PowerShell 5.1 is
+# the documented baseline, so the checks run on the interpreter that the
+# encoding rules in AGENTS.md section 11 are written for.
+
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,3 +38,28 @@ jobs:
       - name: Regression suite
         shell: powershell
         run: powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
+
+      - name: Tree anchor
+        shell: powershell
+        run: node .ai/bin/protocol-handoff.cjs state
+
+      - name: Install into a clean directory and validate there
+        shell: powershell
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'protocol-install'
+          .\setup-ai-protocol.ps1 -Target $target -InitGit
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $target 'validate-protocol.ps1')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Reinstall is idempotent and preserves project state
+        shell: powershell
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'protocol-install'
+          Set-Content -LiteralPath (Join-Path $target '.ai/TASK.md') -Value "# Current Task`n`nStatus: In progress`n`nSTATE MARKER" -Encoding utf8
+          .\setup-ai-protocol.ps1 -Target $target -Force
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Select-String -LiteralPath (Join-Path $target '.ai/TASK.md') -Pattern 'STATE MARKER' -Quiet)) {
+            Write-Error 'Force overwrote accumulated project state'
+            exit 1
+          }

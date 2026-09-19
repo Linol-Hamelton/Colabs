@@ -6,7 +6,8 @@
 **Scope**: Item 2 (A2) - `record` ordering fix, journal cap invariant, CI escalation, documentation, AUD-4 tests; plus B5 approval provenance (owner-instructed alongside this audit)  
 **Conflict declaration**: authored the specification (plan revision 2, A2/B5); no implementation role; whole-plan completion certification still requires a different reviewer.  
 **Mode**: CERTIFYING  
-**Verdict**: **PASS** - no blocking findings.
+**Verdict**: **PASS** - no blocking findings.  
+**Superseded by**: `docs/reviews/2026-09-19-deepseek-flash-a2-audit-addendum.md` - section 3 (CI review) is superseded; the CI coverage regression requires the addendum's correction.
 
 ---
 

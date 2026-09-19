@@ -6,6 +6,34 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - Item 3 (A4) implementation: capability model, review template mode, CI restoration
+
+Agent: gemini
+
+Action: Executed Item 3 (A4) per v1.9.5 plan r2 and dispatch prompt docs/reviews/2026-09-19-gemini-v1.9.5-item3-prompt.md. Step 0: Restored .github/workflows/protocol.yml to the exact YAML specified in docs/reviews/2026-09-19-deepseek-flash-a2-audit-addendum.md (restoring branches: ['**'], workflow_dispatch, DEC-0009 comment, tree anchor, clean-directory installer validation, reinstall idempotency check, while keeping the [WARN]/[FAIL] escalation wrapper). Step 1 (A4): (1) Updated templates/reviews/REVIEW.md adding Mode (CERTIFYING | ADVISORY), Receipt-Owner (<owner id>, with legacy Session: accepted), and Receipt (<path or digest>) header fields, and documented the four required capabilities (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ) set by orchestrator profile. (2) Updated AGENTS.md section 2 mandating four capabilities and Mode: CERTIFYING with Receipt-Owner for certifying reviews, [MODE: READ-ONLY ADVISORY] for advisory outputs persisted via section 5.5 chat transcription, and requiring at least one reproduction per claim for FAIL/BLOCKED verdicts. (3) Updated .ai/docs/PROTOCOL.md with a dedicated subsection defining review modes, capabilities, and reviewer receipt binding. (4) Added regression test in tests/review-findings.test.cjs pinning Mode, Receipt-Owner, Receipt, and capability definitions against silent removal. (5) Drafted PROTO-DEC-0031 for owner review.
+
+Result: Item 3 implementation complete. node --test tests/review-findings.test.cjs passed (16/16), test-protocol.ps1 passed (217/217), validate-protocol.ps1 passed with 0 warnings/failures. Stopped before commit for DeepSeek adversarial audit.
+
+Next step: DeepSeek-flash performs adversarial audit on Item 3 (A4); owner reviews audit verdict and approves PROTO-DEC-0031; commit Item 3 once approved.
+
+Open: Owner approval of PROTO-DEC-0031.
+
+Evidence:
+- anchor: ebd777e6779273b831d63664469de429fa80d196, uncommitted changes present
+- digest: sha256:e18cf9b78ed459baa2aaca8f0fee6227bb4542aa1d79cc200619a3a5a248132b over 129 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T02:22:45.856Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:46fdadc10de614c8e5687078fd81b300be8ca57a49fa87e8a52985db4aa37107 of this entry without this block
+- parent-entry: sha256:eac22e11ec9cdcb61bb902e0c4b9938c668977fde6921afd0cd0d178b95483fe
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 2s
+- test-protocol.ps1: exit 0 in 101s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-19 - Item 2 (A2) implementation: record line guarantee, CI escalation, AUD-4 tests
 
 Agent: gemini

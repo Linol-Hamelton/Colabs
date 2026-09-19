@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - Item 2 (A2) audited PASS; B5 approval provenance implemented
+## 2026-09-19 - Step 0 CI restoration and Item 3 (A4) audited PASS
 
 Agent: deepseek-flash
 
-Action: Audited Gemini's Item 2 independently. Ran the checks myself: session 33/33, handoff 32/32, full suite 216/216, validator exit 0 with 0 warnings and 29 journals, Gemini receipt `verify --deep` exit 0. Reviewed the diff: `formatWithEvidence` is a pure projection shared by `attach` and `record`; the pre-write projection simulates the archived-parent marker and the single-entry case; the forced archive uses `autoArchiveWorklog(root, path, 0, 1, owner)`; parent re-resolution falls back to `findArchivedParent`; the failure path throws before any write. Ran independent E2E probes in a genuine shallow clone with the real validator (no fastValidator): near-cap journal 140 lines -> record -> 85 lines with `verify --deep` exit 0; re-record leaves 85 lines and verifies; an oversized single entry exits 1 with the exact actionable message and an unchanged journal SHA-256; the CI workflow's exact snippet detected an injected `[WARN]` (31 journals) and exited non-zero; the validator passes in a shallow clone, which is the CI checkout mode. Implemented B5 on the owner's instruction: AGENTS.md section 2 now carries the approval-transcription rule with provenance; `PROTO-DEC-0030` records it; the plan's decision numbers shifted (A4 = 0031, A3 = 0032, B registry = 0033); post-change validator: 30 decision blocks inspected, installer self-check PASS, 0 warnings. Wrote `docs/reviews/2026-09-19-deepseek-flash-a2-audit.md` with verdict PASS, the probe matrix, and the exact two-commit instruction for the owner.
+Action: Audited the CI restoration and Item 3 (A4). Step 0: `.github/workflows/protocol.yml` now matches the addendum's section 2 YAML exactly - DEC-0009 comment, `push: branches: ['**']`, `pull_request`, `workflow_dispatch`, the `[WARN]`/`[FAIL]` escalation wrapper, regression suite, tree anchor, clean-directory install plus validation, reinstall idempotency/state preservation - with no history rewrite. A4: `templates/reviews/REVIEW.md` gains `Mode`, `Receipt-Owner` and `Receipt` with the capability explanation; AGENTS.md section 2 adds the four-capability certifying rule, the advisory `[MODE: READ-ONLY ADVISORY]` route and the FAIL/BLOCKED reproduction rule; PROTOCOL.md documents the review-mode model; a policy-pin test asserts the template fields and the AGENTS.md tokens. Ran the checks myself: review-findings 16/16, full suite 217/217, validator exit 0 with 0 warnings, 29 journals, and Gemini's receipt verified fresh at audit time. Wrote `docs/reviews/2026-09-19-deepseek-flash-a4-audit.md` with verdict PASS and three INFO notes: gate-check must accept an empty `Receipt`; the advisory-mode wording is redundantly phrased in PROTOCOL.md; the policy pin is reformat-sensitive. Reviewed the `PROTO-DEC-0031` draft: accurate; it awaits the owner's explicit approval and must not be inserted with the pending placeholder.
 
-Result: Item 2 verified and ready to commit; B5 live and validated. No implementation file was modified by this session; the writes were AGENTS.md, `.ai/DECISIONS.md`, `.ai/TASK.md`, the plan, the audit report and this journal, with the shared-doc lock taken and released for the decision and task files.
+Result: Both parts verified, nothing blocking. The owner's approval of `PROTO-DEC-0031` and the two commits remain.
 
-Next step: Owner approves; Gemini commits Item 2 and B5 as two atomic commits, then implements Item 3 (A4 capability/evidence discipline); DeepSeek audits before its commit.
+Next step: Owner approves the decision and commits; the strengthened CI runs on the next push; then Item 4 (A3 gate-check).
 
-Open: Item 2/B5 commits; owner push; Item 3 dispatch.
+Open: `PROTO-DEC-0031` approval and transcription; two commits; owner push; Item 4 dispatch.
 
 Evidence:
-- anchor: 8beca2b9346f8341f20a945e7f29eff969c36680, uncommitted changes present
-- digest: sha256:6f42b05016d89f49f458bb6ffd3b8a978aa8e6311763b5ec93999a8228e9642c over 127 tracked and untracked files
+- anchor: ebd777e6779273b831d63664469de429fa80d196, uncommitted changes present
+- digest: sha256:35c87678b2814c6ebb9216bb73eea143b3821d4c0c5992c0dd89eecb09f688e0 over 130 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T02:02:31.430Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T02:29:40.291Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:ce9f5fe298bc38d8bf937090eb6af5f5b3c144ba60ed5d039f5fdbe83c141868 of this entry without this block
+- entry: sha256:a78c6de01d8f668cc9d8a112d475e928a3f8851651aee0a62347fd287c61578f of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 2s
-- test-protocol.ps1: exit 0 in 97s
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 103s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
