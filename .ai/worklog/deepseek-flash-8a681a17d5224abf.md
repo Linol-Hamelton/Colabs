@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - Pre-freeze: cap restored, version bumped to 1.9.5, completion gate set; ordered records follow
+## 2026-09-19 - CI hotfix audited PASS; runner simulation green; re-record follows
 
 Agent: deepseek-flash
 
-Action: Accepted Claude Opus's delta re-certification: verdict PASS, all four findings and AUD-C1 closed, 241/241 suite, receipt verified fresh, and its journal entry names the delta report path (binding satisfiable). Pre-freeze housekeeping: quarantined the empty stray journal `claude-b738c7f405ed7dc3.md` and removed three v1.9.4-era journals (`claude-123ff4a27989f7af`, `gemini-2da9379ddcd247b6`, `copilot-13595b63-cf45-4860-a3e7-05c7972c5702`) with `--keep 0` plus `prune --force` and staged deletions; the recency window defers freshly emptied journals, so `prune --force` is required for deliberate removals - documented in PROTOCOL.md. Count 29/30 with 0 warnings before the release writes. Release preparation under the shared-doc lock: bumped the version to `1.9.5` in `protocol-manifest.json`, the AGENTS.md header and `setup-ai-protocol.ps1` (validator: "one protocol version everywhere: 1.9.5"); set `.ai/TASK.md` to `Completed` with the completion gate citing the final adversarial prompt and Claude's delta review; added the `prune --force` note to PROTOCOL.md. Immediately after those digest-visible writes the standalone validator reports the expected gate-check failure (Claude's receipt is stale against the new tree); the ordered record pass now re-anchors claude-opus, gemini and this session, after which the standalone validator must pass with 0 warnings.
+Action: Audited the CI hotfix. The helper now injects `user.name`/`user.email` for every fixture commit, and the workflow sets a global identity before the regression suite as defense in depth. The decisive check ran locally in the simulated runner environment (`GIT_CONFIG_GLOBAL` and `GIT_CONFIG_SYSTEM` pointed at an empty file): registry tests 8/8 (was 3/8) and the full suite 241/241, exit 0. Implementer receipt fresh; the journal auto-archived from 148 to 99 lines during the record, so the A2 cap fix operated in production. Noted H-1: the report's claim that `hooks.test.cjs` and `codex.test.cjs` pass explicit author flags is imprecise - they use the shared helper, which is why the fix covers them. The standalone validator currently fails gate-check on stale receipts after the hotfix writes; the ordered record pass in this session restores freshness. Wrote `docs/reviews/2026-09-19-deepseek-flash-ci-hotfix-audit.md` with verdict PASS and the commit/tag-move sequence.
 
-Result: The pre-freeze state is set; the ordered record pass is running in this entry's session.
+Result: The hotfix is verified; the release ref is not published yet, so the tag can be moved to the hotfix commit after the records.
 
-Next step: verify all three receipts deep, run the standalone validator with the gate active, then the release commit; the owner pushes and decides the annotated tag `v1.9.5`.
+Next step: Ordered record pass (claude-opus, gemini, deepseek), standalone gate validation, owner commit, tag move and push, then Track C dispatch.
 
-Open: release commit; owner tag/push; consumer re-sync decision; Track C dispatch.
+Open: record pass and gate validation; owner commit and tag move; Track C dispatch afterwards.
 
 Evidence:
-- anchor: 1fb0580908a3aa31e0756fea5f27879651aadc61, uncommitted changes present
-- digest: sha256:3ae81239f4e8978df743cc158f5dce643148b2308c9a417fcb2b6905ce6402a3 over 151 tracked and untracked files
+- anchor: 28f1e0174949720c56ff429caf29251bf272c692, uncommitted changes present
+- digest: sha256:98a8061f6a533fec30b2a7268fe412b87cfb1ba9103bb4624a3227be72b8cbe9 over 154 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T05:40:16.866Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T06:22:51.115Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:255f11fee5ffa2390aeee347eb87bd2341e72a35561e6578bbe5e42a80f196a8 of this entry without this block
+- entry: sha256:a90a1c76e3b64bcbbcbff31d298f8017e3472f4c10644b07726e003ca76b2758 of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 108s
+- test-protocol.ps1: exit 0 in 114s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---

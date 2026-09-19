@@ -15,7 +15,8 @@ function run(command, args, cwd = repoRoot, options = {}) {
 }
 
 function git(cwd, args) {
-  return run('git', ['-c', 'core.autocrlf=false', ...args], cwd);
+  return run('git', ['-c', 'core.autocrlf=false', '-c', 'user.name=Protocol Test',
+    '-c', 'user.email=protocol-test@example.invalid', ...args], cwd);
 }
 
 function runPowerShell(script, args = [], cwd = repoRoot) {

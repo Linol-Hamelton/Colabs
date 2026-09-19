@@ -8,6 +8,35 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - CI hotfix: git identity for fixture helper and workflow hardening
+
+Agent: gemini
+
+Action: Executed docs/reviews/2026-09-19-gemini-ci-hotfix-prompt.md to resolve post-release CI red on main. (1) Added -c user.name=Protocol Test and -c user.email=protocol-test@example.invalid to git() helper in tests/helpers.cjs before caller args. (2) Added git config --global user.name "Protocol CI" and user.email "protocol-ci@example.invalid" to Regression suite step in .github/workflows/protocol.yml as defense-in-depth. (3) Grepped test suite; confirmed no other fixture commit path lacks identity. (4) Simulated CI mode (GIT_CONFIG_GLOBAL and GIT_CONFIG_SYSTEM pointing to empty file): tests/registry.test.cjs passed 8/8 and full test-protocol.ps1 passed 241/241 (exit 0). (5) Normal environment: test-protocol.ps1 passed 241/241 (exit 0).
+
+Result: Both simulated CI (identity-less) and normal regression suites green (241/241, exit 0). Stopped before commit for DeepSeek audit.
+
+Next step: DeepSeek-flash performs adversarial audit on CI hotfix; controller re-runs ordered record pass and standalone gate validation; owner commits and moves tag v1.9.5 to hotfix commit.
+
+Open: DeepSeek adversarial audit verdict; ordered re-record pass; v1.9.5 tag move and push.
+
+Evidence:
+- anchor: 28f1e0174949720c56ff429caf29251bf272c692, uncommitted changes present
+- digest: sha256:98a8061f6a533fec30b2a7268fe412b87cfb1ba9103bb4624a3227be72b8cbe9 over 154 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T06:20:53.464Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:2662813ab5d7add77bcbcd874e8a9a8a14e2baae30780e0033933d8fa4df9c75 of this entry without this block
+- parent-entry: sha256:49ffa8151ffdcf6c4b8ae3e681b03652549e037e0f289f6199eeb3054d597e43
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 116s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+
 ## 2026-09-19 - Item 6 remediation: certification findings and prompt repair
 
 Agent: gemini

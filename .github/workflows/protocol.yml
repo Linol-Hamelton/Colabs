@@ -37,7 +37,10 @@ jobs:
 
       - name: Regression suite
         shell: powershell
-        run: powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
+        run: |
+          git config --global user.name "Protocol CI"
+          git config --global user.email "protocol-ci@example.invalid"
+          powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
 
       - name: Tree anchor
         shell: powershell
