@@ -249,6 +249,29 @@ The repository maintains an append-only decision ledger at `docs/decisions/REGIS
   4. New decision block without `Reopen-trigger:` (any new decision ID present in working copy `.ai/DECISIONS.md` but not in `HEAD` must declare `Reopen-trigger:`).
 - **Shared-document lock**: Modifications to `docs/decisions/REGISTRY.md` are covered by the shared-document lock protocol (`protocol-lock.cjs`).
 
+### Context digest (optional, on demand)
+
+1. **Purpose**: A compact orientation artifact for every assistant (MCP-capable or not), so repeated whole-kernel reading is replaced by one on-demand file. The digest is advisory: never auto-injected into SessionStart, never cited in Evidence, never a gate input.
+2. **Exact command (pinned)**:
+   ```bash
+   npx -y repomix@1.18.0 --include ".ai/bin/**,validate-protocol.ps1,test-protocol.ps1,tests/**" --no-git-sort-by-changes --style xml --output .ai/runtime/kernel-digest.xml
+   ```
+   Add `--compress` for orientation only. `--compress` is lossy and experimental (tree-sitter signature extraction) and must not be used for implementation or audit work.
+3. **Operational rules**:
+   - Output lives strictly under `.ai/runtime/` (git-ignored, disposable, and digest-excluded).
+   - The file starts with a header naming the source tree digest (`node .ai/bin/protocol-handoff.cjs state`) and the Repomix version (`1.18.0`); discard on mismatch.
+   - Absence of the tool degrades silently to normal file reads.
+   - No `package.json` or external repository dependencies are added; version pins change only by an owner-approved edit.
+4. **Measured sizes**: Core runtime scripts are ~21.8k tokens raw / ~3.9k compressed; full kernel+tests is ~88.1k raw / ~18.2k compressed. Use raw for audits and implementation, and compressed only for orientation.
+
+### MCP and external tooling policy
+
+1. **Advisory only**: Tool, cache, graph or MCP output is never Evidence and never influences a gate; the completion gate must never depend on external state.
+2. **At most one MCP server**: At most one MCP server per adoption phase; total tool-schema budget <= 1500 tokens; servers must be local-only, workspace-sandboxed, version-pinned, with network tools disabled (for Repomix: `--mcp --sandbox`).
+3. **No automatic installation**: Hooks must never auto-install, download or spawn MCP servers; adoption is an explicit owner-approved configuration per client.
+4. **Disposable storage and graceful degradation**: Derived indexes and caches live under `.ai/runtime/` (disposable); capability differences between agents must not change gate weight; when a server is unavailable the workflow degrades to identical gate semantics.
+5. **Secret hygiene**: Tool output can carry credentials; the journal scanner is pattern-based only; never paste raw tool output containing secrets into journals or reviews.
+
 ---
 
 ## Installing and upgrading

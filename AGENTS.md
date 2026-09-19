@@ -348,6 +348,9 @@ This is the difference between telling the next agent the suite passed and
 letting them confirm it. Prose in a journal is a claim; an Evidence block is a
 record. Never hand-write one.
 
+External tooling and MCP are optional accelerators; they are advisory, never
+Evidence or gate inputs; see PROTOCOL.md.
+
 ---
 
 ## 8. Size limits

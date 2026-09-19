@@ -1,33 +1,31 @@
 # Current Task
 
-Status: Completed
+Status: In progress
 Owner: RuslanFomenko
 Last update: 2026-09-19
 
 ## Objective
 
-v1.9.5 remediation: C0 session liveness, record/cap ordering, gate freshness binding, capability/evidence discipline, documentation closure and the decision registry, per the approved plan revision 2.
+Track C - context economy: M0 universal on-demand digest and C2 external-tooling/MCP policy, per plan revision 2 section 6 and the accepted decisions M1-M5. Implementation by Gemini; audit by DeepSeek.
 
 ## Problem
 
-The v1.9.4 hardening left C0 liveness, stale-receipt gate citations and decision re-litigation without triggers; the v1.9.5 cycle closed them.
+Repeated reading of kernel code and historical prose burns context across models; MCP-only approaches add schema tax and per-client drift. The universal layer must work without MCP.
 
 ## Constraints
 
-- Size limits: TASK.md <= 80 lines, journals <= 150 lines, .ai/PLAN.md <= 200 lines.
-- ASCII-only PowerShell (.ps1); UTF-8 without BOM, LF everywhere.
-- Validator exit 0 with 0 warnings; journals <= 30; suite green.
+- No runtime dependencies and no package.json; the digest command is pinned and invoked on demand.
+- All tool state lives under `.ai/runtime/` or outside the repository; never tracked, never an Evidence or gate input.
+- One MCP server at most per adoption phase; schema budget <= 1500 tokens; local, sandboxed, pinned.
+- Size limits unchanged: TASK.md <= 80 lines, journals <= 150 lines, PLAN <= 200 lines; validator 0 warnings.
 
 ## Acceptance criteria
 
-- [x] A1 C0 fix + 11-branch matrix + PROTO-DEC-0029 + PROTOCOL.md liveness text.
-- [x] A2 journal-cap invariant + record-order fix + CI escalation.
-- [x] A4 capability/evidence discipline + REVIEW.md Mode/Receipt-Owner fields (PROTO-DEC-0031).
-- [x] A3 gate-check + validator integration + tests (PROTO-DEC-0032).
-- [x] A5 documentation closure.
-- [x] B decision registry with WARN-first validation (PROTO-DEC-0033).
-- [x] Whole-scope adversarial certification, delta re-certification, freeze and ordered records.
-- [ ] Tag v1.9.5 and push (owner decision); Track C on separate dispatch.
+- [ ] M0 PROTOCOL.md subsection: pinned digest command, raw vs compressed rules, staleness header, graceful absence.
+- [ ] C2 PROTOCOL.md policy subsection plus one AGENTS.md pointer sentence.
+- [ ] Policy-pin test registered in the manifest.
+- [ ] PROTO-DEC-0034 approved by the owner and transcribed.
+- [ ] C1 instrumentation and H1 pilot design (separate item, after M0/C2).
 
 ## Roles
 
@@ -36,13 +34,8 @@ The v1.9.4 hardening left C0 liveness, stale-receipt gate citations and decision
 
 ## Current state
 
-All items implemented, audited and committed (`1fb0580`). Certification: Claude Opus independent review RECOMMENDATION and delta re-certification PASS with all findings closed; Qoder and Mistral reports are non-gate-valid as submitted; CodeGeeX/GLM advisory output was rejected as not reproducible against this repository. Journals 29/30; validator 0 warnings after the freeze and record pass.
-
-## Completion gate
-
-- Adversarial review prompt: docs/reviews/2026-09-19-final-v1.9.5-adversarial-review-prompt.md
-- Independent review: docs/reviews/2026-09-19-claude-opus-v1.9.5-delta-certification.md
+v1.9.5 published (tag `v1.9.5`); the release-line CI fix landed (`1b1deab`, helper git identity). Track C dispatch prompt committed at `b8f8c4c`: docs/reviews/2026-09-19-gemini-trackc-m0-c2-prompt.md. Owner decision pending on the tag re-point after the 28-second CI failure on `1b1deab`.
 
 ## Next
 
-Owner approves the release commit and the annotated tag `v1.9.5`; push and consumer re-sync per owner decision.
+Gemini implements M0+C2; DeepSeek audits before the commit.
