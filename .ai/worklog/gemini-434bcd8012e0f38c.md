@@ -8,6 +8,34 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-19 - v1.9.5 adversarial release certification and whole-scope audit
+
+Agent: gemini
+
+Action: Executed whole-scope adversarial certification prompt docs/reviews/2026-09-19-final-v1.9.5-adversarial-review-prompt.md on release candidate bd56d6c. Probed all 8 verification areas in an isolated clone: C0 supervisor liveness, three-way polarity/quarantine, A2 record line-cap auto-archiving, A3 gate-check freshness binding, bootstrap deadlock skipping, Track B registry WARN-first checks, digest/freeze invariants, and encoding/size constraints. Probed attack vectors across process spoofing, case variants in registry, body Date extraction, and peer certification submissions. Authored review report docs/reviews/2026-09-19-gemini-v1.9.5-certification.md per templates/reviews/REVIEW.md with Mode: ADVISORY due to implementer conflict of interest.
+
+Result: PASS / RECOMMENDATION. Full regression suite passed 236/236 (test-protocol.ps1), validate-protocol.ps1 passed with 0 warnings. Identified 4 non-blocking findings (F-001 registry case-insensitive -ne comparison, F-002 body date extraction in gate-check, F-003 PID 4 liveness check, F-004 substring path matching in gate-check) with concrete negative test reproductions. Confirmed gate-check correctly rejects malformed peer certification submissions.
+
+Next step: Owner reviews adversarial audit reports; independent certifying review confirms release; completion gate recorded in .ai/TASK.md.
+
+Open: Independent certifying review verdict from non-conflicted model; owner authorization for tag v1.9.5.
+
+Evidence:
+- anchor: 52e6d31ceb40f8146e0d9be35cb3259c70f9b352, uncommitted changes present
+- digest: sha256:4a63b1dd4e44433948104789a95e85f0785a81b5e583d07c574f8cc873fba7d9 over 144 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T04:38:17.383Z by gemini-434bcd8012e0f38c
+- entry hash format: 2
+- entry: sha256:fdabcbf666f7136e29c2b8dbcc3615553a8cb72498bf4fcf4be097b4565e0594 of this entry without this block
+- parent-entry: sha256:41cc00d031a7d13dd9f07dd072afec1a4fb5df567b25c3d5ed06a61eec6203d7
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 101s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-19 - Item 5 testfix: dynamic expected entry count in tests/registry.test.cjs
 
 Agent: gemini
