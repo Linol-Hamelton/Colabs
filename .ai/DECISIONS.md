@@ -1439,6 +1439,41 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0031
+
+Status: Accepted
+Date: 2026-09-19
+
+Context:
+In adversarial reviews, models without tool access, read-only external interfaces, or web chat panels can emit review verdicts without the ability to execute code, run tests, or sign handoff receipts. Previously, no formal distinction existed between an advisory review and a certifying review, allowing unverified claims or claims without reproduction to be cited as release-blocking completion gates.
+
+Decision:
+1. Four Required Capabilities: A certifying review requires four orchestrator-verified capabilities:
+   - FS_WRITE: direct local filesystem write capability for project and review artifacts.
+   - SHELL_EXEC: ability to invoke local terminal commands and reproduction test scripts.
+   - EVIDENCE_SIGN: ability to generate, compute, and certify tamper-evident Evidence receipts via protocol tooling.
+   - REPO_READ: ability to inspect repository code and working tree state directly.
+   Capability is determined by the orchestrator profile and environment, never self-declared by the model.
+2. Review Mode and Header Fields:
+   - `Mode: CERTIFYING`: declared only when all four capabilities are present. Requires `Receipt-Owner: <owner-id>` (with legacy `Session:` accepted as a fallback) and an associated verifiable handoff receipt citing the review path.
+   - `Mode: ADVISORY`: assigned when any required capability is missing. Advisory reviews carry `[MODE: READ-ONLY ADVISORY]`, are persisted exclusively through the AGENTS.md section 5.5 chat transcription fallback, and are explicitly designated non-certifying. An advisory review cannot satisfy the independent-review completion gate.
+3. Defect Reproduction Mandate: A `FAIL` or `BLOCKED` verdict requires at least one concrete reproduction command, test, or proof per claim. Unreproduced claims remain advisory findings and cannot block completion or reopen approved decisions.
+
+Reasoning:
+Separating certifying verdicts from advisory commentary protects the protocol from unsubstantiated blocks by models operating without execution or verification capabilities, while preserving the valuable insights of advisory models via the transcription route. Requiring reproducible proof for FAIL/BLOCKED verdicts enforces objective technical truth over conversational assertion.
+
+Alternatives rejected:
+- Allowing self-declared certification: rejected because models routinely overestimate or hallucinate their tool access.
+- Banning advisory models from reviews entirely: rejected because non-executing models provide valuable analytical, linguistic, and structural critiques.
+- Allowing FAIL verdicts without reproduction: rejected because speculative or hallucinated failure claims could indefinitely paralyze progress on approved work.
+
+Consequences:
+`templates/reviews/REVIEW.md` includes `Mode`, `Receipt-Owner`, and `Receipt` header fields. AGENTS.md and `.ai/docs/PROTOCOL.md` define the four capabilities, the transcription route for advisory reviews, and the reproduction rule. Automated enforcement of the certifying receipt binding is checked by `gate-check` (A3).
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

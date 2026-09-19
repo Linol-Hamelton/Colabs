@@ -6,29 +6,29 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-19 - Step 0 CI restoration and Item 3 (A4) audited PASS
+## 2026-09-19 - PROTO-DEC-0031 transcribed; Item 4 (A3) prompt prepared
 
 Agent: deepseek-flash
 
-Action: Audited the CI restoration and Item 3 (A4). Step 0: `.github/workflows/protocol.yml` now matches the addendum's section 2 YAML exactly - DEC-0009 comment, `push: branches: ['**']`, `pull_request`, `workflow_dispatch`, the `[WARN]`/`[FAIL]` escalation wrapper, regression suite, tree anchor, clean-directory install plus validation, reinstall idempotency/state preservation - with no history rewrite. A4: `templates/reviews/REVIEW.md` gains `Mode`, `Receipt-Owner` and `Receipt` with the capability explanation; AGENTS.md section 2 adds the four-capability certifying rule, the advisory `[MODE: READ-ONLY ADVISORY]` route and the FAIL/BLOCKED reproduction rule; PROTOCOL.md documents the review-mode model; a policy-pin test asserts the template fields and the AGENTS.md tokens. Ran the checks myself: review-findings 16/16, full suite 217/217, validator exit 0 with 0 warnings, 29 journals, and Gemini's receipt verified fresh at audit time. Wrote `docs/reviews/2026-09-19-deepseek-flash-a4-audit.md` with verdict PASS and three INFO notes: gate-check must accept an empty `Receipt`; the advisory-mode wording is redundantly phrased in PROTOCOL.md; the policy pin is reformat-sensitive. Reviewed the `PROTO-DEC-0031` draft: accurate; it awaits the owner's explicit approval and must not be inserted with the pending placeholder.
+Action: The owner approved `PROTO-DEC-0031` in chat. Verified the block was absent from the committed tree (the A4 commit pathspec named `.ai/DECISIONS.md`, but the file was unchanged, so the block had not been written), acquired the shared-doc lock and transcribed the approved text verbatim with the `PROTO-DEC-0030` provenance line: `Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)`. Post-change validator: 31 decision blocks inspected, 30 committed blocks unchanged, exit 0 with 0 warnings. Wrote the Item 4 dispatch prompt `docs/reviews/2026-09-19-gemini-v1.9.5-item4-prompt.md` for A3 `gate-check`: extract `checkOwnerReceipt(root, owner, { deep })` from the verify command with identical behavior; implement the subcommand (TASK gate parsing, verdict whitelist, Mode and Receipt-Owner rules with the 2026-09-19 legacy cutoff, review-path mention plus deep receipt binding, advisory reviews can never satisfy the independent slot, empty `Receipt` allowed, exit 0/1, no subprocess recursion); validator integration in the source role only; `tests/gate.test.cjs` with eight scenarios; a PROTOCOL.md subsection; one AGENTS.md sentence; and the `PROTO-DEC-0032` draft for owner approval.
 
-Result: Both parts verified, nothing blocking. The owner's approval of `PROTO-DEC-0031` and the two commits remain.
+Result: The decision log now carries all three owner-approved policy decisions (`PROTO-DEC-0029`, `0030`, `0031`). Item 4 is ready to dispatch. The transcription, this journal and the new prompt are uncommitted.
 
-Next step: Owner approves the decision and commits; the strengthened CI runs on the next push; then Item 4 (A3 gate-check).
+Next step: Owner commits the decision transcription and dispatches the Item 4 prompt to Gemini; DeepSeek audits Item 4 before its commit.
 
-Open: `PROTO-DEC-0031` approval and transcription; two commits; owner push; Item 4 dispatch.
+Open: commit of `.ai/DECISIONS.md`, this journal and the Item 4 prompt; Item 4 implementation and audit.
 
 Evidence:
-- anchor: ebd777e6779273b831d63664469de429fa80d196, uncommitted changes present
-- digest: sha256:35c87678b2814c6ebb9216bb73eea143b3821d4c0c5992c0dd89eecb09f688e0 over 130 tracked and untracked files
+- anchor: 77c131234b5cb60571c1ece87fa76e5a3849be4c, uncommitted changes present
+- digest: sha256:aeb692bf3fb40965789c3224c7a639b57c0caf4b476940d390a2ecae31ca47b4 over 131 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-19T02:29:40.291Z by deepseek-flash-8a681a17d5224abf
+- recorded: 2026-09-19T02:44:26.989Z by deepseek-flash-8a681a17d5224abf
 - entry hash format: 2
-- entry: sha256:a78c6de01d8f668cc9d8a112d475e928a3f8851651aee0a62347fd287c61578f of this entry without this block
+- entry: sha256:20082f1c18613ff2a8fc078424ec006c0ec6e21db28581d8c36aee9891b8e42e of this entry without this block
 - parent-entry: root
 - scope: protocol checks only; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 103s
+- test-protocol.ps1: exit 0 in 102s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
