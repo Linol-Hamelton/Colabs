@@ -1413,6 +1413,32 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0030
+
+Status: Accepted
+Date: 2026-09-19
+
+Context:
+AGENTS.md section 2 said only that `Approved by:` carries a human name and that an agent may not fill the line in for itself; the `.ai/DECISIONS.md` template repeats the rule. That left the transcription of a direct owner approval ambiguous: an agent could not tell whether recording an approval the owner had just given in conversation was self-authorization or legitimate recording, and an unrecorded approval violated the rule that chat history is not project memory.
+
+Decision:
+An owner approval given in a direct conversation may be transcribed into a decision block by the session that holds the lock, with a provenance note: `Approved by: <name> (direct owner confirmation, YYYY-MM-DD, transcribed by <agent>)`. An agent must never write the `Approved by:` line without a direct owner confirmation, and a proposal stays a proposal until then. AGENTS.md section 2 carries the same rule.
+
+Reasoning:
+AGENTS.md section 0 says chat history is not project memory and only the repository counts. Without a stated transcription rule, a genuine owner approval could not be recorded at all, or would be recorded without provenance. The provenance note separates recording from self-authorization and keeps the decision log auditable.
+
+Alternatives rejected:
+- Leaving the rule implicit: rejected because it forces every agent to guess, and guessing about authority is what the protocol forbids.
+- Requiring the owner to edit DECISIONS.md personally: rejected because the file is covered by the shared-doc lock and approvals are commonly given in conversation; the record must still be written by a session.
+- Accepting approvals without provenance: rejected because an audit could no longer distinguish a recorded confirmation from an agent's assumption.
+
+Consequences:
+Transcribed approvals name the date and the transcribing agent. The decision log remains append-only; the provenance note does not weaken the rule that only the owner can approve. PROTO-DEC-0029 is the first block recorded under this rule.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; transcribed by deepseek-flash)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn

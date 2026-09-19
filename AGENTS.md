@@ -40,7 +40,12 @@ is a source of truth.
   protocol core, or `DEC-nnnn` in a product repository) in `.ai/DECISIONS.md`
   carrying `Approved by:` with a human name. That text records who authorized
   the work. It is a record, not proof; the owner remains the only one who can
-  approve. Proposals belong in `.ai/PLAN.md`; `Proposed` status is forbidden in
+  approve. An owner approval given in a direct conversation may be transcribed
+  into the block by the session that holds the lock, with a provenance note
+  (for example `Approved by: <name> (direct owner confirmation, YYYY-MM-DD,
+  transcribed by <agent>)`); an agent must never write the line without a
+  direct owner confirmation, and a proposal stays a proposal until then.
+  Proposals belong in `.ai/PLAN.md`; `Proposed` status is forbidden in
   `DECISIONS.md`.
 - Any agent may challenge any other agent. Record the disagreement in
   `.ai/TASK.md` under Open questions. Do not silently overwrite.

@@ -189,14 +189,14 @@ Algorithm:
 4. Advisory/transcribed citations (`Mode: ADVISORY`, `Transcribed by:`) may cite a transcriber receipt, but can never satisfy the independent-review slot.
 5. Exit 0 pass, 1 fail. No subprocess recursion (import functions; `verify` never invokes the validator).
 
-**Validator integration**: in `role: source` only, run `gate-check` and fold a non-zero exit into FAIL; in `role: installed`, skip (owner decision D4 on strictness). Tests: `tests/gate.test.cjs` with valid, stale, missing-field, legacy, advisory-transcriber, multi-review-per-owner and wrong-owner cases. Decision block `PROTO-DEC-0031`.
+**Validator integration**: in `role: source` only, run `gate-check` and fold a non-zero exit into FAIL; in `role: installed`, skip (owner decision D4 on strictness). Tests: `tests/gate.test.cjs` with valid, stale, missing-field, legacy, advisory-transcriber, multi-review-per-owner and wrong-owner cases. Decision block `PROTO-DEC-0032`.
 
 ### A4 - Capability and evidence discipline (was A5)
 
 - `Mode: CERTIFYING` requires `FS_WRITE`, `SHELL_EXEC`, `EVIDENCE_SIGN`, `REPO_READ`; anything less is `ADVISORY`. Capability is set by the orchestrator profile, never self-declared.
 - Advisory outputs carry `[MODE: READ-ONLY ADVISORY]`; persistence uses the AGENTS.md section 5.5 transcription fallback; the transcriber records its own receipt and the report states `non-certifying`.
 - A `FAIL`/`BLOCKED` verdict requires at least one reproduction per claim; otherwise it is advisory and cannot reopen a decision.
-- `gate-check` accepts only a CERTIFYING independent review with a verifying receipt and the review-path binding. Decision block `PROTO-DEC-0030`.
+- `gate-check` accepts only a CERTIFYING independent review with a verifying receipt and the review-path binding. Decision block `PROTO-DEC-0031`.
 
 ### A5 - Documentation accuracy
 
@@ -213,7 +213,8 @@ Algorithm:
 - **B1 Statuses**: `accepted`, `frozen`, `reopened`; DECISIONS.md stays append-only and untouched for existing blocks.
 - **B2 Triggers** (tighter criteria): `invariant-broken` (failing test/probe output attached), `metric-drop` (metric name, baseline value + date + measurement command, threshold, new value + evidence - all required), `new-external-data` (reproduction command in-repo or an artifact committed under `docs/reviews/` with a content hash and retrieval date), `security-finding` (PoC), `owner-directive` (date, quote, channel, recorded by an FS-capable agent), `higher-source-contradiction` (the contradicting path). No trigger, no reopening; doubt stays a journal/TASK note.
 - **B3 Registry**: `docs/decisions/REGISTRY.md`, append-only rows `| id | status | reopen-trigger | frozen-at | supersedes | evidence |`; current status = last row per id. One hand-edited source of truth; if a JSON twin is wanted, generate it from the Markdown in CI (owner decision D3). `frozen-at` carries the commit SHA; `evidence` carries a path#anchor or hash.
-- **B4 Enforcement**: orchestrator pre-check plus a validator rule (source role) that (a) every `### (PROTO-)?DEC-\d{4}` id in `.ai/DECISIONS.md` has at least one registry row (coverage), (b) no committed registry row was edited or deleted (same `git show HEAD:` discipline as DECISIONS.md), (c) new decision blocks carry `Reopen-trigger:` - advisory WARN first, FAIL after the owner approves `PROTO-DEC-0032`. The validator never edits DECISIONS.md.
+- **B4 Enforcement**: orchestrator pre-check plus a validator rule (source role) that (a) every `### (PROTO-)?DEC-\d{4}` id in `.ai/DECISIONS.md` has at least one registry row (coverage), (b) no committed registry row was edited or deleted (same `git show HEAD:` discipline as DECISIONS.md), (c) new decision blocks carry `Reopen-trigger:` - advisory WARN first, FAIL after the owner approves `PROTO-DEC-0033`. The validator never edits DECISIONS.md.
+- **B5 Approval provenance (implemented 2026-09-19)**: `PROTO-DEC-0030` and AGENTS.md section 2 state that an owner approval given in a direct conversation may be transcribed into the block by the session that holds the lock, with a provenance note (`Approved by: <name> (direct owner confirmation, YYYY-MM-DD, transcribed by <agent>)`); an agent must never write the line without a direct owner confirmation. `PROTO-DEC-0029` is the first block recorded under this rule.
 
 ---
 
@@ -230,10 +231,10 @@ Algorithm:
 1. **Track 0**: archive to <=30; compliance repairs; v1.9.4 freeze + re-record + verify + commit decision (0.4); open the v1.9.5 task.
 2. **A1** C0 fix + A1.6 tests + `PROTO-DEC-0029` + PROTOCOL.md liveness text (one change set, one commit).
 3. **A2** archival automation + CI escalation.
-4. **A4** capability/evidence discipline + template fields (`PROTO-DEC-0030`).
-5. **A3** `gate-check` + validator integration + tests (`PROTO-DEC-0031`).
+4. **A4** capability/evidence discipline + template fields (`PROTO-DEC-0031`).
+5. **A3** `gate-check` + validator integration + tests (`PROTO-DEC-0032`).
 6. **A5** documentation closure for anything left.
-7. **B1-B4** registry (`PROTO-DEC-0032` if enforcement is adopted).
+7. **B1-B4** registry (`PROTO-DEC-0033` if enforcement is adopted); B5 approval provenance already implemented (`PROTO-DEC-0030`).
 8. **Final certification**: whole-scope mandatory adversarial prompt (all A/B changes), independent review, completion gate in TASK.md, freeze, ordered `record` + `verify --deep`, atomic release commit, annotated tag `v1.9.5` (owner decision), push (owner decision).
 9. **C1 pilot**, then C2 policy if positive; optional consumer re-sync for Block-Puzzle and VPN per DEC-0025 item 4 (owner decision).
 
@@ -298,5 +299,5 @@ Rationale for the reorder (adopted from Gemini, Claude/Opus, Mistral): the certi
 
 - This plan supersedes: `docs/reviews/2026-09-19-deepseek-flash-final-followup-plan-v1.9.5.md`
 - Reviews: `2026-09-19-gemini-final-plan-adversarial-review.md`, `2026-09-19-gemini-opus-final-plan-adversarial-review.md`, `2026-09-19-qoder-adversarial-review-v1.9.5.md`, `2026-09-19-mistral-vibe-final-v1.9.5-followup-plan-review.md`, `2026-09-19-deepseek-flash-final-plan-probe-review.md`, `2026-09-19-glm-final-plan-adversarial-review.md`
-- Decisions: `PROTO-DEC-0025`, `PROTO-DEC-0028`; proposed `PROTO-DEC-0029`..`0032`
+- Decisions: `PROTO-DEC-0025`, `PROTO-DEC-0028`; proposed `PROTO-DEC-0031`..`0033` (0029 and the approval-provenance 0030 already accepted).
 - Active task: `.ai/TASK.md`; probe fixtures: `C:\Users\Dmitry\AppData\Local\Temp\kilo\v195probe*` (not part of the repository)
