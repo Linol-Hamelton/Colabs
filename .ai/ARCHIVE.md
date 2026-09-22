@@ -5562,3 +5562,346 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 231s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/codex-3b6dc3f1bacb8871.md, archived 2026-09-22
+
+## 2026-09-20 - Independent paired-cycle audit and expert recommendations
+
+Agent: codex (GPT-6; codex-3b6dc3f1bacb8871)
+
+Action: Per direct owner dispatch, audited paired-cycle v1.9.6 independently of four supplied council opinions. Read required documents, decisions, installer, validator, handoff and tests. Persisted scope prompt docs/reviews/2026-09-20-codex-paired-cycle-audit-prompt.md and CERTIFYING report docs/reviews/2026-09-20-codex-paired-cycle-review.md. Ran full source validator/suite, receipt checks, disposable TEMP probes and upgrade fixtures from actual v1.9.4/v1.9.5 tags. No audited source, shared documents, product files, existing reviews or other journals edited; no repository commits/pushes. SessionStart role text was stale for this dispatch; the direct owner request assigned this audit. No shared-document lock needed or acquired.
+
+Result: FAIL for accepting the reusable runbook as complete. Reproduced edited PAIRED-CYCLE false FAIL versus COPILOT WARN; premature completion route; Template 4 missing unified marker fails validation; pre-existing docs-only completion path still requires two artifacts. Confirmed missing --deep and incomplete durable freeze-exception record; rejected claim that absence of an unreleased v1.9.6 tag itself violates release atomicity. Validator exit 0 with 1 warning (35 journals, including this session); full test-protocol.ps1 separately passed 255/255, 0 failures/skips, 109390.9503 ms. Actual old-tag upgrades: plain install exit 0 but validator 1; Force exit 0 and validator 0 for both versions. Original Gemini receipt stale; Gemini reviewer receipt verified deep before my two audit files were added. Source hashes remained unchanged; active corpus after artifacts 52 files / 498686 B. Report 168 lines; prompt 38 lines. git diff --check reports only pre-existing whitespace at .ai/ARCHIVE.md:3546 and .ai/TASK.md:58. Requested quick Evidence records validator only; the separately run full suite is not represented as part of its scope.
+
+Next step: Owner/controller scopes minimal remediation for report F-001..F-005, treats pre-existing risk-scaling mismatch F-006 separately, then returns to already approved product pilots. Verify this session's receipt with --deep after recording; stop session without changing shared state.
+
+Open: No fixes implemented under audit read-only constraint. Journal cap remains exceeded; no archiving authorized here. Historical original manual checks and live two-model end-to-end execution remain unverified. Subsequent review files will normally stale receipts; recommendations are proposals, not approved decisions.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:5af053788ee265517bacc679727ad00c9bd2599a965dd574e21a2fa2779c147f over 223 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T04:57:29.391Z by codex-3b6dc3f1bacb8871
+- entry hash format: 2
+- entry: sha256:eb5e39e55c910bc332fdc8cf110b0b5909488289e6c82ac4fd2c2179c31b7b9e of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/gemini-e4d65c510f35d0bc.md, archived 2026-09-22
+
+## 2026-09-20 - Independent council audit of paired work cycle (v1.9.6)
+
+Agent: gemini (gemini-e4d65c510f35d0bc)
+
+Action: Conducted read-only independent adversarial audit of paired-cycle change (PAIRED-CYCLE.md, manifest managed entry, 1.9.6 version bump). Verified validate-protocol.ps1 and full test suite (test-protocol.ps1, 255/255 pass). Tested handoff verification against previous receipts (gemini-8f96a135c4637578 and deepseek-flash-b46d113672e9d5fc). Evaluated document contradictions, prompt templates, installation and upgrade semantics, diff discipline, and governance. Published certifying review docs/reviews/2026-09-20-gemini-paired-cycle-review.md.
+
+Result: Verdict RECOMMENDATION. Reproductions: test-protocol.ps1 exit 0 (255/255); validate-protocol.ps1 exit 0 with 1 warning (33 journals; 0 warnings claim refuted); gemini-8f96a135c4637578 receipt stale (exit 1) due to post-receipt reviews; deepseek-flash receipt verified. Identified F-001 (missing PAIRED-CYCLE.md in validator $docDigests causes false FAIL on host reconciliation), F-002 (freeze exception recorded only in TASK.md outranked by DECISIONS), F-003 (PAIRED-CYCLE.md Phase 3 bypasses PROTO-DEC-0038 risk scaling and completion gate), F-004 (Template 3 calls for deep check but omits --deep).
+
+Next step: Owner reviews findings F-001..F-004; decide whether to record exception block in DECISIONS/REGISTRY and patch $docDigests before pilot handoff.
+
+Open: Whether to revert 1.9.6 bump until pilot conclusion; worklog cap (34 journals > 30) requires archiving pass under lock.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:48b77f0ff6601046c3cdd025c22d3f62665e59a38beb255364229d179675cbf4 over 221 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T04:45:56.354Z by gemini-e4d65c510f35d0bc
+- entry hash format: 2
+- entry: sha256:124af7259cd89114c6bb455bca932562b016ffa561ecdacb748fc838f1446e2c of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/deepseek-flash-b46d113672e9d5fc.md, archived 2026-09-22
+
+## 2026-09-20 - CERTIFYING council audit of the paired-cycle freeze exception (v1.9.6)
+
+Agent: deepseek-flash (deepseek-flash-b46d113672e9d5fc)
+
+Action: Executed the dispatched read-only adversarial council audit of `.ai/docs/PAIRED-CYCLE.md` (161 lines), the manifest version bump to 1.9.6, and the pointer edits. Inspected `AGENTS.md` sections 2/4/5/6/7, `.ai/docs/PROTOCOL.md`, `protocol-manifest.json`, `setup-ai-protocol.ps1`, `validate-protocol.ps1` (required-file, version, contentDigest and `$docDigests` logic), `tests/manifest.test.cjs`, `tests/upgrade.test.cjs`, `tests/review-findings.test.cjs`, PROTO-DEC-0025/0036..0039 and the registry. Ran the full validator and regression suite; deep-verified the Gemini receipt; counted journals and the active corpus; ran an isolated TEMP-fixture probe of an installed 1.9.6 project (install, edit and delete `.ai/docs/PAIRED-CYCLE.md`). Published the certifying review `docs/reviews/2026-09-20-deepseek-flash-paired-cycle-review.md`.
+
+Result: Verdict RECOMMENDATION (non-blocking, three must-fix items). Reproduced: validator exit 0 with 1 warning (31 journals; 30 at the receipt, post-receipt sessions caused the drift); test-protocol.ps1 255/255; Gemini receipt verified at audit start (218 files, sha256:8d763a6a...), then stale after a parallel session wrote a new review file (expected); append-only ledgers show 0 deletions (124/0, 4/0, 394/0); no kernel `.cjs` changed. Reproduced defect F-001: in an installed project, editing `.ai/docs/PAIRED-CYCLE.md` yields `[FAIL] ... not the content this protocol version installed` (exit 1) while COPILOT.md yields WARN, because `validate-protocol.ps1:657-665` `$docDigests` was not extended with the new managed document; deletion yields `[FAIL] missing file`, which is correct. F-002: the freeze exception and the 1.9.6 bump are recorded only in `.ai/TASK.md:35`, outranked by the binding freeze (DECISIONS), with no registry `owner-directive` row or approved block. F-003: PAIRED-CYCLE Phase 3 can complete without the PROTO-DEC-0038 full pair and never mentions `## Completion gate`. F-004/F-005/F-006/F-007/F-009/F-010 are LOW/INFO (quick-receipt evidence gap, missing `--deep`, one-directional test coverage of the manifest entry, version bump without tag, unenforced corpus cap, live staleness observation). F-008 is claim drift, not a defect of the change.
+
+Next step: owner/controller decides on the minimal fixes (add the file to `$docDigests` plus a warn-path regression; record the exception in DECISIONS/registry or revert the bump; add the risk branch and `--deep` to the runbook; pin the manifest entry in a test). No fix applied in read-only mode.
+
+Open: whether the 1.9.6 bump stays during the freeze; journal count is over the 30 cap (32), needs an archiving pass under the lock; the paired-cycle deliverable's completion gate must not be marked Completed for protocol-core work without the full prompt+report pair.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:7a2af8e1a931677b813977d8623a4ecca4ff95a5a9a16a8b553a92cb37740d78 over 220 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T04:41:01.168Z by deepseek-flash-b46d113672e9d5fc
+- entry hash format: 2
+- entry: sha256:83a2d027d780eb55f0b0e244698fc2d67bb4236cb2007d457039d8b88bb7b171 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 109s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/gemini-8f96a135c4637578.md, archived 2026-09-22
+
+## 2026-09-20 - Reusable paired work cycle installation (freeze exception)
+
+Agent: gemini (gemini-8f96a135c4637578)
+
+Action: Executed owner directive (2026-09-20) docs-only freeze exception under shared-document lock: (1) Created .ai/docs/PAIRED-CYCLE.md (161 lines <= 300 cap) in English, defining roles (configurable; default implementer=gemini and reviewer/controller=deepseek as in .ai/TASK.md Roles), seven phases (Phases 0-6) with artifacts/acceptance, core guardrails (one writer under lock, chat/.ai/runtime not durable memory, receipts only after final tree, human language preference from TASK, corpus cap protection, no commits without owner instruction), and four self-contained copy-paste prompt templates (OWNER-LAUNCH, CONTROLLER-DISPATCH, CERTIFY, ADVERSARIAL-PROMPT); (2) Added .ai/docs/PAIRED-CYCLE.md to the managed list in protocol-manifest.json and bumped protocolVersion from 1.9.5 to 1.9.6 across protocol-manifest.json, AGENTS.md, and setup-ai-protocol.ps1; (3) Added installed-table entry and ## Paired work cycle pointer section to .ai/docs/PROTOCOL.md and pointer line to AGENTS.md section 2; (4) Checked acceptance item in .ai/TASK.md while keeping Status: In progress; preserved immutable ledgers (.ai/DECISIONS.md, docs/decisions/REGISTRY.md, .ai/ARCHIVE.md) untouched; ran validation and regression suite.
+
+Result: .ai/docs/PAIRED-CYCLE.md created at 161 lines (LF, UTF-8 no BOM). protocolVersion aligned at 1.9.6 across protocol-manifest.json, AGENTS.md, and setup-ai-protocol.ps1. validate-protocol.ps1 PASS (exit 0; 0 errors; one protocol version everywhere: 1.9.6). All tests pass.
+
+Next step: Controller (DeepSeek) certifying review of the freeze-exception deliverable; owner distribution of adversarial prompt if requested.
+
+Open: VPN triage implementer assignment and native-only product pilot dispatch.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:8d763a6a8277dc504cca6e2537f7cb671dcd4c52a65d4cde60257dd132b0e1b0 over 218 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T03:57:50.907Z by gemini-8f96a135c4637578
+- entry hash format: 2
+- entry: sha256:ea6282eee9577584f1ef7fc4cd27ab3e6e3a58362c436cc60048fae37d23faf1 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/codex-1d88d4ac0104f8a6.md, archived 2026-09-22
+
+## 2026-09-20 - MCP stack council restart and Round 1 evidence prompt
+
+Agent: codex (GPT-6), council coordinator and repository fact checker
+
+Action: Audited the four owner-supplied Round 0 answers against the actual H1 runbook/report/correction, current repository inventory, `PROTO-DEC-0034..0039`, and official Serena 1.5.3, Repomix 1.18.0, Qdrant MCP, Kindex 0.36.0 and MCP tool-specification documentation. Published the bounded reusable prompt `docs/reviews/2026-09-20-mcp-stack-council-round1-prompt.md` and updated `.ai/TASK.md` to pause product handoff for a discussion-only 2-3 round council. Acquired and released the shared lock. Did not edit DECISIONS/REGISTRY/PLAN, install or start an MCP server, or touch Block-Puzzle/VPN.
+
+Result: The owner's intuition is directionally plausible but Colabs self-improvement is neither necessary nor sufficient evidence of product ROI. Corrected the central false premise: H1 was already scoped to `.ai/bin`, two validators and tests, not the whole repository or governance corpus. Also recorded that Serena officially claims Markdown and PowerShell support but usefulness is unproved; official Qdrant MCP has two tools and no documented payload-filter query or automatic ingestion; stock Kindex exposes 50+ overlapping writable tools; client prompt/schema cost remains unmeasured. Active reviews are 60 files / 592,462 B; prompt 126/150 lines; TASK 53/80 lines. `git diff --check` passed; validator exit 0 / 0 warnings; protocol suite 255/255 in 146.79 s.
+
+Next step: The owner sends the Round 1 prompt independently to four assistants and returns their Russian answers. The coordinator then performs source-level fact checking and a Round 2 synthesis with at most two candidates; Round 3 occurs only if a candidate survives.
+
+Open: Actual per-client `tools/list` and host-visible token costs; Windows/client compatibility; whether any candidate identifies a true substitution; later owner decision on formal reopening of PROTO-DEC-0036/0039. The active review corpus is exactly at its 60-file cap, so the next persisted council artifact requires receipt-aware archival of an inactive non-certifying review first.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:91a5f33fdfba0bdcb567966adc79a3676dc0f6775cd6e773dd8ba7ca61baa78d over 214 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T01:45:11.179Z by codex-1d88d4ac0104f8a6
+- entry hash format: 2
+- entry: sha256:d4a5f029242e1ed72c749bd2949a210458cef7249bbdfd7041216f956775648d of this entry without this block
+- parent-entry: sha256:bb11cd97ef713755d26abd7e1ecc460ac64e39d055041fd50650c13954975024
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 145s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-20 - MCP council synthesis and current-cycle resume dispatch
+
+Agent: codex (GPT-6), coordinator and independent synthesizer
+
+Action: Compared the owner-supplied external Round-1 answer, GLM 5.1 answer and Qoder summary against the repository and the existing Codex audit. Persisted the bounded synthesis at `docs/reviews/2026-09-20-mcp-council-round2-synthesis.md` and the Gemini -> DeepSeek dispatch at `docs/reviews/2026-09-20-deepseek-gemini-cycle-resume-prompt.md`. Reconciled `.ai/TASK.md` and `.ai/PLAN.md`: H1 refuted only the tested additive full raw-digest treatment; untested follow-ons remain closed by owner policy; the feature freeze remains; Russian (`ru-RU`) is the replaceable current human-facing preference. No accepted decision or registry row was edited or appended, and no kernel language feature was implemented.
+
+Result: Verdict B is sufficient to finalize the current-cycle plan; no second council round is needed. Qoder is non-responsive as a Round-1 analysis; GLM's arm labels, Proposed-decision mechanics, schema estimate and 90-trial cost estimate were rejected; the external Round-1 claim that `rg` is absent was reproduced false (`rg` 15.2.0 is available). Execution remains audit/corpus/journal closure followed by the two owner-scoped product pilots; MCP/index work is deferred behind the product report and a future owner-directed reopening. Verification: `git diff --check` passed; validator exit 0 with the known 31-journal warning; protocol regression suite passed 255/255; doctor healthy with warnings for the held coordinator lock, 31 journals and legacy receipts; gate-check not applicable while TASK is In progress.
+
+Next step: Gemini executes the closure pass from the dispatch; DeepSeek independently certifies it. After PASS, the owner supplies one objective and five frozen metrics for each consumer repository before either pilot mutates a tree.
+
+Open: Active review corpus is above 60 files / 600 KB after adding the required current artifacts; journals are 31/30; product objectives/metrics remain owner inputs; a kernel-level `.ai/PREFERENCES.json` language setting remains post-freeze or requires an explicit freeze exception.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:bc9d5cfe69d80eefbfda27adeea327b91f97c88e30ee0a20fc110427a5be66ac over 210 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T00:17:53.984Z by codex-1d88d4ac0104f8a6
+- entry hash format: 2
+- entry: sha256:bb11cd97ef713755d26abd7e1ecc460ac64e39d055041fd50650c13954975024 of this entry without this block
+- parent-entry: sha256:530b6368d9c16ff1a4da991dc164a4e9c1ca5c4dbc417d16b2587907710f08f2
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 142s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-20 - Independent MCP and context architecture audit
+
+Agent: codex (GPT-6), independently assigned by the owner as auditor-expert
+
+Action: Audited the three owner-supplied context-layer opinions against the current repository, `PROTO-DEC-0034..0039`, H1 design/report/correction/post-mortem, the prior Codex H1 audit, and primary documentation for Repomix, Serena, Qdrant and Kindex. Verified that Colabs contains no notebooks; H1 ran the raw whole-digest Arm B, explicitly excluded Serena/Qdrant, and never ran MCP Arm C. Published the certifying architecture review at `docs/reviews/2026-09-20-codex-independent-mcp-architecture-audit.md` and the bounded 1-2 round council prompt at `docs/reviews/2026-09-20-mcp-architecture-council-prompt.md`. Did not edit shared governance documents, install tools, start MCP servers, or alter the parallel Gemini/DeepSeek implementation.
+
+Result: Verdict RECOMMENDATION - correct the experimental claim boundary but do not adopt tooling now. The evidence refutes the tested full raw-digest workflow, not every MCP/index design; the notebook diagnosis is false for this repository; Serena, Qdrant and Kindex are uninstalled and each needs a separate falsifiable trial. `validate-protocol.ps1` passed with 0 warnings; `test-protocol.ps1` passed 255/255; doctor reported healthy with the known 10 legacy-receipt warning; gate-check was not applicable because TASK is In progress; `git diff --check` passed.
+
+Next step: Owner may dispatch the council prompt. Any reconsideration of accepted `PROTO-DEC-0036` requires an owner-directive registry trigger and a new append-only decision; any experiment before the product-pilot report also requires an explicit override of the `PROTO-DEC-0039` feature freeze.
+
+Open: Council verdict; owner disposition of the active-review cap (observed before this audit at 63 files / 791,493 bytes); whether to preserve the freeze and scope a later experiment or explicitly reopen now.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:d490461ac0362dd6bcbb8225b81731ba238210a2b31ac63c8a81239ad6f49f8d over 207 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-19T23:51:08.240Z by codex-1d88d4ac0104f8a6
+- entry hash format: 2
+- entry: sha256:530b6368d9c16ff1a4da991dc164a4e9c1ca5c4dbc417d16b2587907710f08f2 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 150s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/deepseek-2ea2328413dadd51.md, archived 2026-09-22
+
+## 2026-09-20 - Round-2 certifying review of the cycle-closure remediation: PASS
+
+Agent: deepseek-2ea2328413dadd51 (DeepSeek, certifying reviewer; the mechanical remediation was executed by controller session deepseek-59c81998639a4feb after the designated Gemini session failed to act, disclosed in `docs/reviews/2026-09-20-gemini-cycle-closure-report.md` section 3.1 and accepted by the dispatch).
+
+Action: Independently reproduced the ten dispatched closure checks. (a) Certifying-header check `Mode\s*\*{0,2}:\s*\*{0,2}CERTIFYING` over the first 14 lines: 31 matches in the root (29 genuine Mode fields, 2 prompt files quoting the rule) and exactly 1 in the archive, the Q7-superseded grand-consensus original; the 8 restored certifying files are back in the root. (b) Corpus 58 files / 568,111 B before this review and 59 files / 581,842 B after; 32,558 B and 1 file of headroom under the 60 files / 614,400 B cap. (c) 30/30 journals. (d) `validate-protocol.ps1` exit 0 / 0 warnings (239 files, 39 blocks, 35 committed blocks unchanged, 43 registry entries); `test-protocol.ps1` 255/255 (17 suites, 146.99 s); `doctor` healthy, 6 legacy receipts; `gate-check` not applicable (task In progress). (e) INDEX 122 rows / 107 names, 0 broken chains, all 92 archive files mapped; the 8 restore rows (113-120) and 8 new archive rows (121-128) resolve and every moved file is byte-identical to its HEAD blob. (f) +26,036 B / -86,279 B and the corrected statistics reproduce; one residual stale figure, 565,753 B vs measured 568,111 B at report line 57. (g) Append-only: DECISIONS +124/-0, REGISTRY +4/-0, ARCHIVE +361/-0. (h) H1 boundary and freeze wording match the council synthesis. (i) `ru-RU` recorded (TASK:22, PLAN:37), `.ai/PREFERENCES.json` absent, no kernel diff. (j) Receipts: 1 verifies (`deepseek-59c81998639a4feb`), 20 stale, 6 legacy, 3 without receipt. Published `docs/reviews/2026-09-20-deepseek-cycle-closure-review-round2.md` with Mode: CERTIFYING and Verdict: PASS.
+
+Result: PASS. No blocking findings; non-blocking observations O-1 (stale 565,753 B figure), O-2 (`rg` not on PATH here, contrary to synthesis line 65), O-3 (journals exactly at cap 30), O-4 (session-independence caveat; the controller-executed remediation is disclosed and was re-hashed here).
+
+Next step: final ordered receipt pass on the frozen tree per PROTO-DEC-0039 item 5 and correction of the report's stale figure; then owner objectives and the five pre-agreed metrics per repository before the Block-Puzzle and VPN pilots.
+
+Open: none blocking.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:12d18739059833140703e3298a6cb2a10dd9256d83011d2b42660f62b897e263 over 213 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T01:29:03.670Z by deepseek-2ea2328413dadd51
+- entry hash format: 2
+- entry: sha256:a824632a25d8e3963659e84927104738cabffb06ac2d295944d8db3caa5d601a of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-ebd3e8a8eb29a6d7.md, archived 2026-09-22
+
+## 2026-09-22 - Checkpoint committed; five root causes of the certification FAIL fixed
+
+Agent: claude-ebd3e8a8eb29a6d7
+
+Action: Committed three days of uncommitted work on branch
+`proto-dec-0044/layers-abc-checkpoint` as `f68b502` (257 paths), with the failed gate
+stated in the message rather than glossed; scanned every path for credential shapes
+first and confirmed the only three matches are pre-existing fixtures in
+`tests/hooks.test.cjs` that exercise the leak scanner itself. Not pushed. Then fixed the
+five root causes behind the certification FAIL, without opening a new certification
+round: `git ls-files` now runs with `-z` and is split on NUL in both `inventory()` and
+`corpus()`; a missing directory is refused instead of read as empty, and the same
+directory twice is refused instead of matching itself; exclusions are normalised so a
+trailing slash still excludes and `logs` no longer matches `logs-old`; entries the walk
+will not follow are named in the report instead of dropped; the path filter admits glob
+bindings and settles a bare name by asking the filesystem instead of guessing from shape;
+a missing decision log exits with a sentence instead of an ENOENT stack. Reported the
+three exposed DeepSeek keys to the owner for revocation, which the owner has completed.
+
+Result: The blocker is closed and verified on the case that produced it. In the
+reproduction fixture `крупный.md` now parses with extension `.md` and size 60,000 rather
+than being dropped twice in silence. Added six negative tests bound to the exact inputs
+that exposed each cause, including the C-quoting precondition in both
+`tests/ledger.test.cjs` and `tests/hooks.test.cjs`. The path-filter fix is measurable:
+the derived index now resolves **92 bound paths against 85 before**, so seven real
+references that decisions make were previously invisible. `validate-protocol.ps1` exit 0
+with **0 warnings**; `test-protocol.ps1` **321/321** exit 0, up from 315. One finding
+turned out not to be mine: in `D:\Битва за луну` the non-ASCII path is tracked at the
+repository root while the file lives in `gameplay/`, so after the fix it parses correctly
+and is skipped as ENOENT, which is correct for a tracked file deleted from the tree.
+
+Next step: batched certification, as approved - layers A/B/C together with the deferred
+kernel automation package in one round rather than two, because rounds and not code are
+the measured cost. Product work stays paused at the owner's direction until Colabs is
+settled. The PLAN correction recording the batching rule is still to be written.
+
+Open: The package remains **uncertified and FAIL**; nothing here is marked Completed, and
+the fixes have had no independent review. I wrote them, so I certify none of them. A
+tracked-but-deleted path is currently skipped in silence, which is defensible for the
+inventory but is the same class of quiet omission this work exists to remove - worth
+deciding deliberately rather than by default. Placeholders in angle brackets stay out of
+the path index on purpose; that is now a declared choice rather than an oversight. The
+corpus stands at 58/60 files and the journals at 30/30, so both budgets need attention
+before the next round writes anything.
+
+Evidence:
+- anchor: f68b50222ba3afa92dd3be36f4197ac8307d9511, uncommitted changes present
+- digest: sha256:07182bfb25a262edf0f4a7a6f08b89574b13fd1c100d0b8005df1cd0d31357a8 over 268 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-22T19:39:46.755Z by claude-ebd3e8a8eb29a6d7
+- entry hash format: 2
+- entry: sha256:069a4f77e41453d1e5cd6e1944c2bb81c4c78968d240432796f454c605d256d2 of this entry without this block
+- parent-entry: sha256:0f31be05f355a0c3e62ecf2cc091aea1e3eb27595316cc6728b85818e6c08244
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 219s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-22 - Credentials removed from D:\mcp-stack; Qwen stubs removed from this repo
+
+Agent: claude-ebd3e8a8eb29a6d7
+
+Action: On the owner's instruction, removed four untracked stub files that the Qwen run
+had written into the wrong repository (`docs/compression/Qoder/`, 3,035 B across four
+files documenting a failed access attempt), and removed the hardcoded credential literals
+from `D:\mcp-stack`. That corpus is not a git repository, so there is no undo: I copied
+all six affected files to the session scratchpad before touching them and confirmed every
+file was LF, so no line-ending conversion was introduced. Verified first that the three
+DeepSeek keys and the GitHub token exist as persistent user-level environment variables,
+because the naive edit - deleting the literal - would have left the gateway unable to
+start. `DEEPSEEK_API_KEY` itself is not set at user level, which is why the batch files
+were carrying it.
+
+Result: Zero credential literals remain across all 59 units of the corpus, rescanned for
+`sk-`, `AIza`, `ghp_` and `xox` shapes. The three Node servers now read the key from the
+environment and throw a named error instead of falling back silently
+(`mcp-gateway.js:37-40`, `deepseek-multi-server.js:15-18`, `mentor-server.js:15-18`); all
+three still pass `node --check`. The two batch files resolve `DEEPSEEK_API_KEY` from
+`%DEEPSEEK_MAIN_KEY%` at run time. In `continue-with-mcp.yaml` the three documenting
+comments are redacted, and the GitHub token at line 76 now uses `${env:...}` - which is
+the file's own convention, already in use on lines 8, 16, 62, 84 and 94, so line 76 was
+the single entry that deviated from it. A second credential class turned up during the
+rescan that the first pass had missed: a GitHub personal access token, which grants
+repository access and is more dangerous than a model key. No credential value was written
+into any protocol artifact, journal or report at any point.
+
+Next step: the owner dispatches the two certifiers against
+`docs/reviews/2026-09-22-claude-layers-abc-adversarial-prompt.md`. Nothing in this entry
+is part of that package; it is product-side hygiene in a separate corpus.
+
+Open: **Removal is not rotation.** Every one of these values sat in plaintext on disk and
+in a file that `install-autostart.bat` registers, so they must be treated as exposed and
+rotated by the owner regardless of this edit; nothing reached git history, since that
+corpus is not a repository. The batch files now depend on user-level environment
+variables, so an autostart entry running as SYSTEM rather than as the user would resolve
+them empty - the servers would fail loudly with the new guard rather than silently using
+a stale key, which is the better failure, but it is a behaviour change worth knowing. I
+did not restart or test any server: the prompt for that corpus forbade starting services,
+and verification is the owner's call.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:81899adef81fd0b8fc6c69bf01c9638c1bcaeb3ea63c4f7d669a07ab507925d0 over 268 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-22T18:06:18.017Z by claude-ebd3e8a8eb29a6d7
+- entry hash format: 2
+- entry: sha256:0f31be05f355a0c3e62ecf2cc091aea1e3eb27595316cc6728b85818e6c08244 of this entry without this block
+- parent-entry: sha256:9d88c1697dab26365606adba646850cf48a69c9bd0eb542e50f540dd9aa7d612
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 241s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

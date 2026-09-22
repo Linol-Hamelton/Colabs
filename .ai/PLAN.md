@@ -189,3 +189,12 @@ are diagnostic only - task and risk class, phase, candidate, reviewer role and a
 what changed between passes, unique confirmed findings, disposition - and are not new success criteria. At this
 sample size results are descriptive; no statistical optimum for the number of models is claimed. No new telemetry,
 metric or gate is introduced.
+
+## Batching rule for kernel changes (owner-approved 2026-09-22; PLAN-level, reversible)
+
+Kernel changes accumulate into one certification round rather than each triggering its own.
+Measured, not preferred: cycle architecture spent eight rounds finding only textual consistency;
+layers A/B/C cost two certifier sessions plus a prompt session for five small defects. The round
+is the expensive step, not the code. A round opens when a batch is ready or an owner directive
+requires it, never because one file changed. Everything else is unchanged: the same prompt, two
+independent certifiers, PROTO-DEC-0041 item 4, the reproduction burden; a failed batch stays FAIL.

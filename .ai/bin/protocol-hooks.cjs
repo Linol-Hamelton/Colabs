@@ -325,9 +325,13 @@ const INVENTORY_SHOWN = 8;
 // so a task's own source list can be checked for completeness before it is trusted.
 function inventory(root) {
   let listed = '';
-  try { listed = git(root, ['ls-files']); } catch { return ''; }
+  // -z is not a preference. Without it git C-quotes any path that is not plain
+  // ASCII, so `крупный.md` arrives as `"\320\272..."`: the extension filter drops
+  // it and statSync then fails, twice silently. That is the omission this block
+  // exists to prevent. NUL separation also settles newlines inside a filename.
+  try { listed = git(root, ['ls-files', '-z']); } catch { return ''; }
   const rows = [];
-  for (const line of listed.split(/\r?\n/)) {
+  for (const line of listed.split('\0')) {
     const relative = line.trim();
     if (!relative || INVENTORY_SKIP.test(relative)) continue;
     if (!INVENTORY_EXTENSIONS.has(path.extname(relative).toLowerCase())) continue;

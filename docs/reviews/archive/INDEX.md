@@ -186,3 +186,9 @@ Append-only ledger of archived review artifacts moved from `docs/reviews/` to `d
 | docs/reviews/2026-09-20-deepseek-paired-cycle-wave-a-review-round2.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-a-review-round2.md |
 | docs/reviews/2026-09-20-deepseek-paired-cycle-wave-b-review.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-b-review.md |
 | docs/reviews/2026-09-20-claude-paired-cycle-wave-c-re-review-round2.md | docs/reviews/archive/2026-09-20-claude-paired-cycle-wave-c-re-review-round2.md |
+| docs/reviews/2026-09-19-gemini-systemic-repository-audit.md | docs/reviews/archive/2026-09-19-gemini-systemic-repository-audit.md |
+| docs/reviews/2026-09-19-codex-trackc-h1-audit.md | docs/reviews/archive/2026-09-19-codex-trackc-h1-audit.md |
+| docs/reviews/2026-09-19-gemini-trackc-h1-audit.md | docs/reviews/archive/2026-09-19-gemini-trackc-h1-audit.md |
+| docs/reviews/2026-09-19-claude-opus-v1.9.5-certification.md | docs/reviews/archive/2026-09-19-claude-opus-v1.9.5-certification.md |
+| docs/reviews/2026-09-19-deepseek-course-correction-certification-round2.md | docs/reviews/archive/2026-09-19-deepseek-course-correction-certification-round2.md |
+| docs/reviews/2026-09-19-deepseek-flash-a1-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a1-audit.md |

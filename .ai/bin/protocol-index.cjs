@@ -17,7 +17,10 @@ const SOURCE = path.join('.ai', 'DECISIONS.md');
 const OUTPUT = path.join('.ai', 'runtime', 'decisions-index.md');
 const TEMPLATE_ID = /^(PROTO-)?DEC-n+$/i;
 const FIELDS = ['Status', 'Date', 'Supersedes', 'Reopen-trigger'];
-const PATH_LIKE = /^[A-Za-z0-9_.@/\\-]+$/;
+// `*` and `?` are allowed because `docs/reviews/*.md` is a real binding a decision can
+// make. `<` and `>` stay out on purpose: `<prompt>.md` is a placeholder in prose, and
+// admitting it would put paths in the index that no one can open.
+const PATH_LIKE = /^[A-Za-z0-9_.@/\\*?-]+$/;
 const PATH_EXTENSION = /\.(md|cjs|js|ps1|json|jsonc|yml|yaml|toml|sh|txt)$/i;
 
 function sha256(text) {
@@ -69,16 +72,22 @@ function firstNorm(body) {
 }
 
 // Paths the block binds, taken only from backticked tokens so prose cannot leak in.
-function boundPaths(body) {
+// A bare name with no slash and no known extension - LICENSE, Makefile - is a path
+// only if the repository actually holds it. Asking the filesystem beats guessing from
+// shape, and guessing from shape is what dropped these references before.
+function looksLikePath(token, root) {
+  if (!PATH_LIKE.test(token) || token.length > 120) return false;
+  if (token.includes('/') || PATH_EXTENSION.test(token)) return true;
+  if (!root) return false;
+  try { return fs.existsSync(path.join(root, token)); } catch { return false; }
+}
+
+function boundPaths(body, root) {
   const found = new Set();
-  const text = body.join('\n');
-  const matches = text.match(/`[^`\n]+`/g) || [];
+  const matches = body.join('\n').match(/`[^`\n]+`/g) || [];
   for (const raw of matches) {
     const token = raw.slice(1, -1).trim();
-    if (!PATH_LIKE.test(token)) continue;
-    if (!token.includes('/') && !PATH_EXTENSION.test(token)) continue;
-    if (token.length > 120) continue;
-    found.add(token.replace(/\\/g, '/'));
+    if (looksLikePath(token, root)) found.add(token.replace(/\\/g, '/'));
   }
   return [...found].sort();
 }
@@ -90,7 +99,7 @@ function build(root) {
   const reverse = new Map();
 
   const rows = blocks.map(block => {
-    const paths = boundPaths(block.body);
+    const paths = boundPaths(block.body, root);
     for (const item of paths) {
       if (!reverse.has(item)) reverse.set(item, []);
       reverse.get(item).push(block.id);
@@ -154,6 +163,12 @@ function currentHash(root) {
 function main(argv) {
   const root = process.cwd();
   const check = argv.includes('--check');
+  // A missing decision log is an ordinary situation in a fresh checkout, not a crash.
+  // An ENOENT stack tells the reader nothing about what to do next.
+  if (!fs.existsSync(path.join(root, SOURCE))) {
+    process.stdout.write(`${SOURCE} not found in ${root}; nothing to index\n`);
+    return 2;
+  }
   const result = build(root);
   if (check) {
     const recorded = currentHash(root);

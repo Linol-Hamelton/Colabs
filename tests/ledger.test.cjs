@@ -119,3 +119,62 @@ test('the report states that it is advisory and decides nothing', t => {
   assert.match(rendered, /assigns no/);
   assert.match(rendered, /decides nothing/);
 });
+
+test('a non-ASCII tracked path survives git quoting (the certification blocker)', t => {
+  const root = corpusFixture(t);
+  write(root, 'src/крупный.md', 'x'.repeat(60000));
+  assert.equal(git(root, ['add', '.']).status, 0);
+  assert.equal(git(root, ['-c', 'user.name=Protocol Test', '-c',
+    'user.email=protocol-test@example.invalid', 'commit', '-m', 'Add non-ASCII']).status, 0);
+
+  // Precondition: the default configuration C-quotes it, which is what broke this.
+  const quoted = git(root, ['ls-files']).stdout.split(/\r?\n/)
+    .filter(line => line.startsWith('"'));
+  assert.equal(quoted.length, 1, 'precondition: git must be C-quoting the non-ASCII path');
+  assert.ok(!quoted[0].includes('крупный'), 'precondition: the quoted form hides the real name');
+
+  const found = ledger.corpus(root, ['.git']);
+  assert.ok(found.units.includes('src/крупный.md'),
+    'the real path must be a unit, not the quoted string');
+  assert.ok(!found.units.some(unit => unit.startsWith('"')),
+    'no quoted string may survive as a unit');
+});
+
+test('a missing comparison set fails instead of reporting no duplicates', t => {
+  const root = corpusFixture(t);
+  write(root, 'a/one.md', 'body\n');
+  const result = run(process.execPath,
+    [TOOL, 'dup', path.join(root, 'a'), path.join(root, 'does-not-exist')], root);
+  assert.notEqual(result.status, 0, 'a comparison that never happened is not a clean result');
+  assert.match(result.stdout, /not an existing directory/);
+});
+
+test('the same directory twice is refused rather than matching itself', t => {
+  const root = corpusFixture(t);
+  write(root, 'a/one.md', 'body\n');
+  const result = run(process.execPath,
+    [TOOL, 'dup', path.join(root, 'a'), path.join(root, 'a')], root);
+  assert.equal(result.status, 2);
+  assert.match(result.stdout, /given twice/);
+});
+
+test('an exclusion written with a trailing slash still excludes', t => {
+  const root = corpusFixture(t);
+  write(root, 'logs/noise.txt', 'noise\n');
+  write(root, 'logs-old/keep.txt', 'keep\n');
+  assert.equal(git(root, ['add', '.']).status, 0);
+  assert.equal(git(root, ['-c', 'user.name=Protocol Test', '-c',
+    'user.email=protocol-test@example.invalid', 'commit', '-m', 'Add logs']).status, 0);
+
+  const found = ledger.corpus(root, ['.git', 'logs/']);
+  assert.ok(!found.units.includes('logs/noise.txt'), 'trailing slash must still exclude');
+  assert.ok(found.units.includes('logs-old/keep.txt'), 'a prefix is not a directory match');
+});
+
+test('a missing records directory fails with a named reason', t => {
+  const root = corpusFixture(t);
+  const result = run(process.execPath,
+    [TOOL, 'cover', '--records', path.join(root, 'nope')], root);
+  assert.equal(result.status, 2);
+  assert.match(result.stdout, /records directory is not an existing directory/);
+});

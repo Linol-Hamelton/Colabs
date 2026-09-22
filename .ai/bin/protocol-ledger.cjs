@@ -30,24 +30,41 @@ function sha256File(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
+// An exclusion may be written as `logs` or as `logs/`; both mean the same thing, and
+// the author's own dispatch used the trailing-slash form for what turned out to be a
+// file. Normalising here also stops `logs` from matching `logs-old`.
 function isExcluded(relative, excludes) {
   const normalized = relative.replace(/\\/g, '/');
-  return excludes.some(item => normalized === item || normalized.startsWith(`${item}/`));
+  return excludes.some(raw => {
+    let item = raw.replace(/\\/g, '/');
+    while (item.endsWith('/')) item = item.slice(0, -1);
+    if (!item) return false;
+    return normalized === item || normalized.startsWith(`${item}/`);
+  });
 }
 
 // A corpus is whatever the repository actually holds, never what a prompt named.
 // Git is authoritative when present; a plain walk covers corpora that are not
 // repositories, which is the case we hit and would otherwise have no inventory.
 function corpus(root, excludes) {
-  const git = spawnSync('git', ['-C', root, 'ls-files'], { encoding: 'utf8' });
+  // -z for the same reason as the session-start inventory: without it git C-quotes
+  // every non-ASCII path, and the quoted string is then counted as a unit while the
+  // real file is reported missing. NUL separation also settles newlines in a name.
+  const git = spawnSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8' });
   if (git.status === 0 && git.stdout.trim()) {
     return {
-      source: 'git ls-files',
-      units: git.stdout.split(/\r?\n/).map(line => line.trim()).filter(Boolean)
+      source: 'git ls-files -z',
+      units: git.stdout.split('\0').map(line => line.trim()).filter(Boolean)
         .filter(unit => !isExcluded(unit, excludes)).sort(),
+      skipped: [],
     };
   }
   const units = [];
+  // Anything that is neither a plain file nor a plain directory - a symlink, a
+  // Windows junction, a socket - is not followed, because following one can loop.
+  // It is named rather than dropped: a silently skipped entry is the failure this
+  // tool exists to catch, and the reader has to know the corpus is not complete.
+  const skipped = [];
   const walk = directory => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       const full = path.join(directory, entry.name);
@@ -55,10 +72,15 @@ function corpus(root, excludes) {
       if (isExcluded(relative, excludes)) continue;
       if (entry.isDirectory()) walk(full);
       else if (entry.isFile()) units.push(relative);
+      else skipped.push(relative);
     }
   };
   walk(root);
-  return { source: 'directory walk (not a git repository)', units: units.sort() };
+  return {
+    source: 'directory walk (not a git repository)',
+    units: units.sort(),
+    skipped: skipped.sort(),
+  };
 }
 
 function listFiles(directory) {
@@ -130,8 +152,9 @@ function renderCover(result, recordsDir) {
   out.push(`- records: ${recordsDir.replace(/\\/g, '/')}`);
   out.push(`- generated: ${new Date().toISOString()}`);
   out.push('');
+  const skipped = result.found.skipped || [];
   out.push(`units ${result.rows.length}, with record ${covered}, without ${missing.length}, `
-    + `unexpected records ${result.extra.length}`);
+    + `unexpected records ${result.extra.length}, not followed ${skipped.length}`);
   out.push(`counts: ${covered} + ${missing.length} = ${result.rows.length}`);
   out.push('');
   out.push('Advisory only: never Evidence, never a gate input. It reports which units of');
@@ -150,6 +173,15 @@ function renderCover(result, recordsDir) {
     out.push('## Unexpected - a record with no unit in the corpus');
     out.push('');
     for (const item of result.extra) out.push(`- ${item}`);
+    out.push('');
+  }
+  if (skipped.length) {
+    out.push('## Not followed - symlink, junction or other non-regular entry');
+    out.push('');
+    out.push('The corpus below does not cover these. Resolve them by hand or exclude them');
+    out.push('deliberately; leaving them unexamined is the omission this tool reports on.');
+    out.push('');
+    for (const item of skipped) out.push(`- ${item}`);
     out.push('');
   }
   out.push('## Units');
@@ -205,9 +237,19 @@ function usage() {
     + '  protocol-ledger.cjs dup <dir> <dir> [<dir>...] [--out <file>]\n');
 }
 
+// A directory that is not there must not read as a directory that is empty. An empty
+// result from a missing path is a false all-clear, which is worse than no answer.
+function requireDir(target, label) {
+  if (fs.existsSync(target) && fs.statSync(target).isDirectory()) return true;
+  process.stdout.write(`${label} is not an existing directory: ${target}\n`);
+  return false;
+}
+
 function runCover(argv, root) {
   const recordsDir = option(argv, '--records', null);
   if (!recordsDir) { usage(); return 2; }
+  if (!requireDir(root, 'corpus root')) return 2;
+  if (!requireDir(path.resolve(recordsDir), 'records directory')) return 2;
   const excludes = option(argv, '--exclude', '').split(',').map(s => s.trim()).filter(Boolean)
     .concat(DEFAULT_EXCLUDES);
   const suffix = option(argv, '--suffix', '.md');
@@ -236,6 +278,16 @@ function runDup(argv, root) {
     dirs.push(path.resolve(argv[i]));
   }
   if (dirs.length < 2) { usage(); return 2; }
+  // Comparing against a path that does not exist would report "no duplicates" and
+  // exit 0 - a clean bill of health for a comparison that never happened.
+  for (const dir of dirs) {
+    if (!requireDir(dir, 'comparison set')) return 2;
+  }
+  const unique = new Set(dirs.map(d => path.resolve(d)));
+  if (unique.size !== dirs.length) {
+    process.stdout.write('the same directory was given twice; every file would match itself\n');
+    return 2;
+  }
   const result = duplicates(dirs);
   const out = option(argv, '--out', path.join(root, RUNTIME, 'duplicate-report.md'));
   fs.mkdirSync(path.dirname(out), { recursive: true });

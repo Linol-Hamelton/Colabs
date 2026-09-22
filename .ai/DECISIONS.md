@@ -1898,3 +1898,33 @@ Consequences:
 Measured at acceptance: the decisions index is 13,932 B against a 117,321 B source, 8.4x, covering 43 blocks and 72 bound paths; the inventory block surfaces the previously missed `chat-history-6ab1a8fc/raw-conversation.json` and `conversation.md` in `D:\Битва за луну`, `docs/design/04_DEC0024_ACCEPTANCE_CRITERIA.md` in `D:\Block-Puzzle`, and nothing in this repository, where no tracked document qualifies; `dup` reproduces the arena finding as 95 cross-set duplicates with identical modification times and zero for the independent run. `validate-protocol.ps1` exits 0 with 0 warnings and `test-protocol.ps1` passes 315/315. Installed projects receive the two new tools on install or upgrade, so VPN and Block-Puzzle, both at committed `protocolVersion` 1.9.0, do not have them until upgraded; that fleet upgrade stays deferred until after the product tasks. All three layers touch protocol-core paths, so PROTO-DEC-0038 item 1 applies: an adversarial prompt and two independent certifiers are required before any task citing this block is marked Completed, and the implementing session certifies none of it.
 
 Approved by: RuslanFomenko (direct owner directive, 2026-09-22, "одобряю все! A -> B(L0) -> C"; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0045
+
+Status: Accepted
+Date: 2026-09-23
+Reopen-trigger: owner-directive
+
+Context:
+Two independent evaluations converged that the legacy tooling question can be settled without any experiment. `docs/research/2026-09-22-kilo-candidate-tool-evaluation.md` found that no candidate is adopted, that the measured bottleneck was S3 (prose and governance) rather than S1 (symbol navigation), that S3 was already closed deterministically by the decisions index at 117,321 B to 13,932 B, and that the omission and copy failure classes are caught by Layers A and C while an LLM memory cannot catch them by construction. The Jev evaluation found the cost sits in whole review rounds and owner attention rather than per-decision latency, and that Jev cannot certify, cannot be a gate input and cannot lower a human gate. Measured on this workstation: `D:\mcp-memory-data` holds 7.2 GB across five populated stores (qdrant 4,065 MB, meili 2,999 MB, etcd 202 MB, minio 50 MB, meilisearch 34 MB) with milvus empty and both `sqlite/memory_*.db` at 0 bytes; `D:\mcp-stack` holds 719 MB and is not a git repository. A grep of the live Codex configuration found exactly two references into either tree: `~/.codex/mcp-memory-stack/run-dbhub-l4-a.cmd` and `-b.cmd` name `D:/mcp-memory-data/sqlite/memory_a.db` and `memory_b.db`. Nothing in that configuration references `vector-stack/` or `D:\mcp-stack`.
+
+Decision:
+1. No memory engine and no graph backend is adopted. PROTO-DEC-0034 and PROTO-DEC-0036 stand, the MCP council's native-only ruling stands, and no council is reopened. Graphiti, Cognee, Mem0 and Letta are refused for the protocol on the recorded ground that non-deterministic external memory outside the repository is already excluded; a product-side experiment is a separate product decision and does not reopen PROTO-DEC-0036.
+2. CodeGraph is recorded as an alternative S1 arm of the already preregistered experiment, not as an adoption. It becomes available only on the triggers in section 6 of the evaluation: a reproducible S1 bottleneck in real product work plus an owner directive.
+3. Jev is advisory only and stays outside the gate. It may never issue a verdict, satisfy a completion gate, lower a human gate or replace a reproduction. The only authorised next step is offline replay over historical decisions with no change to this repository.
+4. Legacy disposition, by measured reference rather than by size: `D:\mcp-memory-data\sqlite\` is referenced by the live Codex configuration and is kept, even though both databases are empty. `D:\mcp-memory-data\vector-stack\` (7.2 GB) is referenced by nothing in that configuration and is delete-eligible. `D:\mcp-stack` is not referenced by the Codex configuration but its own `continue-with-mcp.yaml` names its servers, so it may be live for another client; its code is kept and only its `database-storage/` and `logs/` are delete-eligible.
+5. No deletion is executed by this decision. An owner instruction naming the specific path executes it, because the two trees are outside version control and there is no undo.
+6. The expensive resource is the review round and owner attention, not the code and not the token. Mechanically checkable recorded rules are therefore converted into deterministic checks over repository state; judgement stays with models and the owner. `docs/specs/2026-09-23-executable-rulebook-spec.md` is that specification and remains a specification until implemented and certified.
+
+Reasoning:
+Every candidate was refused on a rule already recorded rather than on preference, so nothing here needs a new council. The legacy split is drawn by what the live configuration actually references, which is checkable, rather than by which directory is largest, which is not a reason. Declining to execute the deletion inside a decision block keeps the irreversible act attached to an explicit owner instruction naming a path.
+
+Alternatives rejected:
+Adopting a memory engine on the strength of a bottleneck that was measured to be S3 and is already closed; deleting both trees wholesale, which would have removed the two SQLite paths the live Codex stack names; treating Jev as a decision fabric, which contradicts the advisory rule and would create a single point of failure; opening another council to restate refusals that recorded decisions already imply.
+
+Consequences:
+`docs/research/2026-09-22-kilo-candidate-tool-evaluation.md` is the evidence base and stays. The Jev evaluation exists only outside the repository at the time of writing and must be persisted under the section 5.5 transcription fallback before it can be cited as anything. The deferred DeepSeek mapping run over `D:\mcp-stack` stays postponed under its recorded triggers. Layers A/B/C remain FAIL and uncertified, and the executable rulebook is specified but unwritten; both are certified together in one batched round under the PLAN batching rule.
+
+Approved by: RuslanFomenko (direct owner directive, 2026-09-23, keep-or-delete on the legacy stack and the work split approved in conversation; transcribed by claude-ebd3e8a8eb29a6d7)

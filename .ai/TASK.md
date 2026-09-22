@@ -68,3 +68,7 @@ Product first, in separate sessions: VPN G2 (execute the CI gates at 0 runs), th
 - Kernel-level language preference (`.ai/PREFERENCES.json` proposal) waits for the pilot report or an explicit freeze exception.
 - Owner-requested cycle-history research: `docs/reviews/2026-09-20-codex-cycle-history-research.md` challenges the claimed three-reviewer/two-round optimum; the one-round policy proposal is linked in PLAN and remains Proposed pending owner approval. This research does not certify Wave C.
 - DeepSeek must document the conservative risk-classification and host review-path contract before Gemini changes the existing gates; no label-only downgrade of core work.
+- Validator defect, reproduced 2026-09-23, belongs to the batched round: the decision-block immutability check attributes the `---` separator to the preceding block, so appending a new decision after the previous one was committed as the last block reports `PROTO-DEC-0044 was edited after it was written`. Reproduce: `git show HEAD:.ai/DECISIONS.md | tail -3` ends at `Approved by:`; the working tree adds `
+---
+
+` before the next heading; `validate-protocol.ps1` exits 1 with the content of the block unchanged (`git diff HEAD -- .ai/DECISIONS.md` shows only the addition). It is on a protected path and blocks the ordinary commit-then-append order; the immutability rule itself must not be weakened to fix it.

@@ -442,3 +442,21 @@ test('the large-document block is absent when nothing qualifies', t => {
   const context = hooks.context(root, '.ai/worklog/probe.md', 'claude');
   assert.doesNotMatch(context, /## Large tracked documents/);
 });
+
+test('a non-ASCII tracked document reaches the inventory despite git quoting', t => {
+  const root = fixture(t);
+  write(root, 'sources/крупный.md', `# Источник\n\n${'строка первоисточника\n'.repeat(3000)}`);
+  assert.equal(git(root, ['add', '.']).status, 0);
+  assert.equal(git(root, ['-c', 'user.name=Protocol Test', '-c',
+    'user.email=protocol-test@example.invalid', 'commit', '-m', 'Add non-ASCII source']).status, 0);
+
+  // Precondition: git C-quotes it by default, which hid a 185 KB primary source in a
+  // real repository and was the finding that failed this package's certification.
+  const quoted = git(root, ['ls-files']).stdout.split(/\r?\n/).filter(l => l.startsWith('"'));
+  assert.equal(quoted.length, 1, 'precondition: the path must arrive C-quoted');
+
+  const context = hooks.context(root, '.ai/worklog/probe.md', 'claude');
+  assert.match(context, /sources\/крупный\.md \(\d+ KB\)/,
+    'the real name must appear, not the quoted escape');
+  assert.doesNotMatch(context, /\320/, 'no C-quoted octal may reach the injected context');
+});
