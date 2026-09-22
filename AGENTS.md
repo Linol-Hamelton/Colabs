@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## AI Collaboration Protocol v1.9.5
+## AI Collaboration Protocol v1.9.6
 
 Several AI coding assistants work in this repository: GPT/Codex, Claude,
 DeepSeek, Gemini, Qwen, GLM, Mistral, Copilot, and others. They do not share chat
@@ -78,25 +78,39 @@ An implementer may not unilaterally mark a task `Status: Completed` in
 `.ai/TASK.md`. Completion requires independent verification by the assigned
 opposing reviewer or the human owner.
 
-### Mandatory Adversarial Peer Review Prompt
+For the reusable paired work cycle runbook, see .ai/docs/PAIRED-CYCLE.md.
 
-Regardless of who implements changes in the repository (human developer or any
-AI assistant), upon completing the implementation of a plan or council decision,
-the implementer MUST compose an exhaustive, unified adversarial audit prompt
-covering every item of the implementation.
+Assistants can also be called directly from a terminal (`agy`, `codex`, `claude`,
+`copilot`, `vibe`). A call is a dispatch, not a transfer of authority: the called
+agent starts its own session, writes its own journal and records its own evidence,
+terminal output is not Evidence, and a caller that shaped the work may not certify
+it. The contract is .ai/docs/CLI-AGENTS.md and it binds every project.
 
-The prompt must instruct opposing reviewer models to:
-1. Hunt for defects, vulnerabilities, race conditions, edge cases, and regressions.
-2. Identify shortcomings, inaccuracies, and incomplete edge-case handling.
-3. Evaluate alternative implementation paths and propose optimizations.
-4. Render an explicit verdict (PASS / FAIL / BLOCKED / RECOMMENDATION) or certify
-   that the implementation is optimal.
+### Risk-Scaled Adversarial Peer Review (PROTO-DEC-0038)
 
-No task may be marked `Status: Completed` without subjecting it to this mandatory
-multi-model adversarial review process.
+Review requirements scale by blast radius (superseding PROTO-DEC-0027 item 1 only):
+
+1. **Protocol Core and High-Risk Paths**: For anything under `.ai/`, `.claude/`, hooks,
+   validator, gates, and consumer security/data paths, upon completing implementation
+   of a plan or council decision, the implementer MUST compose an exhaustive, unified
+   adversarial audit prompt covering every item of the implementation. Opposing
+   reviewers hunt for defects, vulnerabilities, edge cases, and regressions, and
+   render explicit verdicts (PASS / FAIL / BLOCKED / RECOMMENDATION). No task touching
+   core protocol paths may be marked `Status: Completed` without this full
+   prompt+report review process. The final check of a high-risk candidate requires no fewer
+   than two parallel independent certifiers (PROTO-DEC-0041 item 2), a single reviewer
+   cannot close a high-risk Completed task, and the certifiers must be outside execution
+   and control (item 1).
+2. **Docs, Config, and Low-Blast-Radius Edits**: Documentation, configuration, and
+   one-line fixes require one independent reviewer statement (a review file or a
+   journal-visible verdict); no separate prompt+report pair is required.
+3. **Artifact Size Caps**: Prompts <= 150 lines, reports <= 250 lines unless an
+   incident warrants expansion (owner-tunable).
 
 For the validator to enforce that gate, a completed task must also include a
-`## Completion gate` section in `.ai/TASK.md` with these exact fields:
+`## Completion gate` section in `.ai/TASK.md` with these fields (in the protocol
+source repository, under `docs/reviews/`; in installed host projects, under an owner-selected
+in-repository path satisfying safe path checks):
 
 ```markdown
 - Adversarial review prompt: docs/reviews/<prompt>.md
@@ -113,7 +127,8 @@ A `FAIL` or `BLOCKED` verdict cannot certify completion.
 A certifying verdict requires four capabilities: `FS_WRITE`, `SHELL_EXEC`,
 `EVIDENCE_SIGN`, and `REPO_READ`. Capability is determined by the orchestrator
 profile, never self-declared. The review header must declare `Mode: CERTIFYING`
-and identify its session in `Receipt-Owner: <owner-id>` (or legacy `Session:`).
+and identify its session in `Receipt-Owner: <owner-name>` (or legacy `Session:`),
+using the owner name output by `protocol-session.cjs start` (distinct from session id).
 Advisory outputs (from models lacking direct repository access or verification
 capability) carry `[MODE: READ-ONLY ADVISORY]` and are persisted only through
 the section 5.5 transcription fallback, always explicitly marked non-certifying.
@@ -130,10 +145,16 @@ Mandatory, in order:
 
 1. Read `.ai/TASK.md`.
 2. Run `git status --short --branch` and `git log --oneline -10`.
-3. Read the recent journals in `.ai/worklog/`, including other agents'.
-4. Read `.ai/DECISIONS.md` when the task touches architecture, data, or
+3. Take the inventory, not just the diff. `git status` shows what changed; it
+   never shows a tracked file nobody touched, so a large primary source can stay
+   invisible for a whole chain of sessions. Run `git ls-files` and look at what
+   the repository actually holds. When a task names its sources, check that list
+   against the inventory before you trust it, and say in your journal that you
+   did. A scope inherited from a previous prompt is not a verified scope.
+4. Read the recent journals in `.ai/worklog/`, including other agents'.
+5. Read `.ai/DECISIONS.md` when the task touches architecture, data, or
    external contracts.
-5. If `.ai/TASK.md` says there is no active task, ask the owner. Do not invent
+6. If `.ai/TASK.md` says there is no active task, ask the owner. Do not invent
    a task and do not start refactoring.
 
 For Claude and Codex, an enabled and trusted SessionStart hook injects most of
@@ -150,8 +171,8 @@ Mandatory, in order:
 2. Run the checks in section 7. Report what you actually ran.
 3. Write one entry in your session journal, with all five labels.
 4. Update `.ai/TASK.md` if the state of the task changed. If completing a
-   plan or council decision, compose and dispatch the Mandatory Adversarial
-   Peer Review Prompt (§2) before marking `Status: Completed`.
+   plan or council decision, compose and dispatch the Unified Adversarial
+   Audit Prompt (§2) before marking `Status: Completed`.
 5. Release the shared-document lock if you hold it.
 6. Do not commit and do not push unless the owner instructed it.
 
@@ -234,6 +255,12 @@ consensus syntheses, or extensive fault-injection probes:
    `> Transcribed from chat by <owner/agent>, model: <name>, date: <ISO>`
 6. **Immutability**: Review files are permanent historical records. Revisions are
    published as new files or marked with `Superseded by:` in the header.
+7. **Coverage and independence**: when an analysis walks a corpus and produces one
+   record per unit, `node .ai/bin/protocol-ledger.cjs cover --records <dir>` checks
+   that every unit of the corpus is accounted for, and `dup <dir> <dir>` reports
+   records that two producers share. Both take the corpus from the repository, not
+   from the prompt, and both work on a corpus that is not a git repository. Their
+   output is advisory: it never becomes Evidence and never decides a verdict.
 
 ---
 
@@ -363,6 +390,7 @@ Enforced by `validate-protocol.ps1`.
 | `.ai/worklog/<journal>.md` | 150 lines | move oldest entries to the archive |
 | `.ai/PLAN.md`              | 200 lines | the task is too big; split it      |
 | `.ai/worklog/` file count  | 30 files  | archive the oldest journals        |
+| `docs/reviews/` active     | 60 files / 600 KB | archive non-active reviews to archive/ |
 | `.ai/DECISIONS.md`         | none      | never trimmed, never summarized    |
 | `.ai/ARCHIVE.md`           | none      | never trimmed                      |
 
@@ -389,6 +417,10 @@ node .ai/bin/protocol-archive.cjs status
 3. Run `git status` and look for another session's uncommitted work. In a
    shared checkout, a change you did not make may belong to another agent.
 4. Check `.ai/DECISIONS.md` for a constraint that already settles the question.
+   `node .ai/bin/protocol-index.cjs` derives a compact index into
+   `.ai/runtime/`, including which decisions name the path you are about to
+   change. It points at blocks; it never restates them, it is never Evidence,
+   and a hash mismatch means read the file itself.
 5. Write down an assumption in your journal entry when it matters.
 
 Stay inside the task. No unrelated refactors, no drive-by renames, no

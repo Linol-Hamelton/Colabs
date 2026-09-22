@@ -416,3 +416,29 @@ test('no journal text, diffs, or secrets appear in any metrics row across exits'
   assert.ok(!content.includes('diff --git'), 'Metrics row must not contain diffs');
 });
 
+
+test('session context surfaces large tracked documents that git status never shows', t => {
+  const root = fixture(t);
+  // Tracked, committed and unchanged: invisible to `git status` forever.
+  write(root, 'sources/conversation.md', `# Source\n\n${'primary source line\n'.repeat(3000)}`);
+  write(root, 'sources/small-note.md', 'too small to matter\n');
+  write(root, '.ai/DECISIONS.md', `# Decisions\n\n${'skipped because .ai is already injected\n'.repeat(3000)}`);
+  assert.equal(git(root, ['add', '.']).status, 0);
+  assert.equal(git(root, ['-c', 'user.name=Protocol Test', '-c',
+    'user.email=protocol-test@example.invalid', 'commit', '-m', 'Add sources']).status, 0);
+
+  assert.equal(git(root, ['status', '--short']).stdout.includes('conversation.md'), false,
+    'precondition: the file must be invisible to git status');
+
+  const context = hooks.context(root, '.ai/worklog/probe.md', 'claude');
+  assert.match(context, /## Large tracked documents/);
+  assert.match(context, /sources\/conversation\.md \(\d+ KB\)/);
+  assert.doesNotMatch(context, /small-note\.md/, 'below the size floor');
+  assert.doesNotMatch(context, /- \.ai\/DECISIONS\.md/, '.ai is already summarised elsewhere');
+});
+
+test('the large-document block is absent when nothing qualifies', t => {
+  const root = fixture(t);
+  const context = hooks.context(root, '.ai/worklog/probe.md', 'claude');
+  assert.doesNotMatch(context, /## Large tracked documents/);
+});

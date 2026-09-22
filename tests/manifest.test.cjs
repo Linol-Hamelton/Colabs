@@ -27,6 +27,11 @@ test('the manifest lists itself, so installs carry it forward', () => {
   assert.ok(manifest.managed.includes('protocol-manifest.json'));
 });
 
+test('PAIRED-CYCLE.md is pinned in manifest managed entries', () => {
+  assert.ok(manifest.managed.includes('.ai/docs/PAIRED-CYCLE.md'),
+    'PAIRED-CYCLE.md must be pinned in manifest.managed');
+});
+
 test('an installed project contains every manifest entry', t => {
   const source = repoRoot;
   const target = makeProtocolFixture(t);

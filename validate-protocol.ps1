@@ -85,6 +85,42 @@ function Get-Sha256Hex {
     finally { $sha.Dispose() }
 }
 
+function Test-ProtocolSafePath {
+    param([string]$BasePath, [string]$RelativePath)
+    if ([string]::IsNullOrWhiteSpace($RelativePath)) { return $false }
+    $norm = $RelativePath.Trim().Replace('\', '/')
+    if ($norm.Contains('..') -or $norm.StartsWith('/') -or [System.IO.Path]::IsPathRooted($norm) -or $norm -match '^[a-zA-Z]:') {
+        return $false
+    }
+    try {
+        $baseFull = [System.IO.Path]::GetFullPath($BasePath).TrimEnd('\', '/')
+        $targetFull = [System.IO.Path]::GetFullPath((Join-Path $baseFull $norm))
+        if (-not ($targetFull.StartsWith($baseFull + [System.IO.Path]::DirectorySeparatorChar) -or
+                  $targetFull.StartsWith($baseFull + [System.IO.Path]::AltDirectorySeparatorChar) -or
+                  $targetFull -eq $baseFull)) {
+            return $false
+        }
+        $relPortion = $targetFull.Substring($baseFull.Length).TrimStart('\', '/')
+        if ($relPortion.Length -gt 0) {
+            $segments = @($relPortion.Split([char]'\', [char]'/') | Where-Object { $_.Length -gt 0 })
+            $current = $baseFull
+            foreach ($seg in $segments) {
+                $current = [System.IO.Path]::Combine($current, $seg)
+                if ([System.IO.File]::Exists($current) -or [System.IO.Directory]::Exists($current)) {
+                    $attr = [System.IO.File]::GetAttributes($current)
+                    if (([int]$attr -band 1024) -ne 0) {
+                        return $false
+                    }
+                }
+            }
+        }
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
 Write-Host "AI Collaboration Protocol - validation"
 Write-Host "Root: $Root"
 
@@ -211,10 +247,58 @@ foreach ($relative in ($paths | Sort-Object -Unique)) {
 Write-Result "PASS" "inspected $textCount protocol-owned text files for UTF-8, BOM, LF and PowerShell syntax"
 
 # One journal per session keeps writers from colliding, but the directory grows
-# without bound unless old journals are archived. See AGENTS.md section 8.
+# without bound unless old journals are archived. See AGENTS.md section 8 and PROTO-DEC-0037.
 $journals = @($paths | Where-Object { $_ -match '^\.ai/worklog/[^/]+\.md$' -and $_ -ne '.ai/worklog/README.md' } | Sort-Object -Unique)
 if ($journals.Count -gt 30) {
-    Write-Result "WARN" ("{0} session journals in .ai/worklog; archive the oldest into .ai/ARCHIVE.md" -f $journals.Count)
+    Write-Result "WARN" ("{0} session journals in .ai/worklog (cap 30, PROTO-DEC-0037 WARN-first policy); archive completed sessions into .ai/ARCHIVE.md" -f $journals.Count)
+}
+
+# Active review corpus budget: <= 60 files and 600 KB (AGENTS.md section 8, PROTO-DEC-0037).
+# Enforced under WARN-first migration policy in role: source. Installed hosts choose their own review path.
+if ($script:ProtocolRole -eq 'source') {
+    $activeReviewsDir = Join-Path $Root 'docs/reviews'
+    if (Test-Path -LiteralPath $activeReviewsDir -PathType Container) {
+        $archiveDir = Join-Path $activeReviewsDir 'archive'
+        $archiveFull = if (Test-Path -LiteralPath $archiveDir) { (Get-Item -LiteralPath $archiveDir).FullName } else { $null }
+        $activeReviews = @()
+        $dirsToVisit = New-Object System.Collections.Generic.Queue[string]
+        $dirsToVisit.Enqueue($activeReviewsDir)
+        while ($dirsToVisit.Count -gt 0) {
+            $currDir = $dirsToVisit.Dequeue()
+            try {
+                $subDirs = [System.IO.Directory]::GetDirectories($currDir)
+                foreach ($sd in $subDirs) {
+                    if ($archiveFull -and ($sd -eq $archiveFull -or
+                                           $sd.StartsWith($archiveFull + [System.IO.Path]::DirectorySeparatorChar) -or
+                                           $sd.StartsWith($archiveFull + [System.IO.Path]::AltDirectorySeparatorChar))) {
+                        continue
+                    }
+                    $dirAttr = [System.IO.File]::GetAttributes($sd)
+                    if (([int]$dirAttr -band 1024) -ne 0) {
+                        continue
+                    }
+                    $dirsToVisit.Enqueue($sd)
+                }
+                $files = [System.IO.Directory]::GetFiles($currDir)
+                foreach ($f in $files) {
+                    $fileAttr = [System.IO.File]::GetAttributes($f)
+                    if (([int]$fileAttr -band 1024) -ne 0) {
+                        continue
+                    }
+                    $activeReviews += (New-Object System.IO.FileInfo($f))
+                }
+            }
+            catch {
+                # Ignore unreadable directories
+            }
+        }
+        $activeCount = $activeReviews.Count
+        $activeBytes = 0
+        foreach ($r in $activeReviews) { $activeBytes += $r.Length }
+        if ($activeCount -gt 60 -or $activeBytes -gt 600KB) {
+            Write-Result "WARN" ("active docs/reviews/ exceeds budget ({0} files / {1} KB; limit 60 files / 600 KB, PROTO-DEC-0037); archive non-active reviews to docs/reviews/archive/" -f $activeCount, [math]::Round($activeBytes / 1KB, 1))
+        }
+    }
 }
 
 $limits = @{ '.ai/TASK.md' = 80; '.ai/PLAN.md' = 200 }
@@ -503,53 +587,268 @@ if ($taskStatus -match '^Completed(?:[ .;:-]|$)') {
     }
     else {
         $gateBody = $gate.Groups['body'].Value
-        $promptField = [regex]::Match($gateBody, '(?m)^- Adversarial review prompt:[ \t]*(\S+)[ \t]*$')
-        $reviewField = [regex]::Match($gateBody, '(?m)^- Independent review:[ \t]*(\S+)[ \t]*$')
-        $gateFiles = @(
-            [pscustomobject]@{ Label = 'adversarial review prompt'; Match = $promptField },
-            [pscustomobject]@{ Label = 'independent review'; Match = $reviewField }
-        )
-        if ($promptField.Success -and $reviewField.Success -and
-            $promptField.Groups[1].Value.Replace('\', '/') -eq $reviewField.Groups[1].Value.Replace('\', '/')) {
-            Write-Result "FAIL" "adversarial prompt and independent review must be separate artifacts"
-        }
-        foreach ($gateFile in $gateFiles) {
-            if (-not $gateFile.Match.Success) {
-                Write-Result "FAIL" ("completed task is missing its {0} field" -f $gateFile.Label)
-                continue
-            }
-            $relative = $gateFile.Match.Groups[1].Value.Replace('\', '/')
-            if (-not $relative.StartsWith('docs/reviews/') -or $relative.Contains('..')) {
-                Write-Result "FAIL" ("{0} must point inside docs/reviews/" -f $gateFile.Label)
-                continue
-            }
-            $full = Join-Path $Root $relative
-            if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
-                Write-Result "FAIL" ("completed task {0} is missing: {1}" -f $gateFile.Label, $relative)
-                continue
-            }
-            $content = Read-ProtocolText $full
-            if ($null -eq $content -or $content.Trim().Length -eq 0) {
-                Write-Result "FAIL" ("completed task {0} must not be empty: {1}" -f $gateFile.Label, $relative)
-                continue
-            }
-            if ($gateFile.Label -eq 'adversarial review prompt') {
-                if ($content -notmatch '(?is)(?:unified.{0,80}adversarial|adversarial.{0,80}unified).{0,80}prompt') {
-                    Write-Result "FAIL" ("{0} must identify a unified adversarial audit prompt: {1}" -f $gateFile.Label, $relative)
+        $scopeField = [regex]::Match($gateBody, '(?m)^[ \t]*- Scope:[ \t]*(\S+)[ \t]*$')
+        $declaredScope = if ($scopeField.Success) { $scopeField.Groups[1].Value.Trim() } else { $null }
+        $baselineField = [regex]::Match($gateBody, '(?m)^[ \t]*- Baseline:[ \t]*(\S+)[ \t]*$')
+        $declaredBaseline = if ($baselineField.Success) { $baselineField.Groups[1].Value.Trim() } else { $null }
+        $promptField = [regex]::Match($gateBody, '(?m)^[ \t]*- Adversarial review prompt:[ \t]*(\S+)[ \t]*$')
+        $reviewField = [regex]::Match($gateBody, '(?m)^[ \t]*- Independent review:[ \t]*(\S+)[ \t]*$')
+
+        # C40-01, C40-02, C40-05: risk-scaled completion gate. Light path requires:
+        # declaredScope in docs/config, declaredBaseline valid and ancestor of HEAD,
+        # non-empty changed set where NO protected paths are modified (checked BEFORE review exclusion),
+        # and remaining non-empty set falls strictly within scope allowlist.
+        $isLightPath = $false
+        $verifiedBaseline = $null
+        if ($declaredScope -in @('docs', 'config') -and $declaredBaseline -and ($declaredBaseline -match '^[0-9a-f]{40}$')) {
+            if ($script:GitUsable -and $gitCommand) {
+                $revRes = Invoke-External $gitCommand.Source @('-C', $Root, 'rev-parse', '--verify', "$declaredBaseline^{commit}")
+                $ancRes = Invoke-External $gitCommand.Source @('-C', $Root, 'merge-base', '--is-ancestor', $declaredBaseline, 'HEAD')
+                if ($revRes.Code -eq 0 -and $ancRes.Code -eq 0) {
+                    $diffRes = Invoke-External $gitCommand.Source @('-C', $Root, 'diff', '--name-only', $declaredBaseline)
+                    $untrackedRes = Invoke-External $gitCommand.Source @('-C', $Root, 'ls-files', '--others', '--exclude-standard')
+                    if ($diffRes.Code -eq 0 -and $untrackedRes.Code -eq 0) {
+                        $rawLines = @()
+                        if ($diffRes.Output) { $rawLines += ($diffRes.Output -split "[\r\n]+") }
+                        if ($untrackedRes.Output) { $rawLines += ($untrackedRes.Output -split "[\r\n]+") }
+
+                        # Step 1: Raw changed set; exclude ONLY .ai/worklog/**, .ai/runtime/**, .ai/TASK.md
+                        $rawChanged = @()
+                        foreach ($line in $rawLines) {
+                            $rel = $line.Trim().Replace('\', '/')
+                            if (-not $rel) { continue }
+                            if ($rel -like '.ai/worklog/*' -or $rel -eq '.ai/worklog') { continue }
+                            if ($rel -like '.ai/runtime/*' -or $rel -eq '.ai/runtime') { continue }
+                            if ($rel -eq '.ai/TASK.md') { continue }
+                            if ($rawChanged -notcontains $rel) { $rawChanged += $rel }
+                        }
+
+                        # Step 2: Check protected paths on raw set before review exclusion
+                        $rootProtectedFiles = @('AGENTS.md', 'CLAUDE.md', 'protocol-manifest.json', 'validate-protocol.ps1', 'setup-ai-protocol.ps1', 'test-protocol.ps1')
+                        $protectedPrefixes = @('.ai/', '.claude/', '.github/', '.codex/', 'tests/', 'templates/', 'docs/decisions/')
+                        $execExtensions = @('.ps1', '.psm1', '.cjs', '.mjs', '.js', '.ts', '.sh', '.bat', '.cmd', '.py')
+
+                        $hasProtected = $false
+                        foreach ($cf in $rawChanged) {
+                            if ($rootProtectedFiles -contains $cf) { $hasProtected = $true; break }
+                            foreach ($pfx in $protectedPrefixes) {
+                                if ($cf.StartsWith($pfx)) { $hasProtected = $true; break }
+                            }
+                            if ($hasProtected) { break }
+                            $ext = [System.IO.Path]::GetExtension($cf).ToLowerInvariant()
+                            if ($execExtensions -contains $ext) { $hasProtected = $true; break }
+                        }
+
+                        if (-not $hasProtected) {
+                            # Step 3: Remove review artifact
+                            $declaredReviewRel = if ($reviewField.Success) { ($reviewField.Groups[1].Value.Trim().Replace('\', '/') -replace '^\./', '') } else { '' }
+                            $remaining = @()
+                            foreach ($cf in $rawChanged) {
+                                if ($declaredReviewRel -and $cf -eq $declaredReviewRel) { continue }
+                                $remaining += $cf
+                            }
+
+                            # Step 4: Non-empty remaining check
+                            if ($remaining.Count -gt 0) {
+                                $allMatch = $true
+                                if ($declaredScope -eq 'docs') {
+                                    $docExtensions = @('.md', '.txt', '.rst')
+                                    foreach ($cf in $remaining) {
+                                        if ($cf -eq 'README.md' -or $cf -eq 'CHANGELOG.md') { continue }
+                                        if ($cf.StartsWith('docs/') -and -not $cf.StartsWith('docs/decisions/')) {
+                                            $ext = [System.IO.Path]::GetExtension($cf).ToLowerInvariant()
+                                            if ($docExtensions -contains $ext) { continue }
+                                        }
+                                        $allMatch = $false
+                                        break
+                                    }
+                                }
+                                elseif ($declaredScope -eq 'config') {
+                                    $configAllowlist = @('.gitattributes', '.gitignore', '.editorconfig')
+                                    foreach ($cf in $remaining) {
+                                        if ($configAllowlist -notcontains $cf) {
+                                            $allMatch = $false
+                                            break
+                                        }
+                                    }
+                                }
+                                else {
+                                    $allMatch = $false
+                                }
+
+                                if ($allMatch) {
+                                    $isLightPath = $true
+                                    $verifiedBaseline = $declaredBaseline
+                                }
+                            }
+                        }
+                    }
                 }
-                else { Write-Result "PASS" ("completion gate prompt found: {0}" -f $relative) }
+            }
+        }
+
+        if ($isLightPath) {
+            # Light path: independent review only, no adversarial prompt required.
+            if (-not $reviewField.Success) {
+                Write-Result "FAIL" "completed task is missing its independent review field"
             }
             else {
-                $reviewer = [regex]::Match($content, '(?mi)^(?:\*\*)?Reviewer(?:\*\*)?:?[ \t]*(\S.*)$')
-                $verdict = [regex]::Match($content, '(?mi)^(?:\*\*)?Verdict(?:\*\*)?:?[ \t]*(PASS|FAIL|BLOCKED|RECOMMENDATION)\b')
-                if (-not $reviewer.Success) {
-                    Write-Result "FAIL" ("independent review must name a Reviewer: {0}" -f $relative)
+                $relative = $reviewField.Groups[1].Value.Trim().Replace('\', '/') -replace '^\./', ''
+                if (-not (Test-ProtocolSafePath $Root $relative)) {
+                    Write-Result "FAIL" ("independent review must be a safe path inside the repository root: {0}" -f $relative)
                 }
-                elseif (-not $verdict.Success -or $verdict.Groups[1].Value.ToUpperInvariant() -notin @('PASS', 'RECOMMENDATION')) {
-                    Write-Result "FAIL" ("independent review must have a PASS or RECOMMENDATION verdict: {0}" -f $relative)
+                elseif ($script:ProtocolRole -eq 'source' -and -not $relative.StartsWith('docs/reviews/')) {
+                    Write-Result "FAIL" ("in source repository, independent review must be under docs/reviews/: {0}" -f $relative)
                 }
                 else {
-                    Write-Result "PASS" ("independent review certified: {0}" -f $relative)
+                    $full = Join-Path $Root $relative
+                    if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
+                        Write-Result "FAIL" ("completed task independent review is missing: {0}" -f $relative)
+                    }
+                    else {
+                        $content = Read-ProtocolText $full
+                        if ($null -eq $content -or $content.Trim().Length -eq 0) {
+                            Write-Result "FAIL" ("completed task independent review must not be empty: {0}" -f $relative)
+                        }
+                        else {
+                            $reviewLines = $content -split "\r?\n"
+                            $headerEnd = -1
+                            for ($i = 0; $i -lt $reviewLines.Length; $i++) {
+                                if ($reviewLines[$i].Trim() -eq '---') {
+                                    $headerEnd = $i
+                                    break
+                                }
+                            }
+                            if ($headerEnd -eq -1) {
+                                for ($i = 0; $i -lt $reviewLines.Length; $i++) {
+                                    if ($reviewLines[$i].StartsWith('## ')) {
+                                        $headerEnd = $i
+                                        break
+                                    }
+                                }
+                            }
+                            $headerRegion = if ($headerEnd -eq -1) { $content } elseif ($headerEnd -le 0) { "" } else { ($reviewLines[0..($headerEnd - 1)] -join "`n") }
+
+                            if ($content -match '(?i)(?:transcribed\s+(?:from\s+chat\s+)?by|transcription\s+fallback)') {
+                                Write-Result "FAIL" ("independent review {0} is transcribed; transcribed reviews cannot satisfy the independent review gate" -f $relative)
+                            }
+                            else {
+                                $modeMatch = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)')
+                                if ($modeMatch.Success -and $modeMatch.Groups[1].Value.Trim().ToUpperInvariant() -eq 'ADVISORY') {
+                                    Write-Result "FAIL" ("independent review {0} has Mode: ADVISORY; advisory reviews cannot satisfy the independent review gate" -f $relative)
+                                }
+                                else {
+                                    $reviewer = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bReviewer\b(?:\*\*)?\s*:\s*([^\r\n]+)')
+                                    $verdict = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bVerdict\b(?:\*\*)?\s*:\s*([^\r\n]+)')
+                                    if (-not $reviewer.Success) {
+                                        Write-Result "FAIL" ("independent review must name a Reviewer: {0}" -f $relative)
+                                    }
+                                    elseif (-not $verdict.Success) {
+                                        Write-Result "FAIL" ("independent review must have a PASS or RECOMMENDATION verdict: {0}" -f $relative)
+                                    }
+                                    else {
+                                        $rawVerdict = $verdict.Groups[1].Value.Trim().ToUpperInvariant()
+                                        if ($rawVerdict -notin @('PASS', 'RECOMMENDATION')) {
+                                            Write-Result "FAIL" ("independent review must have a PASS or RECOMMENDATION verdict: {0}" -f $relative)
+                                        }
+                                        else {
+                                            Write-Result "PASS" ("independent review certified (light path: {0}, baseline: {1}): {2}" -f $declaredScope, $verifiedBaseline, $relative)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            $gateFiles = @(
+                [pscustomobject]@{ Label = 'adversarial review prompt'; Match = $promptField },
+                [pscustomobject]@{ Label = 'independent review'; Match = $reviewField }
+            )
+            $normPrompt = if ($promptField.Success) { ($promptField.Groups[1].Value.Trim().Replace('\', '/') -replace '^\./', '') } else { '' }
+            $normReview = if ($reviewField.Success) { ($reviewField.Groups[1].Value.Trim().Replace('\', '/') -replace '^\./', '') } else { '' }
+            if ($promptField.Success -and $reviewField.Success -and $normPrompt -eq $normReview) {
+                Write-Result "FAIL" "adversarial prompt and independent review must be separate artifacts"
+            }
+            foreach ($gateFile in $gateFiles) {
+                if (-not $gateFile.Match.Success) {
+                    Write-Result "FAIL" ("completed task is missing its {0} field" -f $gateFile.Label)
+                    continue
+                }
+                $relative = $gateFile.Match.Groups[1].Value.Trim().Replace('\', '/') -replace '^\./', ''
+                if (-not (Test-ProtocolSafePath $Root $relative)) {
+                    Write-Result "FAIL" ("{0} must be a safe path inside the repository root: {1}" -f $gateFile.Label, $relative)
+                    continue
+                }
+                if ($script:ProtocolRole -eq 'source' -and -not $relative.StartsWith('docs/reviews/')) {
+                    Write-Result "FAIL" ("in source repository, {0} must be under docs/reviews/: {1}" -f $gateFile.Label, $relative)
+                    continue
+                }
+                $full = Join-Path $Root $relative
+                if (-not (Test-Path -LiteralPath $full -PathType Leaf)) {
+                    Write-Result "FAIL" ("completed task {0} is missing: {1}" -f $gateFile.Label, $relative)
+                    continue
+                }
+                $content = Read-ProtocolText $full
+                if ($null -eq $content -or $content.Trim().Length -eq 0) {
+                    Write-Result "FAIL" ("completed task {0} must not be empty: {1}" -f $gateFile.Label, $relative)
+                    continue
+                }
+                if ($gateFile.Label -eq 'adversarial review prompt') {
+                    if ($content -notmatch '(?is)(?:unified.{0,80}adversarial|adversarial.{0,80}unified).{0,80}prompt') {
+                        Write-Result "FAIL" ("{0} must identify a unified adversarial audit prompt: {1}" -f $gateFile.Label, $relative)
+                    }
+                    else { Write-Result "PASS" ("completion gate prompt found: {0}" -f $relative) }
+                }
+                else {
+                    $reviewLines = $content -split "\r?\n"
+                    $headerEnd = -1
+                    for ($i = 0; $i -lt $reviewLines.Length; $i++) {
+                        if ($reviewLines[$i].Trim() -eq '---') {
+                            $headerEnd = $i
+                            break
+                        }
+                    }
+                    if ($headerEnd -eq -1) {
+                        for ($i = 0; $i -lt $reviewLines.Length; $i++) {
+                            if ($reviewLines[$i].StartsWith('## ')) {
+                                $headerEnd = $i
+                                break
+                            }
+                        }
+                    }
+                    $headerRegion = if ($headerEnd -eq -1) { $content } elseif ($headerEnd -le 0) { "" } else { ($reviewLines[0..($headerEnd - 1)] -join "`n") }
+
+                    if ($content -match '(?i)(?:transcribed\s+(?:from\s+chat\s+)?by|transcription\s+fallback)') {
+                        Write-Result "FAIL" ("independent review {0} is transcribed; transcribed reviews cannot satisfy the independent review gate" -f $relative)
+                    }
+                    else {
+                        $modeMatch = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)')
+                        if ($modeMatch.Success -and $modeMatch.Groups[1].Value.Trim().ToUpperInvariant() -eq 'ADVISORY') {
+                            Write-Result "FAIL" ("independent review {0} has Mode: ADVISORY; advisory reviews cannot satisfy the independent review gate" -f $relative)
+                        }
+                        else {
+                            $reviewer = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bReviewer\b(?:\*\*)?\s*:\s*([^\r\n]+)')
+                            $verdict = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bVerdict\b(?:\*\*)?\s*:\s*([^\r\n]+)')
+                            if (-not $reviewer.Success) {
+                                Write-Result "FAIL" ("independent review must name a Reviewer: {0}" -f $relative)
+                            }
+                            elseif (-not $verdict.Success) {
+                                Write-Result "FAIL" ("independent review must have a PASS or RECOMMENDATION verdict: {0}" -f $relative)
+                            }
+                            else {
+                                $rawVerdict = $verdict.Groups[1].Value.Trim().ToUpperInvariant()
+                                if ($rawVerdict -notin @('PASS', 'RECOMMENDATION')) {
+                                    Write-Result "FAIL" ("independent review must have a PASS or RECOMMENDATION verdict: {0}" -f $relative)
+                                }
+                                else {
+                                    Write-Result "PASS" ("independent review certified: {0}" -f $relative)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -661,6 +960,7 @@ if ($script:ProtocolRole -ne 'source' -and $manifest -and
         '.ai/docs/CODEX.md',
         '.ai/docs/COPILOT.md',
         '.ai/docs/GLM.md',
+        '.ai/docs/PAIRED-CYCLE.md',
         '.github/copilot-instructions.md'
     )
     $digestsChecked = 0

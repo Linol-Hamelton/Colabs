@@ -16,12 +16,12 @@ For all other assistants (chat panels, custom endpoints, CLI), use the explicit 
 node .ai/bin/protocol-session.cjs start --agent <your-name>
 
 # Step 2: Acquire lock before editing shared docs (.ai/TASK.md, .ai/PLAN.md, .ai/DECISIONS.md)
-node .ai/bin/protocol-lock.cjs acquire --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs acquire --owner <your-owner-name>
 # ... edit shared docs ...
-node .ai/bin/protocol-lock.cjs release --owner <your-session-id>
+node .ai/bin/protocol-lock.cjs release --owner <your-owner-name>
 
 # Step 3: Record verified evidence and conclude session
-node .ai/bin/protocol-handoff.cjs record --owner <your-session-id>
+node .ai/bin/protocol-handoff.cjs record --owner <your-owner-name>
 node .ai/bin/protocol-session.cjs stop --agent <your-name> --session <your-session-id>
 ```
 
@@ -29,13 +29,13 @@ node .ai/bin/protocol-session.cjs stop --agent <your-name> --session <your-sessi
 
 ## 2. Core Protocol Rules
 
-1. **One Writer for Shared Documents**: Always acquire the lock with `protocol-lock.cjs` before modifying `.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, or `.ai/ARCHIVE.md`.
+1. **One Writer for Shared Documents**: Always acquire the lock with `protocol-lock.cjs acquire --owner <your-owner-name>` before modifying `.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, or `.ai/ARCHIVE.md`. Note that `--owner` uses your assigned Owner name (e.g. `gemini-<id>`), not the session ID.
 2. **Append-Only Decisions**: An approved decision block in `.ai/DECISIONS.md` is permanent. Never edit or delete existing decisions; write a new block with `Supersedes: DEC-xxxx` to amend.
 3. **Dedicated Session Journals**: Each session writes only to its own journal in `.ai/worklog/<agent>-<id>.md`. Never modify another session's journal.
 4. **Verifiable Evidence**: Never write or fake test results. Use `protocol-handoff.cjs record` to stamp your journal with authenticated format-2 Evidence. Receipts without format 2 are legacy unauthenticated (`verify --owner` requires `--allow-legacy`).
 5. **Encoding & Standards**: UTF-8 without BOM, LF line endings for all text files. All PowerShell (`.ps1`) scripts must remain strictly ASCII-only (no Unicode characters).
-6. **Extended Analysis in docs/reviews/**: In-depth architectural evaluations, multi-agent audits, and consensus reports belong in `docs/reviews/YYYY-MM-DD-<agent>-<topic>.md` using `templates/reviews/REVIEW.md`. Journals reference the review and carry verifiable evidence; chat output is limited to a concise executive verdict.
-7. **Mandatory Adversarial Review Prompt**: Regardless of who implements changes, after finishing a plan or task the implementer must author an exhaustive unified prompt covering all changes to solicit adversarial review, defect-hunting, optimization proposals, or certification of optimality before completion. A completed task must list the prompt and an independent review under `## Completion gate` in `.ai/TASK.md`; the validator rejects missing artifacts or a `FAIL`/`BLOCKED` verdict.
+6. **Extended Analysis in docs/reviews/**: In-depth architectural evaluations, multi-agent audits, and consensus reports belong in `docs/reviews/YYYY-MM-DD-<agent>-<topic>.md` (or an owner-selected in-repository review path in installed host projects) using `templates/reviews/REVIEW.md`. Journals reference the review and carry verifiable evidence; chat output is limited to a concise executive verdict.
+7. **Risk-Scaled Adversarial Review**: Review scales by blast radius (PROTO-DEC-0038). Core protocol changes (`.ai/`, `.claude/`, hooks, validator, gates) and consumer security/data paths require an exhaustive unified prompt+report pair and independent certifying review. Docs, config, and one-line fixes require one independent reviewer statement only. A completed task lists the gate artifacts in `.ai/TASK.md`.
 
 ---
 

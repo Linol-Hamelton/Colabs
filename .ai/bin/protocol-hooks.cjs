@@ -315,6 +315,38 @@ function assignmentLines(root, agent) {
   return `${yours}Assignment: ${everyone}\n`;
 }
 
+const INVENTORY_EXTENSIONS = new Set(['.md', '.txt', '.json', '.csv', '.rst', '.adoc', '.org']);
+const INVENTORY_SKIP = /^(\.ai\/|\.claude\/|\.codex\/|\.github\/|node_modules\/)/;
+const INVENTORY_MINIMUM = 50000;
+const INVENTORY_SHOWN = 8;
+
+// A tracked file that nobody changed never appears in `git status`, so a large primary
+// source can stay invisible for an entire chain of sessions. This lists the biggest ones
+// so a task's own source list can be checked for completeness before it is trusted.
+function inventory(root) {
+  let listed = '';
+  try { listed = git(root, ['ls-files']); } catch { return ''; }
+  const rows = [];
+  for (const line of listed.split(/\r?\n/)) {
+    const relative = line.trim();
+    if (!relative || INVENTORY_SKIP.test(relative)) continue;
+    if (!INVENTORY_EXTENSIONS.has(path.extname(relative).toLowerCase())) continue;
+    let size = 0;
+    try { size = fs.statSync(path.join(root, relative)).size; } catch { continue; }
+    if (size < INVENTORY_MINIMUM) continue;
+    rows.push({ relative, size });
+  }
+  if (!rows.length) return '';
+  rows.sort((a, b) => (b.size - a.size) || a.relative.localeCompare(b.relative));
+  const shown = rows.slice(0, INVENTORY_SHOWN)
+    .map(row => `- ${row.relative} (${Math.round(row.size / 1024)} KB)`).join('\n');
+  const more = rows.length > INVENTORY_SHOWN
+    ? `\n- ... ${rows.length - INVENTORY_SHOWN} more; run \`git ls-files\`.` : '';
+  return 'Tracked and unchanged, so `git status` never shows them. Before accepting the source\n'
+    + 'list your task names, check it against this one and against `git ls-files`.\n\n'
+    + shown + more;
+}
+
 function context(root, worklog, agent) {
   let result = '# AI protocol state (injected at session start)\n\n';
   result += `Active checkout: ${root}\nRules: AGENTS.md\nYour worklog: ${worklog}\n`;
@@ -331,6 +363,8 @@ function context(root, worklog, agent) {
   const status = git(root, ['status', '--short', '--branch']);
   add('Git status', status.length < 2000 ? status :
     `${status.split('\n').slice(0, 20).join('\n')}\n(More paths omitted; run git status.)`, 2400);
+  const large = inventory(root);
+  if (large) add('Large tracked documents', large, 900);
   let logOutput = '';
   try { logOutput = git(root, ['log', '--oneline', '-10']).trim(); } catch { logOutput = ''; }
   add('Recent commits', logOutput ? logOutput : '(No commits yet.)', 1800);

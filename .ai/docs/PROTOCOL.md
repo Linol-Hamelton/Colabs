@@ -13,6 +13,7 @@ in `AGENTS.md`, which is the only place a rule is defined.
 | `AGENTS.md`                | the rules, shared by every agent                    |
 | `CLAUDE.md`                | pointer so Claude Code loads those rules            |
 | `.ai/docs/PROTOCOL.md`         | this guide                                          |
+| `.ai/docs/PAIRED-CYCLE.md`     | reusable paired work cycle specification and prompts|
 | `.ai/TASK.md`              | the current task and the open questions             |
 | `.ai/PLAN.md`              | the proposed approach for larger work               |
 | `.ai/DECISIONS.md`         | approved decisions, append-only                     |
@@ -92,6 +93,30 @@ node .ai/bin/protocol-lock.cjs release --owner <the-reported-owner>
 
 Releasing someone else's live lock loses their work. Check that the session is
 really over first.
+
+### Access authorization tiers and change legitimization (PROTO-DEC-0041, PLAN policy)
+
+Access to repository paths and operations is structured into five authorization tiers:
+- **T0 READ**: Reviewers and analysts; file modifications are prohibited.
+- **T1 SCOPED WRITE**: Implementer; write access is limited strictly to paths declared in the authorized block scope.
+- **T2 SHARED DOCUMENTS**: `.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, `.ai/ARCHIVE.md`, and in the protocol source repository `docs/decisions/REGISTRY.md`; editable only by the single active session holding the shared-document lock.
+- **T3 PRODUCT REPOSITORIES**: Dedicated product sessions operating inside the product workspace (e.g. `D:\Block-Puzzle`, `D:\VPN`); protocol sessions do not write or commit in product repositories.
+- **T4 INSTALL/CONFIG**: Installer and environment tests; executed exclusively in disposable `TEMP` fixtures.
+
+**Block Authorization Record (BARC)**:
+Before implementation of a block begins, a BARC record is established:
+`BlockID | requester | approver | scope paths | purpose | baseline SHA | budget (tokens/time) | expiry (single-use)`.
+
+**Change Legitimization**:
+A modification is legitimate only when all five conditions are satisfied:
+1. Actual `diff` is a subset of the authorized scope (`diff ⊆ authorized scope`).
+2. No path declared forbidden in the Phase 0 frame of this task is touched; where the frame is silent, the standing default list is `AGENTS.md`, `QUICKSTART.md`, kernel, hooks, gates, manifest, tests, decisions and registry.
+3. The author of the change is not the reviewer.
+4. A verifiable evidence receipt binds the final tree, and the reviewer's session journal explicitly cites its own review artifact.
+5. An entry exists in the findings ledger with diff statistics and a verdict.
+
+**Manual reviewer duty (explicit)**:
+Checks (1) and (2) are **not executed by current automated tooling**, and the feature freeze forbids introducing a new kernel gate. Therefore, verifying scope adherence is a **mandatory manual reviewer duty recorded in the findings ledger**: the reviewer runs `git diff --name-only <baseline>`, compares the changed files against the declared block scope, and records a `scope-check: PASS|FAIL` line with the path list in the ledger. Automated enforcement is a backlog candidate for post-freeze evaluation.
 
 ---
 
@@ -223,11 +248,37 @@ If the emptied journal is still inside `RECENT_WINDOW`, `prune` defers it (recen
 
 When a second batch is archived into an existing `.ai/ARCHIVE.md`, the boundary entry's canonicalized body must hash-match its `- entry:` label. This boundary canonicalization deviation was resolved and is pinned by `tests/archive.test.cjs` ("P5-F2: second batch boundary in ARCHIVE.md remains valid across archive batches and verify --deep"). For historical context and proofs, see `docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md`.
 
-### Review modes and capability model
+### Review modes, capability model, and verdict vocabulary (PROTO-DEC-0041)
 
-Reviews under `docs/reviews/` operate in one of two modes:
+Reviews under `docs/reviews/` (or host owner-selected in-repository review paths for installed projects) operate in one of two modes:
 - **CERTIFYING**: Requires four orchestrator-verified capabilities: `FS_WRITE`, `SHELL_EXEC`, `EVIDENCE_SIGN`, and `REPO_READ`. The review header declares `Mode: CERTIFYING` and identifies its session via `Receipt-Owner: <owner-id>` (or legacy `Session:`). The reviewer binds its verdict by recording verifiable handoff evidence in its session journal mentioning the review document path.
 - **ADVISORY**: Applied whenever any capability is absent (e.g. read-only models, chat panels, or external audits). Advisory reviews carry `Mode: ADVISORY` (or `[MODE: READ-ONLY ADVISORY]`), are persisted via the section 5.5 chat transcription fallback, and are explicitly marked non-certifying. An advisory review cannot satisfy the independent-review completion gate.
+
+#### Closed verdict vocabulary (forward-only from 2026-09-20)
+For new review artifacts cited by completion gates with `Date > 2026-09-20`, exactly one verdict token is permitted:
+`PASS | RECOMMENDATION | FAIL | BLOCKED`.
+- Explanations belong in the body of the review, never appended to the verdict token.
+- Conditional approvals or reservations are expressed as `FAIL` with an explicit list of required conditions.
+- A mandatory open defect must receive `FAIL`.
+- An absent required check, inaccessible environment, or missing capability must receive `BLOCKED`.
+- `RECOMMENDATION` is reserved strictly for optional, non-blocking improvements.
+- **Historical artifacts and gate enforcement**: History is append-only and never rewritten; historical review artifacts dated on or before `2026-09-20` remain permanently valid as historical records and are never edited in place. The completion gate, however, strictly validates the exact verdict token (`PASS` or `RECOMMENDATION`) for any review artifact it evaluates, regardless of the artifact's date (only `Mode` and `Receipt-Owner` possess legacy grandfathering warnings). Therefore, if a historical review with a non-standard verdict token is ever cited by a new completion gate, it must be reissued as a new dated artifact rather than modified in place.
+- **Scale of historical divergence**: A point-in-time repository census taken at the adoption of PROTO-DEC-0041 (evaluating exact trimmed token equality after stripping bold markers) found that about half of existing review artifacts carrying a `Verdict` line matched the closed set (56 exact vs 59 non-exact across 57 distinct custom forms; later censuses vary with tree evolution).
+
+#### Review composition, independence, and parallelism
+Review staffing scales with task risk:
+- **Low risk** (documentation, config outside core/security/data): Implementer + 1 independent reviewer.
+- **Normal risk** (product code outside high risk): Implementer + independent reviewer per block + independent integration pass.
+- **High risk** (protocol core, security, data, invariants, upgrade/migration paths): Implementer + block reviewers + **no fewer than two parallel independent** reviewers on final verification, with the certifier operating outside execution and control.
+
+Core invariants governing review execution:
+1. **Certification independence**: A `CERTIFYING` verdict on a high-risk candidate may not be issued by the author, the executor, the controller of that candidate, or any member of the executing pair.
+2. **Controller ≠ certifier**: The coordinator/controller shapes tasks, dispatches waves, and may review other independent work, but may never certify what it directed or controlled. This resolves the DeepSeek-as-interface dilemma: the interface role is preserved, but the right to certify its own management is denied.
+3. **Mandatory parallelism**: Primary reviewers within a verification pass receive the identical input package, work concurrently, and do not read each other's findings before recording their own. (Scientific basis: Kaesberg et al., ACL Findings 2025: response diversity enhances accuracy, whereas discussion rounds before voting reduce it).
+4. **Distinct mandates**: When two or more parallel reviewers are assigned, each is given a distinct angle of attack (e.g., reproducibility and evidence; contracts and edge-case boundaries; governance and scope compliance). Identical mandates duplicate findings and waste resources.
+5. **No brand trust**: Roles in `.ai/TASK.md` designate functional slots, not model brands. Capability for `CERTIFYING` is determined by operational environment (filesystem access, shell execution, evidence signing), never by the model title in a report header.
+6. **Third reviewer rule**: A third reviewer is added only for an uncovered risk, contradicting reproductions, or an explicit owner directive (PROTO-DEC-0041 item 2). General curiosity is not a valid basis.
+- Core team composition: DeepSeek, Claude, GPT/Codex, Gemini (operational rationale: three CLIs, DeepSeek as user interface, all four integrated; owner budget decision, not a claimed statistical optimum).
 
 ### Gate freshness check
 
@@ -236,6 +287,28 @@ When a task is marked `Status: Completed`, `node .ai/bin/protocol-handoff.cjs ga
 - **Legacy cutoff (`2026-09-19`)**: Legacy grandfathering applies strictly to reviews with a valid, present `Date <= 2026-09-19`; omitting `Mode` or `Receipt-Owner` emits a warning (`[WARN]`) rather than failing validation, provided their evidence verifies. Reviews dated after `2026-09-19` strictly require `Mode: CERTIFYING` and `Receipt-Owner`. A missing or invalid `Date` fails the gate immediately.
 - **Installed role**: In `role: installed`, `gate-check` is skipped by the validator because consumer repositories do not retain protocol session journals.
 - **Empty Receipt field**: The `Receipt:` field in the review header is optional and informational; an empty or omitted field passes verification.
+
+### Completion gate and light-path contract (PROTO-DEC-0038, Wave C)
+
+Tasks marked `Status: Completed` in `.ai/TASK.md` must satisfy the completion gate evaluated by both PowerShell (`validate-protocol.ps1`) and Node (`node .ai/bin/protocol-handoff.cjs gate-check`).
+
+- **Strict path (default)**: Required whenever core protocol files, hooks, gates, validators, tests, decisions, or consumer security/data paths are changed. Requires both `- Adversarial review prompt:` and `- Independent review:`. In `role: source`, both files must be located under `docs/reviews/`. In `role: installed`, any safe in-root path is valid. The independent review requires `Mode: CERTIFYING`, `Receipt-Owner: <owner-name>`, header region containing `Reviewer:` and `Verdict:` (`PASS` or `RECOMMENDATION`), and verifiable deep evidence binding in the owner's session journal. The final check of a high-risk candidate requires no fewer than two parallel independent certifiers (PROTO-DEC-0041 item 2), a single reviewer cannot close a high-risk Completed task, and the certifiers must be outside execution and control (item 1).
+- **Light path (risk-scaled)**: For low-blast-radius documentation and configuration edits under PROTO-DEC-0038.
+  - Requires: `- Scope: docs | config`, `- Baseline: <40-hex sha>`, and `- Independent review: <path>`.
+  - **Baseline validation**:
+    - The baseline must be an immutable 40 lowercase hex character string matching `^[0-9a-f]{40}$`. Moving references (`HEAD`, branch names, tags, short SHAs, relative refs) are rejected before calling Git, forcing the strict path.
+    - The SHA must verify via `git rev-parse --verify <sha>^{commit}` and be confirmed as an ancestor of HEAD via `git merge-base --is-ancestor <sha> HEAD`.
+    - The baseline must be recorded in the task dispatch before implementation starts. The reviewer independently confirms that the baseline covers all task work.
+    - Missing, unresolved, non-ancestor baselines, or an empty diff against baseline force the strict path.
+  - **Evaluation order**:
+    1. Raw changed set computed from baseline via `git diff --name-only <sha>` plus untracked `git ls-files --others --exclude-standard`, excluding strictly and only `.ai/worklog/**`, `.ai/runtime/**`, and `.ai/TASK.md`. (The review artifact is NOT excluded here).
+    2. Protected paths priority: the raw set is checked against all protected paths (`.ai/**` [except 3], `.claude/**`, `.github/**`, `.codex/**`, `tests/**`, `templates/**`, `docs/decisions/**`, root `AGENTS.md`, `CLAUDE.md`, `protocol-manifest.json`, `validate-protocol.ps1`, `setup-ai-protocol.ps1`, `test-protocol.ps1`, and executable extensions `.ps1`, `.psm1`, `.cjs`, `.mjs`, `.js`, `.ts`, `.sh`, `.bat`, `.cmd`, `.py`). Any match forces the strict path unconditionally; a core edit cannot be hidden by declaring it as the review artifact.
+    3. Review exclusion: the independent review artifact is removed from the changed set.
+    4. Non-empty check: if the remaining set is empty, strict path is forced (fail-safe).
+    5. Scope allowlist: for `Scope: docs`, every file must be under `docs/` (excluding `docs/decisions/`) with `.md`, `.txt`, or `.rst` extension, OR root `README.md` / `CHANGELOG.md`. For `Scope: config`, files must be in `.gitattributes`, `.gitignore`, `.editorconfig`.
+  - **Review format**: Header region (before first `---` or `## `) must have `Reviewer:` and `Verdict:` (`PASS` or `RECOMMENDATION`). `Mode: ADVISORY` and transcription markers are rejected.
+  - In `role: source`, the review path must be under `docs/reviews/`.
+  - **Residual risk**: Baseline is a declaration. The verified baseline is printed on gate success and must be cited in journals and reviews.
 
 ### Decision registry
 
@@ -278,6 +351,37 @@ Stop hooks emit fail-safe session telemetry to `.ai/runtime/metrics/sessions.jso
 
 ---
 
+## Paired work cycle (PROTO-DEC-0041, PLAN policy)
+
+For multi-assistant workflows using an implementer and reviewer/controller pair (e.g., Gemini and DeepSeek; roles are configured per task by the owner as illustrative examples, never auto-assigned), see `.ai/docs/PAIRED-CYCLE.md` for the authoritative specification.
+
+The architecture organizes collaborative engineering into seven disciplined phases, each with a defined output and checkable exit gate:
+- **Phase 0: Frame** (problem, scope, risk class, success criteria, immutable 40-hex baseline, forbidden paths, owner, executor).
+- **Phase 1: Diagnosis** (reproduced problem; fact/hypothesis/gap map).
+- **Phase 1a: External research** (conditional upon recorded external trigger).
+- **Phase 2: Solution** (one recommendation, at most two real alternatives including doing nothing).
+- **Phase 3: Plan and adversarial review** (ordered blocks, contracts, tests, rollback; adversarial plan review).
+- **Phase 4: Implementation done-checked** (block-by-block implementation + tests + reviewer signoff, followed by an integration pass).
+- **Phase 5: Final adversarial audit** (findings ledger against the complete candidate; certifier outside execution and control).
+- **Phase 6: Closure and backlog** (reconciled long-term documentation, registered decisions, next backlog items).
+
+### Closed dictionary of terms
+- **Phase**: Bounded stage of work with a defined output and a checkable transition gate.
+- **Primary pass**: A single evaluation of a specific artifact version against the agreed scope.
+- **Discussion round**: Participants submit their position once on a common input packet; the controller issues a disposition.
+- **Remediation**: Modification addressing a confirmed defect. Verification of this fix is the subsequent pass, never an unconstrained general council.
+- **Independence**: The reviewer is not the author of the change; for high-risk final verification, the reviewer is additionally neither the author of disputed premises nor the controller of execution.
+- **Defect**: A unique violation of a verifiable requirement. A verdict, a finding count, or a document count is not a defect.
+- **Uncertainty**: Incomplete data or missing capability. Yields `BLOCKED` or an explicit open inquiry, never a confirmed defect and never `PASS`.
+- **Verification version**: Concrete Git commit SHA plus working tree status and Evidence receipt digest. A raw `HEAD` reference on a dirty tree is insufficient.
+
+### Execution rules and basis
+- **One primary pass per phase**: A repetition is strictly forbidden unless triggered by one of exactly four conditions: (1) confirmed defect; (2) changed candidate or scope; (3) new external information; (4) incomplete closure proof. Repetition is never scheduled in advance.
+- **Mapping of owner's 12 stages**: The owner's operational stages map directly onto these seven phases; "audit of results" and "corrective cycles" are repetitions of phases 4 and 5, not separate phases.
+- **Scientific foundation**: Kaesberg et al. (ACL Findings 2025: increasing the number of agents improves accuracy, while discussion rounds before voting reduce it); Porter (88 inspections: one reviewer is less effective than two, but two reviewers are no less effective than four; sequential inspections double calendar interval without effectiveness gains). Principle: **pay for width (parallel independent review), not for depth (sequential discussion rounds)**.
+
+---
+
 ## Installing and upgrading
 
 Run installation and upgrade commands from the protocol source repository;
@@ -295,13 +399,22 @@ If `AGENTS.md` already holds project-specific rules, normal installation keeps
 it. Reconcile those rules with the protocol before using `-Force`; managed
 files are replaced on upgrade, with backups. Review `git diff` after installing.
 
+**Measured upgrade behavior**: A plain upgrade (`setup-ai-protocol.ps1 -Target D:\my-project`)
+updates `protocol-manifest.json` to the current protocol version (e.g. 1.9.6) and
+restores newly added managed files that were missing in the target (such as
+`.ai/docs/PAIRED-CYCLE.md`), but deliberately preserves existing managed tooling to avoid
+overwriting host modifications. As a result, older managed files (such as `AGENTS.md`
+and hook scripts) remain in place, causing a version and content-digest mismatch where
+`validate-protocol.ps1` reports exit 1.
+
 Report what has drifted from the canonical version without changing anything:
 
 ```powershell
 .\setup-ai-protocol.ps1 -Target D:\my-project -Verify
 ```
 
-Upgrade the managed tooling, keeping the project's own `.ai` state:
+To bring the target repository to full parity with the canonical protocol version,
+upgrade the managed tooling while keeping the project's own `.ai` state:
 
 ```powershell
 .\setup-ai-protocol.ps1 -Target D:\my-project -Force

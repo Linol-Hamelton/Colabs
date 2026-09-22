@@ -1,0 +1,188 @@
+# Review Archive Index
+
+Append-only ledger of archived review artifacts moved from `docs/reviews/` to `docs/reviews/archive/` per PROTO-DEC-0037.
+
+| Original Path | Archived Path |
+|---|---|
+| docs/reviews/2026-09-12-claude-v1.2-audit.md | docs/reviews/archive/2026-09-12-claude-v1.2-audit.md |
+| docs/reviews/2026-09-17-three-repository-review.md | docs/reviews/archive/2026-09-17-three-repository-review.md |
+| docs/reviews/2026-09-18-adversarial-audit-v1.9.4.md | docs/reviews/archive/2026-09-18-adversarial-audit-v1.9.4.md |
+| docs/reviews/2026-09-18-claude-opus-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-claude-opus-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-claude-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-claude-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-codegeex-audit-v1.9.md | docs/reviews/archive/2026-09-18-codegeex-audit-v1.9.md |
+| docs/reviews/2026-09-18-copilot-consensus-critical-analysis.md | docs/reviews/archive/2026-09-18-copilot-consensus-critical-analysis.md |
+| docs/reviews/2026-09-18-deepseek-audit-v1.9.md | docs/reviews/archive/2026-09-18-deepseek-audit-v1.9.md |
+| docs/reviews/2026-09-18-deepseek-flash-adversarial-audit-v1.9.3.md | docs/reviews/archive/2026-09-18-deepseek-flash-adversarial-audit-v1.9.3.md |
+| docs/reviews/2026-09-18-deepseek-flash-consensus-verification.md | docs/reviews/archive/2026-09-18-deepseek-flash-consensus-verification.md |
+| docs/reviews/2026-09-18-deepseek-flash-p1-gate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p1-gate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p2-gate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p2-gate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p2-regate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p2-regate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p2f3-p1-regate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p2f3-p1-regate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p3-gate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p3-gate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p4-gate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p4-gate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p5-gate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-p5-regate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p5-regate-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-deepseek-flash-v1.9.4-consolidated-final-plan.md | docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.4-consolidated-final-plan.md |
+| docs/reviews/2026-09-18-deepseek-flash-v1.9.4-final-hardening-plan.md | docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.4-final-hardening-plan.md |
+| docs/reviews/2026-09-18-grand-council-consensus-v1.9.0.md | docs/reviews/archive/2026-09-18-grand-council-consensus-v1.9.0.md |
+| docs/reviews/2026-09-18-performance-analysis.md | docs/reviews/archive/2026-09-18-performance-analysis.md |
+| docs/reviews/2026-09-18-qwen-audit-v1.9.md | docs/reviews/archive/2026-09-18-qwen-audit-v1.9.md |
+| docs/reviews/2026-09-18-qwen-hostile-audit-v1.9.3.md | docs/reviews/archive/2026-09-18-qwen-hostile-audit-v1.9.3.md |
+| docs/reviews/2026-09-18-v1.9.4-final-adversarial-audit-prompt.md | docs/reviews/archive/2026-09-18-v1.9.4-final-adversarial-audit-prompt.md |
+| docs/reviews/2026-09-19-claude-opus-delta-certification-request.md | docs/reviews/archive/2026-09-19-claude-opus-delta-certification-request.md |
+| docs/reviews/2026-09-19-claude-v1.9.4-release-certification.md | docs/reviews/archive/2026-09-19-claude-v1.9.4-release-certification.md |
+| docs/reviews/2026-09-19-copilot-v1.9.4-release-certification.md | docs/reviews/archive/2026-09-19-copilot-v1.9.4-release-certification.md |
+| docs/reviews/2026-09-19-deepseek-flash-a2-audit-addendum.md | docs/reviews/archive/2026-09-19-deepseek-flash-a2-audit-addendum.md |
+| docs/reviews/2026-09-19-deepseek-flash-certification-integrity-and-consolidation.md | docs/reviews/archive/2026-09-19-deepseek-flash-certification-integrity-and-consolidation.md |
+| docs/reviews/2026-09-19-deepseek-flash-consolidated-v1.9.5-plan-r2.md | docs/reviews/archive/2026-09-19-deepseek-flash-consolidated-v1.9.5-plan-r2.md |
+| docs/reviews/2026-09-19-deepseek-flash-final-plan-probe-review.md | docs/reviews/archive/2026-09-19-deepseek-flash-final-plan-probe-review.md |
+| docs/reviews/2026-09-19-deepseek-flash-mcp-selection-analysis.md | docs/reviews/archive/2026-09-19-deepseek-flash-mcp-selection-analysis.md |
+| docs/reviews/2026-09-19-deepseek-flash-release-tag-erratum.md | docs/reviews/archive/2026-09-19-deepseek-flash-release-tag-erratum.md |
+| docs/reviews/2026-09-19-deepseek-flash-v1.9.4-adversarial-support.md | docs/reviews/archive/2026-09-19-deepseek-flash-v1.9.4-adversarial-support.md |
+| docs/reviews/2026-09-19-gemini-c1-docfix-prompt.md | docs/reviews/archive/2026-09-19-gemini-c1-docfix-prompt.md |
+| docs/reviews/2026-09-19-gemini-c1-instrumentation-prompt.md | docs/reviews/archive/2026-09-19-gemini-c1-instrumentation-prompt.md |
+| docs/reviews/2026-09-19-gemini-ci-hotfix-prompt.md | docs/reviews/archive/2026-09-19-gemini-ci-hotfix-prompt.md |
+| docs/reviews/2026-09-19-gemini-final-plan-adversarial-review.md | docs/reviews/archive/2026-09-19-gemini-final-plan-adversarial-review.md |
+| docs/reviews/2026-09-19-gemini-interim-plan-adversarial-review.md | docs/reviews/archive/2026-09-19-gemini-interim-plan-adversarial-review.md |
+| docs/reviews/2026-09-19-gemini-stop-cycle-fix-prompt.md | docs/reviews/archive/2026-09-19-gemini-stop-cycle-fix-prompt.md |
+| docs/reviews/2026-09-19-gemini-trackc-m0-c2-prompt.md | docs/reviews/archive/2026-09-19-gemini-trackc-m0-c2-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.4-release-audit.md | docs/reviews/archive/2026-09-19-gemini-v1.9.4-release-audit.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-certification.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-certification.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-implementation-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-implementation-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item2-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item2-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item3-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item3-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item4-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item4-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item4-remediation-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item4-remediation-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item5-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item5-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item5-testfix-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item5-testfix-prompt.md |
+| docs/reviews/2026-09-19-gemini-v1.9.5-item6-remediation-prompt.md | docs/reviews/archive/2026-09-19-gemini-v1.9.5-item6-remediation-prompt.md |
+| docs/reviews/2026-09-19-glm-final-plan-adversarial-review.md | docs/reviews/archive/2026-09-19-glm-final-plan-adversarial-review.md |
+| docs/reviews/2026-09-19-grand-consensus-systemic-course-correction.md | docs/reviews/archive/2026-09-19-grand-consensus-systemic-course-correction.md |
+| docs/reviews/2026-09-19-h1-pilot-cost-policy-addendum.md | docs/reviews/archive/2026-09-19-h1-pilot-cost-policy-addendum.md |
+| docs/reviews/2026-09-19-h1-pilot-design.md | docs/reviews/archive/2026-09-19-h1-pilot-design.md |
+| docs/reviews/2026-09-19-h1-pilot-postmortem-and-repomix-paths.md | docs/reviews/archive/2026-09-19-h1-pilot-postmortem-and-repomix-paths.md |
+| docs/reviews/2026-09-19-h1-pilot-runbook-addendum-agents.md | docs/reviews/archive/2026-09-19-h1-pilot-runbook-addendum-agents.md |
+| docs/reviews/2026-09-19-h1-pilot-runbook.md | docs/reviews/archive/2026-09-19-h1-pilot-runbook.md |
+| docs/reviews/2026-09-19-h1-pilot-smoke-report.md | docs/reviews/archive/2026-09-19-h1-pilot-smoke-report.md |
+| docs/reviews/2026-09-19-h1-pilot-trial-prompt-template.md | docs/reviews/archive/2026-09-19-h1-pilot-trial-prompt-template.md |
+| docs/reviews/2026-09-19-mistral-vibe-interim-council-plan-review.md | docs/reviews/archive/2026-09-19-mistral-vibe-interim-council-plan-review.md |
+| docs/reviews/2026-09-19-mistral-vibe-v1.9.4-release-certification.md | docs/reviews/archive/2026-09-19-mistral-vibe-v1.9.4-release-certification.md |
+| docs/reviews/2026-09-19-owner-release-tag-decision.md | docs/reviews/archive/2026-09-19-owner-release-tag-decision.md |
+| docs/reviews/2026-09-19-owner-run-policy.md | docs/reviews/archive/2026-09-19-owner-run-policy.md |
+| docs/reviews/2026-09-19-qoder-adversarial-review-v1.9.5.md | docs/reviews/archive/2026-09-19-qoder-adversarial-review-v1.9.5.md |
+| docs/reviews/2026-09-19-remediation-council-prompt.md | docs/reviews/archive/2026-09-19-remediation-council-prompt.md |
+| docs/reviews/2026-09-19-systemic-course-correction-prompt.md | docs/reviews/archive/2026-09-19-systemic-course-correction-prompt.md |
+| docs/reviews/2026-09-19-v2-arms-thresholds-discussion.md | docs/reviews/archive/2026-09-19-v2-arms-thresholds-discussion.md |
+| docs/reviews/archive/2026-09-17-three-repository-review.md | docs/reviews/2026-09-17-three-repository-review.md |
+| docs/reviews/archive/2026-09-18-deepseek-flash-p5-gate-review.md | docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md |
+| docs/reviews/archive/2026-09-18-grand-council-consensus-v1.9.0.md | docs/reviews/2026-09-18-grand-council-consensus-v1.9.0.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-mcp-selection-analysis.md | docs/reviews/2026-09-19-deepseek-flash-mcp-selection-analysis.md |
+| docs/reviews/archive/2026-09-19-h1-pilot-design.md | docs/reviews/2026-09-19-h1-pilot-design.md |
+| docs/reviews/2026-09-19-council-synthesis-course-correction.md | docs/reviews/archive/2026-09-19-council-synthesis-course-correction.md |
+| docs/reviews/2026-09-19-deepseek-flash-systemic-audit-response.md | docs/reviews/archive/2026-09-19-deepseek-flash-systemic-audit-response.md |
+| docs/reviews/2026-09-19-eval-p1-owner-approval.md | docs/reviews/archive/2026-09-19-eval-p1-owner-approval.md |
+| docs/reviews/2026-09-19-eval-p3-architect-choice.md | docs/reviews/archive/2026-09-19-eval-p3-architect-choice.md |
+| docs/reviews/2026-09-19-final-course-decision-prompt.md | docs/reviews/archive/2026-09-19-final-course-decision-prompt.md |
+| docs/reviews/2026-09-19-h1-pilot-report.md | docs/reviews/archive/2026-09-19-h1-pilot-report.md |
+| docs/reviews/2026-09-19-open-disagreements-prompt.md | docs/reviews/archive/2026-09-19-open-disagreements-prompt.md |
+| docs/reviews/2026-09-19-v2-remediation-plan.md | docs/reviews/archive/2026-09-19-v2-remediation-plan.md |
+| docs/reviews/archive/2026-09-19-council-synthesis-course-correction.md | docs/reviews/2026-09-19-council-synthesis-course-correction.md |
+| docs/reviews/archive/2026-09-19-final-course-decision-prompt.md | docs/reviews/2026-09-19-final-course-decision-prompt.md |
+| docs/reviews/2026-09-19-eval-p4-directive-execution.md | docs/reviews/archive/2026-09-19-eval-p4-directive-execution.md |
+| docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a3-reaudit.md |
+| docs/reviews/2026-09-19-deepseek-flash-trackc-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-trackc-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-c1a-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-c1a-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-ci-hotfix-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-ci-hotfix-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-stop-cycle-fix-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-stop-cycle-fix-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-a5-b-audit-addendum.md | docs/reviews/archive/2026-09-19-deepseek-flash-a5-b-audit-addendum.md |
+| docs/reviews/2026-09-19-deepseek-flash-c1-audit-addendum.md | docs/reviews/archive/2026-09-19-deepseek-flash-c1-audit-addendum.md |
+| docs/reviews/2026-09-19-mistral-vibe-final-v1.9.5-followup-plan-review.md | docs/reviews/archive/2026-09-19-mistral-vibe-final-v1.9.5-followup-plan-review.md |
+| docs/reviews/2026-09-18-deepseek-flash-v1.9.3-audit-r2.md | docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.3-audit-r2.md |
+| docs/reviews/2026-09-19-gemini-opus-final-plan-adversarial-review.md | docs/reviews/archive/2026-09-19-gemini-opus-final-plan-adversarial-review.md |
+| docs/reviews/2026-09-18-mistral-medium-3.5-adversarial-audit-v2.md | docs/reviews/archive/2026-09-18-mistral-medium-3.5-adversarial-audit-v2.md |
+| docs/reviews/2026-09-18-mistral-vibe-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-mistral-vibe-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-gemini-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-gemini-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-deepseek-flash-performance-analysis.md | docs/reviews/archive/2026-09-18-deepseek-flash-performance-analysis.md |
+| docs/reviews/2026-09-18-mistral-medium-3.5-adversarial-audit.md | docs/reviews/archive/2026-09-18-mistral-medium-3.5-adversarial-audit.md |
+| docs/reviews/2026-09-18-gemini-v1.9.4-adversarial-audit.md | docs/reviews/archive/2026-09-18-gemini-v1.9.4-adversarial-audit.md |
+| docs/reviews/2026-09-18-mistral-vibe-audit-v1.9.md | docs/reviews/archive/2026-09-18-mistral-vibe-audit-v1.9.md |
+| docs/reviews/2026-09-18-grand-adversarial-consensus-v1.9.4.md | docs/reviews/archive/2026-09-18-grand-adversarial-consensus-v1.9.4.md |
+| docs/reviews/2026-09-19-deepseek-flash-c1-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-c1-audit.md |
+| docs/reviews/2026-09-19-gemini-c1a-prompt.md | docs/reviews/archive/2026-09-19-gemini-c1a-prompt.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-a3-reaudit.md | docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-a5-b-audit-addendum.md | docs/reviews/2026-09-19-deepseek-flash-a5-b-audit-addendum.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-c1-audit-addendum.md | docs/reviews/2026-09-19-deepseek-flash-c1-audit-addendum.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-c1-audit.md | docs/reviews/2026-09-19-deepseek-flash-c1-audit.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-c1a-audit.md | docs/reviews/2026-09-19-deepseek-flash-c1a-audit.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-ci-hotfix-audit.md | docs/reviews/2026-09-19-deepseek-flash-ci-hotfix-audit.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-stop-cycle-fix-audit.md | docs/reviews/2026-09-19-deepseek-flash-stop-cycle-fix-audit.md |
+| docs/reviews/archive/2026-09-19-deepseek-flash-trackc-audit.md | docs/reviews/2026-09-19-deepseek-flash-trackc-audit.md |
+| docs/reviews/2026-09-18-unified-adversarial-audit-prompt.md | docs/reviews/archive/2026-09-18-unified-adversarial-audit-prompt.md |
+| docs/reviews/2026-09-18-copilot-sdk-adversarial-audit-v1.9.4.md | docs/reviews/archive/2026-09-18-copilot-sdk-adversarial-audit-v1.9.4.md |
+| docs/reviews/2026-09-18-qwen-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-qwen-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-multi-model-consensus-refutation.md | docs/reviews/archive/2026-09-18-multi-model-consensus-refutation.md |
+| docs/reviews/2026-09-19-interim-plan-adversarial-review-prompt.md | docs/reviews/archive/2026-09-19-interim-plan-adversarial-review-prompt.md |
+| docs/reviews/2026-09-19-final-plan-adversarial-review-prompt.md | docs/reviews/archive/2026-09-19-final-plan-adversarial-review-prompt.md |
+| docs/reviews/2026-09-19-deepseek-flash-interim-council-plan-review.md | docs/reviews/archive/2026-09-19-deepseek-flash-interim-council-plan-review.md |
+| docs/reviews/2026-09-19-deepseek-flash-final-followup-plan-v1.9.5.md | docs/reviews/archive/2026-09-19-deepseek-flash-final-followup-plan-v1.9.5.md |
+
+| docs/reviews/2026-09-18-copilot-audit-v1.9.3-audit.md | docs/reviews/archive/2026-09-18-copilot-audit-v1.9.3-audit.md |
+| docs/reviews/2026-09-18-copilot-audit-v1.9.md | docs/reviews/archive/2026-09-18-copilot-audit-v1.9.md |
+| docs/reviews/2026-09-19-codex-trackc-h1-probes.cjs | docs/reviews/archive/2026-09-19-codex-trackc-h1-probes.cjs |
+| docs/reviews/2026-09-19-council-synthesis-course-correction.md | docs/reviews/archive/2026-09-19-council-synthesis-course-correction.md |
+| docs/reviews/2026-09-19-course-correction-adversarial-audit-prompt.md | docs/reviews/archive/2026-09-19-course-correction-adversarial-audit-prompt.md |
+| docs/reviews/2026-09-19-deepseek-flash-interim-council-plan.md | docs/reviews/archive/2026-09-19-deepseek-flash-interim-council-plan.md |
+| docs/reviews/2026-09-19-deepseek-flash-interim-plan-addendum-context-and-decision-freeze.md | docs/reviews/archive/2026-09-19-deepseek-flash-interim-plan-addendum-context-and-decision-freeze.md |
+| docs/reviews/2026-09-19-eval-p2-decision-maker.md | docs/reviews/archive/2026-09-19-eval-p2-decision-maker.md |
+| docs/reviews/2026-09-19-final-course-decision-prompt.md | docs/reviews/archive/2026-09-19-final-course-decision-prompt.md |
+| docs/reviews/2026-09-19-gemini-mcp-candidates-deep-research.md | docs/reviews/archive/2026-09-19-gemini-mcp-candidates-deep-research.md |
+| docs/reviews/2026-09-19-mcp-context-layer-discussion-basis.md | docs/reviews/archive/2026-09-19-mcp-context-layer-discussion-basis.md |
+| docs/reviews/2026-09-19-mistral-mcp-candidates-research.md | docs/reviews/archive/2026-09-19-mistral-mcp-candidates-research.md |
+| docs/reviews/2026-09-19-universal-council-prompt-mcp-context-layer.md | docs/reviews/archive/2026-09-19-universal-council-prompt-mcp-context-layer.md |
+| docs/reviews/2026-09-20-mcp-research-consolidation.md | docs/reviews/archive/2026-09-20-mcp-research-consolidation.md |
+
+| docs/reviews/2026-09-20-codex-paired-cycle-audit-prompt.md | docs/reviews/archive/2026-09-20-codex-paired-cycle-audit-prompt.md |
+| docs/reviews/2026-09-20-mcp-stack-council-round1-prompt.md | docs/reviews/archive/2026-09-20-mcp-stack-council-round1-prompt.md |
+| docs/reviews/2026-09-20-mcp-architecture-council-prompt.md | docs/reviews/archive/2026-09-20-mcp-architecture-council-prompt.md |
+| docs/reviews/2026-09-20-deepseek-paired-cycle-wave-a-review.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-a-review.md |
+| docs/reviews/2026-09-20-deepseek-cycle-closure-review.md | docs/reviews/archive/2026-09-20-deepseek-cycle-closure-review.md |
+| docs/reviews/2026-09-20-mcp-council-round2-synthesis.md | docs/reviews/archive/2026-09-20-mcp-council-round2-synthesis.md |
+| docs/reviews/2026-09-20-deepseek-gemini-cycle-resume-prompt.md | docs/reviews/archive/2026-09-20-deepseek-gemini-cycle-resume-prompt.md |
+| docs/reviews/2026-09-20-deepseek-paired-cycle-remediation-dispatch.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-remediation-dispatch.md |
+| docs/reviews/2026-09-19-deepseek-course-correction-certification.md | docs/reviews/archive/2026-09-19-deepseek-course-correction-certification.md |
+| docs/reviews/2026-09-19-deepseek-flash-a3-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a3-audit.md |
+| docs/reviews/2026-09-19-gemini-remediation-advice.md | docs/reviews/archive/2026-09-19-gemini-remediation-advice.md |
+
+| docs/reviews/2026-09-19-grand-consensus-systemic-course-correction-v2.md | docs/reviews/archive/2026-09-19-grand-consensus-systemic-course-correction-v2.md |
+| docs/reviews/2026-09-20-gemini-cycle-closure-report.md | docs/reviews/archive/2026-09-20-gemini-cycle-closure-report.md |
+| docs/reviews/2026-09-19-gemini-course-correction-implementation-prompt.md | docs/reviews/archive/2026-09-19-gemini-course-correction-implementation-prompt.md |
+| docs/reviews/2026-09-20-deepseek-gemini-wave-c-remediation-prompt.md | docs/reviews/archive/2026-09-20-deepseek-gemini-wave-c-remediation-prompt.md |
+
+| docs/reviews/2026-09-19-gemini-course-correction-implementation-report.md | docs/reviews/archive/2026-09-19-gemini-course-correction-implementation-report.md |
+
+| docs/reviews/2026-09-19-gemini-course-correction-implementation-report.md | docs/reviews/archive/2026-09-19-gemini-course-correction-implementation-report.md |
+| docs/reviews/2026-09-20-cycle-architecture-council-prompt.md | docs/reviews/archive/2026-09-20-cycle-architecture-council-prompt.md |
+| docs/reviews/2026-09-20-deepseek-paired-cycle-wave-c-review.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-c-review.md |
+| docs/reviews/2026-09-20-claude-cycle-architecture-statistical-audit.md | docs/reviews/archive/2026-09-20-claude-cycle-architecture-statistical-audit.md |
+
+| docs/reviews/2026-09-20-final-cycle-architecture-strategy.md | docs/reviews/archive/2026-09-20-final-cycle-architecture-strategy.md |
+| docs/reviews/2026-09-20-final-cycle-architecture-adversarial-prompt.md | docs/reviews/archive/2026-09-20-final-cycle-architecture-adversarial-prompt.md |
+| docs/reviews/2026-09-20-cycle-architecture-council-prompt.md | docs/reviews/archive/2026-09-20-cycle-architecture-council-prompt.md |
+
+| docs/reviews/2026-09-20-gemini-cycle-architecture-adversarial-review.md | docs/reviews/archive/2026-09-20-gemini-cycle-architecture-adversarial-review.md |
+
+| docs/reviews/2026-09-20-codex-cycle-architecture-certification.md | docs/reviews/archive/2026-09-20-codex-cycle-architecture-certification.md |
+
+| docs/reviews/2026-09-20-codex-cycle-architecture-certification-round2.md | docs/reviews/archive/2026-09-20-codex-cycle-architecture-certification-round2.md |
+
+| docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md | docs/reviews/archive/2026-09-18-deepseek-flash-p5-gate-review.md |
+
+| docs/reviews/2026-09-21-claude-cycle-architecture-certification.md | docs/reviews/archive/2026-09-21-claude-cycle-architecture-certification.md |
+
+| docs/reviews/2026-09-21-codex-cycle-architecture-certification-round4.md | docs/reviews/archive/2026-09-21-codex-cycle-architecture-certification-round4.md |
+| docs/reviews/2026-09-20-deepseek-cycle-architecture-review.md | docs/reviews/archive/2026-09-20-deepseek-cycle-architecture-review.md |
+| docs/reviews/2026-09-20-deepseek-paired-cycle-remediation-review.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-remediation-review.md |
+| docs/reviews/2026-09-20-deepseek-paired-cycle-wave-a-review-round2.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-a-review-round2.md |
+| docs/reviews/2026-09-20-deepseek-paired-cycle-wave-b-review.md | docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-b-review.md |
+| docs/reviews/2026-09-20-claude-paired-cycle-wave-c-re-review-round2.md | docs/reviews/archive/2026-09-20-claude-paired-cycle-wave-c-re-review-round2.md |

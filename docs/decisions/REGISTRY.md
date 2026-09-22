@@ -50,3 +50,14 @@ Rules:
 | DEC-0014 | superseded | none | | | PROTO-DEC-0022 |
 | PROTO-DEC-0034 | accepted | none | | | |
 | PROTO-DEC-0035 | accepted | none | | | |
+| PROTO-DEC-0036 | accepted | owner-directive | | | |
+| PROTO-DEC-0037 | accepted | owner-directive | | | |
+| PROTO-DEC-0038 | accepted | owner-directive | | PROTO-DEC-0027 | |
+| PROTO-DEC-0039 | accepted | owner-directive | | | |
+| PROTO-DEC-0039 | reopened | owner-directive | d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1 | | 2026-09-20 RuslanFomenko accepted the paired-cycle audit and directed remediation; PROTO-DEC-0040 |
+| PROTO-DEC-0040 | accepted | owner-directive | | PROTO-DEC-0039 (items 1 and 2f; bounded exception only) | .ai/DECISIONS.md; docs/reviews/2026-09-20-codex-paired-cycle-review.md; docs/reviews/2026-09-20-deepseek-gemini-paired-cycle-remediation-prompt.md |
+| PROTO-DEC-0039 | accepted | owner-directive | d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1 | | Freeze continues with the finite PROTO-DEC-0040 exception; product pilot and post-pilot restrictions unchanged |
+| PROTO-DEC-0041 | accepted | owner-directive | d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1 | refines PROTO-DEC-0038 item 1 (no supersession) | .ai/DECISIONS.md; docs/research/2026-09-20-cycle-architecture/claude-final-decision.md; docs/reviews/2026-09-20-deepseek-gemini-cycle-architecture-dispatch.md |
+| PROTO-DEC-0042 | accepted | owner-directive | d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1 | refines PROTO-DEC-0040 item 4 (no supersession) | Receipt freshness bound to the attested task; measured 2026-09-22: producer/controller exit 0, certifiers exit 1 by closure order; cycle-architecture criterion met, product pilots unblocked |
+| PROTO-DEC-0043 | accepted | owner-directive | d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1 | | Terminal agent-to-agent invocation contract .ai/docs/CLI-AGENTS.md added to managed; roster verified by execution; DeepSeek terminal path measured impossible (context budget); bounded exception to PROTO-DEC-0039 item 1 |
+| PROTO-DEC-0044 | accepted | owner-directive | d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1 | | Layers A/B/C: session-start inventory, derived decisions index, coverage and duplicate ledger; all advisory under PROTO-DEC-0034 item 1; bounded exception to PROTO-DEC-0039 item 1; validator 0 warnings, suite 315/315 |

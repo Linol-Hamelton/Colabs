@@ -1599,6 +1599,130 @@ Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19; trans
 
 ---
 
+### PROTO-DEC-0036
+
+Status: Accepted
+Date: 2026-09-19
+Reopen-trigger: owner-directive
+
+Context:
+H1 (Arm B) failed the pre-registered thresholds under every cohort interpretation: broad total +72.79%, broad fresh +9.10%, narrow total +60.20%, narrow fresh +42.76% (`docs/reviews/2026-09-19-h1-pilot-report-correction.md`). The raw digest is ~88k tokens while control sessions used 45-73k fresh tokens, so the index is larger than the work it was meant to save. The `PROTO-DEC-0035` stop rule was executed as written; the post-mortem's B2/B3/B4/C2 follow-on is sunk-cost escalation, not a violated rule.
+
+Decision:
+1. Track C / Repomix is closed permanently for this repository. No B2, B3, B4 or C2 runs; no MCP adoption; no further index experiments.
+2. `PROTO-DEC-0034` (M0 context digest and C2 external tooling policy) remains recorded policy and in full force: the on-demand digest is advisory, never Evidence, never a gate input, and no workflow may depend on it.
+3. Local 8B/9B models stay on disk but are never subjects of a pilot or benchmark; further pulls are aborted. `ollama rm` is the owner's call.
+4. If the owner reopens this track by directive, the pre-registered rules apply unchanged: fresh tokens (`in + out`) primary and total secondary; the pre-registered thresholds of 25% median broad total-token reduction and <= +5% narrow bound stand for any future candidate; "tokens per accepted finding" rejected; free/local subjects for tests, paid for analysis/coding, Gemini exception via `agy`; borrowed HF credits are not free; remote route `agy`/Gemini only.
+5. Reversal evidence is the closure falsifier only: a pre-registered controlled run on this repository showing >= 25% median broad total-token reduction and <= +5% narrow regression against a matched control, on a second model family, with scope-selection cost counted in the total - or a genuine repository-shape change making search impractical.
+
+Reasoning:
+The arithmetic is decisive without another run; `rg`/targeted reads are O(relevant) with zero generation latency. The escalation is named as sunk cost so future sessions do not replay it, and the measurement rules are kept conditional rather than erased.
+
+Alternatives rejected:
+B2-first reinterpretation (reintroduces the cost being optimized and re-litigates a pre-registered stop); lowering thresholds to 20%/+3% (goalpost-shifting); full erasure of the measurement policy (a future legitimate run would rebuild it from scratch).
+
+Consequences:
+No further index/MCP spend; context effort moves to corpus retention. `PROTO-DEC-0035` stands as executed history.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19, transcribed by gemini-b67e88f213c39b83)
+
+---
+
+### PROTO-DEC-0037
+
+Status: Accepted
+Date: 2026-09-19
+Reopen-trigger: owner-directive
+
+Context:
+`PROTO-DEC-0026` created `docs/reviews/` as permanent, unbounded, Git-tracked history with no budget; it reached 138 files / ~1.47 MB against a 2,826-line kernel, and it is the dominant context cost. `PROTO-DEC-0032` binds `gate-check` to review paths cited in certified receipts, so a blind move can break an active binding.
+
+Decision:
+1. Two-tier corpus: the active window is `docs/reviews/` minus `docs/reviews/archive/`; it holds the current release's certifying documents plus every path cited by a live (verifying) receipt, an open task or an open decision. Everything else moves to `docs/reviews/archive/`.
+2. Classify-first only. Run `node .ai/bin/protocol.cjs doctor` and `node .ai/bin/protocol-handoff.cjs gate-check` before and after; keep an append-only `docs/reviews/archive/INDEX.md` mapping old -> new path per file; if any verification fails, restore the moved file to its cited path.
+3. Hard cap in `AGENTS.md` section 8: active `docs/reviews/` <= 60 files and 600 KB (recommended, owner-tunable), overflow archived at release close; validator WARN at the cap and FAIL one release after adoption (registry migration style).
+4. The synthesis section 5 keep-list is adopted as a hard constraint on any cleanup or refactor: append-only `DECISIONS.md`/`REGISTRY.md`/`ARCHIVE.md`; no receipt invalidation; the four earned fixes; lock discipline; secret scanning; no protocol commits in consumer repositories.
+5. Never-touch list: `.ai/DECISIONS.md`, `docs/decisions/REGISTRY.md`, and `.ai/ARCHIVE.md` are never touched by the archive pass; archiving moves text, never deletes it.
+
+Reasoning:
+The corpus is the problem, not the kernel; a cap plus receipt-aware archiving recovers context without destroying history or breaking gates. The keep surface is derivable from live citations and active certification headers.
+
+Alternatives rejected:
+Mass-move everything non-active (Gemini) can break receipt bindings; keep only the last 5-10 files (GLM) has no receipt awareness; delete spent data violates the archive-never-delete rule.
+
+Consequences:
+Active corpus falls toward ~50-60 files; archived files stay tracked under `archive/` with one index lookup; future overflow is mechanical.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19, transcribed by gemini-b67e88f213c39b83)
+
+---
+
+### PROTO-DEC-0038
+
+Status: Accepted
+Date: 2026-09-19
+Supersedes: PROTO-DEC-0027 (item 1 only)
+Reopen-trigger: owner-directive
+
+Context:
+The mandatory adversarial prompt caught F-001..F-004 in the last round and ten reproduced findings in DEC-0021, so it pays for itself on the protocol core. A 10-page prompt+report pair for every docs or one-line change is the artifact-inflation driver. The prompt's s.2 ID reference to `PROTO-DEC-0021` is corrected here to `DEC-0021`.
+
+Decision:
+1. Full adversarial prompt+report pairs remain mandatory for protocol core: anything under `.ai/`, `.claude/`, hooks, validator and gates, plus consumer security/data paths. This explicitly supersedes PROTO-DEC-0027 item 1 only; items 2 through 7 of PROTO-DEC-0027 remain in full force.
+2. Docs, config and one-line fixes require one independent reviewer statement (a review file or a journal-visible verdict); no prompt+report pair.
+3. Prompt and report artifacts are size-capped unless an incident warrants more: prompt <= 150 lines, report <= 250 lines (owner-tunable).
+4. `AGENTS.md` section 2 mandatory-prompt language and `QUICKSTART.md` section 2 are updated to this scale.
+5. No new monitoring or enforcement layers (D9); C1a (`d38d2f2`) is a bug fix, not a precedent for instrumentation.
+
+Reasoning:
+Scale by blast radius keeps the defect class the protocol exists to catch while removing the volume driver. One reviewer statement is a deliberately lower bar for low-blast-radius changes.
+
+Alternatives rejected:
+Full suspension except major releases (GLM) drops the mechanism that caught real defects; status quo keeps unbounded review artifacts.
+
+Consequences:
+Review artifact volume drops sharply; core review rigor is unchanged; the lighter path is explicitly recorded so it cannot be confused with no review.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19, transcribed by gemini-b67e88f213c39b83)
+
+---
+
+### PROTO-DEC-0039
+
+Status: Accepted
+Date: 2026-09-19
+Reopen-trigger: owner-directive
+
+Context:
+The mission in `.ai/PLAN.md:51-54` was never executed and all five `## Review` boxes are unchecked; consumer repositories have had no product work while the protocol audited itself. The audit round is substantively closed except for the Qoder downgrade, the Codex receipt and the record pass. Per owner ruling Q4, the pilot will execute across both consumer repositories (`D:\Block-Puzzle` and `D:\VPN`).
+
+Decision:
+1. Feature freeze: protocol work is limited to P0 defects (data loss, security, false green, broken install) and audit closure until the product-pilot report exists.
+2. Product pilot per `.ai/PLAN.md` across both `D:\Block-Puzzle` and `D:\VPN`:
+   a. Triage each consumer repository first: read the parked diff (43 dirty files in Block-Puzzle, 34 in VPN), finish-or-revert, run the product's own tests, make one commit; no new task over a dirty tree.
+   b. Two disjoint sessions, one per repository; no shared agent or task (`DEC-0020` duplicate-assignment failure is the named risk).
+   c. One owner-named objective and pre-agreed metrics from `PLAN.md:63-68` per repository before its first task; the 10-20 task pilot budget is split across both repositories.
+   d. Control arm: "one task file + one handoff note" (`PLAN.md:67-68`) applied in both repositories.
+   e. Protocol sessions never commit inside consumer repositories (PROTO-DEC-0025 item 4); consumers are upgraded from v1.9.4 inside their own sessions.
+   f. No protocol changes during the pilot except P0.
+   g. Kill criterion: if the protocol arm does not beat the "one task file + one handoff note" control on the pre-agreed metrics, report it and move the v2.0 decision to reduction/retirement.
+3. v2.0 scope, scheduled after the pilot report: a single Node validator per `PROTO-DEC-0025` item 5 with differential verification against the PowerShell reference; extract process liveness into a leaf module to break the require cycle (`protocol-lock.cjs:10` -> `protocol-session.cjs:26` -> `protocol-hooks.cjs:553` -> `protocol-archive.cjs:11-12` -> lock); split `protocol-handoff.cjs` (1,047 lines) into snapshot/evidence/gate; no new gates; existing hashes and receipt formats are frozen, not deleted.
+4. Audit closure: Qoder -> advisory (header `Receipt-Owner: qoder-86c43a9a02fd9789` does not match journal `qoder-4d1795a4ffecb995`; the review file remains immutable); Codex receipt re-recorded at the freeze; C1a accepted; `.ai/TASK.md` reconciled; journals restored to <= 30 files.
+5. Record pass: one lock holder, order Gemini -> DeepSeek -> Codex (if available); receipts recorded only after the tree is final; CI green on the frozen tree. Agent Manager and CLI/`agy` are both recorded execution vectors, chosen per task.
+
+Reasoning:
+The pilot is the highest-value action available and the only test of the protocol's consumer value. v2.0 before that data would repeat the current mistake at lower cost. Running both repositories honors the owner's directive while the structural mitigations prevent duplicate-assignment failures and dirty-tree contamination.
+
+Alternatives rejected:
+Continuing protocol work first (S1 scenario rejected); running v2.0 immediately (non-urgent, unverifiable against product value); treating C1a as a precedent for more instrumentation (D9); running unmitigated parallel pilots without triage.
+
+Consequences:
+Consumer repositories receive the next full work window; v2.0 becomes a reduction, not an expansion; this task's completion gate follows PROTO-DEC-0038.
+
+Approved by: RuslanFomenko (direct owner confirmation in chat, 2026-09-19, transcribed by gemini-b67e88f213c39b83)
+
+---
+
 ## Template for new decisions
 
 ### DEC-nnnn
@@ -1623,3 +1747,154 @@ Consequences:
 _What this costs, and what it now constrains._
 
 Approved by: _a human name; an agent may not fill this in for itself_
+
+---
+
+### PROTO-DEC-0040
+
+Status: Accepted
+Date: 2026-09-20
+Supersedes: PROTO-DEC-0039 (items 1 and 2f only, solely for the bounded paired-cycle exception below)
+Reopen-trigger: owner-directive
+
+Context:
+The owner confirmed the initial docs-only paired-cycle exception and then accepted the independent audit `docs/reviews/2026-09-20-codex-paired-cycle-review.md` (FAIL for accepting the runbook). The owner explicitly requested: "Принял. Зафиксируй доработки во все необходимые докуенты репозитория и подготовь промт для тандема дипсик-гемини для полного устранения всех недостатков. При необходимости со сстыками на отчеты." This records authorization to document and dispatch remediation, not a claim that the defects have been fixed.
+
+Decision:
+1. Authorize the existing `.ai/docs/PAIRED-CYCLE.md` managed deliverable and the coordinated 1.9.6 working-tree version, plus narrowly bounded remediation of the accepted audit findings. The exception now explicitly includes the required validator/handoff tests and fixes; it is no longer described as docs-only. This is not permission to commit, tag, push or install into consumer repositories.
+2. Scope: host-edit digest classification; complete core review/closure ordering; executable prompt templates, deep verification and session ownership; durable review/evidence sequencing; manifest/template regression coverage; a separately reviewed correction of the existing PROTO-DEC-0038 risk-scaling mismatch; reconciliation of source/installed review-path documentation and already-approved corpus/journal budget handling. Preserve full review for core/security/data changes and existing evidence integrity guarantees. Missing or ambiguous risk classification must not weaken the core path.
+3. Codex records governance, task, plan and dispatch now. Gemini implements within the dispatch. DeepSeek controls scope and independently reproduces/verifies each finding; if DeepSeek authors a fix, an independent reviewer must certify that fix. Further reviewers are used only for unresolved disagreement or an explicit high-risk review need. Historical reviews remain immutable.
+4. This task uses the full core prompt+report process. An implementer-authored unified adversarial prompt must be saved before final independent review. Mandatory unresolved fixes require FAIL; RECOMMENDATION is reserved for optional improvements. Record final-tree receipts after all relevant artifacts/state changes; verify with --deep and run the applicable gate. An In progress gate-check result is not a completed-task certification.
+5. Existing PROTO-DEC-0037 retention rules remain binding: classify before archiving, preserve active/cited evidence and live or unknown-liveness sessions, and never delete history. Review-corpus archiving must not rewrite the decision/registry/archive ledgers. Journal archival uses the existing append-only archive mechanism under the lock. Any implementation of the already-approved budget warning stays in the existing validator; no new monitoring service, gate or receipt format is authorized.
+6. PROTO-DEC-0039 remains in force outside this finite exception; PROTO-DEC-0036 is not reopened. Frozen product objectives and five metric categories remain unchanged. Return to the product pilots after independent remediation acceptance; v2.0, MCP/index experiments and unrelated refactors remain deferred. A release commit and annotated tag require a separate owner instruction under PROTO-DEC-0025; absence of a tag for this dirty candidate is not itself a defect.
+
+Reasoning:
+The audit reproduced integration and process defects that a green existing suite missed. A finite correction with negative regression tests is warranted; a new protocol architecture or another open-ended council is not. The owner acceptance supplies the dated exception provenance that was missing from TASK alone.
+
+Alternatives rejected:
+Calling validator edits docs-only; marking the runbook accepted with mandatory fixes open; dropping the version solely because an unreleased tag is absent; weakening core certification to make low-risk tasks pass; reopening all feature work; changing product metrics or executing product upgrades from this session.
+
+Consequences:
+Implementation is pending. `.ai/PLAN.md` maps the findings to acceptance tests and `docs/reviews/2026-09-20-deepseek-gemini-paired-cycle-remediation-prompt.md` is the dispatch. Registry rows record the narrow reopening and return to Accepted with this exception. No prior decision block is rewritten.
+
+Approved by: RuslanFomenko (direct owner acceptance and remediation-dispatch instruction, 2026-09-20; transcribed by Codex session codex-0ac708f2c86fbf4c)
+
+### PROTO-DEC-0041
+
+Status: Accepted
+Date: 2026-09-20
+Reopen-trigger: owner-directive
+
+Context:
+Four independent analyses of the repository's own history were produced on 2026-09-20: a statistical audit (Claude), an adversarial review of it (Gemini), research plus a P0-P11 plan (GPT/Codex), and a consolidating strategy (DeepSeek). Cross-checking found that four quantitative claims of the first audit were wrong and they were corrected by independent recomputation: the reviewer-count curve was averaged over mismatched cohort sets (on matched cohorts with n>=4 the miss rates are 50.00 / 27.14 / 15.71 / 7.14 percent for k=1..4, so the k=3 to k=4 gap is 8.57 points, not 0.8, and no knee exists); the "48 percent detection" figure was the share of blocking verdicts, not detection; the "one to two items per block" rule was falsified by Wave B, whose two items were both overturned; and the A2 case was a self-correction by the same reviewer rather than an external catch. A further measurement, not made by any of the four analyses, compared the finding lists rather than the verdicts in the paired-cycle cohort: all three reviewers independently reported 7 of 7 identical defects and diverged only on severity, with the entire verdict turning on one item rated HIGH by one reviewer and MEDIUM by two. Two primary sources were verified directly: Kaesberg et al., Findings of ACL 2025, states that increasing the number of agents improves performance while more discussion rounds before voting reduce it; Porter's 88-inspection study finds one reviewer less effective than two but two no less effective than four. The owner approved a hybrid recording form in direct conversation: only the rules already derivable from binding decisions and demonstrated by this history are recorded here, while the phase sequence, round counts and access-authorization scheme remain PLAN-level policy until the pilot report.
+
+Decision:
+1. Certification independence. A CERTIFYING verdict on a high-risk candidate may not be issued by the author, the executor, the controller of that candidate, or any member of the executing pair. The coordinator may shape tasks, dispatch waves and review other independent work, but may not certify what it controlled. This refines PROTO-DEC-0038 item 1 and weakens no existing gate.
+2. Minimum independent review for high-risk. The final check of a high-risk candidate (protocol core, security, data, invariants, upgrade and migration paths) requires no fewer than two parallel independent reviewers. They receive the same input package, work simultaneously, do not read each other's new answers before fixing their own, and each is given a distinct angle of attack. A third reviewer is added only for an uncovered risk, contradicting reproductions, or an explicit owner directive.
+3. Closed verdict vocabulary, forward only. A review artifact cited by a completion gate and dated after 2026-09-20 carries exactly one verdict token: PASS, RECOMMENDATION, FAIL or BLOCKED. Conditional outcomes are expressed as FAIL with an explicit list of conditions; explanations belong in the body, never in the token. A mandatory open defect is FAIL; a missing required check or capability is BLOCKED; RECOMMENDATION covers only optional improvements. Artifacts dated 2026-09-20 or earlier keep their historical forms and are never rewritten. Measured scale at the time of this decision: of 115 artifacts carrying a Verdict line, 56 (48.7 percent) match the closed set and 59 (51.3 percent) deviate across 57 distinct forms.
+4. Objective blocking rule and severity rubric. Any reproduced defect that violates a recorded invariant or contract, or that lies on a protected path (core, security, data, gates, hooks, validator, manifest), blocks regardless of the severity label the reviewer chose; its verdict is FAIL and it may not be lowered to RECOMMENDATION. The rubric orders work inside the findings ledger and does not decide blocking by itself: HIGH is a violated invariant, a bypassed gate, or lost data or evidence; MEDIUM is a violated contract or documented behaviour without a bypassed gate, blocking when it lies on a protected path; LOW is a documentation-to-behaviour divergence or incomplete coverage and goes to the backlog; INFO is an observation and is not a defect of the candidate.
+5. Symmetry of evidence. A refutation of a finding carries the same burden of proof as the finding and is verified on the same relevant state. A synthesis that dismisses findings is checked exactly as the findings are. A later fix does not refute a historical finding, and a majority does not override a reproduction.
+6. Not recorded here and remaining PLAN-level policy until the pilot report: the seven-phase sequence, the one-primary-pass rule with its four repeat triggers, the block definition, the access tiers T0-T4 and the block authorization record. These are unvalidated by any completed cycle and are deliberately left reversible.
+
+Reasoning:
+Items 1, 3, 4 and 5 are each demonstrated by an event in this repository's history, and items 1 to 3 only make explicit what PROTO-DEC-0038 and the existing completion gate already require. Item 4 is the cheapest available fix for the failure mode actually measured: reviewers detected every defect and disagreed only on whether it blocked, so an objective blocking criterion removes the divergence without adding a single reviewer or round. Item 2 follows Porter's only statistically significant step and the largest observed drop in this repository's own cohorts, and stops short of a third reviewer because the data identifies no optimum and the owner set the budget. Recording the validated rules while leaving the untested structure at PLAN level keeps the irreversible append-only ledger free of an unproven architecture.
+
+Alternatives rejected:
+Recording the full seven-phase architecture as a decision block before any cycle has run under it; keeping every rule at PLAN level, where AGENTS section 1 ranks it below DECISIONS and the anti-idle rules could be argued away by citing a higher source; mandating three reviewers or two rounds per phase, which the corrected arithmetic does not support and which Kaesberg's verified result contradicts for rounds; ranking participating models by their share of FAIL verdicts, which conflates model, assigned role, task and phase and was withdrawn after a report whose header reads "Gemini (Claude Opus 4.6 Thinking, operating in gemini role)"; rewriting historical verdicts to fit the closed vocabulary.
+
+Consequences:
+`.ai/PLAN.md` carries the PLAN-level policy named in item 6. `docs/reviews/2026-09-20-deepseek-gemini-cycle-architecture-dispatch.md` is the implementation dispatch and is bound by this block. The full analysis, corrections and verified sources are in `docs/research/2026-09-20-cycle-architecture/claude-final-decision.md`. PROTO-DEC-0038, 0039 and 0040 stay in force and are not weakened; no new kernel gate is authorized, and the scope and forbidden-path checks described in the PLAN policy are manual reviewer duties recorded in the findings ledger. By item 1 this decision's own implementation cannot be certified by the DeepSeek-Gemini pair.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-20, hybrid recording form and the two-reviewer high-risk budget chosen in conversation; transcribed by claude-b33fa6764f37f5ae)
+
+---
+
+### PROTO-DEC-0042
+
+Status: Accepted
+Date: 2026-09-22
+Reopen-trigger: owner-directive
+
+Context:
+`.ai/TASK.md` carried the open acceptance criterion "Final-tree receipts for both owners verify --deep", and it blocked the product pilots for two days. Nobody ran the check. Measured on 2026-09-22 against the tree at anchor d38d2f2: the paired-cycle producer `gemini-927b6b871251a111` and controller `deepseek-59c81998639a4feb` both return exit 0, "evidence matches the current tree"; the two certifier receipts `claude-cf505493500f999e` and `codex-eb8786999ebfc7c2` return exit 1, stale, recorded sha256:8c81dff7... against tree sha256:2241e32e.... They are stale for a structural reason, not a defect: the controller wrote the closure line into `.ai/TASK.md` after both certifications, which is the intended closure order recorded in `deepseek-59c81998639a4feb`. Two parallel independent certifiers required by PROTO-DEC-0041 item 2, combined with a digest bound to the whole tree, make the criterion as written unsatisfiable by construction: whoever records last invalidates the others. The wording "both owners" was the only ambiguity.
+
+Decision:
+1. Receipt freshness is bound to the task a receipt attests, never to the repository's later history. A receipt is fresh if its digest matched the tree at the moment the closure artifacts of its own task were complete. A later, unrelated task that moves the tree does not retroactively invalidate a closed task's receipts.
+2. A certifying reviewer's receipt binds the tree as of its certification. The producer's receipt binds the final tree of its own task and is recorded after all of that task's artifacts and state changes, as PROTO-DEC-0040 item 4 already requires.
+3. Therefore "final-tree receipts for both owners" in a paired cycle means the producer and the controller. Certifier receipts staled by the controller's own closing edit are not a defect, are not a finding against the candidate, and never block completion.
+4. `verify --deep` exit 1 on a receipt belonging to a closed task is evidence about the current tree, not a finding against that task. No reviewer may reopen a closed task on that basis alone; reopening still requires a trigger row under AGENTS section 6.
+5. This refines the freshness semantics of PROTO-DEC-0040 item 4 and supersedes nothing. PROTO-DEC-0038, 0039, 0040 and 0041 stay in force in full, the freeze is unchanged, and no code, gate, kernel or tooling change is authorized by this block.
+6. Consequently the cycle-architecture acceptance criterion is satisfied and the product pilots are unblocked.
+
+Reasoning:
+The criterion could not be met by any sequence of re-recording, so the alternative to a semantic ruling was an unbounded series of coordinated re-records. The chosen rule is the one the tooling already implements for the producer and the one the closure order already assumes for certifiers; it removes an unsatisfiable gate without weakening any check, because a certifier still has to match the tree it certified and the producer still has to match the final tree.
+
+Alternatives rejected:
+Freezing the tree while both certifiers re-record, which costs a coordinated window and breaks again on the next edit; dropping the criterion silently; treating the stale certifier receipts as a defect of the candidate and opening another remediation round; changing `protocol-handoff.cjs` freshness logic, which the freeze forbids and which is unnecessary once the semantics are stated.
+
+Consequences:
+`.ai/TASK.md` records the criterion as met with the measured exit codes. The next protocol change remains limited by PROTO-DEC-0039 item 1. Product work proceeds in its own sessions: VPN (G2 CI gates, then D4 revocation with packet-level proof), Block-Puzzle (triage to one clean commit, DEC-0024 Step 3 open items), and the newly added third repository as a clean control arm with zero protocol edits. The five frozen metric categories are recorded as a by-product of those tasks from `git diff --numstat`, reviewer verdicts and journals; no new pilot activity, telemetry, instrument or review artifact is created for them. The kernel automation package (root-cause stop bound to one findings ledger, executable scope check, author-not-reviewer check) is deferred until after those product tasks and is decided on their measured numbers.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-22, "подтверждаю трактовку"; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0043
+
+Status: Accepted
+Date: 2026-09-22
+Reopen-trigger: owner-directive
+
+Context:
+Agents in this fleet are started directly from terminals, and until now nothing recorded which commands exist, what a call transfers, or who owns the session that results. The owner directed on 2026-09-22 that the rules for direct agent-to-agent invocation be fixed at the repository architecture level and follow from project to project, and named the roster. The roster was then verified by running each binary on the owner's workstation rather than transcribed from the instruction: `agy` (Gemini 3.8/3.7/3.6 Flash in High/Medium/Low plus Gemini 3.1 Pro, `-p`), `codex` (GPT-6 Astra, `codex exec`), `claude` (Opus 5, `-p`), `copilot` (`-p`, `--model auto`), `vibe` (Mistral 2, `-p`). DeepSeek has no terminal client, and the two obvious substitutions were tested and failed measurably: Codex CLI 0.154.0 has dropped `wire_api = "chat"` and accepts only `responses`, while DeepSeek's API is chat-completions; routed through OpenRouter with `wire_api = "responses"` the session authenticates and then fails with `context_length_exceeded`, 181,577 input tokens against a 163,840 limit, with `--ignore-user-config` already removing the local MCP stack. This is a context-budget mismatch in the harness, not a configuration error.
+
+Decision:
+1. `.ai/docs/CLI-AGENTS.md` is the contract for calling another agent from a terminal and is added to `managed` in `protocol-manifest.json`, so the installer delivers it to every project and an upgrade refreshes it. `AGENTS.md` carries a pointer to it.
+2. A call is a dispatch and transfers no authority. A caller cannot grant an approval it does not hold, cannot authorize skipping the completion gate or a `Status: Completed`, and cannot widen the freeze, the forbidden paths or a task's scope by writing a wider scope into a prompt. A called agent refuses the forbidden part, does the rest and records the refusal.
+3. The called agent starts its own session with `protocol-session.cjs start --agent <name>` in the target repository and uses that owner name for its journal, its lock and its evidence. No session writes another session's journal and no caller records a receipt for a callee. Print mode is not a reason to skip the journal.
+4. Terminal output is not Evidence. A result existing only as stdout or in a chat panel is advisory and is persisted, if it matters, through the section 5.5 transcription fallback, marked non-certifying. No agent copies a callee's claimed check result into its own entry as if it had run it.
+5. Invoking an agent and writing its prompt is control of that work. By PROTO-DEC-0041 item 1 the caller may not then issue a CERTIFYING verdict on the result; cheap dispatch does not manufacture independence.
+6. Least privilege is the default: sandboxed or read-only runs where the task only reads, explicit workspace scoping, bounded runs where the CLI supports it, and no permission-bypass flag without owner authorization recorded in the entry. No key, token or password is ever placed in a prompt or on a command line.
+7. DeepSeek participates through its IDE or chat interface under the section 5.5 fallback until a larger-context DeepSeek model or a smaller harness makes a terminal client work; a re-test records the measurement, not an impression.
+8. This is a bounded owner-directed exception to the PROTO-DEC-0039 item 1 freeze, limited to this documentation and the one `managed` list entry. No kernel, hook, validator, gate or behavioural change is authorized, and no existing rule is weakened. PROTO-DEC-0038, 0039, 0040, 0041 and 0042 stay in force.
+
+Reasoning:
+The rules being written down already followed from `AGENTS.md`; what was missing was a place where an agent about to call another one would find them, and a delivery mechanism that carries them into host projects. Recording the roster from measurement rather than from the instruction also produced the DeepSeek finding, which would otherwise have been repeated as an assumption. The change is additive documentation plus one manifest list entry, so it adds no execution path and can be reverted by removing the file and the entry.
+
+Alternatives rejected:
+Leaving the convention in chat history, which `AGENTS.md` already rules out as project memory; writing it only into this repository's `AGENTS.md`, which does not reach host projects; adding a kernel gate that checks invocations, which the freeze forbids and which nothing yet justifies; recording DeepSeek as unsupported without testing, or as supported through an untested wrapper.
+
+Consequences:
+Installed projects receive the file on install or upgrade. The fleet is split - VPN and Block-Puzzle are at committed `protocolVersion` 1.9.0 while this repository and `D:\Битва за луну` are at 1.9.6 - so those two do not have these rules until they are upgraded or the file is copied in deliberately. That upgrade remains deferred until after the product tasks, because a fleet-wide change during the current measurement adds a confound. This decision's own implementation still needs an independent reviewer statement before any task citing it is marked Completed; the implementing session does not certify it.
+
+Approved by: RuslanFomenko (direct owner directive, 2026-09-22, roster and the project-to-project propagation requirement named in conversation; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0044
+
+Status: Accepted
+Date: 2026-09-22
+Reopen-trigger: owner-directive
+
+Context:
+Two failures in this fleet were measured on 2026-09-22 rather than supposed. First, omission: in `D:\Битва за луну` the primary source of the game concept, `chat-history-6ab1a8fc/`, was tracked from the initial commit and never opened, because `git status` shows only what changed and the section 3 checklist had no inventory step, while each analysis round inherited its source list from the previous prompt instead of from the repository. Seven rounds, four expert reports and a PASS certification were produced on a concept missing both ends of the owner's arc. Second, copying: three assistants mapped `D:\opus_orchestrator` under one contract, and one submission proved to be a byte-identical copy of another's - all 95 records matching by sha256, with modification times equal to the 100-nanosecond tick - which nothing in the protocol could have noticed. A third measurement is the driver behind both: the invariant governance corpus a reviewer must hold is 236,198 B, of which `.ai/DECISIONS.md` alone is 117,321 B and grows about 14,000 B a day under an append-only rule that forbids trimming. The owner directed a three-layer response, A then B then C, and approved it in conversation.
+
+Decision:
+1. Layer A, inventory at session start. `.ai/bin/protocol-hooks.cjs` reads `git ls-files`, keeps document extensions outside `.ai/`, `.claude/`, `.codex/`, `.github/` and `node_modules/`, drops anything under 50,000 B, and injects the eight largest as a bounded `Large tracked documents` block. `AGENTS.md` section 3 carries the matching duty as step 3: take the inventory, not just the diff, and check a task's named sources against it before trusting the list. A scope inherited from a previous prompt is not a verified scope.
+2. Layer B, an addressable index of the decision log. `.ai/bin/protocol-index.cjs` derives `.ai/runtime/decisions-index.md`: one deterministic first-sentence norm per block, and a reverse index from path to the decisions that name it. It carries the sha256 of its source, and `--check` reports staleness without rewriting. `.ai/DECISIONS.md` remains append-only and untouched; the index points at blocks and never restates them.
+3. Layer C, coverage and independence over a corpus. `.ai/bin/protocol-ledger.cjs cover` accounts for every unit of a corpus with a record or an explicit absence, and `dup` reports records shared between producers, by content hash and modification time. Both derive the corpus from the repository and not from the prompt, and both work where the corpus is not a git repository, which is the case already encountered.
+4. All three outputs are derived and disposable, live under `.ai/runtime/`, and are advisory under PROTO-DEC-0034 item 1: never Evidence, never a gate input, never a verdict. A unit without a record is a question, not a defect, because it may be a declared classification; a record with no unit behind it is always a defect. Absence of any of these tools degrades to the existing workflow with identical gate semantics.
+5. `.ai/bin/protocol-index.cjs` and `.ai/bin/protocol-ledger.cjs` join `managed` in `protocol-manifest.json` and propagate to every project; `tests/index.test.cjs` and `tests/ledger.test.cjs` join the test list.
+6. This is a bounded owner-directed exception to the PROTO-DEC-0039 item 1 freeze, limited to the three layers above. PROTO-DEC-0034, 0036, 0038, 0039, 0040, 0041, 0042 and 0043 stay in force in full and none is weakened. No gate, verdict vocabulary, receipt format or completion requirement changes.
+
+Reasoning:
+Each layer answers a failure that happened, at the smallest surface that answers it. Layer A is the cheapest: the missed source was 35,600 tokens of normalised text, so nothing failed to fit; what failed was that nobody knew it existed. Layer B attacks the one cost that grows without bound by design, and does it without touching the append-only ledger, because the index is derived and its staleness is detectable. Layer C automates checks that were performed by hand three times in one day and that caught two defects no self-report contained. Making all three advisory keeps the completion gate independent of external state, so a missing tool changes nothing about what completion requires.
+
+Alternatives rejected:
+Buying larger context or a higher tier to hold the corpus, which would not have opened a file nobody knew about; a vector or semantic memory layer, which cannot surface an omission because the query is never asked - the existing `D:\mcp-memory-data` stack holds 7.2 GB across five populated stores with an empty SQLite memory layer and would not have caught either failure; summarising or trimming `.ai/DECISIONS.md`, which the size-limit table forbids; making any of these tools a gate input, which PROTO-DEC-0034 forbids and which would let external state decide completion; recording three decision blocks for one owner directive.
+
+Consequences:
+Measured at acceptance: the decisions index is 13,932 B against a 117,321 B source, 8.4x, covering 43 blocks and 72 bound paths; the inventory block surfaces the previously missed `chat-history-6ab1a8fc/raw-conversation.json` and `conversation.md` in `D:\Битва за луну`, `docs/design/04_DEC0024_ACCEPTANCE_CRITERIA.md` in `D:\Block-Puzzle`, and nothing in this repository, where no tracked document qualifies; `dup` reproduces the arena finding as 95 cross-set duplicates with identical modification times and zero for the independent run. `validate-protocol.ps1` exits 0 with 0 warnings and `test-protocol.ps1` passes 315/315. Installed projects receive the two new tools on install or upgrade, so VPN and Block-Puzzle, both at committed `protocolVersion` 1.9.0, do not have them until upgraded; that fleet upgrade stays deferred until after the product tasks. All three layers touch protocol-core paths, so PROTO-DEC-0038 item 1 applies: an adversarial prompt and two independent certifiers are required before any task citing this block is marked Completed, and the implementing session certifies none of it.
+
+Approved by: RuslanFomenko (direct owner directive, 2026-09-22, "одобряю все! A -> B(L0) -> C"; transcribed by claude-ebd3e8a8eb29a6d7)

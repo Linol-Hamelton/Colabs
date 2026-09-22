@@ -1,0 +1,3255 @@
+{
+  "schema": 1,
+  "createdUTC": "2026-09-20T16:08:26.996Z",
+  "head": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1",
+  "dirty": true,
+  "method": {
+    "inventory": "All review .md including INDEX; excludes this study codex-cycle-* outputs. First anchored field anywhere after removing Markdown * and backticks; not a certification parser. No model ranking or defect-recall estimator.",
+    "cohorts": "Counts transcribed from Claude table for arithmetic sensitivity ONLY; cohort memberships and shared snapshot were not supplied. miss means fraction of subsets with no blocking verdict, not missed confirmed defects.",
+    "transitions": "Claude 12-row table normalized PASS (+doc)->PASS, annotations removed. Same-verdict content changes not counted as changed verdict.",
+    "snapshot": "File SHA256 values identify exact read inputs. Dirty HEAD alone cannot reproduce these files."
+  },
+  "counts": {
+    "markdownFiles": 170,
+    "excludingIndex": 169,
+    "verdictFields": 108,
+    "reviewerFields": 103,
+    "modeFields": 62,
+    "exactVerdicts": 48,
+    "verdictWithExplanationsOrNonstandard": 60,
+    "archiveDatedEntries": 101,
+    "decisionBlocks": 40,
+    "registryRows": 46,
+    "journals": 31,
+    "commits": 53,
+    "documentsWithURLs": 9
+  },
+  "claudeArithmetic": {
+    "cohorts": [
+      [
+        "v1.9.3",
+        8,
+        4
+      ],
+      [
+        "v1.9",
+        5,
+        1
+      ],
+      [
+        "v1.9.4",
+        3,
+        2
+      ],
+      [
+        "paired-cycle",
+        3,
+        2
+      ],
+      [
+        "v1.9.5 certification",
+        5,
+        4
+      ],
+      [
+        "Track C/H1",
+        3,
+        1
+      ]
+    ],
+    "pooledBlocking": 0.48148148148148145,
+    "changingCohorts": [
+      {
+        "k": 1,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.4",
+          "paired-cycle",
+          "v1.9.5 certification",
+          "Track C/H1"
+        ],
+        "miss": 0.5277777777777778
+      },
+      {
+        "k": 2,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.4",
+          "paired-cycle",
+          "v1.9.5 certification",
+          "Track C/H1"
+        ],
+        "miss": 0.24682539682539684
+      },
+      {
+        "k": 3,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.4",
+          "paired-cycle",
+          "v1.9.5 certification",
+          "Track C/H1"
+        ],
+        "miss": 0.07857142857142857
+      },
+      {
+        "k": 4,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.5 certification"
+        ],
+        "miss": 0.07142857142857144
+      }
+    ],
+    "fixedCohorts": [
+      {
+        "k": 1,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.5 certification"
+        ],
+        "miss": 0.5
+      },
+      {
+        "k": 2,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.5 certification"
+        ],
+        "miss": 0.2714285714285714
+      },
+      {
+        "k": 3,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.5 certification"
+        ],
+        "miss": 0.15714285714285714
+      },
+      {
+        "k": 4,
+        "eligible": [
+          "v1.9.3",
+          "v1.9",
+          "v1.9.5 certification"
+        ],
+        "miss": 0.07142857142857144
+      }
+    ],
+    "transitions": [
+      [
+        "v1.9.3",
+        "FAIL",
+        "FAIL"
+      ],
+      [
+        "P2",
+        "FAIL",
+        "CONDITIONAL"
+      ],
+      [
+        "P5",
+        "PASS",
+        "CONDITIONAL"
+      ],
+      [
+        "A2",
+        "PASS",
+        "CORRECTION REQUIRED"
+      ],
+      [
+        "A3",
+        "FAIL",
+        "PASS"
+      ],
+      [
+        "A5b",
+        "PASS",
+        "PASS"
+      ],
+      [
+        "C1",
+        "PASS",
+        "PASS"
+      ],
+      [
+        "course correction",
+        "FAIL",
+        "RECOMMENDATION"
+      ],
+      [
+        "closure",
+        "FAIL",
+        "PASS"
+      ],
+      [
+        "Wave A",
+        "FAIL",
+        "PASS"
+      ],
+      [
+        "paired remediation",
+        "PASS",
+        "FAIL"
+      ],
+      [
+        "MCP",
+        "RECOMMENDATION",
+        "RECOMMENDATION"
+      ]
+    ],
+    "changedVerdicts": 8
+  },
+  "histogram": {
+    "PASS with one required documentation correction (P5-F1) before the tag": 1,
+    "PASS / APPROVED": 1,
+    "RECOMMENDATION": 21,
+    "PASS": 10,
+    "FAIL": 14,
+    "RECOMMENDATION - all four FAIL findings are fixed and reproduced; the single remaining item is the owner-tunable PROTO-DEC-0037 cap waiver documented by the implementer.": 1,
+    "PASS with two required follow-ups (AUD-1 documentation wording, AUD-4 two missing regression tests), neither of which blocks correctness or the C0 fix.": 1,
+    "PASS - no blocking findings.": 1,
+    "PASS - both blocking defects are fixed and independently reproduced as closed; the earlier FAIL is resolved.": 1,
+    "PASS - no blocking findings. PROTO-DEC-0031 awaits the owner's explicit approval; it must not be inserted with the pending placeholder.": 1,
+    "PASS - finding closed.": 1,
+    "PASS - no blocking findings. One accuracy amendment is recommended for the owner before PROTO-DEC-0033 is transcribed.": 1,
+    "PASS - all three corrections verified; the C1 item is ready to commit.": 1,
+    "PASS for the instrumentation with three required document corrections (D-1..D-3) before the commit. The pilot design itself is sound and its thresholds are correctly pre-registered.": 1,
+    "PASS - the defect is closed with genuine failure-path coverage and independent reproduction.": 1,
+    "REMEDIATION REQUIRED before the tag - four confirmed findings and one package-level defect; no evidence of a release-blocking design flaw beyond them.": 1,
+    "PASS - the CI-invisible failure is fixed under simulated runner conditions; ready to re-record, commit and move the unpublished tag.": 1,
+    "PASS - all five fixes verified independently; ready to commit and to the delta re-certification.": 1,
+    "PASS - the defect is closed with regression coverage; the commit becomes the pilot baseline.": 1,
+    "PASS - no blocking findings. PROTO-DEC-0034 awaits the owner's explicit approval before transcription.": 1,
+    "IMPLEMENTATION COMPLETE": 2,
+    "RECOMMENDATION (Unanimous: RADICAL SIMPLIFICATION / CONTROLLED PIVOT)": 2,
+    "RECOMMENDATION — предложен фиксированный цикл из 7 фаз; три правила подтверждены данными, четыре вывода ограничены малой выборкой": 1,
+    "RECOMMENDATION - CORRECT THE CLAIM BOUNDARY; DO NOT ADOPT YET": 1,
+    "PASS (external limited re-review still required by the acceptance criteria; see Remaining gate)": 1,
+    "BLOCKED": 3,
+    "FAIL (3 критических уязвимости обнаружено)": 1,
+    "FAIL (the synthesis is not fully reliable; three integrity defects remain)": 1,
+    "RECOMMENDATION (proceed to P-2; P-1 not closed until P1-F1 and P1-F2 are resolved)": 1,
+    "FAIL - P-2 is not accepted; do not start P-3 until P2-F1 and P2-F2 are fixed": 1,
+    "CONDITIONAL PASS - P2-F1 fixed, P2-F2 fixed for the reported vector, one bypass remains (P2-F3)": 1,
+    "PASS - P2-F3 closed, P-1 closed; P-3 may start": 1,
+    "PASS - P-3 closed; P-4 may start": 1,
+    "PASS - P-4 closed; P-5 may start": 1,
+    "PASS conditional on P5-F2 (one regression test) before the release tag": 1,
+    "FAIL (2 high, 3 medium, 3 low, 3 informational; every defect is a bounded patch)": 1,
+    "FAIL (4 defects, 3 recommendations; none release-blocking alone, but F-01/F-02 falsify stated invariants)": 1,
+    "RECOMMENDATION (one release blocker remains)": 1,
+    "FAIL (Critical and High severity findings require immediate attention)": 1,
+    "PASS with RECOMMENDATIONS": 1,
+    "PASS - All implementations are robust with minor recommendations for future hardening": 1,
+    "[PASS | FAIL | BLOCKED | RECOMMENDATION]": 1,
+    "RECOMMENDATION - RADICAL SIMPLIFICATION with a defined keep-list": 1,
+    "FAIL (integrity-critical items pass; four reproducible defects below block certification)": 1,
+    "CORRECTION REQUIRED before the final certification - the Item 2 record fix and its tests remain PASS; only the CI review was incomplete.": 1,
+    "FAIL - two reproduced blocking defects. Both are fixable in a small remediation round; the rest of the item verifies.": 1,
+    "PROBES ONLY - non-certifying. Conflict declared: this reviewer's model authored the plan under review; per the dispatch conflict rule it may submit probes but not certify.": 1,
+    "RECOMMENDATION (strategic: RADICAL SIMPLIFICATION)": 1,
+    "PASS (supporting; not a certification)": 1,
+    "RECOMMENDATION - RADICAL SIMPLIFICATION, corrected (sections 3-4)": 1,
+    "ACCEPT WITH AMENDMENTS - принять действия 1, 2, 4 в исправленной форме; действие 3 переформулировать": 1,
+    "FEASIBLE WITH CORRECTIONS - directives 1, 3, 4 are blocked until (a) the owner confirms approval directly, (b) a new certifying review with a fresh receipt exists, and (c) the non-taxonomy reopen trigger is replaced. Directives 2 and 6 are executable; directive 5 is an owner/coordinator action, not a repository edit.": 1,
+    "RECOMMENDATION (Plan is grounded and structurally sound; 4 critical design gaps and 2 mechanical hazards require correction before owner finalization)": 1,
+    "must be PASS or RECOMMENDATION; anything else (including CONDITIONAL PASS) fails.": 1,
+    "none stated by the participant (analysis and delta list only)": 1,
+    "Arm B FAILS the pre-registered adoption gate under both token definitions; the stop rule from PROTO-DEC-0035 applies - document the negative result, do not adopt the MCP path, and do not proceed to Arm C.": 1,
+    "RECOMMENDATION (with actionable insights for optimization)": 1,
+    "PASS (Plan is optimal with minor clarifications)": 1,
+    "RECOMMENDATION (Plan is sound with minor clarifications; C0 fix design needs refinement)": 1,
+    "CONDITIONAL PASS - Plan is sound with critical clarifications needed": 1,
+    "RECOMMENDATION - B; SUFFICIENT TO FINALIZE THE CURRENT PLAN": 1,
+    "RECOMMENDATION - run a docs-first council; do not select or install a stack yet": 1
+  },
+  "sizeStats": {
+    "medianLines": 119,
+    "p90Lines": 277,
+    "over250": 22,
+    "totalLines": 24904,
+    "totalBytes": 1848033
+  },
+  "ledgers": [
+    {
+      "path": ".ai/ARCHIVE.md",
+      "sha256": "18d2f3dfe3d07fb7374e432c6d6aa1b654ff1fa6a526d5b9e15a27cfe34444dc"
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "sha256": "409cda287756db89e7e61c682baeb628f454e057b179070a26fde1ba3958f5ab"
+    },
+    {
+      "path": "docs/decisions/REGISTRY.md",
+      "sha256": "4eb07b892e0af251c14435451f0d60d16f5eed3c5f8a9fc3d8770721c7afdb5a"
+    },
+    {
+      "path": ".ai/PLAN.md",
+      "sha256": "337d3ea40da38c4d855f77216b15e36a814b297e11858e26cdaaa566d9b33ad6"
+    },
+    {
+      "path": ".ai/TASK.md",
+      "sha256": "266f658a457c78450c1f03fafda67f7bf096173553eb5829f43871f3414be6e4"
+    }
+  ],
+  "rows": [
+    {
+      "path": "docs/reviews/2026-09-16-council-review.md",
+      "sha256": "edad57a0e7f215053c32dcb3a873992366f53157e8497beb7fd028ad9139a3ec",
+      "bytes": 3759,
+      "lines": 65,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-17-three-repository-review.md",
+      "sha256": "8e35edc5de2d448f8d8095b56e4c708348fd25e422f304d5e7fe1fa9ccc05613",
+      "bytes": 13394,
+      "lines": 255,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-18-deepseek-flash-p5-gate-review.md",
+      "sha256": "ed98d61d24f67fd65d8e4b1ded840155441bba0fbe4f024eb12e5b09ac4e62e8",
+      "bytes": 4845,
+      "lines": 86,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS with one required documentation correction (P5-F1) before the tag"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-18-grand-council-consensus-v1.9.0.md",
+      "sha256": "684665161f2f6cf1b83716c540bbb84b4fe524b931b0efe19ba99707e8c142db",
+      "bytes": 8533,
+      "lines": 127,
+      "reviewer": null,
+      "verdict": {
+        "line": 8,
+        "value": "PASS / APPROVED"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "bed0d70 (v1.9.0 baseline), 2e951d6 (v1.9.1 stabilization)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-claude-opus-v1.9.5-certification.md",
+      "sha256": "517b8344a7950ce77aa5ddbc446af3d9593131d588b6e5c2ce4bba9e403b47e9",
+      "bytes": 13014,
+      "lines": 218,
+      "reviewer": {
+        "line": 6,
+        "value": "Claude Opus 4.6 (Thinking) via Antigravity"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "bd56d6c (release candidate)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-claude-opus-v1.9.5-delta-certification.md",
+      "sha256": "fbb848b5ac3eda6882ef0c64db2ff8b78ff8e17cfd92c3e66cc73b9e07ed4135",
+      "bytes": 9099,
+      "lines": 161,
+      "reviewer": {
+        "line": 6,
+        "value": "Claude Opus 4.6 (Thinking) via Antigravity"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "1fb0580908a3aa31e0756fea5f27879651aadc61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-codex-trackc-h1-audit.md",
+      "sha256": "691b0eee31cca8c4adeebde73474bf08185fa079229bba4a233b9f35ed5d4a4f",
+      "bytes": 22742,
+      "lines": 219,
+      "reviewer": {
+        "line": 6,
+        "value": "GPT-6 / Codex, independent external reviewer"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "001af5005e490423c79f7f92919e0c204cf2ad4e"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-course-correction-certification-round2.md",
+      "sha256": "6544cf0b206484890aa85824efd782e4a5409b5f30adb76c3a6b13fcc871066e",
+      "bytes": 12366,
+      "lines": 94,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-07b028e6098381a7), independent of the implementer"
+      },
+      "verdict": {
+        "line": 12,
+        "value": "RECOMMENDATION - all four FAIL findings are fixed and reproduced; the single remaining item is the owner-tunable PROTO-DEC-0037 cap waiver documented by the implementer."
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-a1-audit.md",
+      "sha256": "7ea64a70c1f3deffb898944625f5a5fc7dba7bf195ac8a1660d1d3969318257c",
+      "bytes": 9232,
+      "lines": 92,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller per the owner's two-sided dispatch"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS with two required follow-ups (AUD-1 documentation wording, AUD-4 two missing regression tests), neither of which blocks correctness or the C0 fix."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ)"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-a2-audit.md",
+      "sha256": "7f288760ab96ed8bb11679df8aa5f8f67c1d25d8c6255ef14753f4e9a8a4639c",
+      "bytes": 7193,
+      "lines": 81,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - no blocking findings."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md",
+      "sha256": "c2b2ed6516308d2d48655f9f7b5f1bd35c023bfdcddae37278a3a6170df90ffb",
+      "bytes": 4440,
+      "lines": 65,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - both blocking defects are fixed and independently reproduced as closed; the earlier FAIL is resolved."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-a4-audit.md",
+      "sha256": "a1bf74505c8a83bd1b7d9f135e99b5fa972141d98fff698326d631517a15821c",
+      "bytes": 5386,
+      "lines": 69,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - no blocking findings. PROTO-DEC-0031 awaits the owner's explicit approval; it must not be inserted with the pending placeholder."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-a5-b-audit-addendum.md",
+      "sha256": "342a6b94c3e17256fa290d68e8c44712c310bc60530a7fb79c5e8f3d5f2b9bb1",
+      "bytes": 2067,
+      "lines": 23,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - finding closed."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-a5-b-audit.md",
+      "sha256": "978d2aa672d1389e126cfe70f64ad8dddea31d2353e08a38d457f1d65e5d4b17",
+      "bytes": 5543,
+      "lines": 67,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - no blocking findings. One accuracy amendment is recommended for the owner before PROTO-DEC-0033 is transcribed."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-c1-audit-addendum.md",
+      "sha256": "9c75e0281f436881521f31d1ec8da2dc5ba363d11d17135eda219133ce2b7309",
+      "bytes": 1516,
+      "lines": 23,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS - all three corrections verified; the C1 item is ready to commit."
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-c1-audit.md",
+      "sha256": "5f3ec5d482d2ccf1987539547aaf2802f5906d0ad0a7cbfa0ad61a5b961adaf4",
+      "bytes": 4641,
+      "lines": 62,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS for the instrumentation with three required document corrections (D-1..D-3) before the commit. The pilot design itself is sound and its thresholds are correctly pre-registered."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-c1a-audit.md",
+      "sha256": "78fee170ed2b757e09cce6a0216d6472b71587f9590403856096c250e206ca7b",
+      "bytes": 3336,
+      "lines": 47,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - the defect is closed with genuine failure-path coverage and independent reproduction."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-certification-adjudication.md",
+      "sha256": "0c42ff09d13f03253c9a446251120f0d2ca98b950212c59b4c7e48ea8407c219",
+      "bytes": 8220,
+      "lines": 62,
+      "reviewer": null,
+      "verdict": {
+        "line": 8,
+        "value": "REMEDIATION REQUIRED before the tag - four confirmed findings and one package-level defect; no evidence of a release-blocking design flaw beyond them."
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING (for the adjudication itself)"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-ci-hotfix-audit.md",
+      "sha256": "0c5908f49add694b277998dc4f78f1f5e0aebf34b19858456da6f56875c0a73f",
+      "bytes": 3197,
+      "lines": 45,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - the CI-invisible failure is fixed under simulated runner conditions; ready to re-record, commit and move the unpublished tag."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-item6-audit.md",
+      "sha256": "fb5c67ea3bb5c1f1071debd1257255d4dd73996cd99aa30ac538c8b83800dbce",
+      "bytes": 5101,
+      "lines": 63,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - all five fixes verified independently; ready to commit and to the delta re-certification."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-mcp-selection-analysis.md",
+      "sha256": "2013186d64c91b6d4b953aa3af08281cb6a3121fb4b467c7773f9436ed8d7f6f",
+      "bytes": 16540,
+      "lines": 172,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), controller/auditor role"
+      },
+      "verdict": null,
+      "mode": {
+        "line": 8,
+        "value": "analysis and recommendation; not a certifying artifact for any plan gate."
+      },
+      "baseline": {
+        "line": 4,
+        "value": "6624c8c (working tree clean at analysis start; this report and journal are the only additions)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-stop-cycle-fix-audit.md",
+      "sha256": "5e35712f549b84ac908c868ca5155beedafd19b7339fc0c765940c96182831e2",
+      "bytes": 2857,
+      "lines": 45,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS - the defect is closed with regression coverage; the commit becomes the pilot baseline."
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-deepseek-flash-trackc-audit.md",
+      "sha256": "9465c6628ebc208a810268376395fab65ed0983f253fb6be40e77bdb9986f9a8",
+      "bytes": 3982,
+      "lines": 53,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS - no blocking findings. PROTO-DEC-0034 awaits the owner's explicit approval before transcription."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-final-v1.9.5-adversarial-review-prompt.md",
+      "sha256": "4c858b2a3071aa5048f0ec96eeffd5b2f7d679d4c2fc7b55f788162be7ab8c48",
+      "bytes": 7550,
+      "lines": 64,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-gemini-course-correction-implementation-prompt.md",
+      "sha256": "43d1f7b009e64bb8636290b39ba96951bd9c3a33b9eb61fd213e774fe0dd15fb",
+      "bytes": 10192,
+      "lines": 89,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-gemini-course-correction-implementation-report.md",
+      "sha256": "e52dc91f6819038553436dcdc578b3a3dfd264cbe6380057691a7491f3289f9b",
+      "bytes": 11227,
+      "lines": 113,
+      "reviewer": null,
+      "verdict": {
+        "line": 10,
+        "value": "IMPLEMENTATION COMPLETE"
+      },
+      "mode": {
+        "line": 5,
+        "value": "IMPLEMENTER"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-gemini-systemic-repository-audit.md",
+      "sha256": "c04a7064e047bfec42f4514df1e6f3795c1b7d1f829c2653b982587b6588a5a2",
+      "bytes": 26872,
+      "lines": 338,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini 3.8 Flash (Antigravity IDE / agy)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-gemini-trackc-h1-audit.md",
+      "sha256": "b36bd2f15ad9a96bcbec9e266854374364de72a791ce57d5f5bf91c62b237c5f",
+      "bytes": 14572,
+      "lines": 206,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (Advanced Agentic Assistant), independent certifying auditor"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "001af5005e490423c79f7f92919e0c204cf2ad4e"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-grand-consensus-systemic-course-correction-v2.md",
+      "sha256": "0fff238afbd077d16bd6c09ab3ba9f4cc87f7fe91f144d704576a7aed807b57b",
+      "bytes": 17216,
+      "lines": 188,
+      "reviewer": null,
+      "verdict": {
+        "line": 9,
+        "value": "RECOMMENDATION (Unanimous: RADICAL SIMPLIFICATION / CONTROLLED PIVOT)"
+      },
+      "mode": {
+        "line": 10,
+        "value": "ADVISORY"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-h1-pilot-design.md",
+      "sha256": "62b88b5eff9fd7a67dbaee22ecb0cc255df76997592dd090a47ede436ebea16d",
+      "bytes": 17547,
+      "lines": 245,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-h1-pilot-report-correction.md",
+      "sha256": "e3d2f4c9fb99f0fd4ce710413b705c21c7be2a0b670eeb1c434223d4d26b1e91",
+      "bytes": 3830,
+      "lines": 44,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-mistral-vibe-v1.9.5-certification.md",
+      "sha256": "1733c6f120a86efa371983e38fe917d6784e5c80c4212f5b77b33ba4009c27c1",
+      "bytes": 9157,
+      "lines": 184,
+      "reviewer": {
+        "line": 6,
+        "value": "Mistral Vibe (mistral-medium-3.5)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "bd56d6cad7d507977355af7e38bade3b88b037bd"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-owner-rulings-course-correction.md",
+      "sha256": "582a08976e9601c3c0970d61541a4543f1b8952743e97fcc87e274164574d735",
+      "bytes": 3993,
+      "lines": 53,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-qoder-trackc-h1-audit.md",
+      "sha256": "01105b0b3302e50ef1d5f40ec0f319c3f64bc28e2b970105bd5a888ce2426872",
+      "bytes": 6759,
+      "lines": 122,
+      "reviewer": {
+        "line": 6,
+        "value": "Qoder (certifying review)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "001af50 (HEAD == origin/main) plus the uncommitted Track C pilot artifacts"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-qoder-v1.9.5-certification.md",
+      "sha256": "fc17908d72094baa9972e368723a949b400286a5cd3d9ee27092ea2f85ecfdc4",
+      "bytes": 5016,
+      "lines": 154,
+      "reviewer": {
+        "line": 6,
+        "value": "Qoder"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "bd56d6c"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-19-track-c-h1-external-audit-prompt.md",
+      "sha256": "6432ec58b8c4e2e93d9db768f6d59587a4ac86906c5fcdac0a9ccd01b468453d",
+      "bytes": 6095,
+      "lines": 49,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-claude-cycle-architecture-statistical-audit.md",
+      "sha256": "26674387fdd325147da33a115e86f4a123186666a8446b14c880f32e7181f74d",
+      "bytes": 16692,
+      "lines": 175,
+      "reviewer": {
+        "line": 3,
+        "value": "Claude Opus 5 (claude-b33fa6764f37f5ae)"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "RECOMMENDATION — предложен фиксированный цикл из 7 фаз; три правила подтверждены данными, четыре вывода ограничены малой выборкой"
+      },
+      "mode": {
+        "line": 7,
+        "value": "READ-ONLY ANALYSIS — non-certifying"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-codex-independent-mcp-architecture-audit.md",
+      "sha256": "aa2f45fd7c0d0a3b2a5880d96003f2d44d6047c547d9367f32baae832f701ca0",
+      "bytes": 11143,
+      "lines": 133,
+      "reviewer": {
+        "line": 6,
+        "value": "GPT-6 / Codex, independent of the Gemini implementation and DeepSeek review"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION - CORRECT THE CLAIM BOUNDARY; DO NOT ADOPT YET"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 6
+    },
+    {
+      "path": "docs/reviews/2026-09-20-codex-paired-cycle-remediation-reaudit.md",
+      "sha256": "c6a2616edaf6109e49df32aa43305292594c9f789e6db486d003dfd037373dac",
+      "bytes": 23133,
+      "lines": 196,
+      "reviewer": {
+        "line": 3,
+        "value": "GPT/Codex (GPT-6)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-codex-paired-cycle-review.md",
+      "sha256": "24511fdb06ca41cb1e3d348bd746b23a3971270fe42b0f54d6e64a11ed7c6b63",
+      "bytes": 29570,
+      "lines": 168,
+      "reviewer": {
+        "line": 3,
+        "value": "GPT-6 / Codex"
+      },
+      "verdict": {
+        "line": 11,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-cycle-architecture-council-prompt.md",
+      "sha256": "5dc362b57a79069859406bf744fe3d9912c11d628ffd08fd2f56c1c2ad839df9",
+      "bytes": 11094,
+      "lines": 74,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-cycle-closure-review-round2.md",
+      "sha256": "7dc85ec88241e0f9d8991a6c71dba6422d223202df2a6bc753fcfc6f47f7cc0f",
+      "bytes": 13731,
+      "lines": 157,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (session deepseek-2ea2328413dadd51), certifying reviewer, independent of the remediation's executor"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-flash-paired-cycle-review.md",
+      "sha256": "48b7e8d245d7f44cdaf6fafe22c598e9a59e64895a1c32c6ed1e3744cef3fa5b",
+      "bytes": 20019,
+      "lines": 171,
+      "reviewer": {
+        "line": 6,
+        "value": "deepseek-flash"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-gemini-paired-cycle-remediation-prompt.md",
+      "sha256": "ad87d5cb6096c353a6959b102fce86de0476759b718a2c29a28f5fbebbe3e312",
+      "bytes": 18513,
+      "lines": 87,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-gemini-wave-c-remediation-prompt.md",
+      "sha256": "e6922edd3df8235e2c6fafc23fcaca92a04e63427c343257879db62ea167fbc5",
+      "bytes": 19998,
+      "lines": 133,
+      "reviewer": {
+        "line": 55,
+        "value": "и Verdict: обязаны находиться в header region;"
+      },
+      "verdict": null,
+      "mode": {
+        "line": 57,
+        "value": "ADVISORY отвергается; маркеры транскрипции (transcribed ... by, transcription fallback) отвергаются в любом месте файла."
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-paired-cycle-remediation-review.md",
+      "sha256": "2ffb835b4027b83d96e33583ae84caa2c44fa9a3f47b0c11166460050ffdd6bf",
+      "bytes": 4304,
+      "lines": 55,
+      "reviewer": {
+        "line": 3,
+        "value": "DeepSeek (controller, independent reviewer)"
+      },
+      "verdict": {
+        "line": 12,
+        "value": "PASS"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-paired-cycle-wave-a-review-round2.md",
+      "sha256": "cb1806cd6f12813a966d862fc03dcfd51efb469fde601937c7ae912644d38e68",
+      "bytes": 2471,
+      "lines": 45,
+      "reviewer": {
+        "line": 3,
+        "value": "DeepSeek (controller, independent reviewer)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "PASS"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-paired-cycle-wave-b-review.md",
+      "sha256": "88aebf7f4e4867b480a29c76c51a5a88ed710f4c77dcae6592596b8e28cbf297",
+      "bytes": 3678,
+      "lines": 69,
+      "reviewer": {
+        "line": 3,
+        "value": "DeepSeek (controller, independent reviewer)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "PASS"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-deepseek-paired-cycle-wave-c-review.md",
+      "sha256": "0be282db1b5545b113f553fbaab87f360992d7253468c6c1e9630280c741adb5",
+      "bytes": 3928,
+      "lines": 64,
+      "reviewer": {
+        "line": 3,
+        "value": "DeepSeek (controller, independent reviewer)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "PASS (external limited re-review still required by the acceptance criteria; see Remaining gate)"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-gemini-cycle-closure-report.md",
+      "sha256": "219a2dadd8b2f014b0236b0161a2d026ca702f9451bd3cbd64a8a4af4bd25f38",
+      "bytes": 9842,
+      "lines": 116,
+      "reviewer": null,
+      "verdict": {
+        "line": 10,
+        "value": "IMPLEMENTATION COMPLETE"
+      },
+      "mode": {
+        "line": 5,
+        "value": "IMPLEMENTER"
+      },
+      "baseline": null,
+      "urlCount": 1
+    },
+    {
+      "path": "docs/reviews/2026-09-20-gemini-paired-cycle-remediation-adversarial-prompt.md",
+      "sha256": "104b10bedea229f3b8c5fdf8f2f8e638b96601f7c9ffd72355b2d679500a5793",
+      "bytes": 5589,
+      "lines": 49,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 6,
+        "value": "CERTIFYING / ADVERSARIAL CHALLENGE"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-gemini-paired-cycle-review.md",
+      "sha256": "903513541eed110909a72812cb0d5a95fdc084bd497b1f27746b9c53d5ab22f2",
+      "bytes": 7979,
+      "lines": 89,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini 3.8 Flash (High)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/2026-09-20-mcp-council-final-round2-synthesis.md",
+      "sha256": "43fee144a7fa1e8f1b26a06fd04432f816720249635c5a4c4ef62d66eae53f49",
+      "bytes": 16570,
+      "lines": 148,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 5,
+        "value": "FINAL SYNTHESIS (advisory; not a certification; produces no new Evidence)"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-12-claude-v1.2-audit.md",
+      "sha256": "aafb4727100ec8eaf5f640a3167658a995de53f8afdbd92d369197231577866d",
+      "bytes": 25100,
+      "lines": 240,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 6
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-adversarial-audit-v1.9.4.md",
+      "sha256": "cee86db77e5c31f4fbb2e257b91c4ff758d2061156022c352a3e28573eadcccb",
+      "bytes": 4897,
+      "lines": 75,
+      "reviewer": {
+        "line": 6,
+        "value": "Qoder"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-claude-opus-v1.9.3-audit.md",
+      "sha256": "2a8712a305b788971545655ca0cb39881b9437d78b31339153b767380c405ac0",
+      "bytes": 19256,
+      "lines": 289,
+      "reviewer": {
+        "line": 6,
+        "value": "Claude Opus 4.6 (Thinking)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-claude-v1.9.3-audit.md",
+      "sha256": "e5859eba881d2bd35550d6d587d23ec56548aaa2b2e253fc1895ef648fdbee39",
+      "bytes": 8072,
+      "lines": 153,
+      "reviewer": {
+        "line": 6,
+        "value": "Claude (AI assistant using Copilot SDK in VS Code)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "BLOCKED"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-codegeex-audit-v1.9.md",
+      "sha256": "91a9d78a178cc0936e4301cadde80d05a10a117bb0b8980d107f65f825596766",
+      "bytes": 4135,
+      "lines": 68,
+      "reviewer": {
+        "line": 6,
+        "value": "CodeGeeX (GLM Chat Panel)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL (3 критических уязвимости обнаружено)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (HEAD)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-copilot-audit-v1.9.3-audit.md",
+      "sha256": "e1751a0b5ead4b7edd420c6663916f90847a49aa79f00676d5a9b3d4b7e91c67",
+      "bytes": 5568,
+      "lines": 97,
+      "reviewer": {
+        "line": 6,
+        "value": "copilot-audit"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-copilot-audit-v1.9.md",
+      "sha256": "9ac76b5654932282dd08d67781f6150d211bf1101b7c16e8953c42f9f3421dc2",
+      "bytes": 10417,
+      "lines": 163,
+      "reviewer": {
+        "line": 5,
+        "value": "Copilot (Copilot SDK in VS Code, Windows)"
+      },
+      "verdict": {
+        "line": 7,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 3,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-copilot-consensus-critical-analysis.md",
+      "sha256": "44db07afd626f6226f3695c620b90a8af1079fbe9647a4de687d744dbf1b2eb8",
+      "bytes": 11033,
+      "lines": 207,
+      "reviewer": {
+        "line": 6,
+        "value": "Copilot SDK"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-copilot-sdk-adversarial-audit-v1.9.4.md",
+      "sha256": "871543f4cb4031c554220a8ebce3fbc09eb2b7aba52b18159761b691b5ff65e1",
+      "bytes": 11460,
+      "lines": 217,
+      "reviewer": {
+        "line": 6,
+        "value": "Copilot (Opposing Adversarial Reviewer)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "BLOCKED"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-audit-v1.9.md",
+      "sha256": "b5b4259d5d7535b0be6cdb0c1e6fde10316dcdc3fb6b1d8472e61a870c98b169",
+      "bytes": 23051,
+      "lines": 248,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-flash, VS Code/Kilo CLI, Windows)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-adversarial-audit-v1.9.3.md",
+      "sha256": "f47d6a07470e316f45f9f5e7b03d0efeb4ed1dbbe1a96040647222b5b143b51e",
+      "bytes": 19300,
+      "lines": 326,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-consensus-verification.md",
+      "sha256": "20f4b1b826f375dc0202ce43297b46764af3aa8ab2402230e85b39177a13023f",
+      "bytes": 9302,
+      "lines": 152,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL (the synthesis is not fully reliable; three integrity defects remain)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p1-gate-review.md",
+      "sha256": "8ee076db1cb7ed8f7cff9e2b795eed0048ce57017d88eacd6510d140c18a75cf",
+      "bytes": 6523,
+      "lines": 121,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION (proceed to P-2; P-1 not closed until P1-F1 and P1-F2 are resolved)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p2-gate-review.md",
+      "sha256": "3c077ac976caf464866c3b2ab49adeace6be2100fe3d1749382b2b1bca592dd2",
+      "bytes": 6587,
+      "lines": 123,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL - P-2 is not accepted; do not start P-3 until P2-F1 and P2-F2 are fixed"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p2-regate-review.md",
+      "sha256": "c9558860664b469f298749c088744da265c24d4a027735300935a84732cd7ee2",
+      "bytes": 4762,
+      "lines": 94,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "CONDITIONAL PASS - P2-F1 fixed, P2-F2 fixed for the reported vector, one bypass remains (P2-F3)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p2f3-p1-regate-review.md",
+      "sha256": "ef352bf4655df4c2eaa434f265cecca70fc424bc40f856fe3c1c46ba7f60d9f0",
+      "bytes": 4143,
+      "lines": 89,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS - P2-F3 closed, P-1 closed; P-3 may start"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p3-gate-review.md",
+      "sha256": "d08b28bcc76f10d3ff8e56f6494872b23589ceeabef34855ea1a7e121be910c2",
+      "bytes": 3309,
+      "lines": 66,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS - P-3 closed; P-4 may start"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p4-gate-review.md",
+      "sha256": "1d18f517248796c8828677880d4c275d0df1938526af42c26023d1fce4d27ac2",
+      "bytes": 3537,
+      "lines": 79,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS - P-4 closed; P-5 may start"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-p5-regate-review.md",
+      "sha256": "c56e861c3b3c967fe6070196e4b9117c0cf186a5731dce6717ae236a6a9cc497",
+      "bytes": 4452,
+      "lines": 97,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS conditional on P5-F2 (one regression test) before the release tag"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-performance-analysis.md",
+      "sha256": "e337da46a055f1a5154bd1b9bd56f4985fc8912bf74b37f115be7d8c105501b0",
+      "bytes": 14555,
+      "lines": 277,
+      "reviewer": {
+        "line": 6,
+        "value": "deepseek-flash"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.3-audit-r2.md",
+      "sha256": "90ac53bf349dc399163b18ae0c59cec9ada3df9735f0de3933ce526ae1513ed3",
+      "bytes": 29354,
+      "lines": 341,
+      "reviewer": {
+        "line": 6,
+        "value": "deepseek-flash (Kilo Code CLI, session deepseek-flash-0a05beefb1dffcb2)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL (2 high, 3 medium, 3 low, 3 informational; every defect is a bounded patch)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.3-audit.md",
+      "sha256": "bd7f5ba37f67218bfaa74197bafd5a1fec7b5deb9a19116a5780563a5cc1adf1",
+      "bytes": 24708,
+      "lines": 254,
+      "reviewer": {
+        "line": 6,
+        "value": "deepseek-flash (DeepSeek, Kilo Code terminal session)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL (4 defects, 3 recommendations; none release-blocking alone, but F-01/F-02 falsify stated invariants)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.4-consolidated-final-plan.md",
+      "sha256": "c672c12b3108abbe860593282f02365939f01acf268dc591af57dbaf23adc46b",
+      "bytes": 19915,
+      "lines": 343,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION (one release blocker remains)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-deepseek-flash-v1.9.4-final-hardening-plan.md",
+      "sha256": "6b09d39cf40d4050b7ae7ad2b76b90044c7767142eb99a81a66cad511378d42f",
+      "bytes": 21045,
+      "lines": 403,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-gemini-v1.9.3-audit.md",
+      "sha256": "db4f68ecdd4bbee1cf69cf03c7ed6d4dc73757f781e5180757fec4ac376e26d7",
+      "bytes": 18231,
+      "lines": 238,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (Advanced Agentic Assistant, Independent Adversarial Reviewer)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-gemini-v1.9.4-adversarial-audit.md",
+      "sha256": "1f387768d9cbb15ee21850ced1f6d9a0a454e2b098ee1c09499139bfe24d8564",
+      "bytes": 14266,
+      "lines": 227,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-grand-adversarial-consensus-v1.9.4.md",
+      "sha256": "a5c5ed87cdf0f3b3019649e73078755d2b3ef7cddd065740943271edb6cfb6e6",
+      "bytes": 13400,
+      "lines": 155,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (Implementer & Consensus Synthesizer)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-mistral-medium-3.5-adversarial-audit-v2.md",
+      "sha256": "9ddb19efba7ce444797909e0d273bb11ce293b4262471d779adf79b33b1dc4b1",
+      "bytes": 21968,
+      "lines": 374,
+      "reviewer": {
+        "line": 6,
+        "value": "Mistral Medium 3.5"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-mistral-medium-3.5-adversarial-audit.md",
+      "sha256": "54919c6c52ebadbde0d8e873c36e0d11be400c6afe50362cfd00d94d60f37c4a",
+      "bytes": 14318,
+      "lines": 264,
+      "reviewer": {
+        "line": 6,
+        "value": "Mistral Vibe (mistral-medium-3.5)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "BLOCKED"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-mistral-vibe-audit-v1.9.md",
+      "sha256": "2b487c22677e005be219f2d5f6b2ee5e98f126089d87011758f99beedcdaec56",
+      "bytes": 13943,
+      "lines": 239,
+      "reviewer": {
+        "line": 6,
+        "value": "mistral-vibe (Mistral Medium 3.5)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL (Critical and High severity findings require immediate attention)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-mistral-vibe-v1.9.3-audit.md",
+      "sha256": "3548587a8cfd67bbed9ce62caa666ce2e911aea474643f04929b4ebc0941214c",
+      "bytes": 21441,
+      "lines": 442,
+      "reviewer": {
+        "line": 6,
+        "value": "mistral-vibe (Mistral Medium 3.5)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS with RECOMMENDATIONS"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61 (v1.9.2) + working tree changes"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-multi-model-consensus-refutation.md",
+      "sha256": "115ef1bf69b35a2ea6b1863929f992d9b08fa5e5e9cbb7744f97d8238c0cb42c",
+      "bytes": 6067,
+      "lines": 80,
+      "reviewer": {
+        "line": 6,
+        "value": "Council of Models (synthesized by gemini)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (a6a6d61)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-performance-analysis.md",
+      "sha256": "ad6781a6ec5ab88019dbf389352158767c753f12c0f221730f764d02c5c014be",
+      "bytes": 12707,
+      "lines": 374,
+      "reviewer": {
+        "line": 4,
+        "value": "Mistral Vibe (mistral-medium-3.5)"
+      },
+      "verdict": {
+        "line": 6,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-qwen-audit-v1.9.md",
+      "sha256": "5ac0069c6aabda371272319f82f5a0c064f1c98322d9f3acb08a7ecf56136520",
+      "bytes": 3794,
+      "lines": 47,
+      "reviewer": {
+        "line": 6,
+        "value": "qwen (Qwen 2.5 Web Chat)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5 (HEAD)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-qwen-hostile-audit-v1.9.3.md",
+      "sha256": "ef234f58e6192490f14215601cf1d90384c64d78402390f06cdea4744260ad3a",
+      "bytes": 7527,
+      "lines": 122,
+      "reviewer": {
+        "line": 8,
+        "value": "Qwen"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "PASS - All implementations are robust with minor recommendations for future hardening"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 6,
+        "value": "a6a6d6194e08e313dce1328cc8af971962f91fa5"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-qwen-v1.9.3-audit.md",
+      "sha256": "371da50bf4467be5814ab45d6b1d51d75401aba03fc287642d4391c3d8d8a0e7",
+      "bytes": 11398,
+      "lines": 239,
+      "reviewer": {
+        "line": 6,
+        "value": "Qwen"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-unified-adversarial-audit-prompt.md",
+      "sha256": "0bd7b80c6a526d2fbaa4c1b8070870d2688259ea137e6a694e598b336206acb1",
+      "bytes": 11581,
+      "lines": 131,
+      "reviewer": {
+        "line": 120,
+        "value": "<имя модели>"
+      },
+      "verdict": {
+        "line": 122,
+        "value": "[PASS | FAIL | BLOCKED | RECOMMENDATION]"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 118,
+        "value": "a6a6d61"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-18-v1.9.4-final-adversarial-audit-prompt.md",
+      "sha256": "cf86f82fe6e6819c0fdb39c0cbc870128b48079e61193145df8a873c142b9ca9",
+      "bytes": 12959,
+      "lines": 138,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-claude-opus-delta-certification-request.md",
+      "sha256": "45d09a052c2ee26e9f136d90717abd743e27e185ec8c9056c3c9c2a5e6a701a5",
+      "bytes": 2685,
+      "lines": 28,
+      "reviewer": {
+        "line": 5,
+        "value": "Claude Opus 4.6 (your session claude-opus-0f1b841e5c4c6638)"
+      },
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-claude-v1.9.4-release-certification.md",
+      "sha256": "a250020a94e76fe18ff29cf49d914bb96f17df6e1b1ab196473fbfbc3638e66e",
+      "bytes": 10597,
+      "lines": 188,
+      "reviewer": {
+        "line": 7,
+        "value": "Claude (claude-sonnet-4.6-thinking, session claude-123ff4a27989f7af)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "PASS"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac (HEAD)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-copilot-v1.9.4-release-certification.md",
+      "sha256": "32e57a6c12d2983f701daeb6468be905a45b94333d3d12a72db31c8f6f59a685",
+      "bytes": 5737,
+      "lines": 97,
+      "reviewer": {
+        "line": 6,
+        "value": "Copilot"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PASS"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-council-synthesis-course-correction.md",
+      "sha256": "f60d2d5a35d9368212b240bc290793b3624aa0770d70d103464fdb06664b623c",
+      "bytes": 12664,
+      "lines": 198,
+      "reviewer": null,
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION - RADICAL SIMPLIFICATION with a defined keep-list"
+      },
+      "mode": {
+        "line": 9,
+        "value": "ADVISORY (no Evidence receipt; non-binding until the owner rules)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-course-correction-adversarial-audit-prompt.md",
+      "sha256": "416e7d4477379fdc5273c265d2977a538aef7ad2ed0cace2a99854c38f55700a",
+      "bytes": 5279,
+      "lines": 64,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-course-correction-certification.md",
+      "sha256": "818fdc939f66a16094ce42f07ea09a7ca686333863bf11b042cae08144918505",
+      "bytes": 12812,
+      "lines": 122,
+      "reviewer": {
+        "line": 4,
+        "value": "DeepSeek (deepseek-ca93599cfe8cca6b), independent of the implementer"
+      },
+      "verdict": {
+        "line": 12,
+        "value": "FAIL (integrity-critical items pass; four reproducible defects below block certification)"
+      },
+      "mode": {
+        "line": 5,
+        "value": "CERTIFYING (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ)"
+      },
+      "baseline": {
+        "line": 7,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-a2-audit-addendum.md",
+      "sha256": "3e7c761c3271b0396c211f60e62c236f0026c03f414326ca690dbf584b6a0936",
+      "bytes": 5925,
+      "lines": 116,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "CORRECTION REQUIRED before the final certification - the Item 2 record fix and its tests remain PASS; only the CI review was incomplete."
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "ebd777e (Item 2, B5 and docs committed; CI run 35414724280 success)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-a3-audit.md",
+      "sha256": "dc47c8c9fa881ef3ce1847994d7850c303a42a3a3273adfbea39235e9cb127f7",
+      "bytes": 6575,
+      "lines": 82,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash), auditor/controller"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "FAIL - two reproduced blocking defects. Both are fixable in a small remediation round; the rest of the item verifies."
+      },
+      "mode": {
+        "line": 8,
+        "value": "CERTIFYING"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-certification-integrity-and-consolidation.md",
+      "sha256": "a374025abbbf69518cde6a286c5dbe385f4474258396046c69681965d97bafd2",
+      "bytes": 10052,
+      "lines": 137,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-consolidated-v1.9.5-plan-r2.md",
+      "sha256": "8f3bd698d4091fa9b0de50c628cea76ca47a3aba8544e4d211b961801a9541a1",
+      "bytes": 32271,
+      "lines": 303,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 196,
+        "value": "CERTIFYING requires FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ; anything less is ADVISORY. Capability is set by the orchestrator profile, never self-declared."
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-final-followup-plan-v1.9.5.md",
+      "sha256": "fb937e582150aab03e9fe82d02bad21011ed30527f63c80731dbb5722f052e40",
+      "bytes": 15460,
+      "lines": 177,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-final-plan-probe-review.md",
+      "sha256": "62d7c0ffba0f287846f18c0bae9cbc3bc3794205482f8c85709e0de1354e18a3",
+      "bytes": 27048,
+      "lines": 246,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-flash)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "PROBES ONLY - non-certifying. Conflict declared: this reviewer's model authored the plan under review; per the dispatch conflict rule it may submit probes but not certify."
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-interim-council-plan-review.md",
+      "sha256": "eaaad608ac0ac4f4848b6cf0e5facb6fa77d5a525918971ffeef14e2b2186ad6",
+      "bytes": 14545,
+      "lines": 225,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-flash)"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "c71bdcf94545c246178b5d75e780f3fd79cb9b5a (annotated tag v1.9.4)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-interim-council-plan.md",
+      "sha256": "cf49bf926a343b85f23550cff7fcb5194277f35ad51755f9f1b95939d767f9d0",
+      "bytes": 7394,
+      "lines": 85,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek (deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-interim-plan-addendum-context-and-decision-freeze.md",
+      "sha256": "406ecea894eb7e0469b8a8596bc4203f1a60ebd4c0b3815e02754643c6a439e6",
+      "bytes": 6053,
+      "lines": 105,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-release-tag-erratum.md",
+      "sha256": "fdc44a7afaa761915a898ac55483f3b22b1f61ef2df61e149633e15f6acac9ed",
+      "bytes": 2755,
+      "lines": 36,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-systemic-audit-response.md",
+      "sha256": "9928c85750ae9885056eaab830fd3aac3e76f155b74de80645810088d2c40fed",
+      "bytes": 14713,
+      "lines": 241,
+      "reviewer": {
+        "line": 6,
+        "value": "deepseek-flash (independent strategic audit)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION (strategic: RADICAL SIMPLIFICATION)"
+      },
+      "mode": {
+        "line": 9,
+        "value": "ADVISORY"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-deepseek-flash-v1.9.4-adversarial-support.md",
+      "sha256": "f404ff1cdc5794e20a42baa3d77ff31f81c35e7164b194d0fccc5b12b11c93f2",
+      "bytes": 7570,
+      "lines": 137,
+      "reviewer": {
+        "line": 7,
+        "value": "DeepSeek (model deepseek/deepseek-flash, session deepseek-flash-ebd6eb9397ed3784)"
+      },
+      "verdict": {
+        "line": 14,
+        "value": "PASS (supporting; not a certification)"
+      },
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-eval-p1-owner-approval.md",
+      "sha256": "4a01acaa7396bdf24b52008a49f2957b92a243f4d4c7af5d857b2389b6fa2c02",
+      "bytes": 18069,
+      "lines": 127,
+      "reviewer": {
+        "line": 6,
+        "value": "deepseek-flash (independent evaluation session, prompt formulation P1)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION - RADICAL SIMPLIFICATION, corrected (sections 3-4)"
+      },
+      "mode": {
+        "line": 9,
+        "value": "ADVISORY (evaluation; no Evidence receipt; nothing below is approved until the owner signs)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-eval-p2-decision-maker.md",
+      "sha256": "092eae297fa916ee81dc4bd0571311ce3178debcb1088f43ca95c4e5e32d4dd3",
+      "bytes": 26806,
+      "lines": 244,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-eval-p3-architect-choice.md",
+      "sha256": "a1669c8f3d84dab1a27c846ae6086d40f99719bbcd29834130ff6ab90319086f",
+      "bytes": 22810,
+      "lines": 147,
+      "reviewer": null,
+      "verdict": {
+        "line": 8,
+        "value": "ACCEPT WITH AMENDMENTS - принять действия 1, 2, 4 в исправленной форме; действие 3 переформулировать"
+      },
+      "mode": {
+        "line": 7,
+        "value": "ADVISORY (evaluation freeze; не receipt, не сертифицирует, в протокол не пишет)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2 (working tree dirty; чтение по дереву на диске)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-eval-p4-directive-execution.md",
+      "sha256": "735576307a0c8e101047e8b83065094277d50f4e84b9bd0170765f76fc2ab5b2",
+      "bytes": 19919,
+      "lines": 205,
+      "reviewer": {
+        "line": 5,
+        "value": "DeepSeek V4.1 Flash, read-only evaluator (evaluation freeze: no repository writes except this report)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FEASIBLE WITH CORRECTIONS - directives 1, 3, 4 are blocked until (a) the owner confirms approval directly, (b) a new certifying review with a fresh receipt exists, and (c) the non-taxonomy reopen trigger is replaced. Directives 2 and 6 are executable; directive 5 is an owner/coordinator action, not a repository edit."
+      },
+      "mode": {
+        "line": 6,
+        "value": "ADVISORY"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-final-course-decision-prompt.md",
+      "sha256": "6346a18a7cfdbb551a7a312dc38c0377e71f5ffa8541ae26be297b775490c116",
+      "bytes": 12114,
+      "lines": 210,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-final-plan-adversarial-review-prompt.md",
+      "sha256": "275e4436c2bcd53833cefbec4faa5dd2224d31d375c512ce0be24dc3fb78d032",
+      "bytes": 7014,
+      "lines": 115,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-c1-docfix-prompt.md",
+      "sha256": "66fc4906ca3b73a59f0255ded4045b87dd1093835b0e13f9dc21193bbf8a0dbe",
+      "bytes": 1608,
+      "lines": 18,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-c1-instrumentation-prompt.md",
+      "sha256": "e354f6c6082d68deef42e24e57af80a26e235f51c8dabddd10a5c70b14b33abd",
+      "bytes": 5660,
+      "lines": 51,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-c1a-prompt.md",
+      "sha256": "4894f2fca1a0e9cc57acca4bb4d10317ef0593fbee619ee9f2b9386f4ea9ef18",
+      "bytes": 3492,
+      "lines": 38,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-ci-hotfix-prompt.md",
+      "sha256": "cce80ea2ad0fcebf987b5d9d7d8385eb6980f663f8821dd902ed83bbaddb0d41",
+      "bytes": 2986,
+      "lines": 38,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-final-plan-adversarial-review.md",
+      "sha256": "19d61d1dd09cdf5fcc0363cef1036e5470c192f0ad3ed1115daa44dd02f84c3d",
+      "bytes": 19777,
+      "lines": 259,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (Gemini 3.8 Flash)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-interim-plan-adversarial-review.md",
+      "sha256": "ad60ba681febfd51e316e6beb50c7e7ebb7d69a9fbc1a44089a6fbcfd23de1fc",
+      "bytes": 23443,
+      "lines": 324,
+      "reviewer": {
+        "line": 7,
+        "value": "Gemini (Gemini 3.8 Flash, session gemini-2da9379ddcd247b6)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "RECOMMENDATION (Plan is grounded and structurally sound; 4 critical design gaps and 2 mechanical hazards require correction before owner finalization)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac (HEAD)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-mcp-candidates-deep-research.md",
+      "sha256": "2cfe9cf840d71afd034a11f4ce4e43318b343d91e396237c5ea559af8dc9be93",
+      "bytes": 30904,
+      "lines": 385,
+      "reviewer": {
+        "line": 6,
+        "value": "gemini (Gemini 3.8 Flash High)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 8
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-opus-final-plan-adversarial-review.md",
+      "sha256": "5dfa6768003bccd95c968393f3406edd157d009ddbfe854f54f4053f921a2741",
+      "bytes": 28268,
+      "lines": 295,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (Claude Opus 4.6 Thinking, operating in gemini role per TASK.md)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-remediation-advice.md",
+      "sha256": "1c4e297225b228d3fb8c98c01452403306c36c08326b86f2f3fbd9995ffb826a",
+      "bytes": 11256,
+      "lines": 113,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (implementer / council contributor)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "66755cdd3e6ffe05812362165a0862355cf12bc4"
+      },
+      "urlCount": 1
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-stop-cycle-fix-prompt.md",
+      "sha256": "6c79ec6a58876eca8300b3ee102951619933707087f0cced0333864d620cc06b",
+      "bytes": 2604,
+      "lines": 32,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-trackc-m0-c2-prompt.md",
+      "sha256": "dd336dc539c67ecd59086eca9462e851e1104399a993ba8e5a1455bdc41598ba",
+      "bytes": 4919,
+      "lines": 57,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.4-release-audit.md",
+      "sha256": "4da667c2f270581af9b861705ce6a7620cdd67bfb5243dd561f7931cafa30325",
+      "bytes": 9665,
+      "lines": 120,
+      "reviewer": {
+        "line": 7,
+        "value": "Gemini (Authorized by Owner RuslanFomenko)"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "PASS"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-certification.md",
+      "sha256": "49823d58918063b9352d4e442f83117706df5733fadcf31f2771653eeb19b2fd",
+      "bytes": 14575,
+      "lines": 222,
+      "reviewer": {
+        "line": 6,
+        "value": "Gemini (gemini-3.8-flash via Antigravity)"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION"
+      },
+      "mode": {
+        "line": 9,
+        "value": "ADVISORY"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "bd56d6c"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-implementation-prompt.md",
+      "sha256": "5e6b1d0ad99c51ba7b5a07af5f27da80403f5bdcaf21da7c5d7eaa01b9a70471",
+      "bytes": 10580,
+      "lines": 134,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item2-prompt.md",
+      "sha256": "eadcd9e43a5f751436347dd292aa7581b2a7eabd1ff3576674e1b5a5fcbe0540",
+      "bytes": 7048,
+      "lines": 86,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item3-prompt.md",
+      "sha256": "32c39b28ef7d28ae373ede37fb72737d1daf5a40a4431aac5256c1076b6f8dd0",
+      "bytes": 3762,
+      "lines": 41,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 18,
+        "value": "CERTIFYING | ADVISORY"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item4-prompt.md",
+      "sha256": "af48ae6908fd8e1c692a3e340f5826494ed83307e6692e7feacf29099887c096",
+      "bytes": 6277,
+      "lines": 74,
+      "reviewer": null,
+      "verdict": {
+        "line": 24,
+        "value": "must be PASS or RECOMMENDATION; anything else (including CONDITIONAL PASS) fails."
+      },
+      "mode": {
+        "line": 25,
+        "value": "- reviews with a Date: after 2026-09-19 require CERTIFYING; ADVISORY or missing fails. Reviews dated 2026-09-19 or earlier are legacy: a missing field is a WARN, execution continues."
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item4-remediation-prompt.md",
+      "sha256": "fdd9aa3f3f477b4744a4d19ef870aa6e5ebb05808abde73ab13582d0458e3945",
+      "bytes": 3526,
+      "lines": 45,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item5-prompt.md",
+      "sha256": "978ad6240197096244ace92d352a681bf1f5fb575dbdae48fcf8934572c889d0",
+      "bytes": 6531,
+      "lines": 71,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item5-testfix-prompt.md",
+      "sha256": "9527c978412a7dd8320b2327d3b7ea049ce4ae89944f69a1388c8d257520e9e5",
+      "bytes": 1583,
+      "lines": 24,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-gemini-v1.9.5-item6-remediation-prompt.md",
+      "sha256": "6bd7ad35f102538b0c2c94314d658292d1e4d4f967b72ff70352bc9c2ff16719",
+      "bytes": 4457,
+      "lines": 61,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-glm-final-plan-adversarial-review.md",
+      "sha256": "ed2e1cf89143a0ba67873617b1e7eacc528e1509d8f5588c448ac0e898710126",
+      "bytes": 9226,
+      "lines": 101,
+      "reviewer": {
+        "line": 6,
+        "value": "GLM 5.1"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "none stated by the participant (analysis and delta list only)"
+      },
+      "mode": {
+        "line": 8,
+        "value": "READ-ONLY ADVISORY - no direct repository access claimed; no journal entry and no Evidence block exist for this analysis; it carries advisory weight only and is non-certifying."
+      },
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-grand-consensus-systemic-course-correction.md",
+      "sha256": "085158e83f6fd9ca67ba01cfd2a1a4d378a4e7667b75b0cebf6347fd9354b2b6",
+      "bytes": 17856,
+      "lines": 189,
+      "reviewer": null,
+      "verdict": {
+        "line": 9,
+        "value": "RECOMMENDATION (Unanimous: RADICAL SIMPLIFICATION / CONTROLLED PIVOT)"
+      },
+      "mode": {
+        "line": 10,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-cost-policy-addendum.md",
+      "sha256": "81cf9df3b0872cd5f89a3d53857240ae907b251f4ba5cc30dbe341a2884f4d7d",
+      "bytes": 2491,
+      "lines": 27,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-postmortem-and-repomix-paths.md",
+      "sha256": "659945f5267a0fbfb980335fe4a31f462f5135c16af5d7c3f9f7b685ba05b468",
+      "bytes": 4886,
+      "lines": 44,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 1
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-report.md",
+      "sha256": "820a0356bb261d5234b7a7000f4c00894d61e7cd8ee81ff7f46a6a2d92b3bc0e",
+      "bytes": 4126,
+      "lines": 51,
+      "reviewer": null,
+      "verdict": {
+        "line": 7,
+        "value": "Arm B FAILS the pre-registered adoption gate under both token definitions; the stop rule from PROTO-DEC-0035 applies - document the negative result, do not adopt the MCP path, and do not proceed to Arm C."
+      },
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-runbook-addendum-agents.md",
+      "sha256": "dfa276835c00186ab6836cea733d3f023b137230fc89317a8178c1dd9db7cf63",
+      "bytes": 3019,
+      "lines": 33,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-runbook.md",
+      "sha256": "85bfc686874e327790e506d19a61d388fb65703bb394f6245716378b6ccddb9e",
+      "bytes": 5001,
+      "lines": 63,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-smoke-report.md",
+      "sha256": "731abd3bb82de0cbcd71419331065fa8472f714475a62aed96b91b36427b40d1",
+      "bytes": 4620,
+      "lines": 43,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 1
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-h1-pilot-trial-prompt-template.md",
+      "sha256": "0c393dd60dbc2be94433f8c5e06317b4f3776ee0d82ced126361474a32e5b3d0",
+      "bytes": 7850,
+      "lines": 72,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-interim-plan-adversarial-review-prompt.md",
+      "sha256": "3df5750c10769f0e772ce497b0f6d7ac81f724646772fe5e3bbca0bee5bf737a",
+      "bytes": 8754,
+      "lines": 149,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-mcp-context-layer-discussion-basis.md",
+      "sha256": "78a14a582af8c6f3c8d931c6af49b4d8e3beeab7e0590dc055977362153b8840",
+      "bytes": 9779,
+      "lines": 156,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 6,
+        "value": "ADVISORY - this file records the discussion basis. It decides nothing."
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-mistral-mcp-candidates-research.md",
+      "sha256": "749f4d32d677b78d462d0ccd872f4ed2d5dfb492fecae1a4159fe4fcd0eed421",
+      "bytes": 25863,
+      "lines": 561,
+      "reviewer": null,
+      "verdict": {
+        "line": 9,
+        "value": "RECOMMENDATION (with actionable insights for optimization)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 6,
+        "value": "a6a6d61 (HEAD)"
+      },
+      "urlCount": 2
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-mistral-vibe-final-v1.9.5-followup-plan-review.md",
+      "sha256": "7d3818378ee5b970cdaaa1cdeb4dc591fb1766955a6dc82c927a7c1373e22f71",
+      "bytes": 43476,
+      "lines": 1067,
+      "reviewer": {
+        "line": 7,
+        "value": "Mistral Vibe (mistral-medium-3.5)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "PASS (Plan is optimal with minor clarifications)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac (HEAD)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-mistral-vibe-interim-council-plan-review.md",
+      "sha256": "72cb56f51b1f17b08105ae85ba6436893abb5c94bbd02323a742b7f0a7beb8e7",
+      "bytes": 29854,
+      "lines": 608,
+      "reviewer": {
+        "line": 7,
+        "value": "Mistral Vibe (mistral-medium-3.5)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "RECOMMENDATION (Plan is sound with minor clarifications; C0 fix design needs refinement)"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8ce18be52c8f5d95ae837d71af5d7c63cac (HEAD)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-mistral-vibe-v1.9.4-release-certification.md",
+      "sha256": "235968f16e303250b500abddf2751cbc87fe7c5c3a31d29497f263b611375b57",
+      "bytes": 15335,
+      "lines": 316,
+      "reviewer": {
+        "line": 7,
+        "value": "Mistral Vibe (mistral-medium-3.5)"
+      },
+      "verdict": {
+        "line": 11,
+        "value": "PASS"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "c71bdcf94545c246178b5d75e780f3fd79cb9b5a (annotated tag v1.9.4)"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-open-disagreements-prompt.md",
+      "sha256": "18b64ef24c4b67d26e00bab5216b64f597418534ab66dffefbd8b601d3bc71ba",
+      "bytes": 3790,
+      "lines": 31,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-owner-release-tag-decision.md",
+      "sha256": "c5934cfeb113584c481b3d40e1a1098a082fc1aeedaed8cced6a6af5b9ec17c0",
+      "bytes": 1812,
+      "lines": 20,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-owner-run-policy.md",
+      "sha256": "0c0f3bac61b94e1386c623ffc740d525d50fb4fdd2b60de1ea3722e4b140b69c",
+      "bytes": 1255,
+      "lines": 12,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-qoder-adversarial-review-v1.9.5.md",
+      "sha256": "f7a9a9c0dde0a6df9c3e78d2bca898ab03570e0c5f4a0e18c986f77c7d614a47",
+      "bytes": 6864,
+      "lines": 135,
+      "reviewer": {
+        "line": 6,
+        "value": "Qoder (certifying review - FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ)"
+      },
+      "verdict": {
+        "line": 9,
+        "value": "CONDITIONAL PASS - Plan is sound with critical clarifications needed"
+      },
+      "mode": null,
+      "baseline": {
+        "line": 4,
+        "value": "a6dbf8c"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-remediation-council-prompt.md",
+      "sha256": "1388511b74ed64bc7ef85d30e46b21fa37be632efed320ee0df6a0781d6b294e",
+      "bytes": 4032,
+      "lines": 28,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-systemic-course-correction-prompt.md",
+      "sha256": "647ecff3fef1cc48f6a28b465909e2ac4e69f5eb49c1bb3e294fdcbdc3621986",
+      "bytes": 8030,
+      "lines": 65,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-universal-council-prompt-mcp-context-layer.md",
+      "sha256": "dee1d364b2297dc034a6ba9adfe699016ff08c8d4b2fd8bba3765fee4ed62aed",
+      "bytes": 7750,
+      "lines": 126,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 99,
+        "value": "ADVISORY, with your verdict on reopening Track C"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-v2-arms-thresholds-discussion.md",
+      "sha256": "592d871f0ac7b48f47adece7316b61dc68214551457dbd130d8fee6040dbf5d4",
+      "bytes": 3325,
+      "lines": 28,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-19-v2-remediation-plan.md",
+      "sha256": "7bd9633d57b889e5859d908b6986c99e2ab80018969348e648170bdc2039d22e",
+      "bytes": 7466,
+      "lines": 86,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-codex-paired-cycle-audit-prompt.md",
+      "sha256": "7d93af5407e8d817030cf83a6bf650620cde51fbb020710c19610fb394d8cc0d",
+      "bytes": 2448,
+      "lines": 38,
+      "reviewer": {
+        "line": 5,
+        "value": "GPT-6 / Codex"
+      },
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-deepseek-cycle-closure-review.md",
+      "sha256": "54f194b8cbe0e91f164f9eef246fe249eb94464ade6daac8c7334468d08535f7",
+      "bytes": 14917,
+      "lines": 229,
+      "reviewer": {
+        "line": 6,
+        "value": "DeepSeek (deepseek-dceaf140d0ec1376), independent of the implementer"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING (FS_WRITE, SHELL_EXEC, EVIDENCE_SIGN, REPO_READ)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-deepseek-gemini-cycle-resume-prompt.md",
+      "sha256": "ccc84f6d1573d94e19ba08fd76254027607c692ada4d90f09849e205f340c446",
+      "bytes": 6094,
+      "lines": 119,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-deepseek-paired-cycle-remediation-dispatch.md",
+      "sha256": "1ec4cd27cedf967a4f01eb03d3939058fb569c4e95441d7e23c12b368618e433",
+      "bytes": 7330,
+      "lines": 49,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-a-review.md",
+      "sha256": "97120298e25c5920a925b35554b3232a9ca3e832ea70324d2ae2c15d8b1e651e",
+      "bytes": 5065,
+      "lines": 83,
+      "reviewer": {
+        "line": 3,
+        "value": "DeepSeek (controller, independent reviewer)"
+      },
+      "verdict": {
+        "line": 10,
+        "value": "FAIL"
+      },
+      "mode": {
+        "line": 7,
+        "value": "CERTIFYING"
+      },
+      "baseline": {
+        "line": 5,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-mcp-architecture-council-prompt.md",
+      "sha256": "6794faf5303e2fd8e2f20d4e9e124f262027e511bb2462a662bce308fe485b91",
+      "bytes": 6761,
+      "lines": 101,
+      "reviewer": null,
+      "verdict": null,
+      "mode": {
+        "line": 6,
+        "value": "discussion only; no code, installs, configuration, registry rows, or decision transcription"
+      },
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-mcp-council-round2-synthesis.md",
+      "sha256": "ed9fd4a8174abb83e0ebd46bdc057b12f1bc9f26fbc2b775e58af0608bfd7a5d",
+      "bytes": 7320,
+      "lines": 121,
+      "reviewer": {
+        "line": 6,
+        "value": "GPT-6 / Codex"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION - B; SUFFICIENT TO FINALIZE THE CURRENT PLAN"
+      },
+      "mode": {
+        "line": 9,
+        "value": "CERTIFYING for local reproductions; all transcribed participant answers remain READ-ONLY ADVISORY"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-mcp-research-consolidation.md",
+      "sha256": "a996ec94382646da9203391e627845fe23525a73390c239f3d86f32f01a321a1",
+      "bytes": 14409,
+      "lines": 186,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    },
+    {
+      "path": "docs/reviews/archive/2026-09-20-mcp-stack-council-round1-prompt.md",
+      "sha256": "3b8ff8743ffe38728199eeea746cdd7bc3c6d901219188d13fd97ad5d8d6205b",
+      "bytes": 10620,
+      "lines": 125,
+      "reviewer": {
+        "line": 6,
+        "value": "GPT-6 / Codex"
+      },
+      "verdict": {
+        "line": 8,
+        "value": "RECOMMENDATION - run a docs-first council; do not select or install a stack yet"
+      },
+      "mode": {
+        "line": 9,
+        "value": "ADVISORY (local facts reproduced; external-product claims require independent verification)"
+      },
+      "baseline": {
+        "line": 4,
+        "value": "d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1"
+      },
+      "urlCount": 6
+    },
+    {
+      "path": "docs/reviews/archive/INDEX.md",
+      "sha256": "020da7ebcbc694067051d0cf751ff0e5df69017a62402b709ef2a7537351d385",
+      "bytes": 19457,
+      "lines": 155,
+      "reviewer": null,
+      "verdict": null,
+      "mode": null,
+      "baseline": null,
+      "urlCount": 0
+    }
+  ]
+}
