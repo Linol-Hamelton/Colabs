@@ -1122,3 +1122,209 @@ test('RC-absolute-diagnostics (C10): scope error output uses repo-relative path'
   // Ensure no absolute drive path is embedded
   assert.ok(!res.stderr.includes(root), 'error message must not embed absolute checkout path');
 });
+
+// ---------------------------------------------------------------------------
+// Round 3 Remediation Tests: F-R2-01..F-R2-04 and Codex Observations
+// ---------------------------------------------------------------------------
+
+test('RC-ledger-parse (F-R2-01, attempt 2 of 2): framed rows, list items, inline code, fenced blocks outside table and prose before header exit 2', t => {
+  const root = makeProtocolFixture(t);
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+  const row = '| F1 | RC1 | observed mismatch | .ai/bin/x.cjs | node probe.cjs | 1 | LOW | confirmed | 1 |\n';
+  const cleanRow = '| F0 | RC0 | observed mismatch | docs/notes.md | none | n/a | LOW | refuted | 1 |\n';
+
+  const negativeCases = {
+    // 1. Framed row above the header
+    'framed-above-header': '# Title\n\n' + row + '\n' + header + cleanRow,
+    // 2. List item above the table
+    'list-above-header': '# Title\n\n- ' + row + '\n' + header + cleanRow,
+    // 3. List item below the table
+    'list-below-table': '# Title\n\n' + header + cleanRow + '\n- ' + row,
+    // 4. Inline code above the table
+    'inline-code-above-header': '# Title\n\n`' + row.trim() + '`\n\n' + header + cleanRow,
+    // 5. Inline code below the table
+    'inline-code-below-table': '# Title\n\n' + header + cleanRow + '\n`' + row.trim() + '`\n',
+    // 6. Fenced code block above the table
+    'fenced-above-header': '# Title\n\n```text\n' + row + '```\n\n' + header + cleanRow,
+    // 7. Fenced code block below the table
+    'fenced-below-table': '# Title\n\n' + header + cleanRow + '\n```text\n' + row + '```\n',
+    // 8. Prose before the header
+    'prose-before-header': '# Title\n\nExplanatory prose note before the table header.\n\n' + header + cleanRow,
+    // 9. Codex's list-hidden form (no outer pipes inside list)
+    'codex-list-hidden': '# Title\n\n' + header + cleanRow + '- ' + row.trim().slice(2, -2) + '\n',
+    // 10. Codex's inline-code-hidden form (no outer pipes inside inline code)
+    'codex-inline-code-hidden': '# Title\n\n' + header + cleanRow + '`' + row.trim().slice(2, -2) + '`\n',
+    // 11. Codex's heading-hidden form
+    'codex-heading-hidden': '# Title\n\n' + header + cleanRow + '# ' + row.trim().slice(2, -2) + '\n',
+  };
+
+  for (const [name, content] of Object.entries(negativeCases)) {
+    const file = path.join(root, `docs/reviews/neg-${name}.md`);
+    write(root, `docs/reviews/neg-${name}.md`, content);
+
+    // In verdict mode: must exit 2
+    const resVerdict = runTool('protocol-verdict.cjs', [file], root);
+    assert.equal(resVerdict.status, 2, `negative case '${name}' in verdict mode must exit 2, got ${resVerdict.status} (${resVerdict.stderr || resVerdict.stdout})`);
+
+    // In stop-rule mode: must exit 2
+    const resStop = runTool('protocol-verdict.cjs', [file, '--stop-rule'], root);
+    assert.equal(resStop.status, 2, `negative case '${name}' in --stop-rule mode must exit 2, got ${resStop.status} (${resStop.stderr || resStop.stdout})`);
+  }
+});
+
+test('RC-attempt-contiguity (F-R2-03, attempt 1): cross-file counting, union contiguity, duplicate merging, and conflict detection', t => {
+  const root = makeProtocolFixture(t);
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+
+  // Sub-case 1: single file starting at attempt 2 without attempt 1 exits 2
+  const ledgerGapStart = header + '| F1 | RC-gap | requirement | docs/notes.md | none | n/a | LOW | confirmed | 2 |\n';
+  write(root, 'docs/reviews/gap-start-findings.md', ledgerGapStart);
+  const resGapStart = runTool('protocol-verdict.cjs', ['docs/reviews/gap-start-findings.md', '--stop-rule'], root);
+  assert.equal(resGapStart.status, 2, 'sequence starting at 2 without 1 must exit 2');
+  assert.match(resGapStart.stderr, /non-contiguous attempts/);
+  fs.unlinkSync(path.join(root, 'docs/reviews/gap-start-findings.md'));
+
+  // Sub-case 2: sequence with gaps {1, 3} exits 2
+  const ledgerGapMid = header +
+    '| F1 | RC-mid | requirement | docs/notes.md | none | n/a | LOW | confirmed | 1 |\n' +
+    '| F2 | RC-mid | requirement | docs/notes.md | none | n/a | LOW | confirmed | 3 |\n';
+  write(root, 'docs/reviews/gap-mid-findings.md', ledgerGapMid);
+  const resGapMid = runTool('protocol-verdict.cjs', ['docs/reviews/gap-mid-findings.md', '--stop-rule'], root);
+  assert.equal(resGapMid.status, 2, 'sequence {1, 3} must exit 2');
+  assert.match(resGapMid.stderr, /non-contiguous attempts/);
+  fs.unlinkSync(path.join(root, 'docs/reviews/gap-mid-findings.md'));
+
+  // Sub-case 3: cross-file union: file A has attempt 1, file B has attempt 2 -> union {1, 2} contiguous exits 0
+  const fileA = header + '| F1 | RC-cross | requirement | docs/notes.md | none | n/a | LOW | fixed-and-verified | 1 |\n';
+  const fileB = header + '| F2 | RC-cross | requirement | docs/notes.md | none | n/a | LOW | fixed-and-verified | 2 |\n';
+  write(root, 'docs/reviews/a-findings.md', fileA);
+  write(root, 'docs/reviews/b-findings.md', fileB);
+  const resCross = runTool('protocol-verdict.cjs', ['docs/reviews/b-findings.md', '--stop-rule'], root);
+  assert.equal(resCross.status, 0, 'cross-file union {1, 2} must satisfy stop rule');
+  assert.match(resCross.stdout, /Root-cause stop rule satisfied/);
+
+  // Sub-case 4: duplicate (root-cause, attempt) across files with identical disposition is merged
+  const fileC = header +
+    '| F1 | RC-cross | requirement | docs/notes.md | none | n/a | LOW | fixed-and-verified | 1 |\n' +
+    '| F2 | RC-cross | requirement | docs/notes.md | none | n/a | LOW | fixed-and-verified | 2 |\n';
+  write(root, 'docs/reviews/c-findings.md', fileC);
+  const resMerge = runTool('protocol-verdict.cjs', ['docs/reviews/c-findings.md', '--stop-rule'], root);
+  assert.equal(resMerge.status, 0, 'identical duplicate across files must be merged and pass');
+
+  // Sub-case 5: duplicate (root-cause, attempt) across files with conflicting disposition exits 2
+  const fileConflict = header + '| F1 | RC-cross | requirement | docs/notes.md | none | n/a | LOW | refuted | 1 |\n';
+  write(root, 'docs/reviews/conflict-findings.md', fileConflict);
+  const resConflict = runTool('protocol-verdict.cjs', ['docs/reviews/conflict-findings.md', '--stop-rule'], root);
+  assert.equal(resConflict.status, 2, 'conflicting dispositions for same (root-cause, attempt) must exit 2');
+  assert.match(resConflict.stderr, /conflicting dispositions/);
+});
+
+test('RC-role-prose-substring (F-R2-02, attempt 1): exact tokens and negation guard', t => {
+  const root = makeProtocolFixture(t);
+  const { checkIndependence, extractExcludedRole } = scopeTool;
+
+  // Unit tests on extractExcludedRole
+  // 1. Excluded roles match
+  assert.equal(extractExcludedRole('author'), 'author');
+  assert.equal(extractExcludedRole('executor'), 'executor');
+  assert.equal(extractExcludedRole('controller'), 'controller');
+  assert.equal(extractExcludedRole('coordinator'), 'coordinator');
+  assert.equal(extractExcludedRole('implementer'), 'implementer');
+  assert.equal(extractExcludedRole('member of the executing pair'), 'member of the executing pair');
+  assert.equal(extractExcludedRole('executing pair'), 'member of the executing pair');
+
+  // 2. Negated roles do NOT match
+  assert.equal(extractExcludedRole('independent certifier; not author or controller'), null);
+  assert.equal(extractExcludedRole('neither authored nor controlled this candidate'), null);
+  assert.equal(extractExcludedRole('independent of author, controller, or implementer'), null);
+  assert.equal(extractExcludedRole('never an author or executor'), null);
+  assert.equal(extractExcludedRole('standing default certifier. Fills the first of the two independent reviewer slots required by PROTO-DEC-0041 item 2, for any candidate it neither authored nor controlled'), null);
+
+  // 3. Mixed roles: implementer with negated author matches implementer
+  assert.equal(extractExcludedRole('implementer; not author'), 'implementer');
+
+  // Integration test with checkIndependence
+  const taskContent = '# Current Task\n\n## Roles\n\n' +
+    '- rev-author: author\n' +
+    '- rev-executor: executor\n' +
+    '- rev-controller: controller\n' +
+    '- rev-coord: coordinator\n' +
+    '- rev-impl: implementer\n' +
+    '- rev-pair: member of the executing pair\n' +
+    '- rev-indep: independent certifier; not author or controller\n' +
+    '- claude: standing default certifier. Fills the first of the two independent reviewer slots required by PROTO-DEC-0041 item 2, for any candidate it neither authored nor controlled\n';
+  write(root, '.ai/TASK.md', taskContent);
+
+  const testReviewer = (owner, expectedExit) => {
+    const revFile = `docs/reviews/rev-${owner}.md`;
+    write(root, revFile, `# Review\n\nReceipt-Owner: ${owner}-123\nProducer: builder-456\nVerdict: PASS\n`);
+    const res = runTool('protocol-scope.cjs', ['--independence', revFile, '--cwd', root]);
+    assert.equal(res.status, expectedExit, `reviewer '${owner}' expected exit ${expectedExit}, got ${res.status}`);
+  };
+
+  testReviewer('rev-author', 1);
+  testReviewer('rev-executor', 1);
+  testReviewer('rev-controller', 1);
+  testReviewer('rev-coord', 1);
+  testReviewer('rev-impl', 1);
+  testReviewer('rev-pair', 1);
+  testReviewer('rev-indep', 0);
+  testReviewer('claude', 0);
+});
+
+test('RC-arg-parsing (F-R2-04, attempt 1): unknown flags exit 2 on both tools', t => {
+  const root = makeProtocolFixture(t);
+  const ledgerFile = 'docs/reviews/test-findings.md';
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+  write(root, ledgerFile, header + '| F1 | RC | req | docs/notes.md | none | n/a | LOW | fixed-and-verified | 1 |\n');
+
+  // protocol-verdict.cjs
+  const resV1 = runTool('protocol-verdict.cjs', [ledgerFile, '--typo-flag'], root);
+  assert.equal(resV1.status, 2, 'protocol-verdict unknown flag must exit 2');
+  assert.match(resV1.stderr, /Unrecognised CLI flag/);
+
+  const resV2 = runTool('protocol-verdict.cjs', [ledgerFile, '--forbiden'], root);
+  assert.equal(resV2.status, 2, 'protocol-verdict unknown flag must exit 2');
+  assert.match(resV2.stderr, /Unrecognised CLI flag/);
+
+  // protocol-scope.cjs
+  const revFile = 'docs/reviews/test-rev.md';
+  write(root, revFile, '# Review\n\nReceipt-Owner: reviewer-123\nProducer: builder-456\nVerdict: PASS\n');
+
+  const resS1 = runTool('protocol-scope.cjs', ['--independence', revFile, '--typo-flag', '--cwd', root]);
+  assert.equal(resS1.status, 2, 'protocol-scope unknown flag must exit 2');
+  assert.match(resS1.stderr, /Unrecognised CLI flag/);
+
+  const resS2 = runTool('protocol-scope.cjs', ['--independence', revFile, '--forbiden', 'x', '--cwd', root]);
+  assert.equal(resS2.status, 2, 'protocol-scope unknown flag must exit 2');
+  assert.match(resS2.stderr, /Unrecognised CLI flag/);
+});
+
+test('Codex observations (C05): candidate journal fenced blocks and commit SHA owners fail closed', t => {
+  const root = makeProtocolFixture(t);
+
+  // Sub-case 1: Journal with Evidence block ONLY inside fenced code block exits 2
+  const journalFenced = '# Journal\n\n```text\nEvidence:\n- recorded: 2026-09-23 by builder-123\n```\n';
+  write(root, '.ai/worklog/fenced-journal.md', journalFenced);
+  const revFenced = '# Review\n\nReceipt-Owner: reviewer-123\nCandidate journal: .ai/worklog/fenced-journal.md\nVerdict: PASS\n';
+  write(root, 'docs/reviews/rev-fenced.md', revFenced);
+  const resFenced = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/rev-fenced.md', '--cwd', root]);
+  assert.equal(resFenced.status, 2, 'evidence inside fenced code block must not be parsed as valid owner');
+
+  // Sub-case 2: Journal with 40-hex commit SHA as evidence owner exits 2
+  const sha = 'a'.repeat(40);
+  const journalSha = `# Journal\n\nEvidence:\n- recorded: 2026-09-23 by ${sha}\n`;
+  write(root, '.ai/worklog/sha-journal.md', journalSha);
+  const revSha = '# Review\n\nReceipt-Owner: reviewer-123\nCandidate journal: .ai/worklog/sha-journal.md\nVerdict: PASS\n';
+  write(root, 'docs/reviews/rev-sha.md', revSha);
+  const resSha = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/rev-sha.md', '--cwd', root]);
+  assert.equal(resSha.status, 2, '40-hex SHA in journal must not be accepted as owner');
+
+  // Sub-case 3: Journal with fenced example followed by actual entry parses actual entry (catches same owner -> exit 1)
+  const journalMulti = '# Journal\n\n```text\nEvidence:\n- recorded: 2026-09-23 by builder-123\n```\n\n## Actual Entry\n\nEvidence:\n- recorded: 2026-09-23 by reviewer-123\n';
+  write(root, '.ai/worklog/multi-journal.md', journalMulti);
+  const revMulti = '# Review\n\nReceipt-Owner: reviewer-123\nCandidate journal: .ai/worklog/multi-journal.md\nVerdict: PASS\n';
+  write(root, 'docs/reviews/rev-multi.md', revMulti);
+  const resMulti = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/rev-multi.md', '--cwd', root]);
+  assert.equal(resMulti.status, 1, 'actual entry outside fence must be parsed, catching reviewer == producer');
+});

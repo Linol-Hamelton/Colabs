@@ -724,6 +724,28 @@ test('decision immutability: appending a new block exits 0, editing a committed 
   write(rootI, '.ai/DECISIONS.md', appendedNoSep);
   write(rootI, 'docs/decisions/REGISTRY.md', baseRegistry + '| PROTO-DEC-0002 | accepted | none | | | |\n');
   succeeds(rootI);
+
+  // Direction J: Codex observation (RC-immutability-boundary): adding a blank line to the end of DECISIONS.md without a new block fails (exit 1)
+  const rootJ = makeProtocolFixture(t);
+  write(rootJ, '.ai/DECISIONS.md', baseDecisions);
+  write(rootJ, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootJ, ['add', '-A']);
+  git(rootJ, ['commit', '-m', 'Commit initial decision']);
+
+  const blankLineTamper = baseDecisions + '\n';
+  write(rootJ, '.ai/DECISIONS.md', blankLineTamper);
+  fails(rootJ, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Direction K: Trailing separator alone ('\n---\n') without new block succeeds (exit 0)
+  const rootK = makeProtocolFixture(t);
+  write(rootK, '.ai/DECISIONS.md', baseDecisions);
+  write(rootK, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootK, ['add', '-A']);
+  git(rootK, ['commit', '-m', 'Commit initial decision']);
+
+  const trailingSep = baseDecisions + '\n---\n';
+  write(rootK, '.ai/DECISIONS.md', trailingSep);
+  succeeds(rootK);
 });
 
 

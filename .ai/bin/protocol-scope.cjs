@@ -269,9 +269,28 @@ function checkIndependence(reviewPath, options = {}) {
     const jPath = path.resolve(cwd, candidateJournalPath);
     if (fs.existsSync(jPath)) {
       const jText = fs.readFileSync(jPath, 'utf8');
-      const recMatch = jText.match(/- recorded:[^\n]+by\s+([a-zA-Z0-9._-]+)/i);
+      // Strip fenced code blocks before looking for Evidence block
+      const jLines = jText.split(/\r?\n/);
+      const unfencedLines = [];
+      let inFence = false;
+      for (const line of jLines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
+          inFence = !inFence;
+          continue;
+        }
+        if (!inFence) {
+          unfencedLines.push(line);
+        }
+      }
+      const unfencedText = unfencedLines.join('\n');
+      const recMatch = unfencedText.match(/- recorded:[^\n]+by\s+([a-zA-Z0-9._-]+)/i);
       if (recMatch) {
-        producerOwner = recMatch[1].trim();
+        const val = recMatch[1].trim();
+        // Reject 40-hex commit SHA as owner
+        if (!/^[0-9a-fA-F]{40}$/.test(val)) {
+          producerOwner = val;
+        }
       }
       // No basename fallback
     }
@@ -303,6 +322,7 @@ function checkIndependence(reviewPath, options = {}) {
 
   // Check TASK.md for excluded roles per PROTO-DEC-0041 item 1:
   // "author, the executor, the controller of that candidate, or any member of the executing pair"
+  // Owner decision 2026-09-23: EXACT TOKENS + NEGATION GUARD over structured ## Roles only.
   const excludedRoles = new Map();
   const taskPath = options.task ? path.resolve(cwd, options.task) : path.resolve(cwd, '.ai', 'TASK.md');
   if (fs.existsSync(taskPath)) {
@@ -311,22 +331,13 @@ function checkIndependence(reviewPath, options = {}) {
     if (rolesSection) {
       const lines = rolesSection.split(/\r?\n/);
       for (const line of lines) {
-        const match = line.match(/^-\s*([a-zA-Z0-9_.-]+)(?:\s*\([^)]+\))?:\s*([^\n;]+)/i);
+        const match = line.match(/^-\s*([a-zA-Z0-9_.-]+)(?:\s*\([^)]+\))?:\s*(.*)$/i);
         if (match) {
           const agent = match[1].toLowerCase();
-          const roleDesc = match[2].toLowerCase();
-          if (roleDesc.includes('implementer')) {
-            excludedRoles.set(agent, 'implementer');
-          } else if (roleDesc.includes('controller')) {
-            excludedRoles.set(agent, 'controller');
-          } else if (roleDesc.includes('coordinator')) {
-            excludedRoles.set(agent, 'coordinator');
-          } else if (roleDesc.includes('author')) {
-            excludedRoles.set(agent, 'author');
-          } else if (roleDesc.includes('executor')) {
-            excludedRoles.set(agent, 'executor');
-          } else if (roleDesc.includes('pair')) {
-            excludedRoles.set(agent, 'executing pair');
+          const roleDesc = match[2];
+          const matchedExcludedRole = extractExcludedRole(roleDesc);
+          if (matchedExcludedRole) {
+            excludedRoles.set(agent, matchedExcludedRole);
           }
         }
       }
@@ -346,16 +357,39 @@ function checkIndependence(reviewPath, options = {}) {
     };
   }
 
-  const reviewerAgent = reviewerOwner.split('-')[0].toLowerCase();
-  if (excludedRoles.has(reviewerAgent)) {
-    const matchedRole = excludedRoles.get(reviewerAgent);
+  let matchedAgent = null;
+  let matchedRole = null;
+  const ownerLower = reviewerOwner.toLowerCase();
+  if (excludedRoles.has(ownerLower)) {
+    matchedAgent = ownerLower;
+    matchedRole = excludedRoles.get(matchedAgent);
+  } else {
+    // Check known excluded agents (sorted by length descending for exact prefixes)
+    const sortedAgents = [...excludedRoles.keys()].sort((a, b) => b.length - a.length);
+    for (const agent of sortedAgents) {
+      if (ownerLower === agent || ownerLower.startsWith(`${agent}-`)) {
+        matchedAgent = agent;
+        matchedRole = excludedRoles.get(agent);
+        break;
+      }
+    }
+  }
+  if (!matchedAgent) {
+    const firstSegment = ownerLower.split('-')[0];
+    if (excludedRoles.has(firstSegment)) {
+      matchedAgent = firstSegment;
+      matchedRole = excludedRoles.get(firstSegment);
+    }
+  }
+
+  if (matchedAgent) {
     return {
       independent: false,
       exitCode: 1,
       rule: 'REVIEWER_EXCLUDED_BY_TASK_ROLE',
       reviewerOwner,
       producerOwner,
-      message: `Independence violation: Reviewer owner '${reviewerOwner}' appears as ${matchedRole} (${reviewerAgent}) in .ai/TASK.md roles. (PROTO-DEC-0041 item 1)`
+      message: `Independence violation: Reviewer owner '${reviewerOwner}' appears as ${matchedRole} (${matchedAgent}) in .ai/TASK.md roles. (PROTO-DEC-0041 item 1)`
     };
   }
 
@@ -368,31 +402,116 @@ function checkIndependence(reviewPath, options = {}) {
   };
 }
 
+function extractExcludedRole(roleText) {
+  // Roles text can contain multiple clauses separated by ';' or '.'
+  const clauses = roleText.split(/[;.\n]+/);
+
+  const excludedPatterns = [
+    { pattern: /\b(member\s+of\s+the\s+executing\s+pair|executing\s+pair)\b/i, name: 'member of the executing pair' },
+    { pattern: /\b(author|authored)\b/i, name: 'author' },
+    { pattern: /\b(executor)\b/i, name: 'executor' },
+    { pattern: /\b(controller|controlled)\b/i, name: 'controller' },
+    { pattern: /\b(coordinator)\b/i, name: 'coordinator' },
+    { pattern: /\b(implementer)\b/i, name: 'implementer' },
+  ];
+
+  for (const clause of clauses) {
+    const trimmedClause = clause.trim();
+    if (!trimmedClause) continue;
+
+    for (const ep of excludedPatterns) {
+      const match = ep.pattern.exec(trimmedClause);
+      if (match) {
+        const matchIndex = match.index;
+        const textBefore = trimmedClause.slice(0, matchIndex);
+
+        // Check if there is an active negation before the token in this clause
+        // Negation keywords: not, never, neither, independent of, without
+        const negationMatch = /\b(not|never|neither|independent\s+of|without)\b/i.exec(textBefore);
+        if (negationMatch) {
+          // If there is an adversative conjunction (but, however) between negation and token, negation is broken
+          const textBetween = textBefore.slice(negationMatch.index + negationMatch[0].length);
+          if (/\b(but|however)\b/i.test(textBetween)) {
+            return ep.name;
+          }
+          // Otherwise, this token is negated (e.g. "not author or controller", "neither authored nor controlled", "independent certifier; not author")
+          continue;
+        }
+
+        // Also check if the token itself is preceded by "independent of"
+        if (/independent\s+of\s*$/i.test(textBefore.trim())) {
+          continue;
+        }
+
+        return ep.name;
+      }
+    }
+  }
+
+  return null;
+}
+
 function parseArgs(argv) {
   const options = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--baseline') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --baseline');
+      }
       options.baseline = argv[++i];
     } else if (arg === '--scope') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --scope');
+      }
       options.scope = argv[++i];
     } else if (arg === '--forbidden') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --forbidden');
+      }
       options.forbidden = argv[++i];
     } else if (arg === '--independence') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --independence');
+      }
       options.independence = argv[++i];
     } else if (arg === '--producer') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --producer');
+      }
       options.producer = argv[++i];
     } else if (arg === '--candidate-journal') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --candidate-journal');
+      }
       options.candidateJournal = argv[++i];
+    } else if (arg === '--task') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --task');
+      }
+      options.task = argv[++i];
     } else if (arg === '--cwd') {
+      if (i + 1 >= argv.length || argv[i + 1].startsWith('-')) {
+        throw new Error('Missing value for --cwd');
+      }
       options.cwd = argv[++i];
+    } else if (arg.startsWith('-')) {
+      throw new Error(`Unrecognised CLI flag '${arg}'`);
+    } else {
+      throw new Error(`Unexpected positional argument '${arg}'`);
     }
   }
   return options;
 }
 
 function main(argv) {
-  const options = parseArgs(argv);
+  let options;
+  try {
+    options = parseArgs(argv);
+  } catch (err) {
+    process.stderr.write(`BLOCKED (exit 2): ${err.message}\n`);
+    return 2;
+  }
 
   if (options.independence) {
     try {
@@ -451,5 +570,7 @@ module.exports = {
   pathMatches,
   checkScope,
   checkIndependence,
+  extractExcludedRole,
+  parseArgs,
   main,
 };

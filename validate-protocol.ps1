@@ -995,16 +995,26 @@ if ($gitCommand -and $script:GitUsable -and (Test-Path -LiteralPath $decisionPat
     else {
         $pattern = '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d{4}))(?<headingSuffix>[^\r\n]*)(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)'
         $before = @{}
+        $beforeRaw = @{}
+        $lastCommittedId = $null
         foreach ($block in [regex]::Matches(($committed.Output -replace "`r`n", "`n"), $pattern)) {
-            $b = [regex]::Replace($block.Groups['body'].Value, '(?:\r?\n)+---\s*\z', '')
+            $id = $block.Groups['id'].Value
+            $lastCommittedId = $id
+            $raw = $block.Groups['body'].Value
+            $beforeRaw[$id] = $raw
+            $b = [regex]::Replace($raw, '(?:\r?\n)+---\s*\z', '')
             $b = [regex]::Replace($b, '(?:\r?\n)+\z', '')
-            $before[$block.Groups['id'].Value] = $block.Groups['headingSuffix'].Value + "`n" + $b
+            $before[$id] = $block.Groups['headingSuffix'].Value + "`n" + $b
         }
         $currentBlocks = @{}
+        $currentRaw = @{}
         foreach ($block in [regex]::Matches(($decisionText -replace "`r`n", "`n"), $pattern)) {
-            $b = [regex]::Replace($block.Groups['body'].Value, '(?:\r?\n)+---\s*\z', '')
+            $id = $block.Groups['id'].Value
+            $raw = $block.Groups['body'].Value
+            $currentRaw[$id] = $raw
+            $b = [regex]::Replace($raw, '(?:\r?\n)+---\s*\z', '')
             $b = [regex]::Replace($b, '(?:\r?\n)+\z', '')
-            $currentBlocks[$block.Groups['id'].Value] = $block.Groups['headingSuffix'].Value + "`n" + $b
+            $currentBlocks[$id] = $block.Groups['headingSuffix'].Value + "`n" + $b
         }
         $changed = @()
         $deleted = @()
@@ -1014,6 +1024,24 @@ if ($gitCommand -and $script:GitUsable -and (Test-Path -LiteralPath $decisionPat
             }
             elseif ($before[$id] -cne $currentBlocks[$id]) {
                 $changed += $id
+            }
+        }
+        if ($changed.Count -eq 0 -and $deleted.Count -eq 0 -and $lastCommittedId -and ($currentBlocks.Count -eq $before.Count)) {
+            $cRaw = $currentRaw[$lastCommittedId]
+            $bRaw = $beforeRaw[$lastCommittedId]
+            if ($cRaw -cne $bRaw) {
+                if ($cRaw -match '(?:\r?\n)+---\s*\z') {
+                    $cStripped = [regex]::Replace($cRaw, '(?:\r?\n)+---\s*\z', '')
+                    $cStripped = [regex]::Replace($cStripped, '(?:\r?\n)+\z', '')
+                    $bStripped = [regex]::Replace($bRaw, '(?:\r?\n)+---\s*\z', '')
+                    $bStripped = [regex]::Replace($bStripped, '(?:\r?\n)+\z', '')
+                    if ($cStripped -cne $bStripped) {
+                        $changed += $lastCommittedId
+                    }
+                }
+                else {
+                    $changed += $lastCommittedId
+                }
             }
         }
         if ($changed.Count -eq 0 -and $deleted.Count -eq 0) {

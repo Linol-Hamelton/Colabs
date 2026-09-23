@@ -231,6 +231,43 @@ function isProtectedPath(rawPath, customProtectedSet) {
   return false;
 }
 
+function isAttemptedTableRow(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  // Check if framed with pipes
+  if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+    return true;
+  }
+  // Unwrap any list marker (- , * , + ), heading (#+ ), blockquote (> ), HTML comment (<!-- ... -->)
+  let unwrapped = trimmed
+    .replace(/^[-*+]\s+/, '')
+    .replace(/^#+\s+/, '')
+    .replace(/^>\s+/, '')
+    .replace(/^<!--\s*/, '')
+    .replace(/\s*-->$/, '')
+    .trim();
+  // Unwrap inline backticks or code fences
+  if (unwrapped.startsWith('`') && unwrapped.endsWith('`')) {
+    unwrapped = unwrapped.replace(/^`+|`+$/g, '').trim();
+  }
+  if (unwrapped.startsWith('~~~') && unwrapped.endsWith('~~~')) {
+    unwrapped = unwrapped.replace(/^~+|~+$/g, '').trim();
+  }
+  if (unwrapped.startsWith('|') && unwrapped.endsWith('|')) {
+    return true;
+  }
+  // Count pipes in trimmed and unwrapped
+  const rawPipes = (trimmed.match(/\|/g) || []).length;
+  const unwrappedPipes = (unwrapped.match(/\|/g) || []).length;
+  if (rawPipes >= 3 || unwrappedPipes >= 3) {
+    return true;
+  }
+  if ((trimmed.startsWith('|') || trimmed.endsWith('|') || unwrapped.startsWith('|') || unwrapped.endsWith('|')) && (rawPipes >= 2 || unwrappedPipes >= 2)) {
+    return true;
+  }
+  return false;
+}
+
 function parseFindingsLedger(filePath) {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Findings ledger file not found: ${filePath}`);
@@ -247,7 +284,7 @@ function parseFindingsLedger(filePath) {
       continue;
     }
     if (inFence) {
-      if (l.includes('|') && (l.startsWith('|') || l.endsWith('|') || l.split('|').length >= 4)) {
+      if (isAttemptedTableRow(l)) {
         throw new Error(`Malformed findings ledger: table row hidden inside fenced code block at line ${i + 1}`);
       }
     }
@@ -270,6 +307,23 @@ function parseFindingsLedger(filePath) {
 
   if (headerIndex === -1) {
     throw new Error('Malformed findings ledger: no table header row found');
+  }
+
+  // Check all lines before header: only documented preamble (headings, metadata, blank lines) allowed
+  for (let i = 0; i < headerIndex; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    if (isAttemptedTableRow(line)) {
+      throw new Error(`Malformed findings ledger: table row or attempted table row before table header at line ${i + 1}`);
+    }
+    const isHeading = line.startsWith('#');
+    const isMetadata = /^[A-Za-z0-9_][A-Za-z0-9_ -]*:\s+.*$/.test(line);
+    if (!isHeading && !isMetadata) {
+      throw new Error(`Malformed findings ledger: unexpected non-preamble line before table header at line ${i + 1}: '${line}'`);
+    }
+    if (line.includes('|')) {
+      throw new Error(`Malformed findings ledger: heading or metadata contains unexpected '|' before table header at line ${i + 1}`);
+    }
   }
 
   // Check duplicate headers (duplicate column names)
@@ -305,6 +359,10 @@ function parseFindingsLedger(filePath) {
     const line = lines[i].trim();
     if (!line) continue;
     if (/^\|(?:\s*[-:]+\s*\|)+$/.test(line)) {
+      const sepCols = line.slice(1, -1).split('|').map(c => c.trim());
+      if (sepCols.length !== headers.length) {
+        throw new Error(`Malformed findings ledger: separator row has ${sepCols.length} columns, expected ${headers.length}`);
+      }
       separatorIndex = i;
       break;
     } else {
@@ -331,41 +389,26 @@ function parseFindingsLedger(filePath) {
       continue;
     }
 
-    // Strip inline backtick code spans to avoid mistaking markdown code for table columns
-    const lineNoCode = line.replace(/`[^`]*`/g, '');
-    const pipeCount = (lineNoCode.match(/\|/g) || []).length;
-    const startsWithPipe = line.startsWith('|');
-    const endsWithPipe = line.endsWith('|');
+    const attemptedRow = isAttemptedTableRow(line);
 
-    // Detect if a line looks like an attempted table row:
-    // 1. It starts and ends with |
-    // 2. OR it has multiple pipes (pipeCount >= 2) and either starts or ends with |, or pipeCount >= 3 without being a list or heading
-    const isTableRowShape = (startsWithPipe && endsWithPipe) ||
-      (pipeCount >= 2 && (startsWithPipe || endsWithPipe)) ||
-      (pipeCount >= 3 && !line.startsWith('#') && !line.startsWith('- ') && !line.startsWith('* '));
-
-    if (inTable && !isTableRowShape) {
+    if (inTable && !attemptedRow) {
       if (rows.length > 0) {
         inTable = false;
       }
     }
 
-    if (isTableRowShape && (!startsWithPipe || !endsWithPipe)) {
-      if (!startsWithPipe) {
-        throw new Error(`Malformed findings ledger: row at line ${i + 1} missing leading |`);
+    if (!inTable) {
+      if (attemptedRow) {
+        throw new Error(`Malformed findings ledger: table interrupted by blank line or prose at line ${i + 1} (table must be contiguous)`);
       }
-      if (!endsWithPipe) {
-        throw new Error(`Malformed findings ledger: row at line ${i + 1} missing trailing |`);
-      }
-    }
-
-    if (!isTableRowShape) {
       continue;
     }
 
-    // Line starts and ends with |
-    if (!inTable && rows.length > 0) {
-      throw new Error(`Malformed findings ledger: table interrupted by blank line or prose at line ${i + 1} (table must be contiguous)`);
+    if (!line.startsWith('|')) {
+      throw new Error(`Malformed findings ledger: row at line ${i + 1} missing leading |`);
+    }
+    if (!line.endsWith('|')) {
+      throw new Error(`Malformed findings ledger: row at line ${i + 1} missing trailing |`);
     }
 
     // Check if line is a second table separator or header
@@ -552,41 +595,88 @@ function computeVerdict(rows, customProtectedSet) {
   return { verdict: 'PASS', exitCode: 0, drivingRows: [] };
 }
 
-// Check 2: Root-cause stop rule
+function findRepositoryRoot(targetDir) {
+  let repoRoot = null;
+  try {
+    const out = require('node:child_process').execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: targetDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    const candidate = out.trim();
+    if (candidate && fs.existsSync(candidate)) {
+      repoRoot = candidate;
+    }
+  } catch {}
+  if (!repoRoot) {
+    let cur = path.resolve(targetDir);
+    while (true) {
+      if (fs.existsSync(path.join(cur, '.git')) || fs.existsSync(path.join(cur, 'protocol-manifest.json'))) {
+        repoRoot = cur;
+        break;
+      }
+      const parent = path.dirname(cur);
+      if (parent === cur) break;
+      cur = parent;
+    }
+  }
+  return repoRoot || targetDir;
+}
+
+// Check 2: Root-cause stop rule (cross-file counting under --stop-rule)
 function checkStopRule(rows) {
-  // Group rows by root-cause
-  const groups = new Map();
+  // Map of root-cause -> Map of attemptNum -> row
+  const rcAttempts = new Map();
+
   for (const row of rows) {
     const rc = row['root-cause'];
-    if (!groups.has(rc)) {
-      groups.set(rc, []);
+    const att = row._attemptNum;
+    const disp = row.disposition.toLowerCase();
+
+    if (!rcAttempts.has(rc)) {
+      rcAttempts.set(rc, new Map());
     }
-    groups.get(rc).push(row);
+    const attemptMap = rcAttempts.get(rc);
+
+    if (attemptMap.has(att)) {
+      const existing = attemptMap.get(att);
+      const existingDisp = existing.disposition.toLowerCase();
+      if (existingDisp !== disp) {
+        return {
+          ok: false,
+          exitCode: 2,
+          error: `Ledger defect: root-cause '${rc}' attempt ${att} has conflicting dispositions: '${existing.disposition}' vs '${row.disposition}'`
+        };
+      }
+      // Identical: merged duplicate
+    } else {
+      attemptMap.set(att, row);
+    }
   }
 
   // Check attempt contiguity and limits for each root-cause
   const violations = [];
-  for (const [rc, groupRows] of groups.entries()) {
-    const attempts = groupRows.map(r => r._attemptNum);
-    const uniqueAttempts = Array.from(new Set(attempts)).sort((a, b) => a - b);
+  for (const [rc, attemptMap] of rcAttempts.entries()) {
+    const attempts = Array.from(attemptMap.keys()).sort((a, b) => a - b);
 
     // Contiguity check: must start at 1 and have no gaps
-    for (let i = 0; i < uniqueAttempts.length; i++) {
-      if (uniqueAttempts[i] !== i + 1) {
+    for (let i = 0; i < attempts.length; i++) {
+      if (attempts[i] !== i + 1) {
         return {
           ok: false,
           exitCode: 2,
-          error: `Ledger defect: root-cause '${rc}' has non-contiguous attempts [${uniqueAttempts.join(', ')}]; expected contiguous sequence starting at 1.`
+          error: `Ledger defect: root-cause '${rc}' has non-contiguous attempts [${attempts.join(', ')}]; expected contiguous sequence starting at 1.`
         };
       }
     }
 
-    const maxAttempt = uniqueAttempts[uniqueAttempts.length - 1];
+    const maxAttempt = attempts[attempts.length - 1];
     if (maxAttempt >= 3) {
       violations.push({
         rootCause: rc,
         maxAttempt,
-        rows: groupRows
+        rows: Array.from(attemptMap.values())
       });
     }
   }
@@ -599,30 +689,76 @@ function checkStopRule(rows) {
     };
   }
 
-  return { ok: true, exitCode: 0, groupCount: groups.size };
+  return { ok: true, exitCode: 0, groupCount: rcAttempts.size };
 }
 
 function main(argv) {
   const args = argv.slice();
-  const stopRule = args.includes('--stop-rule');
-  const pathArgs = args.filter(a => a !== '--stop-rule');
+  let stopRule = false;
+  let ledgerPath = null;
 
-  if (pathArgs.length === 0) {
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--stop-rule') {
+      stopRule = true;
+    } else if (arg.startsWith('-')) {
+      process.stderr.write(`BLOCKED (exit 2): Unrecognised CLI flag '${arg}'\n`);
+      return 2;
+    } else {
+      if (ledgerPath !== null) {
+        process.stderr.write(`BLOCKED (exit 2): Unexpected extra argument '${arg}'\n`);
+        return 2;
+      }
+      ledgerPath = arg;
+    }
+  }
+
+  if (!ledgerPath) {
     process.stderr.write('Usage: protocol-verdict.cjs <ledger-path> [--stop-rule]\n');
     return 2;
   }
 
-  const ledgerPath = path.resolve(pathArgs[0]);
-  let rows;
-  try {
-    rows = parseFindingsLedger(ledgerPath);
-  } catch (err) {
-    process.stderr.write(`BLOCKED: ${err.message}\n`);
-    return 2;
-  }
+  const absLedger = path.resolve(ledgerPath);
 
   if (stopRule) {
-    const stopResult = checkStopRule(rows);
+    // Cross-file counting: collect rows from ALL findings-ledger files in docs/reviews/ (*findings*.md)
+    const targetFiles = new Set();
+    targetFiles.add(absLedger);
+
+    const root = findRepositoryRoot(path.dirname(absLedger));
+    const candidateDirs = [
+      path.join(root, 'docs', 'reviews'),
+      path.join(path.dirname(absLedger), 'docs', 'reviews'),
+      path.dirname(absLedger),
+    ];
+
+    for (const cDir of candidateDirs) {
+      if (fs.existsSync(cDir) && fs.statSync(cDir).isDirectory()) {
+        try {
+          const entries = fs.readdirSync(cDir, { withFileTypes: true });
+          for (const ent of entries) {
+            if (ent.isFile() && ent.name.toLowerCase().endsWith('.md') && ent.name.toLowerCase().includes('findings')) {
+              targetFiles.add(path.resolve(cDir, ent.name));
+            }
+          }
+        } catch {}
+      }
+    }
+
+    const sortedFiles = Array.from(targetFiles).sort();
+    const allRows = [];
+    for (const file of sortedFiles) {
+      let fileRows;
+      try {
+        fileRows = parseFindingsLedger(file);
+      } catch (err) {
+        process.stderr.write(`BLOCKED: ${err.message}\n`);
+        return 2;
+      }
+      allRows.push(...fileRows);
+    }
+
+    const stopResult = checkStopRule(allRows);
     if (!stopResult.ok) {
       if (stopResult.exitCode === 2) {
         process.stderr.write(`LEDGER ERROR (exit 2): ${stopResult.error}\n`);
@@ -642,9 +778,17 @@ function main(argv) {
     return 0;
   }
 
+  let rows;
+  try {
+    rows = parseFindingsLedger(absLedger);
+  } catch (err) {
+    process.stderr.write(`BLOCKED: ${err.message}\n`);
+    return 2;
+  }
+
   let protectedSet;
   try {
-    protectedSet = loadProtectedSet(path.dirname(ledgerPath));
+    protectedSet = loadProtectedSet(path.dirname(absLedger));
   } catch (err) {
     process.stderr.write(`BLOCKED: ${err.message}\n`);
     return 2;
@@ -673,6 +817,7 @@ module.exports = {
   BASE_PROTECTED_PREFIXES,
   PROTECTED_PREFIXES: BASE_PROTECTED_PREFIXES,
   findManifestPath,
+  findRepositoryRoot,
   loadProtectedSet,
   validateAndNormalisePath,
   isProtectedPath,

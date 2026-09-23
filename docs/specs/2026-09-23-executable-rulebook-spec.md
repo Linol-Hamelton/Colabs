@@ -87,6 +87,7 @@ before or after normalisation, makes the row unparseable and the check exits `2`
 No lexical canonicalisation against a root is performed (PROTO-DEC-0046 item 2).
 
 A malformed ledger is not a pass. Any check that cannot parse it exits `BLOCKED`.
+The preamble of a findings ledger allows only heading lines (`# ...`), optional document metadata lines (`Key: Value`), and blank lines before the table header row. Any prose, list items, inline code, fenced code, or framed/unframed table rows outside the table exit `2` (BLOCKED).
 
 ## 3. Check 1 - verdict arithmetic
 
@@ -129,9 +130,16 @@ recorded under Open questions, as AGENTS section 2 already requires.
 Command: `protocol-verdict.cjs <ledger-path> --stop-rule`
 
 From the PLAN escalation budget: at most two remediation attempts per root cause.
-Group rows by `root-cause`; take the maximum `attempt`. If any group reaches 3, exit `1`
-and name the group, the attempts and their dispositions. The message says what the rule
-requires: stop and return the area or the premise to the owner, not open another round.
+Owner decision of 2026-09-23, refining PROTO-DEC-0046 item 4's counting:
+Cross-file counting: With `--stop-rule`, collect rows from ALL findings-ledger files in
+`docs/reviews/` matching `*findings*.md` (along with the target ledger file). Group by root-cause
+across all ledgers, and require the UNION of attempt numbers per root cause to be contiguous
+starting from 1 with no gaps (e.g. [1, 2]). Duplicate (root-cause, attempt) pairs across files
+are merged when their dispositions are identical; conflicting dispositions for the same pair
+exit `2` (BLOCKED). Per-file framing and malformed rules continue to apply to every ledger file.
+If any group reaches attempt 3, exit `1` and name the group, the attempts and their dispositions.
+The message says what the rule requires: stop and return the area or the premise to the owner,
+not open another round.
 
 It must not silently pass a group whose attempts are non-contiguous (1, 3): that is a
 ledger defect, so `2`.
@@ -165,10 +173,12 @@ From PROTO-DEC-0041 item 1. Computation, from repository state only:
 
 1. Read `Receipt-Owner` from the review header.
 2. Read the producer's owner name from the candidate's own journal entry and receipt.
-3. Exit `1` if they are equal, or if the review's owner appears as an author, executor,
-   controller, implementer, or member of the executing pair of the candidate in `.ai/TASK.md`
-   roles (enforcing PROTO-DEC-0041 item 1: author, executor, controller and executing pair
-   are all excluded), naming which rule matched.
+3. Exit `1` if they are equal, or if the review's owner appears in an excluded role in
+   `.ai/TASK.md` roles (enforcing PROTO-DEC-0041 item 1). Owner decision 2026-09-23 (EXACT TOKENS + NEGATION GUARD):
+   Parse only structured `## Roles` list entries (`- <name>: <roles...>`); tokenize the roles;
+   exclude when an exact role token is one of {author, executor, controller, coordinator, implementer}
+   or the phrase `member of the executing pair`; a negation for that token (not / never / neither ... nor /
+   independent of) means no exclusion. Do not scan the rest of the prose.
 4. Exit `2` if either owner cannot be determined. Unknown is not independent.
 
 It cannot detect a reviewer who is independent on paper and controlled in practice. That
@@ -184,6 +194,8 @@ absence of a detectable violation, nothing more.
 - Not consult a model, the network, or any external service.
 - Not introduce a rule. Where a needed rule is unwritten, stop and report.
 - Not treat a missing file, an empty directory or an unparseable ledger as a pass.
+- Not accept unrecognised CLI flags or unexpected arguments in silence: tools exit `2` (BLOCKED)
+  on unknown flags.
 
 ## 8. Acceptance
 
