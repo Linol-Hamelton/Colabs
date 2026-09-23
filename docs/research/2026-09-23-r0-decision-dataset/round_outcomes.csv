@@ -1,0 +1,6 @@
+"task","round_label","outcome","ended_by","source_path"
+"paired-cycle Wave A","round 1","FAIL","reproduced junction/path and fixture defects","docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-a-review.md"
+"paired-cycle Wave A","round 2","PASS","W-A1 and W-A2 remediations reproduced","docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-a-review-round2.md"
+"paired-cycle Wave B","one reported verification round","PASS","R5/R8 probes and 270/270 suite","docs/reviews/archive/2026-09-20-deepseek-paired-cycle-wave-b-review.md"
+"paired-cycle remediation R1-R8","final report after Waves A/B/C","PASS","R1-R8 dispositions marked RESOLVED; final checks green","docs/reviews/archive/2026-09-20-deepseek-paired-cycle-remediation-review.md"
+"cycle architecture","round 5","PASS","zero mandatory candidate defects remain","docs/reviews/2026-09-21-codex-cycle-architecture-certification-round5.md"

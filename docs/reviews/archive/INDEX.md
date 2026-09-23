@@ -192,3 +192,8 @@ Append-only ledger of archived review artifacts moved from `docs/reviews/` to `d
 | docs/reviews/2026-09-19-claude-opus-v1.9.5-certification.md | docs/reviews/archive/2026-09-19-claude-opus-v1.9.5-certification.md |
 | docs/reviews/2026-09-19-deepseek-course-correction-certification-round2.md | docs/reviews/archive/2026-09-19-deepseek-course-correction-certification-round2.md |
 | docs/reviews/2026-09-19-deepseek-flash-a1-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a1-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-a4-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a4-audit.md |
+| docs/reviews/2026-09-19-claude-opus-v1.9.5-delta-certification.md | docs/reviews/archive/2026-09-19-claude-opus-v1.9.5-delta-certification.md |
+| docs/reviews/2026-09-19-deepseek-flash-a2-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a2-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a3-reaudit.md |
+| docs/reviews/2026-09-19-deepseek-flash-ci-hotfix-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-ci-hotfix-audit.md |

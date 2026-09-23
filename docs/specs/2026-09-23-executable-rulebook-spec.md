@@ -108,8 +108,9 @@ Computation, in order, first match wins:
    `paths` intersecting the protected list -> **FAIL**. The `severity` field is not
    consulted. This is item 4 made executable.
 3. Any row with `disposition: confirmed` and a reproduction, off protected paths ->
-   **FAIL** if the requirement names an invariant or contract, otherwise
-   **RECOMMENDATION**.
+   **FAIL** if the row explicitly records a reproduced invariant or contract violation
+   (e.g. requirement classified as a violated or recorded invariant/contract, without negation),
+   otherwise **RECOMMENDATION**.
 4. Otherwise -> **PASS**.
 
 A `confirmed` row whose `reproduction` is `none` is advisory by AGENTS section 2 and must
@@ -164,8 +165,10 @@ From PROTO-DEC-0041 item 1. Computation, from repository state only:
 
 1. Read `Receipt-Owner` from the review header.
 2. Read the producer's owner name from the candidate's own journal entry and receipt.
-3. Exit `1` if they are equal, or if the review's owner appears as an implementer of the
-   candidate in `.ai/TASK.md` roles, naming which rule matched.
+3. Exit `1` if they are equal, or if the review's owner appears as an author, executor,
+   controller, implementer, or member of the executing pair of the candidate in `.ai/TASK.md`
+   roles (enforcing PROTO-DEC-0041 item 1: author, executor, controller and executing pair
+   are all excluded), naming which rule matched.
 4. Exit `2` if either owner cannot be determined. Unknown is not independent.
 
 It cannot detect a reviewer who is independent on paper and controlled in practice. That

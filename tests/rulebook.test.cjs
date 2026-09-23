@@ -615,9 +615,9 @@ test('verdict arithmetic: unresolved finding or unrunnable check yields BLOCKED 
       requirement: 'network check',
       paths: 'docs/test.md',
       reproduction: 'unrunnable',
-      exit: 'unrunnable',
+      exit: 'n/a',
       severity: 'HIGH',
-      disposition: 'unrunnable',
+      disposition: 'confirmed',
       attempt: '1',
     },
   ]));
@@ -715,7 +715,7 @@ test('scope check: clean subset passes (exit 0)', t => {
 
   write(root, 'docs/guide.md', '# Guide\nUpdated.\n');
   git(root, ['add', '-A']);
-  write(root, 'scope.txt', 'docs/guide.md\n');
+  write(root, 'scope.txt', 'docs/guide.md\nscope.txt\n');
 
   const res = runTool('protocol-scope.cjs', ['--baseline', baseline, '--scope', 'scope.txt', '--cwd', root]);
   assert.equal(res.status, 0);
@@ -731,7 +731,7 @@ test('scope check: handles non-ASCII paths without C-quoting failure via -z', t 
   // Non-ASCII path that would be C-quoted by git diff without -z
   write(root, 'docs/Битва-за-луну.md', '# Луна\nТекст.\n');
   git(root, ['add', '-A']);
-  write(root, 'scope.txt', 'docs/\n');
+  write(root, 'scope.txt', 'docs/\nscope.txt\n');
 
   const res = runTool('protocol-scope.cjs', ['--baseline', baseline, '--scope', 'scope.txt', '--cwd', root]);
   assert.equal(res.status, 0);
@@ -936,4 +936,189 @@ test('F-002: independence check exits 2 when producer cannot be determined from 
   const res = runTool('protocol-scope.cjs', ['--independence', reviewFile, '--cwd', root]);
   assert.equal(res.status, 2);
   assert.match(res.stderr, /Cannot determine candidate producer owner/);
+});
+
+// ---------------------------------------------------------------------------
+// PROTO-DEC-0046 Remediation Tests: C01-C10 & Claude findings
+// ---------------------------------------------------------------------------
+
+test('RC-ledger-parse (C01, F-S2-01, F-S2-03): malformed shapes exit 2 in both verdict and stop-rule mode', t => {
+  const root = makeProtocolFixture(t);
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+  const clean = '| C1 | RC1 | observed mismatch | .ai/bin/x.cjs | node probe.cjs | 0 | LOW | refuted | 1 |\n';
+  const bad = '| B1 | RC1 | observed mismatch | .ai/bin/x.cjs | node probe.cjs | 1 | HIGH | confirmed | 3 |\n';
+
+  const malformedCases = {
+    'missing-leading-pipe': header + clean + bad.slice(1),
+    'missing-trailing-pipe': header + clean + bad.trimEnd().slice(0, -1) + '\n',
+    'blank-split': header + clean + '\n' + bad,
+    'prose-split': header + clean + 'prose note\n' + bad,
+    'short-row': header + clean + '| B1 | RC1 | observed mismatch | .ai/x |\n',
+    'extra-cell': header + clean + bad.trimEnd() + ' extra |\n',
+    'duplicate-header': header.replace(' attempt |', ' attempt | disposition |') + clean.trimEnd() + ' refuted |\n',
+    'empty-exit': header + '| B1 | RC1 | req | .ai/bin/x.cjs | node probe.cjs |  | HIGH | confirmed | 1 |\n',
+    'invalid-exit': header + '| B1 | RC1 | req | .ai/bin/x.cjs | node probe.cjs | banana | HIGH | confirmed | 1 |\n',
+    'second-table': header + clean + '\n' + header + bad,
+    'fenced-hidden-row': header + clean + '\n```markdown\n' + bad + '```\n',
+  };
+
+  for (const [name, content] of Object.entries(malformedCases)) {
+    const file = path.join(root, `docs/reviews/malformed-${name}.md`);
+    write(root, `docs/reviews/malformed-${name}.md`, content);
+
+    // In verdict mode: must exit 2
+    const resVerdict = runTool('protocol-verdict.cjs', [file], root);
+    assert.equal(resVerdict.status, 2, `malformed case '${name}' in verdict mode must exit 2`);
+
+    // In stop-rule mode: must exit 2
+    const resStop = runTool('protocol-verdict.cjs', [file, '--stop-rule'], root);
+    assert.equal(resStop.status, 2, `malformed case '${name}' in --stop-rule mode must exit 2`);
+  }
+});
+
+test('RC-manifest-schema (C02): missing, empty, or wrong-type manifest keys fail closed (exit 2)', t => {
+  const root = makeProtocolFixture(t);
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+  const row = '| F1 | RC1 | observed mismatch | validate-protocol.ps1 | node probe.cjs | 1 | LOW | confirmed | 1 |\n';
+  const file = path.join(root, 'docs/reviews/test.md');
+  write(root, 'docs/reviews/test.md', header + row);
+
+  const manifestCases = {
+    'malformed': '{',
+    'missing-managed': JSON.stringify({ source: ['test.md'] }),
+    'missing-source': JSON.stringify({ managed: ['test.md'] }),
+    'empty-managed': JSON.stringify({ managed: [], source: ['test.md'] }),
+    'empty-source': JSON.stringify({ managed: ['test.md'], source: [] }),
+    'wrong-type': JSON.stringify({ managed: {}, source: null }),
+    'empty-object': '{}',
+  };
+
+  for (const [name, jsonContent] of Object.entries(manifestCases)) {
+    write(root, 'protocol-manifest.json', jsonContent);
+    const res = runTool('protocol-verdict.cjs', [file], root);
+    assert.equal(res.status, 2, `manifest case '${name}' must exit 2`);
+    assert.match(res.stderr, /Cannot load protocol-manifest\.json at run time/);
+  }
+});
+
+test('RC-manifest-root-discovery (C03): no ancestor borrowing and no nested shadowing', t => {
+  const root = makeProtocolFixture(t);
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+  const row = '| F1 | RC1 | observed mismatch | validate-protocol.ps1 | node probe.cjs | 1 | LOW | confirmed | 1 |\n';
+
+  // Sub-case 1: candidate git repository with no manifest inside parent repository with manifest
+  const candidateDir = path.join(root, 'candidate-repo');
+  fs.mkdirSync(candidateDir, { recursive: true });
+  git(candidateDir, ['init', '-b', 'main']);
+  write(candidateDir, 'probe.md', header + row);
+  git(candidateDir, ['add', '.']);
+  git(candidateDir, ['commit', '-m', 'Initial candidate commit']);
+
+  // Candidate has no manifest. Running tool in candidateDir must NOT borrow parent root manifest.
+  const resBorrow = runTool('protocol-verdict.cjs', ['probe.md'], candidateDir);
+  assert.equal(resBorrow.status, 2);
+  assert.match(resBorrow.stderr, /manifest file not found/);
+
+  // Sub-case 2: nested manifest in docs/reviews/ does not shadow root manifest
+  write(root, 'docs/reviews/protocol-manifest.json', '{}');
+  write(root, 'docs/reviews/probe.md', header + row);
+  const resShadow = runTool('protocol-verdict.cjs', ['docs/reviews/probe.md'], root);
+  // Root manifest protects validate-protocol.ps1, so neutral row yields FAIL (exit 1), not RECOMMENDATION (0)
+  assert.equal(resShadow.status, 1);
+  assert.match(resShadow.stdout, /Verdict: FAIL/);
+});
+
+test('RC-touched-input-exemption (C04): untracked scope file on forbidden path fails scope check', t => {
+  const root = makeProtocolFixture(t);
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-m', 'Baseline']);
+  const baseline = git(root, ['rev-parse', 'HEAD']).stdout.trim();
+
+  // Create an untracked tests/scope.txt which declares src/
+  write(root, 'tests/scope.txt', 'src/\n');
+  const res = runTool('protocol-scope.cjs', ['--baseline', baseline, '--scope', 'tests/scope.txt', '--cwd', root]);
+  assert.equal(res.status, 1);
+  assert.match(res.stdout, /FORBIDDEN: tests\/scope\.txt/);
+});
+
+test('RC-owner-source-guessing (C05): producer identity only from declared inputs', t => {
+  const root = makeProtocolFixture(t);
+  write(root, '.ai/TASK.md', '# Current Task\n\n## Roles\n- reviewer: reviewer\n- producer: implementer\n');
+
+  // Sub-case 1: empty candidate journal without receipt exits 2 (no basename fallback)
+  write(root, 'empty-journal.md', '# Journal without evidence receipt\n');
+  write(root, 'docs/reviews/empty-j.md', 'Receipt-Owner: reviewer-123\nCandidate journal: empty-journal.md\n');
+  const res1 = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/empty-j.md', '--cwd', root]);
+  assert.equal(res1.status, 2);
+
+  // Sub-case 2: identities in body/fenced example only exits 2
+  write(root, 'docs/reviews/body-only.md', '# Review\n\n---\n## Example\n```\nReceipt-Owner: reviewer-123\nProducer: producer-123\n```\n');
+  const res2 = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/body-only.md', '--cwd', root]);
+  assert.equal(res2.status, 2);
+
+  // Sub-case 3: 40-hex SHA as candidate producer exits 2
+  write(root, 'docs/reviews/sha-producer.md', 'Receipt-Owner: reviewer-123\nCandidate: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed\n');
+  const res3 = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/sha-producer.md', '--cwd', root]);
+  assert.equal(res3.status, 2);
+
+  // Sub-case 4: --producer cannot override declared journal's recorded owner
+  write(root, 'candidate.md', 'Evidence:\n- recorded: 2026-09-23 by reviewer-123\n');
+  write(root, 'docs/reviews/journal-declared.md', 'Receipt-Owner: reviewer-123\nCandidate journal: candidate.md\n');
+  const res4 = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/journal-declared.md', '--producer', 'other-456', '--cwd', root]);
+  assert.equal(res4.status, 1);
+  assert.match(res4.stdout, /identical to candidate producer owner/);
+});
+
+test('RC-spec-controller-omission (C06): controller role in TASK.md excluded from certifying', t => {
+  const root = makeProtocolFixture(t);
+  write(root, '.ai/TASK.md', '# Current Task\n\n## Roles\n- controller: coordinator and controller of this candidate\n- builder: implementer\n');
+  write(root, 'docs/reviews/controller-review.md', 'Receipt-Owner: controller-12345678\nProducer: builder-12345678\n');
+
+  const res = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/controller-review.md', '--cwd', root]);
+  assert.equal(res.status, 1);
+  assert.match(res.stdout, /appears as controller \(controller\) in \.ai\/TASK\.md roles/);
+});
+
+test('RC-text-as-judgement (C08): negative invariant mention is RECOMMENDATION and unrunnable test filename does not block', t => {
+  const root = makeProtocolFixture(t);
+  const header = '| id | root-cause | requirement | paths | reproduction | exit | severity | disposition | attempt |\n|---|---|---|---|---|---|---|---|---|\n';
+
+  // Sub-case 1: negative-invariant-mention off protected path yields RECOMMENDATION (exit 0)
+  const contentNeg = header + '| F1 | RC1 | No invariant or contract applies; optional spelling correction | docs/notes.md | node probe.cjs | 0 | LOW | confirmed | 1 |\n';
+  write(root, 'docs/reviews/neg-inv.md', contentNeg);
+  const resNeg = runTool('protocol-verdict.cjs', ['docs/reviews/neg-inv.md'], root);
+  assert.equal(resNeg.status, 0);
+  assert.match(resNeg.stdout, /Verdict: RECOMMENDATION/);
+
+  // Sub-case 2: test filename containing 'unrunnable' with fixed-and-verified disposition is not BLOCKED
+  const contentFixed = header + '| F2 | RC2 | test check | docs/notes.md | node tests/unrunnable.test.cjs | 0 | LOW | fixed-and-verified | 1 |\n';
+  write(root, 'docs/reviews/fixed-unrun.md', contentFixed);
+  const resFixed = runTool('protocol-verdict.cjs', ['docs/reviews/fixed-unrun.md'], root);
+  assert.equal(resFixed.status, 0);
+  assert.match(resFixed.stdout, /Verdict: PASS/);
+});
+
+test('RC-path-alphabet (C09): boundPaths accepts Unicode and + tokens', t => {
+  const root = makeProtocolFixture(t);
+  write(root, 'docs/a+name.md', 'content\n');
+  write(root, 'docs/источник.md', 'content\n');
+
+  const indexTool = require('../.ai/bin/protocol-index.cjs');
+  const tokens = indexTool.boundPaths(['`docs/a+name.md` `docs/источник.md` `docs/reviews/*.md` `<prompt>.md`'], root);
+  assert.ok(tokens.includes('docs/a+name.md'), 'must include path with + token');
+  assert.ok(tokens.includes('docs/источник.md'), 'must include path with Unicode token');
+  assert.ok(!tokens.includes('<prompt>.md'), 'must not include placeholder <prompt>.md');
+});
+
+test('RC-absolute-diagnostics (C10): scope error output uses repo-relative path', t => {
+  const root = makeProtocolFixture(t);
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-m', 'Baseline']);
+  const baseline = git(root, ['rev-parse', 'HEAD']).stdout.trim();
+
+  const res = runTool('protocol-scope.cjs', ['--baseline', baseline, '--scope', 'absent.txt', '--cwd', root]);
+  assert.equal(res.status, 2);
+  assert.match(res.stderr, /Scope file not found: absent\.txt/);
+  // Ensure no absolute drive path is embedded
+  assert.ok(!res.stderr.includes(root), 'error message must not embed absolute checkout path');
 });

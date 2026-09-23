@@ -20,7 +20,7 @@ const FIELDS = ['Status', 'Date', 'Supersedes', 'Reopen-trigger'];
 // `*` and `?` are allowed because `docs/reviews/*.md` is a real binding a decision can
 // make. `<` and `>` stay out on purpose: `<prompt>.md` is a placeholder in prose, and
 // admitting it would put paths in the index that no one can open.
-const PATH_LIKE = /^[A-Za-z0-9_.@/\\*?-]+$/;
+const PATH_LIKE = /^[\p{L}\p{N}_.@/\\*?+-]+$/u;
 const PATH_EXTENSION = /\.(md|cjs|js|ps1|json|jsonc|yml|yaml|toml|sh|txt)$/i;
 
 function sha256(text) {

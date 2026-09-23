@@ -23,17 +23,23 @@ const BASE_PROTECTED_PREFIXES = [
 ];
 
 function findManifestPath(startDir) {
-  const candidates = [
-    startDir,
-    process.cwd(),
-  ].filter(Boolean);
+  const targetDir = path.resolve(startDir || process.cwd());
 
-  for (const c of candidates) {
-    let cur = path.resolve(c);
+  let repoRoot = null;
+  try {
+    const out = require('node:child_process').execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: targetDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
+    repoRoot = out.trim();
+  } catch {
+    let cur = targetDir;
     while (true) {
-      const candidate = path.join(cur, 'protocol-manifest.json');
-      if (fs.existsSync(candidate)) {
-        return candidate;
+      if (fs.existsSync(path.join(cur, '.git'))) {
+        repoRoot = cur;
+        break;
       }
       const parent = path.dirname(cur);
       if (parent === cur) break;
@@ -41,9 +47,17 @@ function findManifestPath(startDir) {
     }
   }
 
-  const fallback = path.resolve(__dirname, '..', '..', 'protocol-manifest.json');
-  if (fs.existsSync(fallback)) {
-    return fallback;
+  if (repoRoot) {
+    const candidate = path.join(repoRoot, 'protocol-manifest.json');
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+    return null;
+  }
+
+  const candidate = path.join(targetDir, 'protocol-manifest.json');
+  if (fs.existsSync(candidate)) {
+    return candidate;
   }
   return null;
 }
@@ -65,6 +79,28 @@ function loadProtectedSet(manifestPathOrDir) {
     throw new Error(`Cannot load protocol-manifest.json at run time: ${err.message}`);
   }
 
+  if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
+    throw new Error('Cannot load protocol-manifest.json at run time: manifest must be a JSON object');
+  }
+
+  if (!Array.isArray(manifest.managed) || manifest.managed.length === 0) {
+    throw new Error('Cannot load protocol-manifest.json at run time: managed must be a non-empty array');
+  }
+  if (!Array.isArray(manifest.source) || manifest.source.length === 0) {
+    throw new Error('Cannot load protocol-manifest.json at run time: source must be a non-empty array');
+  }
+
+  for (const item of manifest.managed) {
+    if (typeof item !== 'string' || !item.trim()) {
+      throw new Error('Cannot load protocol-manifest.json at run time: managed entries must be non-empty strings');
+    }
+  }
+  for (const item of manifest.source) {
+    if (typeof item !== 'string' || !item.trim()) {
+      throw new Error('Cannot load protocol-manifest.json at run time: source entries must be non-empty strings');
+    }
+  }
+
   const prefixes = new Set(BASE_PROTECTED_PREFIXES.map(p => p.toLowerCase()));
   const wholePaths = new Set();
 
@@ -83,15 +119,11 @@ function loadProtectedSet(manifestPathOrDir) {
     }
   };
 
-  if (Array.isArray(manifest.managed)) {
-    for (const e of manifest.managed) {
-      addEntry(e);
-    }
+  for (const e of manifest.managed) {
+    addEntry(e);
   }
-  if (Array.isArray(manifest.source)) {
-    for (const e of manifest.source) {
-      addEntry(e);
-    }
+  for (const e of manifest.source) {
+    addEntry(e);
   }
 
   return {
@@ -206,6 +238,21 @@ function parseFindingsLedger(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split(/\r?\n/);
 
+  // Check for fenced code blocks containing hidden rows
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (l.startsWith('```') || l.startsWith('~~~')) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) {
+      if (l.includes('|') && (l.startsWith('|') || l.endsWith('|') || l.split('|').length >= 4)) {
+        throw new Error(`Malformed findings ledger: table row hidden inside fenced code block at line ${i + 1}`);
+      }
+    }
+  }
+
   // Find table header row
   let headerIndex = -1;
   let headers = [];
@@ -223,6 +270,15 @@ function parseFindingsLedger(filePath) {
 
   if (headerIndex === -1) {
     throw new Error('Malformed findings ledger: no table header row found');
+  }
+
+  // Check duplicate headers (duplicate column names)
+  const headerSet = new Set();
+  for (const h of headers) {
+    if (headerSet.has(h)) {
+      throw new Error(`Malformed findings ledger: duplicate column '${h}' in header`);
+    }
+    headerSet.add(h);
   }
 
   const requiredFields = [
@@ -243,24 +299,88 @@ function parseFindingsLedger(filePath) {
     }
   }
 
-  const rows = [];
-  const seenIds = new Set();
-
+  // Next non-empty line must be separator row
+  let separatorIndex = -1;
   for (let i = headerIndex + 1; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (!line.startsWith('|') || !line.endsWith('|')) {
-      // End of table or non-table line
-      if (rows.length > 0 && line === '') break;
+    if (!line) continue;
+    if (/^\|(?:\s*[-:]+\s*\|)+$/.test(line)) {
+      separatorIndex = i;
+      break;
+    } else {
+      throw new Error(`Malformed findings ledger: expected table separator row after header, found '${line}'`);
+    }
+  }
+
+  if (separatorIndex === -1) {
+    throw new Error('Malformed findings ledger: missing table separator row');
+  }
+
+  const rows = [];
+  const seenIds = new Set();
+  let inTable = true;
+
+  for (let i = separatorIndex + 1; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const line = rawLine.trim();
+
+    if (!line) {
+      if (inTable && rows.length > 0) {
+        inTable = false;
+      }
       continue;
     }
-    // Skip separator row (e.g. |---|---|)
-    if (/^\|(?:\s*[-:]+\s*\|)+$/.test(line)) {
+
+    // Strip inline backtick code spans to avoid mistaking markdown code for table columns
+    const lineNoCode = line.replace(/`[^`]*`/g, '');
+    const pipeCount = (lineNoCode.match(/\|/g) || []).length;
+    const startsWithPipe = line.startsWith('|');
+    const endsWithPipe = line.endsWith('|');
+
+    // Detect if a line looks like an attempted table row:
+    // 1. It starts and ends with |
+    // 2. OR it has multiple pipes (pipeCount >= 2) and either starts or ends with |, or pipeCount >= 3 without being a list or heading
+    const isTableRowShape = (startsWithPipe && endsWithPipe) ||
+      (pipeCount >= 2 && (startsWithPipe || endsWithPipe)) ||
+      (pipeCount >= 3 && !line.startsWith('#') && !line.startsWith('- ') && !line.startsWith('* '));
+
+    if (inTable && !isTableRowShape) {
+      if (rows.length > 0) {
+        inTable = false;
+      }
+    }
+
+    if (isTableRowShape && (!startsWithPipe || !endsWithPipe)) {
+      if (!startsWithPipe) {
+        throw new Error(`Malformed findings ledger: row at line ${i + 1} missing leading |`);
+      }
+      if (!endsWithPipe) {
+        throw new Error(`Malformed findings ledger: row at line ${i + 1} missing trailing |`);
+      }
+    }
+
+    if (!isTableRowShape) {
       continue;
+    }
+
+    // Line starts and ends with |
+    if (!inTable && rows.length > 0) {
+      throw new Error(`Malformed findings ledger: table interrupted by blank line or prose at line ${i + 1} (table must be contiguous)`);
+    }
+
+    // Check if line is a second table separator or header
+    if (/^\|(?:\s*[-:]+\s*\|)+$/.test(line)) {
+      throw new Error(`Malformed findings ledger: multiple tables detected at line ${i + 1}`);
     }
 
     const cells = line.slice(1, -1).split('|').map(c => c.trim());
-    if (cells.length < headers.length) {
-      throw new Error(`Malformed findings ledger: row ${i + 1} has ${cells.length} columns, expected at least ${headers.length}`);
+    const lowerCells = cells.map(c => c.toLowerCase());
+    if (lowerCells.includes('id') && lowerCells.includes('root-cause') && lowerCells.includes('requirement')) {
+      throw new Error(`Malformed findings ledger: multiple tables detected at line ${i + 1}`);
+    }
+
+    if (cells.length !== headers.length) {
+      throw new Error(`Malformed findings ledger: row at line ${i + 1} has ${cells.length} columns, expected ${headers.length}`);
     }
 
     const rowObj = {};
@@ -289,23 +409,29 @@ function parseFindingsLedger(filePath) {
     const normalisedPaths = rawPaths.map(p => validateAndNormalisePath(p, i + 1));
     rowObj.paths = normalisedPaths.join(', ');
 
+    // Validate exit cell (integer or n/a)
+    const exitVal = rowObj.exit.trim().toLowerCase();
+    if (exitVal !== 'n/a' && !/^-?\d+$/.test(exitVal)) {
+      throw new Error(`Malformed findings ledger: invalid exit code '${rowObj.exit}' at row ${i + 1}; expected integer or n/a`);
+    }
+
     // Validate severity (recorded only; NEVER used in verdict)
     const validSeverities = ['HIGH', 'MEDIUM', 'LOW', 'INFO'];
     if (!validSeverities.includes(rowObj.severity.toUpperCase())) {
       throw new Error(`Malformed findings ledger: invalid severity '${rowObj.severity}' at row ${i + 1}`);
     }
 
-    // Validate disposition
-    const validDispositions = ['confirmed', 'refuted', 'fixed-and-verified', 'deferred-by-owner', 'unresolved', 'unrunnable'];
+    // Validate disposition (closed set of 5 recorded dispositions)
+    const validDispositions = ['confirmed', 'refuted', 'fixed-and-verified', 'deferred-by-owner', 'unresolved'];
     if (!validDispositions.includes(rowObj.disposition.toLowerCase())) {
       throw new Error(`Malformed findings ledger: invalid disposition '${rowObj.disposition}' at row ${i + 1}`);
     }
 
     // Validate attempt (positive integer)
-    const attemptNum = parseInt(rowObj.attempt, 10);
-    if (Number.isNaN(attemptNum) || attemptNum < 1 || String(attemptNum) !== rowObj.attempt) {
+    if (!/^[1-9]\d*$/.test(rowObj.attempt)) {
       throw new Error(`Malformed findings ledger: invalid attempt '${rowObj.attempt}' at row ${i + 1}; must be positive integer`);
     }
+    const attemptNum = parseInt(rowObj.attempt, 10);
     rowObj._attemptNum = attemptNum;
 
     rows.push(rowObj);
@@ -335,10 +461,8 @@ function computeVerdict(rows, customProtectedSet) {
   // Rule 1: Any row with disposition: unresolved, or with a required check the reviewer recorded as unrunnable -> BLOCKED
   for (const row of sanitizedRows) {
     const isUnresolved = row.disposition.toLowerCase() === 'unresolved';
-    const isUnrunnable = row.disposition.toLowerCase() === 'unrunnable' ||
-                         row.exit.toLowerCase() === 'unrunnable' ||
-                         row.reproduction.toLowerCase() === 'unrunnable' ||
-                         /unrunnable/i.test(row.reproduction);
+    const isUnrunnable = (row.disposition.toLowerCase() !== 'fixed-and-verified' && row.disposition.toLowerCase() !== 'refuted') &&
+                         (row.reproduction.trim().toLowerCase() === 'unrunnable' || row.exit.trim().toLowerCase() === 'unrunnable');
     if (isUnresolved || isUnrunnable) {
       drivingRows.push({
         row,
@@ -372,22 +496,28 @@ function computeVerdict(rows, customProtectedSet) {
   }
 
   // Rule 3: Any row with disposition: confirmed and a reproduction, off protected paths ->
-  // FAIL if the requirement names an invariant or contract, otherwise RECOMMENDATION
+  // FAIL if the row explicitly records a reproduced invariant or contract violation, otherwise RECOMMENDATION
   for (const row of sanitizedRows) {
     const isConfirmed = row.disposition.toLowerCase() === 'confirmed';
     const hasRepro = row.reproduction.toLowerCase() !== 'none';
     if (isConfirmed && hasRepro) {
-      const namesInvariantOrContract = /invariant|contract/i.test(row.requirement);
-      if (namesInvariantOrContract) {
+      const req = row.requirement.trim();
+      const isNegated = /\bno\s+(?:recorded\s+)?(?:invariant|contract)\b/i.test(req);
+      const isExplicitViolation = !isNegated && (
+        /^(?:recorded\s+)?(?:invariant|contract)\b/i.test(req) ||
+        /(?:violated|broken|reproduced|breached)\s+(?:invariant|contract)/i.test(req) ||
+        /(?:invariant|contract)\s+(?:violated|broken|reproduced|breached)/i.test(req)
+      );
+      if (isExplicitViolation) {
         drivingRows.push({
           row,
-          reason: `confirmed finding with reproduction names invariant or contract: '${row.requirement}'`,
+          reason: `confirmed finding with reproduction violates recorded invariant or contract: '${req}'`,
           target: 'FAIL'
         });
       } else {
         drivingRows.push({
           row,
-          reason: `confirmed finding with reproduction off protected paths: '${row.requirement}'`,
+          reason: `confirmed finding with reproduction off protected paths: '${req}'`,
           target: 'RECOMMENDATION'
         });
       }

@@ -1,0 +1,4 @@
+"task","depth_applied","certifier_count_observed","outcome","evidence","source_path"
+"paired-cycle remediation / R1-R8","full_pair","2","PASS","Final report states external review was required and cites Wave A/Wave B plus external Wave C","docs/reviews/archive/2026-09-20-deepseek-paired-cycle-remediation-review.md"
+"cycle architecture","full_pair","2","PASS","independent Claude and Codex certification rounds are present","docs/reviews/2026-09-21-claude-cycle-architecture-certification-round3.md; docs/reviews/2026-09-21-codex-cycle-architecture-certification-round5.md"
+"risk-scaled policy","single_statement","1","policy_statement_only","source states one reviewer statement for docs/config/one-line fixes; no task-level application record retained here","docs/reviews/2026-09-19-owner-rulings-course-correction.md"

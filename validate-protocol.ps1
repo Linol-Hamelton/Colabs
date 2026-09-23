@@ -993,14 +993,18 @@ if ($gitCommand -and $script:GitUsable -and (Test-Path -LiteralPath $decisionPat
         Write-Result "WARN" "no committed .ai/DECISIONS.md to compare against; immutability guarantee is OFF until .ai/ is committed to Git (run: git add .ai && git commit)"
     }
     else {
-        $pattern = '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d{4}))[^\r\n]*(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)'
+        $pattern = '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d{4}))(?<headingSuffix>[^\r\n]*)(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)'
         $before = @{}
         foreach ($block in [regex]::Matches(($committed.Output -replace "`r`n", "`n"), $pattern)) {
-            $before[$block.Groups['id'].Value] = ([regex]::Replace($block.Groups['body'].Value.TrimEnd(), '(?ms)\r?\n---\s*$', '')).TrimEnd()
+            $b = [regex]::Replace($block.Groups['body'].Value, '(?:\r?\n)+---\s*\z', '')
+            $b = [regex]::Replace($b, '(?:\r?\n)+\z', '')
+            $before[$block.Groups['id'].Value] = $block.Groups['headingSuffix'].Value + "`n" + $b
         }
         $currentBlocks = @{}
         foreach ($block in [regex]::Matches(($decisionText -replace "`r`n", "`n"), $pattern)) {
-            $currentBlocks[$block.Groups['id'].Value] = ([regex]::Replace($block.Groups['body'].Value.TrimEnd(), '(?ms)\r?\n---\s*$', '')).TrimEnd()
+            $b = [regex]::Replace($block.Groups['body'].Value, '(?:\r?\n)+---\s*\z', '')
+            $b = [regex]::Replace($b, '(?:\r?\n)+\z', '')
+            $currentBlocks[$block.Groups['id'].Value] = $block.Groups['headingSuffix'].Value + "`n" + $b
         }
         $changed = @()
         $deleted = @()

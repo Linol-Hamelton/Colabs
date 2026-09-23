@@ -668,6 +668,62 @@ test('decision immutability: appending a new block exits 0, editing a committed 
   write(rootD, '.ai/DECISIONS.md', appendedAfterInternalHr);
   write(rootD, 'docs/decisions/REGISTRY.md', baseRegistry + '| PROTO-DEC-0002 | accepted | none | | | |\n');
   succeeds(rootD);
+
+  // Direction E: C07 / F-S2-02: inserting a bare --- line into a written block is caught (exit 1)
+  const rootE = makeProtocolFixture(t);
+  write(rootE, '.ai/DECISIONS.md', baseDecisions);
+  write(rootE, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootE, ['add', '-A']);
+  git(rootE, ['commit', '-m', 'Commit initial decision']);
+
+  const insertedHr = baseDecisions.replace('First decision body.', 'First decision body.\n\n---\n\nMore body.');
+  write(rootE, '.ai/DECISIONS.md', insertedHr);
+  fails(rootE, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Direction F: C07 / F-S2-02: removing an internal --- line is caught (exit 1)
+  const rootF = makeProtocolFixture(t);
+  write(rootF, '.ai/DECISIONS.md', baseDecisionsWithInternalHr);
+  write(rootF, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootF, ['add', '-A']);
+  git(rootF, ['commit', '-m', 'Commit decision with internal hr']);
+
+  const removedHr = baseDecisionsWithInternalHr.replace('\n\n---\n\n', '\n\n');
+  write(rootF, '.ai/DECISIONS.md', removedHr);
+  fails(rootF, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Direction G: C07: editing heading text is caught (exit 1)
+  const rootG = makeProtocolFixture(t);
+  write(rootG, '.ai/DECISIONS.md', baseDecisions);
+  write(rootG, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootG, ['add', '-A']);
+  git(rootG, ['commit', '-m', 'Commit initial decision']);
+
+  const editedHeading = baseDecisions.replace('### PROTO-DEC-0001 First Decision', '### PROTO-DEC-0001 First Decision Altered');
+  write(rootG, '.ai/DECISIONS.md', editedHeading);
+  fails(rootG, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Direction H: C07: adding trailing space to approval line is caught (exit 1)
+  const rootH = makeProtocolFixture(t);
+  write(rootH, '.ai/DECISIONS.md', baseDecisions);
+  write(rootH, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootH, ['add', '-A']);
+  git(rootH, ['commit', '-m', 'Commit initial decision']);
+
+  const trailingSpace = baseDecisions.replace('Approved by: Test Owner\n', 'Approved by: Test Owner \n');
+  write(rootH, '.ai/DECISIONS.md', trailingSpace);
+  fails(rootH, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Direction I: C07: appending a new block without separator succeeds (exit 0)
+  const rootI = makeProtocolFixture(t);
+  write(rootI, '.ai/DECISIONS.md', baseDecisions);
+  write(rootI, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootI, ['add', '-A']);
+  git(rootI, ['commit', '-m', 'Commit initial decision']);
+
+  const appendedNoSep = baseDecisions + '\n\n### PROTO-DEC-0002 Second Decision\n\nStatus: Accepted\nDate: 2026-09-21\nApproved by: Test Owner\nReopen-trigger: none\n\nSecond decision body.\n';
+  write(rootI, '.ai/DECISIONS.md', appendedNoSep);
+  write(rootI, 'docs/decisions/REGISTRY.md', baseRegistry + '| PROTO-DEC-0002 | accepted | none | | | |\n');
+  succeeds(rootI);
 });
 
 
