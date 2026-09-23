@@ -996,11 +996,11 @@ if ($gitCommand -and $script:GitUsable -and (Test-Path -LiteralPath $decisionPat
         $pattern = '(?ms)^### (?<id>(?:PROTO-)?DEC-(?<number>\d{4}))[^\r\n]*(?:\n|\z)(?<body>.*?)(?=^#{1,3}[ \t]+|\z)'
         $before = @{}
         foreach ($block in [regex]::Matches(($committed.Output -replace "`r`n", "`n"), $pattern)) {
-            $before[$block.Groups['id'].Value] = $block.Groups['body'].Value.TrimEnd()
+            $before[$block.Groups['id'].Value] = ([regex]::Replace($block.Groups['body'].Value.TrimEnd(), '(?ms)\r?\n---\s*$', '')).TrimEnd()
         }
         $currentBlocks = @{}
         foreach ($block in [regex]::Matches(($decisionText -replace "`r`n", "`n"), $pattern)) {
-            $currentBlocks[$block.Groups['id'].Value] = $block.Groups['body'].Value.TrimEnd()
+            $currentBlocks[$block.Groups['id'].Value] = ([regex]::Replace($block.Groups['body'].Value.TrimEnd(), '(?ms)\r?\n---\s*$', '')).TrimEnd()
         }
         $changed = @()
         $deleted = @()

@@ -80,15 +80,25 @@ One table, one row per finding:
 `severity` is recorded and is **never** an input to the verdict. It orders work; it does
 not decide. That separation is the whole point of PROTO-DEC-0041 item 4.
 
+The `paths` field holds repository-root-relative paths. Backslashes are normalised to `/`
+and a leading `./` is stripped. Any absolute form - POSIX `/...`, a Windows drive `X:`
+including drive-relative `X:path`, and UNC `\\...` or `//...` - and any `..` segment,
+before or after normalisation, makes the row unparseable and the check exits `2` (BLOCKED).
+No lexical canonicalisation against a root is performed (PROTO-DEC-0046 item 2).
+
 A malformed ledger is not a pass. Any check that cannot parse it exits `BLOCKED`.
 
 ## 3. Check 1 - verdict arithmetic
 
 Command: `protocol-verdict.cjs <ledger-path>`
 
-Protected paths, taken verbatim from PROTO-DEC-0038 item 1: anything under `.ai/`,
-`.claude/`, hooks, validator, gates, plus consumer security and data paths. The
-implementation reads this list from one named constant; it does not scatter it.
+Protected set: Check 1 executes PROTO-DEC-0041 item 4. The protected set is read at run
+time from repository state: every entry of `managed` and of `source` in
+`protocol-manifest.json`, plus anything under `.ai/`, `.claude/` and `.codex/`.
+`tests/` is excluded from the protected set (it stays protected for scope purposes by
+the standing default forbidden list in `.ai/docs/PROTOCOL.md`). Matching is on
+normalised whole paths and directory prefixes only; never a substring or a concept name
+(PROTO-DEC-0046 item 3).
 
 Computation, in order, first match wins:
 
@@ -132,9 +142,11 @@ Command: `protocol-scope.cjs --baseline <sha> --scope <paths-file>`
 From the PLAN legitimization rules, which currently say these checks "have no executor in
 the current tooling, so they are a manual reviewer duty". Computation:
 
-1. `git diff --name-only <baseline>` gives the actual touched set. Use `-z` and split on
-   NUL: a C-quoted non-ASCII path silently dropped is exactly the defect that failed the
-   layers A/B/C certification.
+1. Tracked changes (`git diff --name-only <baseline>`) plus untracked files
+   (`git ls-files --others --exclude-standard`) give the actual touched set. Use
+   `-z` everywhere and split on NUL: a C-quoted non-ASCII path silently dropped is
+   exactly the defect that failed the layers A/B/C certification, and untracked
+   files must not bypass scope or forbidden checks.
 2. Every touched path must be inside the declared scope. Exclusions normalise a trailing
    slash, and a prefix is not a directory match.
 3. No path declared forbidden in the Phase 0 frame is touched; where the frame is silent,

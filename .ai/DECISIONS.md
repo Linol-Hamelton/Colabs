@@ -1928,3 +1928,34 @@ Consequences:
 `docs/research/2026-09-22-kilo-candidate-tool-evaluation.md` is the evidence base and stays. The Jev evaluation exists only outside the repository at the time of writing and must be persisted under the section 5.5 transcription fallback before it can be cited as anything. The deferred DeepSeek mapping run over `D:\mcp-stack` stays postponed under its recorded triggers. Layers A/B/C remain FAIL and uncertified, and the executable rulebook is specified but unwritten; both are certified together in one batched round under the PLAN batching rule.
 
 Approved by: RuslanFomenko (direct owner directive, 2026-09-23, keep-or-delete on the legacy stack and the work split approved in conversation; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0046
+
+Status: Accepted
+Date: 2026-09-23
+Reopen-trigger: owner-directive
+
+Context:
+The executable-rulebook batch failed certification round 3 (`docs/reviews/2026-09-23-deepseek-batch-certification-round3.md`) with F-001 partly open: after two remediation attempts, absolute and parent forms (`D:/Colabs/.ai/bin/x`, `C:/Colabs/.ai/bin/x`, `../.ai/bin/x`, `x/../.ai/bin/x`) still downgrade a confirmed protected-path defect to RECOMMENDATION with exit 0. The owner's condition returned the premise to the owner. An owner-requested Codex assessment (`docs/reviews/2026-09-23-codex-path-contract-assessment.md`) then found F-C01: with a neutral requirement, the ordinary relative paths `validate-protocol.ps1` and `protocol-manifest.json` also yield RECOMMENDATION with exit 0, so a path contract alone would not close the defect. Reproduced independently by claude-ebd3e8a8eb29a6d7, which also found the cause: `docs/specs/2026-09-23-executable-rulebook-spec.md` line 89 took the protected list "verbatim from PROTO-DEC-0038 item 1", while check 1 executes PROTO-DEC-0041 item 4, whose list adds `manifest` and `core`; and every recorded list names concepts rather than paths, so `validator` never matched `validate-protocol.ps1`. A probe that names an invariant in its `requirement` masks all of this, because rule 3 of the check then yields FAIL off protected paths too.
+
+Decision:
+1. New premise for root cause F-001/F-C01, replacing the exhausted one. The history of F-001 is preserved: remediation attempts 1 and 2 on the old premise stand as recorded and are not renumbered.
+2. Ledger path contract. The `paths` field holds repository-root-relative paths. Backslashes are normalised to `/` and a leading `./` is stripped. Any absolute form - POSIX `/`, a Windows drive `X:` including drive-relative `X:path`, and UNC `\` or `//` - and any `..` segment, before or after normalisation, makes the row unparseable and the check exits 2 (BLOCKED). No lexical canonicalisation against a root is performed. This is a clarification of the ledger contract recorded here by the owner, not a rule the specification already implied.
+3. Protected set for check 1, executing PROTO-DEC-0041 item 4. It is read at run time from repository state: every entry of `managed` and of `source` in `protocol-manifest.json`, plus anything under `.ai/`, `.claude/` and `.codex/`. That maps item 4's `core`, `manifest`, `validator`, `hooks` and `gates` onto the recorded definition of what the protocol owns (DEC-0013). This repository declares no consumer security or data paths; an installed project declares its own separately. `tests/` is not in this set; it stays protected for scope purposes by the standing default forbidden list in `.ai/docs/PROTOCOL.md`. Matching is on normalised whole paths and directory prefixes, never on a substring or a concept name.
+4. Remediation budget on this premise: at most two attempts, counted in the findings ledger by `root-cause` and `attempt`, not by the number of reports.
+5. Tests: one negative test per protected-path class with a neutral `requirement` that names no invariant or contract, including `validate-protocol.ps1` and `protocol-manifest.json`, plus one test per rejected path form expecting exit 2.
+6. Certification. DeepSeek coordinates this work and dispatches it, so by PROTO-DEC-0041 item 1 it certifies none of it. The two parallel independent certifiers are Codex and a Claude session that neither authored nor controlled the candidate; `claude-ebd3e8a8eb29a6d7` authored the specification and is excluded. Gemini implements and is excluded. The candidate is committed before certification; each certifier works on that one SHA in its own worktree, records `git rev-parse HEAD` at start and end, and measures scope from the pre-change baseline. Neither reads the other's report before fixing its own verdict. The Codex assessment of 2026-09-23 was advisory and fills no slot.
+7. This refines PROTO-DEC-0044 and PROTO-DEC-0045 and supersedes nothing. The freeze, PROTO-DEC-0034, 0038 and 0041 stand unchanged; no gate, verdict vocabulary, receipt format or completion requirement changes.
+
+Reasoning:
+Rejecting non-canonical paths can only err toward BLOCKED, which costs a human glance, whereas the failure item 4 exists to prevent is an erroneous RECOMMENDATION. Resolving concepts through the manifest uses the one recorded artifact that already enumerates the protocol's files, so the set is deterministic, repository-only and reproducible by hand, and it updates when the manifest does. Keeping `tests/` out holds check 1 to what item 4 actually names instead of widening it.
+
+Alternatives rejected:
+Canonicalising through `path.resolve` against the checkout, which makes the checkout location an input and gives a different verdict for the same ledger on another machine; lexical normalisation of `..`, which adds a transformation a hand check must replicate; matching concept names as path segments, which is what produced F-C01; a new hand-maintained concept-to-path table, which is a new rule with manual upkeep; counting this premise as a third attempt on the old one; letting the coordinator certify what it dispatched.
+
+Consequences:
+Gemini implements under DeepSeek's coordination and aligns `docs/specs/2026-09-23-executable-rulebook-spec.md` with items 2 and 3, correcting line 89. The certification prompt must use neutral-requirement probes, or rule 3 hides the result. Journals stand above their cap and are unloaded before the round. The Jev evaluation still exists only outside the repository.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-23: reject `..` with exit 2, protected set from the manifest's managed and source lists, certifiers Codex and a fresh Claude session, budget of at most two; transcribed by claude-ebd3e8a8eb29a6d7)

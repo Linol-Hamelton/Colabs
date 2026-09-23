@@ -619,4 +619,56 @@ test('F-5: PowerShell validator review with header terminator on line 0 does not
   fails(root, /independent review must name a Reviewer/);
 });
 
+test('decision immutability: appending a new block exits 0, editing a committed block exits 1', t => {
+  const root = makeProtocolFixture(t);
+  const baseDecisions = '# Decisions\n\n### PROTO-DEC-0001 First Decision\n\nStatus: Accepted\nDate: 2026-09-20\nApproved by: Test Owner\nReopen-trigger: none\n\nFirst decision body.\n';
+  write(root, '.ai/DECISIONS.md', baseDecisions);
+  const regPath = path.join(root, 'docs/decisions/REGISTRY.md');
+  const baseRegistry = '# Decision Registry\n\n| id | status | reopen-trigger | frozen-at | supersedes | evidence |\n|---|---|---|---|---|---|\n| PROTO-DEC-0001 | accepted | none | | | |\n';
+  write(root, 'docs/decisions/REGISTRY.md', baseRegistry);
+
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-m', 'Commit initial decision and registry']);
+
+  // Direction A: Appending a new decision block after a committed last block (with --- separator) exits 0
+  const appendedDecisions = baseDecisions + '\n---\n\n### PROTO-DEC-0002 Second Decision\n\nStatus: Accepted\nDate: 2026-09-21\nApproved by: Test Owner\nReopen-trigger: none\n\nSecond decision body.\n';
+  write(root, '.ai/DECISIONS.md', appendedDecisions);
+  write(root, 'docs/decisions/REGISTRY.md', baseRegistry + '| PROTO-DEC-0002 | accepted | none | | | |\n');
+
+  succeeds(root);
+
+  // Direction B: Genuine edit to a written block is caught (exit 1)
+  const editedDecisions = baseDecisions.replace('First decision body.', 'Tampered decision body.') +
+    '\n---\n\n### PROTO-DEC-0002 Second Decision\n\nStatus: Accepted\nDate: 2026-09-21\nApproved by: Test Owner\nReopen-trigger: none\n\nSecond decision body.\n';
+  write(root, '.ai/DECISIONS.md', editedDecisions);
+
+  fails(root, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Direction C: Deletion of a written block is caught (exit 1)
+  const deletedDecisions = '# Decisions\n\n### PROTO-DEC-0002 Second Decision\n\nStatus: Accepted\nDate: 2026-09-21\nApproved by: Test Owner\nReopen-trigger: none\n\nSecond decision body.\n';
+  write(root, '.ai/DECISIONS.md', deletedDecisions);
+
+  fails(root, /PROTO-DEC-0001 was deleted; a decision block is never removed/);
+
+  // Direction D: F-003 positive regression test: block has an internal ---, editing text AFTER the internal --- is caught (exit 1)
+  const rootD = makeProtocolFixture(t);
+  const baseDecisionsWithInternalHr = '# Decisions\n\n### PROTO-DEC-0001 First Decision\n\nStatus: Accepted\nDate: 2026-09-20\nApproved by: Test Owner\nReopen-trigger: none\n\nText before internal separator.\n\n---\n\nText after internal separator.\n';
+  write(rootD, '.ai/DECISIONS.md', baseDecisionsWithInternalHr);
+  write(rootD, 'docs/decisions/REGISTRY.md', baseRegistry);
+  git(rootD, ['add', '-A']);
+  git(rootD, ['commit', '-m', 'Commit decision with internal hr']);
+
+  // Edit text AFTER internal --- must fail (exit 1)
+  const tamperedAfterInternalHr = baseDecisionsWithInternalHr.replace('Text after internal separator.', 'Tampered text after separator.');
+  write(rootD, '.ai/DECISIONS.md', tamperedAfterInternalHr);
+  fails(rootD, /PROTO-DEC-0001 was edited after it was written; a decision block is never rewritten/);
+
+  // Appending a new block after a committed block that has an internal --- must succeed (exit 0)
+  const appendedAfterInternalHr = baseDecisionsWithInternalHr + '\n---\n\n### PROTO-DEC-0002 Second Decision\n\nStatus: Accepted\nDate: 2026-09-21\nApproved by: Test Owner\nReopen-trigger: none\n\nSecond decision body.\n';
+  write(rootD, '.ai/DECISIONS.md', appendedAfterInternalHr);
+  write(rootD, 'docs/decisions/REGISTRY.md', baseRegistry + '| PROTO-DEC-0002 | accepted | none | | | |\n');
+  succeeds(rootD);
+});
+
+
 

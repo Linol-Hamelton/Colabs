@@ -6,111 +6,105 @@ Newest entry first. Limit 150 lines.
 
 ---
 
-## 2026-09-23 - Executable rulebook specified; legacy stack settled by measured reference
+## 2026-09-23 - F-C01 traced to my specification; new premise recorded as PROTO-DEC-0046
 
 Agent: claude-ebd3e8a8eb29a6d7
 
-Action: Two evaluations arrived - `docs/research/2026-09-22-kilo-candidate-tool-evaluation.md`
-in the repository, and a Jev decision-fabric study that exists only in a temp directory
-outside it. Wrote `docs/specs/2026-09-23-executable-rulebook-spec.md`, the specification
-for the kernel automation package, and recorded PROTO-DEC-0045 with its registry row
-under the lock. Before settling the legacy trees I checked what the live Codex
-configuration actually references, rather than deciding by directory size.
+Action: Reproduced the round-3 residual of F-001 with a control row, and the F-C01 finding
+from the owner-requested Codex assessment, then traced both to their cause. Put the points
+where Codex and I diverged to the owner as four questions, and on the owner's answers
+appended PROTO-DEC-0046 with its registry row under the lock. Repaired a split bullet I had
+left in `.ai/TASK.md` and added a pointer to the new decision.
 
-Result: The specification reframes the package. It is not three more checks; it converts
-the mechanically checkable part of the recorded rulebook into deterministic checks over
-repository state, and its load-bearing section is the boundary - four conditions a rule
-must meet to become a check, and an explicit list of what stays with models and the owner.
-The highest-value check is the one yesterday exposed rather than one of the three
-originally listed: verdict arithmetic, making PROTO-DEC-0041 item 4 executable, so that
-two certifiers splitting on severity never again costs a human turn. It needs one new
-artifact, a machine-readable findings ledger, in which `severity` is recorded and is
-never an input to the verdict. The legacy check found what size alone would have hidden:
-`~/.codex/mcp-memory-stack/run-dbhub-l4-a.cmd` and `-b.cmd` name
-`D:/mcp-memory-data/sqlite/memory_a.db` and `memory_b.db` - the two files measured at 0
-bytes - while nothing in that configuration references the 7.2 GB `vector-stack/` or
-`D:\mcp-stack`. Deleting both trees wholesale, which is what I had implied was safe,
-would have removed paths the live stack names. PROTO-DEC-0045 therefore keeps
-`sqlite/`, marks `vector-stack/` and `mcp-stack/database-storage` delete-eligible, and
-executes no deletion: both trees are outside version control and there is no undo.
+Result: F-001 residual confirmed: `.ai/bin/x.cjs` -> FAIL exit 1 and control
+`docs/notes.md` -> RECOMMENDATION exit 0, while `D:/Colabs/.ai/bin/x.cjs`,
+`C:/Colabs/.ai/bin/x.cjs`, `../.ai/bin/x.cjs` and `x/../.ai/bin/x.cjs` all -> RECOMMENDATION
+exit 0. My first probe reported FAIL for every form and was wrong: its requirement named an
+invariant, and rule 3 yields FAIL off protected paths for that reason alone, so the probe
+tested nothing about path recognition. F-C01 confirmed with a neutral requirement:
+`validate-protocol.ps1`, `protocol-manifest.json` and `setup-ai-protocol.ps1` -> RECOMMENDATION
+exit 0; `.claude/hooks/protocol-hooks.cjs` -> FAIL only because a directory happens to be
+named `hooks`. Cause, mine: spec line 89 took the protected list "verbatim from PROTO-DEC-0038
+item 1", but check 1 executes PROTO-DEC-0041 item 4, whose list adds manifest and core; and
+all three recorded lists name concepts rather than paths. I conceded to Codex that contract A
+is a clarification needing an owner decision, not a rule already implied. Owner chose: reject
+`..` with exit 2; protected set from the manifest's `managed` and `source` plus `.ai/`,
+`.claude/`, `.codex/`; certifiers Codex and a fresh Claude session, because DeepSeek now
+coordinates and by PROTO-DEC-0041 item 1 certifies nothing it dispatched; budget <=2 on the
+new premise. Appending 0046 after 0045 - which was committed as the last block - produced no
+immutability false positive, a live confirmation of Gemini's F-003 fix on the real file.
+Validator exit 0, one warning: 33 journals against 30.
 
-Next step: Gemini implements the specification with its negative tests; DeepSeek composes
-the unified adversarial prompt and certifies the batch, which is this package together
-with the five layers A/B/C fixes under the PLAN batching rule; Copilot persists the Jev
-report into the repository under the section 5.5 fallback and assembles the R0 offline
-dataset. I authored the specification and therefore control the work, so I certify none
-of it - the two slots are DeepSeek and Copilot.
+Next step: DeepSeek coordinates; Gemini implements PROTO-DEC-0046 items 2, 3 and 5 and aligns
+the specification; the candidate is committed; Codex and a fresh Claude session certify in
+parallel on that SHA in separate worktrees with neutral-requirement probes.
 
-Open: The Jev evaluation is 97,822 B in a temp directory and is not project memory until
-persisted; by AGENTS section 1 it has not happened yet. Layers A/B/C remain FAIL and
-uncertified. Check 4 cannot detect a reviewer independent on paper and controlled in
-practice, which the specification declares rather than hides. Whether to execute the two
-delete-eligible paths is an owner instruction naming the path, not a decision block.
+Open: I authored the specification, so I fill neither slot. The Jev evaluation still exists
+only outside the repository. Journals are over their cap and must be unloaded before the
+round writes anything.
 
 Evidence:
-- anchor: f68b50222ba3afa92dd3be36f4197ac8307d9511, uncommitted changes present
-- digest: sha256:daece71fc44fa0e4cf55bf2961749cecde389cdc09fb6d8253cd787e5202f102 over 270 tracked and untracked files
+- anchor: 82bf99a8e2bfcde3ff375b9995f3ab45edb7ddc5, uncommitted changes present
+- digest: sha256:470850eb8305d59a4a6a18e4aa4f19fac5342ac201870198d5eab614d76b529f over 317 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-22T21:22:37.733Z by claude-ebd3e8a8eb29a6d7
+- recorded: 2026-09-23T04:25:50.142Z by claude-ebd3e8a8eb29a6d7
 - entry hash format: 2
-- entry: sha256:bd2d01eefaf5aa02ebebdac92d7a042988d2b4f3b553b8e5b473af8bd4c7f309 of this entry without this block
-- parent-entry: sha256:c6ca5fcb83160e4b1a41b7500bf7543ec06a09f57d3c74b0605b0f534e5f6b2d
+- entry: sha256:295503bbf5307a37f2624adfd713cafc2257e7ca601f436e1b65d69be7496e41 of this entry without this block
+- parent-entry: sha256:8b8b17a1ad4bb3f4abc4659665f10cff5758a1681f48aa50de05656d682ea981
 - scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 1 in 3s
-- test-protocol.ps1: exit 0 in 231s
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 260s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
 
 
-
-## 2026-09-22 - Budgets unloaded; batching rule recorded in PLAN
+## 2026-09-23 - Checkpoint committed, false positive cleared, 7.2 GB reclaimed
 
 Agent: claude-ebd3e8a8eb29a6d7
 
-Action: Both budgets were at their caps and blocked the next round from writing anything.
-Reviews: reclassified the active corpus, since the earlier "uncited" rule no longer
-produced any candidate - every one of the 58 was referenced somewhere. Narrowed the
-criterion to citation from active sources (TASK, PLAN, DECISIONS, REGISTRY, AGENTS,
-`.ai/docs`) and re-checked each candidate against `tests/` and the validator as well,
-which is what saved `2026-09-17-three-repository-review.md`: it is cited by
-`tests/upgrade.test.cjs` and my first classifier missed that. Archived six closed Sep-19
-artifacts with INDEX mappings. Journals: no empty ones existed, so `prune` was useless;
-archived the six oldest Sep-20 journals entry-by-entry into `.ai/ARCHIVE.md` and removed
-the emptied files. Recorded the owner-approved batching rule in `.ai/PLAN.md`.
+Action: Committed the specification, PROTO-DEC-0045 and the budget unload as `82bf99a`
+(29 paths), stating in the message that layers A/B/C and the rulebook are not certified
+and that the immutability check still needs fixing. Then executed the owner's named
+deletion. Before deleting I looked at each target rather than trusting my own earlier
+framing of it.
 
-Result: Corpus 52/60 files and 503,355/614,400 B, from 58 and 602,153 - eight slots and
-111 KB for the batched round. Journals 25/30 from 30. `.ai/ARCHIVE.md` went 147 -> 155
-entries, exactly the eight archived, so nothing was lost. `validate-protocol.ps1` exit 0
-with **0 warnings**; `test-protocol.ps1` **321/321** exit 0. Two tooling frictions cost
-several cycles and are worth naming rather than forgetting. First, archiving a journal
-updates its mtime, after which `prune` refuses it as a "recent empty journal" - the two
-operations do not compose, so the emptied files had to be removed by hand. Second, the
-validator counts journals from the **git index**, not the filesystem: deleting a tracked
-journal does not reduce the count until the deletion is staged, which is why the warning
-persisted while the directory already held 25. Also trimmed my own PLAN addition four
-times to fit the 200-line cap, which the validator enforces as a hard failure.
+Result: The validator returned to **Protocol OK, 0 warnings** immediately after the
+commit, which confirms the diagnosis: the decision-block immutability check attributes
+the `---` separator to the preceding block, so the false positive was an artefact of
+appending after that block had been committed last, not an edit. Moving the baseline
+cleared it without weakening the rule. `D:\mcp-memory-data\vector-stack` is deleted,
+7.2 GB reclaimed, and that tree now holds only `sqlite/` - the two databases the live
+Codex configuration names. I did **not** delete `D:\mcp-stack\database-storage`, and that
+is a correction of my own earlier claim rather than a deviation from the instruction: I
+had described it as bulk data, and it measures 0.1 MB in three files -
+`vpn-project.db` 49 KB, `mcp-gateway.db` 32 KB, `rag-vectors.db` 32 KB. Deleting it would
+free nothing and destroy project databases, one of them named for the VPN product, so the
+trade the owner approved does not exist there.
 
-Next step: implement the deferred kernel automation package - root-cause stop bound to one
-findings ledger, executable scope check, author-not-reviewer - then one batched
-certification round covering it together with layers A/B/C, as approved.
+Next step: dispatch the three prompts - Gemini implements
+`docs/specs/2026-09-23-executable-rulebook-spec.md` with its negative tests; DeepSeek
+composes the unified adversarial prompt and certifies the batch, which is that package
+plus the five layers A/B/C fixes plus the immutability-check defect; Copilot persists the
+Jev evaluation into the repository under the section 5.5 fallback and assembles the R0
+offline dataset.
 
-Open: Layers A/B/C remain **FAIL and uncertified**; the five fixes have had no independent
-review and I wrote them, so I certify none. The batching rule is PLAN-level and reversible,
-not a decision block. A tracked-but-deleted path is still skipped in silence by the
-inventory, which is defensible but undecided. Journals will drift back toward the cap
-whenever reconnects create sessions, so the index-versus-filesystem counting difference
-will resurface for whoever hits it next.
+Open: `D:\mcp-stack\database-storage` needs an owner decision on its own terms now that
+its contents are known; nothing was deleted there. The immutability check is masked, not
+fixed - the next agent who commits and then appends a decision meets it again. Layers
+A/B/C and the rulebook remain uncertified, and I authored the specification, so I fill
+neither reviewer slot. The Jev evaluation is still only in a temp directory and by
+AGENTS section 1 has not happened yet.
 
 Evidence:
-- anchor: f68b50222ba3afa92dd3be36f4197ac8307d9511, uncommitted changes present
-- digest: sha256:b8de215444bb7892d5c5db3861fcbfc845e2218c466a2714fbb39761fd4a1495 over 269 tracked and untracked files
+- anchor: 82bf99a8e2bfcde3ff375b9995f3ab45edb7ddc5, uncommitted changes present
+- digest: sha256:498594d2ae801b74526147ca4b5412919b3f405cf30fc7983ab28d2f89a66bb7 over 312 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-22T20:02:03.105Z by claude-ebd3e8a8eb29a6d7
+- recorded: 2026-09-22T22:53:41.441Z by claude-ebd3e8a8eb29a6d7
 - entry hash format: 2
-- entry: sha256:c6ca5fcb83160e4b1a41b7500bf7543ec06a09f57d3c74b0605b0f534e5f6b2d of this entry without this block
-- parent-entry: sha256:069a4f77e41453d1e5cd6e1944c2bb81c4c78968d240432796f454c605d256d2
+- entry: sha256:8b8b17a1ad4bb3f4abc4659665f10cff5758a1681f48aa50de05656d682ea981 of this entry without this block
+- parent-entry: sha256:bd2d01eefaf5aa02ebebdac92d7a042988d2b4f3b553b8e5b473af8bd4c7f309
 - scope: protocol checks only; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 3s
-- test-protocol.ps1: exit 0 in 280s
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 340s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
