@@ -17,7 +17,7 @@
 | O-03 | Where do hypotheses come from? | A multi-source model: repository evidence, external sources, systematic derivation, measurements, failures, contrarian, cross-domain, combinatorial and negative hypotheses, with provenance, novelty and source diversity |
 | O-04 | What is the output? | A funnel: maximum discovery → deduplication → fast screening → deep cards → backlog → rejected → synergies → priority set by a value formula |
 | O-05 | How to lay out the two studies? | As is most convenient for models to read and to remember the answers; the owner's seed hypotheses, written as prompts, are in `OwnerIdeas/` |
-| O-06 | How deep is this run, before a depth policy exists? | Three independent researchers plus a synthesis |
+| O-06 | How deep is this run, before a depth policy exists? | Three independent researchers of different makers per study, plus a synthesiser who is not one of the researchers |
 | O-07 | What may researchers do in this run? | Measurements now; prototypes and A/B tests later |
 | O-08 | Where do results go, and when? | Now, inside the CORE-ARCH program |
 | O-09 | (the owner's launch message) | Before launching through Kilo Code: the current per-procedure launch workflow first; if models are unavailable there, Kilo; no new candidates; check the syntax |
