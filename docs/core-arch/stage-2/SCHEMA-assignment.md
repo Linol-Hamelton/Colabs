@@ -19,13 +19,11 @@ exits 2 (PROTO-DEC-0049 item 2).
 
 ## 1. Participant (S2-T05)
 
-The participant is the model, named by its maker's id as the model matrix records it
-(`docs/core-arch/stage-4/MODEL-MATRIX.md`; R-L1-002.1). A client alias resolves to that id: the
-matrix records, for example, that copilot reaches `claude-opus-5-5` as `claude-opus-5`. A fresh
-session, another client or another effort level of the same model is the same participant, so a
-new session inherits every role its model held in the candidate's lineage (R-L1-002.2). This
-replaces the family-and-lineage identity proposed in CORE-ARCH-3 section 2, which the owner's rule
-"one model, one role" made unnecessary (PROTO-DEC-0056 item 2, 0063 item 2).
+Who counts as one participant is R-L1-002.1 and the lineage is R-L1-002.2; both have their home in
+P-L1-002. This schema only applies them: every `model` in a line is resolved to the maker's id in
+the model matrix (`docs/core-arch/stage-4/MODEL-MATRIX.md`) before any check; the matrix records,
+for example, that copilot reaches `claude-opus-5-5` as `claude-opus-5`. This replaces the
+family-and-lineage identity proposed in CORE-ARCH-3 section 2 (PROTO-DEC-0056 item 2, 0063 item 2).
 
 ## 2. Grammar
 
@@ -53,7 +51,7 @@ block_id      ::= "PROTO-DEC-" 4 digits | "DEC-" 4 digits
   The one-role rule (R-L2-002.2) is checked on these effective lines of one frame (PROTO-DEC-0057
   item 3). Independence across frames is judged by the lineage (R-L1-002.2) and the bars of
   R-L0-05, R-L1-certifier.1 and R-L1-fixer.2, never by the merge.
-- The dispatcher is a script and never appears in a role line.
+- `dispatcher` is not a slot of an assignment line either (R-L1-dispatcher.1).
 - Conditions that are not roles (dates, pilots, priorities, history) go under `## Role notes`,
   which no script reads.
 
@@ -156,4 +154,4 @@ reads only `- name: role` lines (`.ai/bin/protocol-hooks.cjs:300`).
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T04, S2-T05) — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9), CB-03 (delegation names its owner record; F10), CB-04 (inputs, scope and parent resolution; F11-F13) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9), CB-03 (delegation names its owner record; F10), CB-04 (inputs, scope and parent resolution; F11-F13), CB-05 (section 1 and the dispatcher line are pointers) — second pass pending.

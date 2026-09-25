@@ -1,6 +1,6 @@
 ---
 id: P-L1-002
-version: 0.1
+version: 0.2
 title: Independence - who counts as one participant, and when independence is checked
 layer: L1
 type: procedure
@@ -35,7 +35,9 @@ judged, and when it is checked.
 ## Rules
 
 - R-L1-002.1. The participant is the model, named by its maker's id in the model matrix. A client
-  alias, a new session or another effort level of the same model is the same participant.
+  alias, a new session, another client or another effort level of the same model is the same
+  participant, so a new session inherits every role its model held in the candidate's lineage.
+  This is the one home of the participant rule; SCHEMA-assignment section 1 points here.
 - R-L1-002.2. A candidate's lineage is every task frame that produced, fixed, reviewed or
   coordinated it. Independence is judged over the whole lineage, not the certifying frame alone.
 - R-L1-002.3. Any participant may report FAIL or BLOCKED with a reproduction; only an independent
@@ -103,3 +105,4 @@ None.
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T03) — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-05 (R-L1-002.1 is the one home of the participant rule) — second pass pending.
