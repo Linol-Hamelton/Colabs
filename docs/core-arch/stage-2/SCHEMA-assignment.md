@@ -33,15 +33,15 @@ replaces the family-and-lineage identity proposed in CORE-ARCH-3 section 2, whic
 roles_section ::= "## Roles" LF { line LF }
 line          ::= assignment | delegation | blank
 assignment    ::= "- " model " @ " scope_id ": " slot
-delegation    ::= "- delegation @ " scope_id ": " assigner " until " date
+delegation    ::= "- delegation @ " scope_id ": " model " until " date " by " block_id
 model         ::= a model id present in the model matrix
 scope_id      ::= kind ":" name
 kind          ::= "program" | "task" | "candidate"
 name          ::= [a-z0-9][a-z0-9-]{2,63}         for "candidate", the 40-hex SHA
 slot          ::= coordinator | implementer | reviewer | certifier | shadow-certifier
                 | auditor | researcher | synthesiser | drafter | critic | fixer | procedure-author
-assigner      ::= model | "owner"
 date          ::= YYYY-MM-DD
+block_id      ::= "PROTO-DEC-" 4 digits | "DEC-" 4 digits
 ```
 
 - One slot per line, no trailing text, no negation, no comment.
@@ -86,6 +86,7 @@ M below is `claude-opus-5-5`; the check asks whether M may certify a candidate o
 | F7 | `- deepseek-flash @ program:core-arch: reviewer` and `- deepseek-flash @ task:s2-review: critic`, the task's parent being `program:core-arch` | 0 (the task's own line replaces the inherited one: one role in the frame; the lineage check still applies) | PROTO-DEC-0057 item 3 |
 | F8 | `- unknown-model @ task:x: reviewer` | 2 | P-L1-002 stop |
 | F9 | `- M @ task:x: owner` | 2 (`owner` is not an assignable slot) | R-L0-04 (CB-02) |
+| F10 | `- delegation @ task:x: M until 2026-10-31`, or the same line `by` a block that does not name M | 2 (no owner record the line can be checked against) | section 5 (CB-03) |
 
 The journal side of R3-C03 (a producer identity inside a fence) is closed by the same fence rule
 applied to journals: the producer is read only from the entry's `Launch:` line outside fences
@@ -93,11 +94,16 @@ applied to journals: the producer is read only from the entry's `Launch:` line o
 
 ## 5. Delegation (PROTO-DEC-0062 item 3)
 
-`- delegation @ program:core-arch: claude-opus-5-5 until 2026-10-31` lets that model, as
-coordinator, write assignment lines in that scope until that date. Only the owner writes
-delegation lines. A delegated coordinator writes assignment lines only, never delegation lines and
-never a `coordinator` line (the delegation already names the coordinator; R-L1-coordinator.1), and
-records each one in its journal.
+`- delegation @ program:core-arch: claude-opus-5-5 until 2026-10-31 by <block_id>` lets that model,
+as coordinator, write assignment lines in that scope until that date. Only the owner writes
+delegation lines. The text of a line cannot show who wrote it, so the line names the decision block
+in which the owner recorded the delegation (to whom, which frames, until when: PROTO-DEC-0062
+item 3). The line is accepted only if that block exists in `.ai/DECISIONS.md` outside fences,
+carries `Approved by:` and contains the line's model id, scope-id and date; otherwise exit 2. The
+`by` field is this draft's proposal for the recorded form that PROTO-DEC-0062 item 3 leaves open.
+A delegated coordinator writes assignment lines only, never delegation lines and never a
+`coordinator` line (the delegation already names the coordinator; R-L1-coordinator.1), and records
+each one in its journal.
 
 ## 6. Proposed migration of the current `.ai/TASK.md` Roles (owner question В-12)
 
@@ -132,4 +138,4 @@ reads only `- name: role` lines (`.ai/bin/protocol-hooks.cjs:300`).
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T04, S2-T05) — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9), CB-03 (delegation names its owner record; F10) — second pass pending.
