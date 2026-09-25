@@ -132,7 +132,7 @@ launcher makes is a row (CB-15).
 | `SUSPECT` before useful work | progress, still no useful work | `STARTING` |
 | `SUSPECT` | useful work, or progress after useful work | `WORKING` |
 | `WORKING` | soft silence | `SUSPECT` (inspection recorded) |
-| `SUSPECT` after useful work | hard silence | `HUNG`: stop the tree, snapshot, `NEEDS_OWNER` |
+| `SUSPECT` after useful work | hard silence | `HUNG`: stop the tree, snapshot, `NEEDS_OWNER`; FALLEN without wakes (see "Divergence") |
 | `WORKING`, `SUSPECT` after useful work | exit 0, all outputs present | `DONE` |
 | `WORKING`, `SUSPECT` after useful work | exit 0, outputs missing | `INCOMPLETE`, then `NEEDS_OWNER` |
 | `WORKING`, `SUSPECT` after useful work | exit not 0 | `CRASHED`, then `NEEDS_OWNER` |
@@ -148,6 +148,15 @@ tick without a recorded `SUSPECT`; the launcher requires soft below hard, not a 
 
 - Every `NEEDS_OWNER`. The owner may start a named route explicitly. Where outputs already exist,
   the dispatcher requires an explicit takeover by the owner (R-L3-004.7).
+
+### Divergence from PROTO-DEC-0051 item 4 (CB-22)
+
+PROTO-DEC-0051 item 4 wakes a stalled agent up to three times, by resuming its session by id,
+before it records FALLEN. This launcher resumes no session by id, so `HUNG` stops the tree at
+once. Under that item this is the case of a client that cannot resume by id: `HUNG` counts as
+FALLEN on the first stall, the launcher's reason says so, and the owner records a `Signal:` line
+of type fall until the signals ledger exists. The kernel dispatch script of PROTO-DEC-0050 item 4
+implements the wakes and does not inherit this path.
 
 ## Back edges
 
@@ -181,4 +190,4 @@ tick without a recorded `SUSPECT`; the launcher requires soft below hard, not a 
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row), CB-22 (the HUNG path is recorded as a divergence from PROTO-DEC-0051 item 4) — second pass pending.

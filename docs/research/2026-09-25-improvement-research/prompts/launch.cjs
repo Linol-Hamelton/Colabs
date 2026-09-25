@@ -465,7 +465,9 @@ function run(jobId, routeArg, cfg, ov = {}) {
       return start({ kind: 'kilo', route: suitable[0].route, variant: suitable[0].variant });
     }
     state.status = att.status === 'DONE' ? 'DONE' : 'NEEDS_OWNER';
-    const why = att.status === 'STOPPED' ? 'stopped by the owner' : `${att.status} on ${att.route}`;
+    const why = att.status === 'STOPPED' ? 'stopped by the owner'
+      : att.status === 'HUNG' ? `HUNG on ${att.route}; FALLEN without wakes, the launcher resumes no session (PROTO-DEC-0051 item 4, P-L3-004)`
+        : `${att.status} on ${att.route}`;
     state.reason = att.status === 'DONE' ? null
       : `${why}${att.errorText ? ` (${att.errorText})` : ''}${att.treeGone === false ? '; process tree NOT confirmed gone' : ''}`;
     state.pid = null; state.rootCreated = null; state.watchdog = null; state.watchdogCreated = null; writeJob(jobId, state);
