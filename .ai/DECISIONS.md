@@ -2875,3 +2875,56 @@ The launch operator of K-launch is not a research participant and keeps the full
 the transcriber's reading, not the owner's words.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25: chose "Да, для исследований" on the question "Разрешить исследовательским рамкам фиксировать Evidence через record --quick?", whose option read "Исследователи, синтезаторы и участники совета записывают Evidence через record --quick (только валидатор, ~3 с). Полный record остаётся обязательным для правок кода и ядра."; transcribed by claude-c73232724159e5bd)
+
+---
+
+### PROTO-DEC-0072
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+Open owner question В-24 (`docs/core-arch/CORE-ARCH-3.md` section 12; trial S2-T07 rows 7 and 8,
+signal S-3) asks whether drafting or reviewing a kernel record that has not landed counts as a
+"kernel change" for the T7 floor of P-L2-002 step 3. It came up again when the models of the
+validator migration council were computed by P-L2-002. The owner answered in chat, quoted in full:
+
+> Нет для чистого research/design/review frame, который создаёт только advisory research/review
+> artifacts и не изменяет candidate kernel records, kernel code или protocol tooling. Такой frame не
+> наследует T7 только потому, что его результат впоследствии может привести к изменению ядра.
+> T7 применяется с момента, когда task непосредственно создаёт, изменяет или применяет candidate
+> kernel record / kernel code / protocol tooling, а также всегда к certification.
+> То есть floor определяется действием текущего task frame, а не downstream purpose. Review-only
+> task автоматически kernel-change не считается; его tier определяется rubric, если отдельное
+> правило не устанавливает более высокий floor.
+
+Decision:
+1. The T7 floor of P-L2-002 is set by what the current task frame does, not by the purpose its
+   result may later serve.
+2. A research, design or review frame that produces only advisory research or review artefacts,
+   and does not change candidate kernel records, kernel code or protocol tooling, does not take the
+   T7 floor merely because its result may later lead to a kernel change.
+3. The T7 floor applies from the moment a task directly creates, changes or applies a candidate
+   kernel record, kernel code or protocol tooling, and always to certification.
+4. A review-only task is not a kernel change by itself. Its tier is set by the rubric, unless a
+   separate rule sets a higher floor.
+
+Reasoning:
+The floor protects the kernel from under-powered changes. An advisory frame changes nothing that
+the floor protects, and its result reaches the kernel only through a later task that takes the
+floor itself.
+
+Alternatives rejected:
+Applying the T7 floor to every frame whose result may lead to a kernel change.
+
+Consequences:
+- В-24 is closed. The model table of the validator migration council
+  (`docs/research/2026-09-25-validator-migration-council/README.md`) stands without the floor.
+- The texts of P-L2-002 step 3 and CORE-ARCH-3 section 12 are aligned in the next stage-2 fix
+  round. They are under review now, and the review candidate is not changed.
+- Transcriber's reading, not the owner's words: the CORE-ARCH stage records under `docs/core-arch/`
+  are candidate kernel records. A task that writes or edits them therefore takes the floor, and so
+  does a task that changes the research launcher, since it is the `enforced_by` of P-L3-004.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
