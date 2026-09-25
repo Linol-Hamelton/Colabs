@@ -157,5 +157,6 @@ when the previous step is complete.
 
 | Step | State |
 |---|---|
-| Round 1 | not started. The owner approved the model table on 2026-09-25. It waits for the pre-launch gate and the baseline SHA |
-| Round 2, round 3, closing | not started |
+| Round 1 | done 2026-09-25, baseline a4e6aef. Owner override: r1-a ran deepseek-flash-4.1 (Kilo, `deepseek`), not claude-fable-5-1 (no Fable credits); recorded in its journal. The outputs are frozen in the commit that adds `round1/` |
+| Round 2 | dispatched by a Kilo operator: `prompts/K-dispatch-r2.md` with `tools/r2-dispatch.cjs`. Owner override: r2-a runs grok-4.5 / high (copilot, `grok`), not gpt-5.6-sol / max, for cost; same tier T6. r2-b runs its table cell through Kilo (`kilo/anthropic/claude-opus-5.5` xhigh), because the claude CLI shares the coordinator's limit (PROTO-DEC-0067 fallback) |
+| Round 3, closing | not started. Fable cells can use Kilo `kilo/anthropic/claude-fable-5.1` |

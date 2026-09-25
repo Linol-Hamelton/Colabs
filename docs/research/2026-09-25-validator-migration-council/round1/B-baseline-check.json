@@ -1,0 +1,162 @@
+{
+  "kind": "read-only baseline inspection; not a benchmark or certifying receipt",
+  "utc": "2026-09-25T08:50:44.521Z",
+  "baseline": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+  "statusBefore": "",
+  "measurementCodeDiff": "",
+  "inventory": [
+    {
+      "path": "validate-protocol.ps1",
+      "blob": "aeb84aeff9e33d112c6dd6f266054ffb842cf387",
+      "sha256": "36d8393d69684a46b0b9899b723241d4930a2309d7a65356e25485f843da2917"
+    },
+    {
+      "path": "test-protocol.ps1",
+      "blob": "e27c5b12b7ce30ef351c8b116b55da7d9aa2716b",
+      "sha256": "f8715f4747b60948262c41de8b9f43bb906a009ff60d5f82170a08107c0fbdc8"
+    },
+    {
+      "path": "tests/helpers.cjs",
+      "blob": "e2f976c9ed5ae9605e560342398005b9093c4b86",
+      "sha256": "1c9822abb9c4e77996dcf57e6796709c0488d1b96b90bd135f9297659126697a"
+    },
+    {
+      "path": "tests/archive.test.cjs",
+      "blob": "43e130d626807897e2aad3dc02b62eac7e6475bb",
+      "sha256": "630d6cb5a9cf4474b01266bfddf12a3916d21a74a85e7b58975575ebd14aadb2"
+    },
+    {
+      "path": "tests/codex.test.cjs",
+      "blob": "e004db31fea43394f49cc57981f644fe3205fe74",
+      "sha256": "b186a07cff64da80b6477a4277bb44d7c113b3d46380528a19e9aedaffa0837c"
+    },
+    {
+      "path": "tests/context-policy.test.cjs",
+      "blob": "5ef06817f2d3bccff5e87efe314aa87e750da9eb",
+      "sha256": "dd459a4127956faaa6b3bbe77ddd924ce1081295812fe095e3adcb067923aaa9"
+    },
+    {
+      "path": "tests/gate.test.cjs",
+      "blob": "7711d8d1de35689872a18f04f4f4368166f241cf",
+      "sha256": "87237d7d19461f9a6f8054db0dd4fb1d574748280a82e25fa78ba49af73bbccc"
+    },
+    {
+      "path": "tests/handoff-chain.test.cjs",
+      "blob": "86d86214d8afc3d0a76c40611673445ec57657f5",
+      "sha256": "bbd6c05fb7853687b58af2422e8e018d7fda6bd8be34a87f5ab32daa259fd2d0"
+    },
+    {
+      "path": "tests/handoff.test.cjs",
+      "blob": "cd4d2f70665fa7a991ec9aaa7449b661e4202398",
+      "sha256": "c52710955bc93aab7bf25cac6a1c6e3bb57e9895435baf6d64f1d01aa73c90b8"
+    },
+    {
+      "path": "tests/hooks.test.cjs",
+      "blob": "f7f1bb199e5ab8731205295394219253b6817645",
+      "sha256": "9c93c5951e36918960757075f1deaa52ff52a8a2cc7ca36aa2336df78f10c53d"
+    },
+    {
+      "path": "tests/index.test.cjs",
+      "blob": "f39cadb0d48dc22aaaa8c266575593bbc546628e",
+      "sha256": "2396834516ed56e401b0988b3fdd4d00d5d9fae4fd6893620987fe0d4b1e8b52"
+    },
+    {
+      "path": "tests/installer.test.cjs",
+      "blob": "6f95fa69b0c215cef47b2b75063b04589af8647e",
+      "sha256": "58470f286e64321dc76f2c8f16b9ccc03b0b18efcfbe025061f8e0f6c931b3d5"
+    },
+    {
+      "path": "tests/ledger.test.cjs",
+      "blob": "df3a5fc927c4a91653d4525f637efd52940b15a8",
+      "sha256": "55e62ef7951bb95b7980e078f50a6f553a2b361faf05e01d83de28ccae692f0d"
+    },
+    {
+      "path": "tests/lock.test.cjs",
+      "blob": "e19a0f0df2c31b0fe2566194c924b2ef4e7d5e7d",
+      "sha256": "811dff6de6c545cff5a5404d8c5c3284eea0ca0127fe1f58a81326dc7414eba0"
+    },
+    {
+      "path": "tests/manifest.test.cjs",
+      "blob": "acf40e84ba34124cea432645f47abba49e989575",
+      "sha256": "43a9b5ac9d11c328bc72bf77fdcf61ed303dbf974f51b2160c444e78f5923ebc"
+    },
+    {
+      "path": "tests/operator.test.cjs",
+      "blob": "c2908b609f8868d4aa81ac14bf143624b4aeaab5",
+      "sha256": "b9ca2229e09e90787ae8b820b87f2e60e33ae59e397bf29098810ed1033d88d2"
+    },
+    {
+      "path": "tests/registry.test.cjs",
+      "blob": "767ffc7c3ca9b9f02180217514905494a039201d",
+      "sha256": "6b341a2c8174a973e14f4a286897e8bd2c622fe0b9dcbe485f6bfe0220636eec"
+    },
+    {
+      "path": "tests/review-findings.test.cjs",
+      "blob": "9a1ef7c1f5f35e1921d1f4bf3b3bfee7305855e2",
+      "sha256": "c1ee616bbb36955ff6ccf901d0cff63517c54591d429c301bbdbe3491c1203f3"
+    },
+    {
+      "path": "tests/rulebook.test.cjs",
+      "blob": "3d4975cbcbc948c34daabf0993f802666d2b3316",
+      "sha256": "a430a99401916dba63aad3b8f5159d052851bed3495aec0bea9a3789729679fd"
+    },
+    {
+      "path": "tests/session.test.cjs",
+      "blob": "f85298b899562b02625d41f1939e01f53b86fc4f",
+      "sha256": "d778f520f07ba71d148c1707e61a608ba11420334ff5ab5513a224d0e288c07b"
+    },
+    {
+      "path": "tests/upgrade.test.cjs",
+      "blob": "79dfff1d92378a04915330e0d3975a56aa23f796",
+      "sha256": "79835a78f890d65ca737665e6456b2ea00fb21997efd252ec781d69c18334a7e"
+    },
+    {
+      "path": "tests/validator-syntax.test.cjs",
+      "blob": "ffd39809de7d026cbefb76037bb8e55552d18f93",
+      "sha256": "688be4f23f094fd18be015aa1abb43b4cec93bc62febe9606b5805d11b29e86b"
+    },
+    {
+      "path": "tests/validator.test.cjs",
+      "blob": "649e4afa0002e8b373d17b1f2d210aceed384b3b",
+      "sha256": "9df11bd142d6be6e4f237dd501ca88472b1ef8bf66ba26dcacbae0b0c8789446"
+    },
+    {
+      "path": ".ai/bin/protocol-handoff.cjs",
+      "blob": "bd0dad0a707b6023f93f511b43809e1a405393b5",
+      "sha256": "a7922c8b49dfac5b676717ee6134da828c9f21b67a906427240b9bbbe3c32207"
+    },
+    {
+      "path": "protocol-manifest.json",
+      "blob": "cbb052c0380f9192c040e6263e39fb0c4e73dcba",
+      "sha256": "c4972cef4742af895bb8d1d5818cdce5c0eebf8c4ffe064d61da0794cb485cd2"
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/MEASUREMENTS.md",
+      "blob": "87ed40d46ae2dc83ffc5380ae66a743176d6a46d",
+      "sha256": "68b46fb8db897b61bfaa9c43fe7754b2874e105fef8f9ff76257de5c52e3737e"
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/tools/ps-probe.cjs",
+      "blob": "006f7b2ee8c5d4c93dae4b05ca3fe6a0e9507b6b",
+      "sha256": "9c32682d91e4e921c90d9b785498035262e57e8681694f59b97fbc480ce81959"
+    },
+    {
+      "path": "docs/core-arch/PROPOSAL-node-validator.md",
+      "blob": "ae182785216c40fb09b6000d87f4354a35893664",
+      "sha256": "86be8e586eebb6af642998c17ad1617508dbb44613d98be73b6ae69ded7097e5"
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "blob": "8ca791deb5c72371b1a9e9015dbda47b5eb44ebe",
+      "sha256": "e82b528db240bdb2f46430b5abdd1d11065e3043a65518cc711529159991aea9"
+    }
+  ],
+  "validator": {
+    "exit": 0,
+    "error": null,
+    "stdout": "AI Collaboration Protocol - validation\nRoot: C:\\Users\\Dmitry\\AppData\\Local\\Temp\\colabs-vmc-r1-b-b21040e3\nProtocol OK. 0 warning(s).\n",
+    "stderr": ""
+  },
+  "statusAfter": "",
+  "endSHA": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367"
+}

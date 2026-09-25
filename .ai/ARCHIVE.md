@@ -8942,3 +8942,133 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 304s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - Improvement backlog: Windows shell pitfalls, client dispatch, Kilo Code as the front-end
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: The owner asked to put three observed Windows-shell failures into the improvement plan.
+TASK.md is at 80/80 lines and PLAN.md at 200/200, so they are recorded here as signals under
+PROTO-DEC-0051, where they wait for the signals ledger.
+Signal: procedure-gap. Windows PowerShell 5.1 pipes native output as text, so
+`git archive <sha> | tar -x` fails with "Damaged tar archive". Seen in r1-a of the validator
+migration council (deepseek-08b98f3e57049e13), which left an empty `%TEMP%\kilo\vmc-base-a4e6aef`.
+Use `git worktree add --detach <temp dir> <sha>`, or `git archive -o <file>.tar <sha>` then
+`tar -xf`, or `git show <sha>:<path>`.
+Signal: procedure-gap. `Get-Content` in PowerShell 5.1 reads UTF-8 without a BOM as the ANSI code
+page, and Russian text shows as mojibake (DeepSeek, second pass). Use `Get-Content -Encoding UTF8`.
+Signal: procedure-gap. `grep $'\r'` in Git Bash on this workstation did not detect CR bytes
+(this session, OWNER-PROMPT.md). Count the bytes with node, or check committed blobs.
+Signal: script-candidate. A small node helper that materialises a baseline tree and reads files
+as UTF-8 would remove all three pitfalls for prompts that name a baseline SHA.
+
+Council r1-c was dispatched from a Kilo Code session to agy 1.2.11:
+Signal: procedure-gap. `agy -p ... --mode accept-edits --sandbox` auto-denies any tool that needs
+the "unsandboxed" permission, because headless mode cannot prompt. The run ended with no output.
+The working route was an interactive `agy -i` in its own window (`Start-Process`), with the owner
+approving. A narrow agy permission profile (`permissions.allow`, `unsandboxed(<target>)`) would be
+the grant of PROTO-DEC-0047 item 7; it needs owner approval.
+Signal: procedure-gap. A Kilo session that runs `agy -p` in its own terminal blocks until the job
+ends and risks the client's command timeout. Dispatch should start the job detached and poll.
+Signal: procedure-gap. Outside a launcher, the agy participant started reading before COMMON
+section 3: no session start, working tree instead of the baseline, a wrong path for
+MEASUREMENTS.md. The owner corrected it by message.
+Signal: script-candidate. A dispatch check that fails when no new journal with `Launch:` and
+`Orientation:` lines appears within a few minutes would make the canary mechanical.
+
+Owner authorisation (chat, 2026-09-25): "изменения по моей просьбе были внесены глобально в agy".
+The owner had Antigravity add `mcp(*)`, `read_url(*)`, `write_file(*)` and `command(*)` at the top
+of `permissions.allow` in `%USERPROFILE%\.gemini\antigravity-cli\settings.json` (changed 12:03).
+That is a full auto-approve for agy in every project, not only Colabs, and without a disposable
+copy. PROTO-DEC-0047 item 7 and CLI-AGENTS section 6 allow this only with the owner's recorded
+authorisation, which this line records. Advised: remove the four rules after the council, or
+scope them.
+Signal: procedure-gap. Cost. Council r1-b (gpt-6-astra / xhigh, codex) used about 62% of the
+owner's 5-hour limit and 11% of the weekly limit, by the owner's report. P-L2-002 picks within a
+tier with no cost term; research steps need a cost-aware choice among equal-tier cells, before
+council round 2.
+
+Owner direction (chat, 2026-09-25; not a decision block): "надо внести это в планируемые
+доработки. это важный маршрут для удобства пользователя. в идеале надо привести всю работу к
+работе через Kilo Kode, а потом посмотреть в сторону других агрегаторов."
+
+Implementer's notes on that direction, for the owner:
+- Kilo Code as the one operator surface (dispatch, monitoring, approvals) fits PROTO-DEC-0067 item
+  1 if it starts the makers' CLIs. Routing the models themselves through Kilo would reverse the
+  "maker's CLI first" order and needs a block that supersedes 0067 item 1.
+- Needed pieces:
+  - a launch recipe per client (codex, agy, copilot, vibe, claude) runnable from Kilo;
+  - detached start plus journal-based liveness;
+  - a narrow permission profile per client (0047 item 7);
+  - the global Kilo auto-approve rule `bash *` narrowed.
+  The kernel dispatch script of PROTO-DEC-0050 item 4 is their natural home.
+- Other aggregators come after that, as trials under PROTO-DEC-0047 item 11.
+
+Result: Recorded. Target: a "Windows shell" note in `.ai/docs/CLI-AGENTS.md` and in the
+research and council prompt templates, applied in the next kernel batch (PROTO-DEC-0047 item 12
+timing). The protocol-tooling helper, if built, takes the T7 floor (PROTO-DEC-0072 item 3).
+
+Next step: The owner decides when the kernel batch carries the note and the helper.
+
+Open: No Evidence is recorded for this entry now. Council r1-a is writing into the tree, so a
+digest taken now would go stale at once. It will be recorded with the next change.
+
+---
+
+## 2026-09-25 - Report L second pass answered: private clone, insteadOf push block, step-1 fix
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+Tier-mismatch: PROTO-DEC-0072 item 3 sets T7 (claude-fable-5-1) for this launcher change; running
+claude-opus-5-5. The owner accepted it: "исправления вносишь ты" (chat, 2026-09-25).
+
+Action:
+- DeepSeek's second pass on 87257cc: S RECOMMENDATION; L FAIL, with F-L1 HIGH (push through an
+  added remote), F-L2 MEDIUM (shared config and refs) and F-L3..F-L5 LOW.
+- The owner lifted the council's L gate once the pass had ended; I checked: no DeepSeek process,
+  lock free, its Evidence verifies.
+- Fixes:
+  - F-L1: `url.no-push://blocked.insteadOf` with an empty value, in the environment and in each
+    copy's config. `pushInsteadOf` was measured and missed an explicit push URL.
+  - F-L2: a private `git clone --shared` per attempt, with its remotes removed. The scope check
+    now hashes refs, config and hooks, and the launcher's git calls run without hooks or
+    fsmonitor.
+  - F-L3..F-L5: stated in P-L3-004 0.4 and K-launch.
+  - IF-1 (mine): step 1 of the four researcher and synthesiser prompts demanded `D:/Colabs` as the
+    toplevel and would have stopped every isolated job. It now expects the job's copy.
+- New `zz-t16` and six push-block checks. Addendum 2 frames the third pass on L; TASK is updated
+  under the lock.
+
+Result:
+- Self-test: 80/80 in three runs. `--pure` 55/55; `--check` 24/24; `--preflight` 9/9.
+- The checkout's config and refs are untouched after `zz-t16`.
+Signal: procedure-gap. Neither review pass caught IF-1: a rule changed the working directory, and
+no check re-read the prompts that assume it.
+Signal: procedure-gap. On Windows PowerShell 5.1, `Get-Content` reads UTF-8 without a BOM as the
+ANSI code page. Kilo sessions showed Russian records garbled. Prompts for Windows clients should say
+`Get-Content -Encoding UTF8`.
+
+Next step: The owner starts DeepSeek's third pass on package L with addendum 2 and the candidate
+SHA, and may start council round 1 (r1-a first). The owner approves stage 2.
+
+Open:
+- The notes of report S go to the next stage-2 round: `roles: [all]`, frame-field syntax, fixture
+  count, and В-24 aligned with PROTO-DEC-0072.
+- The deliberate push bypass (clearing both the environment and the config) is a recorded
+  residual.
+
+Evidence:
+- anchor: a4e6aef86440bc0e8da8f06c8f1d3f65af254367, uncommitted changes present
+- digest: sha256:7c7370b861fa5816f86eb315ce8c8648b9875f8edd670184ef6f0522852b519a over 446 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T08:18:04.605Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:f7cda3eb4890857731608ab8e304e53e631c5cbfc618cadd17c6124545fc833c of this entry without this block
+- parent-entry: sha256:5e8fe316ed8e360d73d7bf5fc5be30e703ce1eecc6c7b3b63ba7cec0947c2546
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 288s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
