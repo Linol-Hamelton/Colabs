@@ -34,6 +34,8 @@ const SC = {
   'zz-t10': { primary: 'work', kilo: 'work', stopBefore: true, expect: { status: 'NEEDS_OWNER', attempts: 0 } },
   // CB-24: the root exits while a detached grandchild lives; the watchdog stops it by identity.
   'zz-t11': { primary: 'orphan-exit', kilo: 'work', orphanGone: true, expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
+  // CB-17: driven by deadWatchdog() below, not by the common loop.
+  'zz-t12': { primary: 'orphan-hang', kilo: 'work', own: true },
 };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
@@ -96,7 +98,7 @@ function pureChecks() {
   const pids = list => (list || []).map(x => x.pid).join(',');
   out.push(['aliveTree: live tree newest first, older namesake child excluded', pids(L.aliveTree(rows, { 100: 10 })) === '102,101,100']);
   out.push(['aliveTree: a reused PID is not the recorded process', pids(L.aliveTree(rows, { 104: 20 })) === '']);
-  out.push(['aliveTree: a child of a dead recorded process is not stopped', pids(L.aliveTree(rows, { 300: 20 })) === '']);
+  out.push(['aliveTree: a child of a dead recorded process counts only for a refusal', pids(L.aliveTree(rows, { 300: 20 })) === '' && pids(L.aliveTree(rows, { 300: 20 }, true)) === '301']);
   out.push(['aliveTree: unreadable table is unknown, not empty', L.aliveTree(null, { 100: 10 }) === null]);
   // CB-19: a retry loop's log lines are not progress; ordinary output is.
   out.push(['error-only log chunk is not progress', !L.chunkIsProgress('stream error: 429 rate limit exceeded\nstream error: 429 rate limit exceeded; retrying in 1s\n')]);
@@ -141,9 +143,27 @@ const pidAlive = pid => {
 };
 const quiet = fn => { const w = process.stdout.write; process.stdout.write = () => true; try { return fn(); } finally { process.stdout.write = w; } };
 
+// CB-17: the watchdog dies, the root exits, a grandchild lives on. A new start must be refused
+// until --stop has stopped the recorded tree by identity; then it is allowed again.
+function deadWatchdog(finish) {
+  const id = 'zz-t12';
+  const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
+  setTimeout(() => child.kill('SIGKILL'), 2500);
+  setTimeout(() => {
+    const before = L.startBlockers(id);
+    quiet(() => L.stop([id]));
+    setTimeout(() => {
+      const after = L.startBlockers(id);
+      const st = L.readJob(id);
+      const ok = Boolean(before) && after === null && st && st.status === 'NEEDS_OWNER';
+      finish(`${ok ? 'PASS' : 'FAIL'} ${id}: dead watchdog, live grandchild: refused before --stop (${before}), allowed after (${after})`);
+    }, 1500);
+  }, 4000);
+}
+
 function scenarios() {
   const ids = Object.keys(SC).filter(id => !SC[id].own);
-  let left = ids.length;
+  let left = ids.length + 1;
   const report = line => {
     results.push(line);
     left -= 1;
@@ -152,6 +172,7 @@ function scenarios() {
     process.stdout.write(`${results.sort().join('\n')}\n`);
     process.exitCode = results.every(r => r.startsWith('PASS')) ? 0 : 1;
   };
+  deadWatchdog(report);
   for (const id of ids) {
     if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
     const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });

@@ -200,8 +200,9 @@ function killExact(pid) {
 // The live processes of a recorded tree, newest first, so leaves go before their parents. `known`
 // maps pid to creation time; a process counts only while its PID and creation time both match.
 // A live process whose parent is in the set, and which is no older than that parent, joins it, so
-// children started after the last tick are found too.
-function aliveTree(rows, known) {
+// children started after the last tick are found too. With `throughDead`, a child of a recorded
+// process that has already exited also joins: that only widens a refusal to start, never a kill.
+function aliveTree(rows, known, throughDead = false) {
   if (!rows) return null;
   const byPid = new Map(rows.map(r => [r.ProcessId, r]));
   const set = new Map();
@@ -211,7 +212,7 @@ function aliveTree(rows, known) {
     grew = false;
     for (const r of rows) {
       if (set.has(r.ProcessId)) continue;
-      const parent = set.get(r.ParentProcessId);
+      const parent = set.has(r.ParentProcessId) ? set.get(r.ParentProcessId) : (throughDead ? recorded.get(r.ParentProcessId) : undefined);
       if (parent !== undefined && Number(r.C) >= parent) { set.set(r.ProcessId, Number(r.C)); grew = true; }
     }
   }
@@ -219,13 +220,28 @@ function aliveTree(rows, known) {
 }
 
 // Everything a job's record says may still run: each attempt's root and recorded descendants.
-function recordedTree(s) {
+// `unconfirmed` keeps only attempts whose tree the watchdog did not confirm gone.
+function recordedTree(s, unconfirmed = false) {
   const known = {};
   for (const a of (s && s.attempts) || []) {
+    if (unconfirmed && a.treeGone === true) continue;
     Object.assign(known, a.known || {});
     if (a.pid && a.rootCreated !== null && a.rootCreated !== undefined) known[a.pid] = a.rootCreated;
   }
   return known;
+}
+
+// R-L3-004.7 at start: why a new executor must not start yet, or null (CB-17). The previous
+// watchdog must be gone, and so must every process the record names, whatever state it was left in.
+function startBlockers(id, rows = procTable()) {
+  const s = readJob(id);
+  if (!s) return null;
+  if (!rows) return 'the process table cannot be read, so the previous tree cannot be confirmed gone';
+  if (s.watchdog && sameProcess(s.watchdog, s.watchdogCreated, rows)) return `its watchdog is still running (pid ${s.watchdog})`;
+  const left = aliveTree(rows, recordedTree(s, true), true);
+  if (left.length) return `a process of an earlier attempt is still alive (pid ${left.map(p => p.pid).join(', ')}); stop it with --stop ${id}`;
+  if (s.pid && (s.rootCreated === null || s.rootCreated === undefined) && alive(s.pid)) return `pid ${s.pid} is alive and its identity is unknown`;
+  return null;
 }
 
 // L6-L7: CPU seconds and child set of each running tree, one query per tick.
@@ -626,9 +642,8 @@ function startJobs(ids, cfg) {
   const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
   let refused = 0;
   for (const id of ids) {
-    const s = readJob(id);
-    const same = s && s.pid ? sameProcess(s.pid, s.rootCreated) : false;
-    if (same || (same === null && alive(s.pid))) { process.stdout.write(`${id}: refused, already running (pid ${s.pid})\n`); refused += 1; continue; }
+    const blocker = startBlockers(id);
+    if (blocker) { process.stdout.write(`${id}: refused, ${blocker}\n`); refused += 1; continue; }
     const j = JOBS[id];
     if (j.needs) {
       const pending = j.needs.filter(n => { const x = readJob(n); return !x || (x.pid && sameProcess(x.pid, x.rootCreated) !== false); });
@@ -718,4 +733,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };

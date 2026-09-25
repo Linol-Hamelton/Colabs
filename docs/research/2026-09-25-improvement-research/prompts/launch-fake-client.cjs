@@ -10,7 +10,7 @@ const { spawn } = require('node:child_process');
 const [mode, out] = process.argv.slice(2);
 const write = (n, text) => fs.writeFileSync(path.join(out, `f${n}.md`), text);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-// A detached grandchild that outlives this process, as a client's helper may (CB-24).
+// A detached grandchild that outlives this process, as a client's helper may (CB-17, CB-24).
 const orphan = () => {
   const c = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 60000)'], { detached: true, stdio: 'ignore', windowsHide: true });
   c.unref(); fs.writeFileSync(path.join(out, 'orphan.pid'), String(c.pid));
@@ -27,6 +27,7 @@ const orphan = () => {
     case 'work-crash': write(1, 'part 1\n'); await sleep(500); process.exit(3); break;
     case 'exit0-nothing': process.exit(0); break;
     case 'orphan-exit': orphan(); write(1, 'a\n'); write(2, 'b\n'); await sleep(2500); process.exit(0); break;
+    case 'orphan-hang': orphan(); write(1, 'a\n'); await sleep(3000); process.exit(0); break;
     default: process.exit(9);
   }
 })();

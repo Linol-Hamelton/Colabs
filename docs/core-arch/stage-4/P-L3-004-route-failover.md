@@ -60,7 +60,10 @@ third cost it never accepts is two executors doing one task.
 - R-L3-004.6. Silence is judged by the liveness signals, with a soft and a hard timer. Both are
   configurable, and any progress resets both.
 - R-L3-004.7. A task never has two live executors. A new route starts only after the previous
-  process tree is confirmed gone, and a running record blocks a second start. Running the
+  process tree is confirmed gone, and a running record blocks a second start. A start is refused
+  while the previous watchdog lives, or while any process the job's record names is alive by
+  identity (each attempt's root and recorded descendants, and their children), whatever state the
+  record was left in: a dead watchdog does not release the job. Running the
   primary and the fallback in parallel needs an explicit owner decision. A process is
   identified by its PID together with its creation time, and nothing is stopped by a PID alone:
   Windows reuses PIDs, and the parent id of a live process can name a long-dead parent. A tree is
@@ -164,9 +167,9 @@ A hard failure is one of:
 | An unrelated process is stopped | low | high | identity by PID and creation time; descendants must be younger than their parent | one process-table read per tick | none known |
 | An error text appears in normal output before work starts | low | medium | switch only after soft silence as well | one wrong fallback | the owner sees it in the state file |
 | The Kilo fallback spends money | medium | low | one attempt; the cheapest suitable route; the owner's own providers first when prices tie | route price | a costly model on its cheapest route |
-| Two executors on one task | low | high | R-L3-004.7: confirmed-dead check, running record, takeover only by the owner | none | a process that escapes the tree kill |
+| Two executors on one task | low | high | R-L3-004.7: confirmed-dead check, running record, a start refused while any recorded process lives, takeover only by the owner | one process-table read per start | a descendant started and orphaned between two ticks while the watchdog also died |
 
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job) — second pass pending.
