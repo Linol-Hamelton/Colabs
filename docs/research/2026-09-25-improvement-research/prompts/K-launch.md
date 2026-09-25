@@ -12,8 +12,9 @@
 1. Run only the commands in the steps below, exactly as written, from the repository root.
 2. Edit no file. Never start a client CLI yourself (codex, agy, copilot, vibe, `kilo run`); only
    the launcher starts them.
-3. If a command exits with a code other than the one a step expects, stop. Show the owner the
-   output lines that show the failure. Do not retry and do not work around it.
+3. Each step names the exit codes it expects. Any other code is a stop: show the owner the output
+   lines that show the failure. Do not retry and do not work around it. Exit 2 (malformed input)
+   is always a stop.
 4. Never write keys, tokens or passwords.
 
 ## Steps
@@ -35,15 +36,19 @@
    primary route, and through the Kilo fallback only where the primary does not answer. It costs
    cents and a small part of each client's limits." Only if the owner says yes, run:
    `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --smoke researchers`
-   Report each route as OK or FAIL. Exit 1 only means some route failed; that is not a stop.
+   Expected: exit 0 (every probed route answered) or exit 1 (at least one route failed; not a
+   stop). Report each route as OK or FAIL.
    A job whose primary and fallback both fail will stop at NEEDS_OWNER after launch. Ask the
    owner whether to launch anyway.
-5. Launch, after the owner confirms:
+5. Launch, only after the owner has confirmed it in this session. First write the journal line
+   `Owner-confirmed: start researchers` with the owner's words. Then run:
    `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start researchers`
-   Expected: exit 0 and six lines `<job>: started`. A `refused` line means that job was not started.
-   Report the reason and do not retry.
+   Expected: exit 0 with six lines `<job>: started`, or exit 1 with at least one line
+   `<job>: refused, <reason>`; every job without a `refused` line has started and its watchdog runs.
+   Exit 1 is not a stop: report which jobs started and which were refused, with each reason, and
+   do not retry.
 6. `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status`
-   Report the state of each job as printed. The six watchdogs keep running after your session ends.
+   Expected: exit 0. Report the state of each job as printed. The six watchdogs keep running after your session ends.
 7. Tell the owner the later commands; do not run them now:
    - `--status` at any time;
    - `--start a-synth` once the three `a-` jobs are DONE or NEEDS_OWNER;
