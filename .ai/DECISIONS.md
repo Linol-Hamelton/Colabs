@@ -2976,3 +2976,71 @@ Consequences:
   output paths in code. It moves to a file in the correction pass of package L.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
+
+### PROTO-DEC-0074
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+On 2026-09-25 the owner sent another agent a message on dispatch, roles and seniority. The other
+agent answered, and the owner asked for a synthesis. The rule: record what all agree on, and send
+doubts, forks and disagreements back with criteria. The synthesis is
+`docs/core-arch/PROPOSAL-role-resolver-supervisor.md`. This block records its AGREED part. The
+owner's words, quoted:
+
+> агент получает из CLI одну строку Read and follow the file <файл запуска>; - отличная практика!
+> [...] роли должны быть прописаны в файле, а модели подбираться динамически с 2-мя заместителями.
+> [...] Но хардкодить модель на задачу - неправильно.
+> Более того, надо переделать правило так, что самые старшие модели: пишут стратегические планы,
+> дорожные карты, строят архитектуру, сертифицируют изменения архитектуры, делают синтезы повышеной
+> ответственности, делают сертификации повышеной ответственности, пишут спецификации повышеной
+> ответственности, пишут сложные куски кода, проводят аудит повышеной ответственности, сложные
+> дебаги. Но не так чтобы это сложная часть работы напиши кода на 50$. Если будет точная спека этот
+> код напишет даже рабочая лошадка. а если ошибется, среднячек его поправит, а если оба
+> промахнуться, старшая модель подскажет, а если не понимают, исправит.
+> [...] таймаут должен контролироваться через появление файла или запись файла. Необоснованное
+> ожидание - это жизнь потраченая впустую.
+
+Decision:
+1. The CLI bootstrap of a dispatched agent stays one pointer line to a file (PROTO-DEC-0050 item 2,
+   confirmed).
+2. A task, a schedule or a dispatch file names a role, never a model. Steps and slots are named by
+   role.
+3. The model for a role is resolved when the step is launched: one primary and two substitutes.
+4. Seniority follows uncertainty and the cost of an error, not the volume of work.
+   - The most senior models are for:
+     - strategic plans and roadmaps;
+     - architecture, and certifying changes to it;
+     - high-responsibility syntheses, certifications, specifications and audits;
+     - hard pieces of code and hard debugging.
+   - Implementation from a precise specification goes to a worker model. The escalation ladder is:
+     a worker; then a middle model corrects it; then a senior model advises; then a senior model
+     fixes it.
+5. A step's timeout is judged by observable progress, a file appearing or being written, not by
+   waiting a fixed time.
+
+Reasoning:
+A model name in a task goes stale as models change. Spending senior models on volume buys little
+when a precise specification exists, while their judgement is worth most where an error is
+expensive or the answer is uncertain. Waiting without a signal wastes the run.
+
+Alternatives rejected:
+A model hardcoded per task or slot; seniority by task size; fixed wall-clock timeouts.
+
+Consequences:
+- Not decided here; they stay FOR APPROVAL or FORK in the proposal:
+  - the number and kind of automatic retries. PROTO-DEC-0050 item 2 (one restart) and
+    R-L3-004.4-5 stand until the owner chooses;
+  - the P-L2-002 rubric weights;
+  - the hard ceiling;
+  - the error classes;
+  - the per-step cost cap.
+- P-L2-002, the role catalogue and P-L3-004 are aligned in the next stage-2 fix round or the
+  stage-4 dispatch script, whichever the owner schedules first. The records under review are not
+  changed now.
+- Transcriber's reading: "с 2-мя заместителями" is read as two substitute models, in addition to
+  the primary.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)

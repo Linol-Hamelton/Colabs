@@ -9179,3 +9179,118 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 298s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - PROTO-DEC-0073 (no prompts in scripts); round 3 on cheaper models; generic runner
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner rejected $50 of Fable (chat, 2026-09-25). Directions:
+  - a cheaper senior model, for example "kimi-k2.7-code / high через copilot или даже kimi-k3";
+  - "еще один круг на дешевых моделях".
+- The owner also rejected prompts and task paths hardcoded in scripts. This rule is transcribed as
+  PROTO-DEC-0073, under the lock, with a registry row.
+- Stopped the r3-dispatch runner before any Fable start. r3-b and r3-c kept running.
+- Measured in copilot:
+  - `claude-opus-5.5`, `claude-opus-5-5` and `claude-opus-5` are "not available";
+  - `kimi-k3` answers (4.08 AI credits for a 13k-token ping);
+  - `kimi-k2.7-code` rejects `--reasoning-effort`, so the earlier verifier command would have
+    failed.
+- Chosen:
+  - kimi-k3 / high (copilot) for r3-a, the draft and the final plan;
+  - verifier mistral-medium-3.5 (vibe), a family with no earlier part in the council;
+  - the extra circle: `C-revise.md` plus a second verification, run only when the first verdict is
+    not ACCEPT.
+- New generic `tools/run-chain.cjs`:
+  - it reads `prompts/R3-DISPATCH.json`;
+  - its message is only "Read and follow the file <launch file>";
+  - launch files are in `prompts/run-r3/`;
+  - usage of every run goes to `round3/USAGE.md` (kilo cost, copilot credits, codex tokens).
+- `r3-dispatch.cjs` is removed. `C-verify.md` and `R3-ADDENDUM.md` are generalised;
+  `K-dispatch-r3.md` and README are updated.
+
+Result: `node --check` passes. `show` prints pointer-only commands for r3-a and verify. `status`
+adopts r3-b (WORKING) and r3-c (DONE, 123 lines) from the old state.
+Signal: fall. The balance reader of r3-dispatch returned 0 once while `kilo profile` said $11.97 -> run-chain treats a failed read as unknown (null), not 0; NOW.
+Signal: fall. copilot model ids differ from the matrix and per plan (no Opus in this plan; kimi-k2.7-code takes no effort) -> a one-line ping per route before a chain; script-candidate.
+Signal: procedure-gap. Model choice ignored price until the owner stopped it -> USAGE.md per run now; P-L2-002 cost term, next stage-2 round.
+
+Next step: the Kilo operator starts the runner. The chain ends with FINAL in
+`.ai/runtime/vmc-r3/STATUS.md`.
+
+Open: `launch.cjs` still holds its job table in code (PROTO-DEC-0073 consequence). It moves in the
+L correction pass.
+
+Evidence:
+- anchor: cd90be1d3c1fede4e02f7ecff5b6507ea1f34338, uncommitted changes present
+- digest: sha256:79d753e7b89c703f56865a99233cd828b4b12bb8a5b262599736f35e1e3a3d5e over 484 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T14:17:06.392Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:96c61567f164ac3b85400b4124a0af091fdb77369b004fb8bb5370d9d4d77515 of this entry without this block
+- parent-entry: sha256:e7a362a979bb95df194ff02ba18e962710e884634fe8c1167e7e0c46ee8e8e01
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 310s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - Owner decision on round 3 and F-3P-1 packaged; round-3 runner
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner's decision (chat, 2026-09-25) is saved verbatim as the council's
+  `OWNER-DECISION-R3.md`. Its main points:
+  - F-3P-1 stays `OPEN - HYPOTHESIS UNDER VALIDATION`, and hypothesis L-GIT-01 (task Git modes,
+    trusted delivery) is to be tested by round 3;
+  - Fable 5.1 through Kilo is authorised for r3-a, the draft and the final plan, with usage
+    measurement;
+  - an independent verifier of another family follows the final plan;
+  - the minor L findings go to the next correction pass.
+- New `prompts/R3-ADDENDUM.md`: F-3P-1 is a separate Part 2 of every step, with the inputs, the
+  required matrix, and the Fable quality line.
+- New `prompts/C-verify.md`: closing step e.
+- New `tools/r3-dispatch.cjs`: a deterministic runner with no model in the loop.
+  - It starts a step when its inputs are DONE.
+  - It falls back once on failure, on a stall (30 minutes) or on no start (10 minutes).
+  - Before a Fable step it waits for Kilo balance (15/15/20 dollars).
+  - It writes `round3/FABLE-USAGE.md` from the kilo JSON events.
+- New `prompts/K-dispatch-r3.md`: the Kilo operator only starts and checks the runner. This saves
+  Kilo balance: the round-2 operator polled with a model.
+- README status updated.
+- Verifier choice, mine by the owner's criteria: kimi-k2.7-code / high (copilot, `kimi`), a family
+  with no earlier part in this council.
+- Measured: Kilo balance $12.09 at 2026-09-25 ~10:30 UTC. Kilo prices per 1M tokens: Fable 5.1
+  $10 in / $50 out; Opus 5.5 $4 / $20. r2-b cost $5.23 on Opus.
+
+Result:
+- `node --check` passes. The usage parser and the Orientation matcher were checked on samples.
+- r3-a waits for a top-up (15 > 12.09); r3-b and r3-c start at once.
+Signal: procedure-gap. Council budgets are not checked before launch -> the runner's balance gate; NOW for Kilo. The owner's OpenAI and Anthropic limits are not readable by a tool.
+Signal: script-candidate. r3-dispatch is a model-free chain runner; with r2-dispatch it is the seed of the kernel dispatch script (PROTO-DEC-0050 item 4).
+
+Next step: The owner tops up Kilo (about $50 for three Fable steps and fallbacks, estimate).
+Then the runner continues by itself. After the council, the L correction pass follows: the minor
+findings, the DeepSeek route in `launch.cjs`, the `index.lock` policy, and F-3P-1 per the final
+plan.
+
+Open: The owner may replace the verifier model.
+
+Evidence:
+- anchor: 1571e7f18bf81a17e2941a1a7d254b5daa0f7c83, uncommitted changes present
+- digest: sha256:0231f8c44af38b5fbc70aeb33651be96d28b9adc0e0284518dd3b4585436b32d over 468 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T14:00:03.512Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:e7a362a979bb95df194ff02ba18e962710e884634fe8c1167e7e0c46ee8e8e01 of this entry without this block
+- parent-entry: sha256:d30e848a29688ec02243bbcf51f183960776b1bcc5d55510e6acb060997edeaf
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- test-protocol.ps1: exit 0 in 294s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
