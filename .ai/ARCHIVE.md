@@ -9536,3 +9536,106 @@ Evidence:
 - validate-protocol.ps1: exit 1 in 12s
 - test-protocol.ps1: exit 0 in 303s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - workflowAI review cycle done; R1-R8 applied; push of tags and branches
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner asked for the full repository on the remote. All commits were already there. I pushed
+  the four local-only tags (v1.9.0, v1.9.1, v1.9.2, v1.9.4, whose commits were on the remote), the
+  branch name `proto-dec-0044/layers-abc-checkpoint`, and the owner's hypothesis file.
+- The runner lost track of the discussion jobs: my patch had dropped the backslash from
+  `split(/\s+/)`. I fixed it and adopted the two live jobs by pid plus start time.
+- The owner moved the critique to an owner-run DeepSeek. I added `manual` steps to the runner;
+  the runner waited for the output and its journal with Evidence, then started the synthesis by
+  itself.
+- DeepSeek's first chat report was in Chinese. The cause and the fix are in BACKLOG S-4; the
+  language rule now sits in the last step of the package's COMMON rule 6.
+- Chain FINAL DONE:
+  - discussion: Gemini 3.8 High (90 lines) and Mistral Medium 3.5 (72 lines);
+  - critique: DeepSeek, `deepseek/deepseek-flash` (97 lines, RECOMMENDATION);
+  - synthesis: Opus 5.5 High (179 lines), APPLY WITH OWNER QUESTIONS.
+- Applied R1-R8 to `workflowAI.md`, with Q1-Q4 marked in place. The backlog now has S-6, C-5 and
+  C-6, and M-6 is updated.
+- The report now shows manual steps.
+
+Result: The cycle is complete. No new blocking problem was found (PROBLEMS unchanged).
+
+Next step: The owner answers Q1-Q5 of the synthesis, S-5, and C-1 and C-2. Then the L correction
+pass.
+
+Open: Q1-Q5 and S-5 are owner questions.
+
+Evidence:
+- anchor: cdf4864308ec19da8ab90e553edb884f6de0b77f, uncommitted changes present
+- digest: sha256:630caeb59e20370b9c8ab0dc48024a09883f4b3feee91982e9e37566c3df4513 over 516 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T17:46:13.231Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:5c4714079a9962b2a229c518e58bcf71d57bf0c455e0139ad41f4a23e21c68bd of this entry without this block
+- parent-entry: sha256:5a310ce6f841624441cd712e832d74feba9897058ce1975b908ceb49db6b62b6
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 303s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - workflowAI.md, PROTO-DEC-0076, backlog and problems; workflowAI review cycle
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner set:
+  - CLI-only routes, except DeepSeek V4.1 Max after manual approval;
+  - a model ladder (data);
+  - a kernel-layer `workflowAI.md`, marked tech debt;
+  - script, not model, supervision;
+  - defect triage;
+  - no new hypotheses.
+- Wrote `docs/core-arch/stage-4/workflowAI.md`. It holds the procedure, script supervision, and an
+  assessment of the pasted proposal: 11 undisputed points with sources, 6 hypotheses frozen as
+  H-WAI-1..6. The procedure itself is TD-MODEL-QUALIFICATION.
+- Transcribed PROTO-DEC-0076 under the lock, with a registry row. The ladder went to
+  `docs/ops/MODEL-ECONOMICS.md` as a verbatim snapshot with its routes. `agy models` showed no Opus
+  5.5, so Opus goes through the claude CLI.
+- New `docs/ops/BACKLOG.md` (S-1..3, M-1..6, C-1..4, the frozen hypotheses) and
+  `docs/ops/PROBLEMS.md`:
+  - P-1: F-3P-1 blocks K-launch, isolated;
+  - P-2: two participants without Evidence, not blocking.
+- `run-chain.cjs`: the claude client, `notBefore`, and a `report` of the work done
+  (PROTO-DEC-0076 item 3). A string-replace edit corrupted the file (`$'` in the replacement); I
+  restored it from HEAD and reapplied the edits with the Edit tool.
+- Review package `docs/research/2026-09-25-workflowai-review/`, with models resolved by
+  workflowAI 1.5:
+  - discussion: Gemini 3.8 High (agy) and Mistral Medium 3.5 (vibe);
+  - critique: GPT-5.6 Sol Medium (codex, not before 19:05 UTC; substitute Opus 5.5 Medium);
+  - synthesis: Opus 5.5 High (claude; substitute XHigh).
+
+Result: `node --check` passes. `show` prints pointer-only commands; `report` renders round 3.
+Signal: fall. A string replacement containing `$'` silently spliced the file -> edit code with the
+Edit tool, or pass a function as the replacement.
+
+Next step: the runner runs the cycle. I start the L correction pass (S-2, S-3, M-1, M-2) in
+parallel; C-1 waits for the owner.
+
+Open: the critique waits for the codex limit to reset (about 2 hours), by the independence rule of
+workflowAI 1.5.
+
+Evidence:
+- anchor: fd79f2730f6b3e86371b8353b99df2c7429aeaaf, uncommitted changes present
+- digest: sha256:de05f7db1d230a0e19f7a9174994a8591808e4ecf35908607c7403af0026c6e2 over 511 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T17:07:20.074Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:5a310ce6f841624441cd712e832d74feba9897058ce1975b908ceb49db6b62b6 of this entry without this block
+- parent-entry: sha256:e9eca9ad600f9a67dd1781c781fd3575d681b5a7c69cb1ee1d91c5f619c24c17
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 299s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

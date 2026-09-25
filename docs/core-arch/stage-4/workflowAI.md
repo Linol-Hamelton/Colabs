@@ -37,8 +37,8 @@
    - the limit is not exhausted, where readable. An unreadable limit counts as available;
      exhaustion found at run time is QUOTA_EXHAUSTED under PROTO-DEC-0075 item 4;
    - a rung the ladder marks "on approval" is available only for a task the owner approved, and
-     the approval is recorded with the resolution (PROTO-DEC-0076 item 1). Owner question Q4 is
-     open: approval for every pick, or only for long tasks.
+     the approval is recorded with the resolution (PROTO-DEC-0076 item 1). Approval is needed only
+     for a task declared long; a task without a declaration counts as long (PROTO-DEC-0078 item 4).
 
    An unavailable rung is skipped and the skip is recorded. The owner is not asked about a skip;
    the owner is asked only in the terminal cases of item 5.
@@ -57,15 +57,16 @@
       default (0075 item 10);
    6. rungs of one group (the owner's "group" of equals) are interchangeable. The tie goes to the
       one with the most headroom when both limits are readable in the same unit, else to the
-      rung the owner wrote first in the snapshot. Owner question Q2 is open;
+      rung the owner wrote first in the snapshot (PROTO-DEC-0078 item 2);
    7. where the dispatch file declares a step budget, rungs whose estimate exceeds it are out;
    8. terminal cases, settled before the start, never by a silent downgrade:
       - no rung passes 1-3: BLOCKED, and the owner is asked;
       - none of them fits the budget: ASK OWNER or BLOCKED_BUDGET (0075 item 9);
-      - fewer substitutes than asked: the shortfall is recorded and the stage starts. When
-        recovery needs a substitute that does not exist, the stage is BLOCKED and the owner is
-        asked, as for exhausted quota (`OWNER-DECISION-execution-model-2026-09-25.md`, recovery
-        rule 4). Owner question Q3 is open: ask at launch for high-criticality stages instead.
+      - fewer substitutes than asked: a certification or kernel-changing stage asks the owner
+        before the start. Any other stage records the shortfall and starts; when recovery needs a
+        substitute that does not exist, it is BLOCKED and the owner is asked, as for exhausted
+        quota (PROTO-DEC-0078 item 3; `OWNER-DECISION-execution-model-2026-09-25.md`, recovery
+        rule 4).
 6. Recording. The runner writes into its state and its report: the date of the ladder snapshot
    used, the resolved primary and substitutes, the skipped and excluded rungs with their reasons,
    any owner approval, and any shortfall or terminal case. Evidence of the stage names the model
@@ -82,8 +83,8 @@
   as the coordinator recorded them.
 - When a stage counts as done, and which recovery transitions are allowed, is set by
   PROTO-DEC-0075 items 2-6 and 11; this file does not restate them. Semantic judgement is a
-  reviewer stage (item 12), not the script's. Owner question Q1 is open: whether "лишь копит
-  статусы" (0076) excludes the supervisor's recovery of 0075.
+  reviewer stage (item 12), not the script's. The script recovers only mechanically, by those rules
+  (PROTO-DEC-0078 item 1).
 - A model-run operator session (the round-2 Kilo operator) is not used for supervision.
 
 ## 3. Assessment of the pasted "Model Inventory, Working Pool and Executor Selection" proposal
@@ -136,7 +137,7 @@ are tested when data exists:
 - The runner implements only part of PROTO-DEC-0075: resume-first, error classes, the hard ceiling
   and launch-input pinning are missing (BACKLOG M-4). Section 2 describes the target.
 - Revision: R1-R8 of `docs/research/2026-09-25-workflowai-review/synthesis.md`, applied
-  2026-09-25. Owner questions Q1-Q4 are marked where they apply.
+  2026-09-25. The owner answered Q1-Q5 (PROTO-DEC-0078).
 
 ## 6. TD-MODEL-QUALIFICATION (technical debt)
 

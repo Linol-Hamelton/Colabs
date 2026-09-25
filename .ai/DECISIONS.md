@@ -3254,3 +3254,106 @@ Consequences:
 - The backlog lives in `docs/ops/BACKLOG.md` while `.ai/TASK.md` is full.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
+
+### PROTO-DEC-0077
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0039 item 3, as to its timing ("scheduled after the pilot report") only, for the validator migration inside the CORE-ARCH program
+
+Context:
+The validator migration council
+(`docs/research/2026-09-25-validator-migration-council/`) completed three rounds, a draft, two
+critiques, a final plan, one verification, one revision and a second verification that returned
+ACCEPT. The current plan is `final-plan-2.md`, and its section AB proposes this block. The owner
+answered its questions in chat, quoted in full:
+
+> Q1 по умолчанию (только механически по 0075); Q2 по умолчанию; Q3 гибрид (спрашивать заранее для
+> сертификации и ядра); Q4 — согласование только для объявленных длинных задач, без объявления
+> считать длинной; Q5 — <ваш ответ>. AA1: ранняя ограниченная миграция внутри CORE-ARCH; AA2: нет
+> (fail-closed); L-1: только удалённые репозитории владельца; F-3P-1: вариант 9 как гипотеза,
+> F-3P-2 до учётных данных.
+
+Q1-Q5 concern `workflowAI.md` and are recorded in PROTO-DEC-0078.
+
+Decision:
+1. `final-plan-2.md` (Part 1, sections A-AC, and Part 2) is the design baseline for the validator
+   migration. Section AA question 1 (timing): an early, bounded migration inside CORE-ARCH, with
+   the plan's contract, rollback and retirement scope. Question 2 (cloud Evidence): no; a run
+   without PowerShell stays fail-closed and never attests Evidence equal to a full Windows record.
+   Part 2 question L-1: the protected boundary covers the owner's remote repositories only, not
+   every external destination.
+2. The migration starts inside CORE-ARCH under PROTO-DEC-0054 item 2 (the freeze cover). No phase
+   starts until the launch conditions of section AC hold; this block meets only condition 1. The
+   certifier preflight, the phase-0 baseline measurements and the oracle cohort are still open.
+3. F-3P-1 remains OPEN - HYPOTHESIS UNDER VALIDATION. Variant 9 of Part 2 is the approved
+   hypothesis:
+   - task git modes, default-deny;
+   - a credential-separated executor;
+   - trusted external delivery;
+   - `ls-remote` as audit only.
+
+   A package-L correction pass is authorised to implement it. F-3P-2 (the job-writable shared
+   hooks directory) is fixed before any publisher holds credentials. Closure needs the whole
+   hostile acceptance conjunction of Part 2 and independent verification.
+
+Reasoning:
+The council's plan passed two verifications. The owner chose the structural gains of an early
+bounded migration over waiting for an undated pilot trigger, and chose the narrow, cheaper
+boundary for F-3P-1.
+
+Alternatives rejected:
+Preserving the post-pilot timing; WARN-token Evidence for runs without PowerShell; a boundary
+covering every external publication destination (it needs egress control).
+
+Consequences:
+- A `reopened` row for PROTO-DEC-0039, with trigger `owner-directive`, is appended to
+  `docs/decisions/REGISTRY.md` with this block.
+- BACKLOG C-1 and C-2 are decided. The L correction pass and the migration's launch conditions
+  are backlog items.
+- Transcriber's reading: section AB names `final-plan.md`; the approved text is its verified
+  revision, `final-plan-2.md`.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
+
+### PROTO-DEC-0078
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+The owner answered the questions of the workflowAI review synthesis
+(`docs/research/2026-09-25-workflowai-review/synthesis.md`, section 4). The answer is quoted in
+PROTO-DEC-0077. For Q5 the owner wrote "<ваш ответ>", leaving it to the transcriber; that answer
+is marked as the transcriber's below.
+
+Decision:
+1. Q1: the script supervisor recovers only mechanically, by the rules of PROTO-DEC-0075 (resume,
+   retry and substitution by error class). It makes no judgement; semantic judgement stays a
+   reviewer stage.
+2. Q2: within a group of equal rungs, the tie goes to the one with the most headroom when both
+   limits are readable in the same unit, otherwise to the rung the owner wrote first.
+3. Q3: when fewer substitutes than asked exist:
+   - certification stages and kernel-changing stages ask the owner before the start;
+   - other stages start, and the shortfall is recorded.
+4. Q4: an approval-gated rung (DeepSeek V4.1 Max) needs the owner's approval only for a task
+   declared long. A task without a declaration counts as long.
+5. Q5 (transcriber's answer, left to the transcriber by the owner): an owner-run step is the owner
+   naming its model for that one task (`workflowAI.md` section 1.2). The run records the model that
+   actually ran; the critique of the workflowAI review ran `deepseek/deepseek-flash`.
+
+Reasoning:
+Mechanical recovery keeps the script predictable, and model judgement stays where it is reviewed.
+Kernel and certification stages are the ones where a silent shortfall costs most.
+
+Alternatives rejected:
+A script that only accumulates statuses with no recovery; asking the owner at every shortfall;
+approval for every pick of the gated rung.
+
+Consequences:
+`docs/core-arch/stage-4/workflowAI.md` replaces its open-question marks Q1-Q4 with these answers.
+BACKLOG S-5 (what "Max" names) stays open.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in PROTO-DEC-0077; transcribed by claude-c73232724159e5bd; item 5 is the transcriber's answer at the owner's request)

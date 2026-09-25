@@ -51,17 +51,33 @@
   - R-L3-004.4-5 aligned to 0075 items 2-3 and 7.
 
   Source: DeepSeek report S; 0072; 0075. Open, next stage-2 fix round.
-- M-6: `workflowAI.md` findings. The synthesis is done
-  (`docs/research/2026-09-25-workflowai-review/synthesis.md`) and R1-R8 are applied (2026-09-25),
-  with owner questions Q1-Q4 marked in place. Source: this cycle. Open until the owner answers.
+- M-6: `workflowAI.md` findings. The synthesis is done and R1-R8 are applied; the owner's answers
+  to Q1-Q5 are in PROTO-DEC-0078 and in the file. Closed 2026-09-25.
+- M-7: the launch conditions of the validator migration (`final-plan-2.md` section AC, items
+  2-6):
+  - the freeze cover is named (PROTO-DEC-0077 item 2: CORE-ARCH under 0054 item 2);
+  - a certifier-availability preflight;
+  - the phase-0 baseline measurements run exclusively on the workstation;
+  - the oracle dependency cohort of CA-04 goes into G1's contract set;
+  - the L correction pass for Part 2.
+
+  Open.
+- M-8: `run-chain.cjs` runs jobs in the checkout with the owner's git credentials; push is prevented
+  only by prompt rules (Level 0). Apply the Level-1 environment and the `ls-remote` audit of
+  L-CORRECTION-4 items 2 and 4 to run-chain too, or move it into the kernel dispatch script (C-3).
+  Source: coordinator's self-audit, 2026-09-25. Open.
 
 ## Complex, non-blocking (discuss and decide)
 
-- C-1: F-3P-1 architecture. `final-plan-2.md` Part 2 argues for the hybrid (variant 9) with the Q8
-  acceptance suite. Needs an owner decision, then the L correction pass implements it. Source:
-  council round 3.
-- C-2: the validator migration plan (`final-plan-2.md` Part 1; its proposed decision block is in
-  section AB). Needs an owner decision. Source: the council.
+- C-1: F-3P-1 architecture. Decided: PROTO-DEC-0077 item 3 (variant 9 as the hypothesis, F-3P-2
+  first, boundary = the owner's remotes). Implementation: `docs/core-arch/stage-4/L-CORRECTION-4.md`,
+  given to DeepSeek (owner-run). Then the fourth independent review pass. Covers S-2, S-3, M-1, M-2.
+  In progress.
+- C-2: the validator migration plan. Decided: PROTO-DEC-0077 items 1-2 (early bounded migration
+  inside CORE-ARCH; cloud Evidence fail-closed). Next: the section AC launch conditions (M-7).
+- C-7: the fourth review pass on package L after L-CORRECTION-4. The reviewer is independent of
+  DeepSeek (implementer) and of the spec author. Resolve it by workflowAI 1.5; certification-grade,
+  so a shortfall asks the owner first (PROTO-DEC-0078 item 3). Waits for C-1.
 - C-3: the kernel dispatch script: resolver per `workflowAI.md` plus supervisor per PROTO-DEC-0075,
   replacing the research runners. Source: PROTO-DEC-0050 item 4, 0074-0076.
 - C-4: sequencing of RISK_COUNCIL and H-AUTH-02. Owner. Source: earlier session.
