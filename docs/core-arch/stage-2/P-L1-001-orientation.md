@@ -1,6 +1,6 @@
 ---
 id: P-L1-001
-version: 0.1
+version: 0.2
 title: Orientation - the first procedure of every session - where am I, what am I, what may I do
 layer: L1
 type: procedure
@@ -53,8 +53,9 @@ reviewer can see what the session believed when it started.
 4. **Orientation line** (any role). Write, in this grammar, with `<model-id>` the matrix id and
    `<scope-id>` the frame's (SCHEMA-assignment):
    `Orientation: <model-id> @ <scope-id>: <slot> | rights=<rule ids> | limits=<rule ids> | tools=<TOOL ids> | success=<criteria ids> | tier=<Tn>`
-5. **One role** (any role). Check the frame's role lines (SCHEMA-assignment): if this model holds
-   another slot in the same scope-id or a parent scope, stop (R-L1-001.3).
+5. **One role** (any role). Check the frame's effective role lines (SCHEMA-assignment section 2):
+   if this model holds another slot in them, stop (R-L1-001.3). A role held in another frame, the
+   parent scope included, is not a second role here; the lineage bars of P-L1-002 cover it.
 6. **Rights** (any role). Compare what the task asks with the role's rights and limits; any gap goes
    to P-L0-002 (R-L1-001.4).
 7. **Tier** (any role). Recompute the tier with P-L2-002; a difference from the frame is reported
@@ -87,3 +88,4 @@ None. A stop ends the session or waits for the answer (P-L0-002).
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T06) — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (step 5 checks one frame's effective lines) — second pass pending.

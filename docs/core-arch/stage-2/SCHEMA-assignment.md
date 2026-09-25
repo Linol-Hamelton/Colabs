@@ -1,6 +1,6 @@
 ---
 id: SCHEMA-assignment
-version: 0.1
+version: 0.2
 title: Grammar of role assignments and delegations in a task frame
 layer: L1
 type: schema
@@ -45,9 +45,12 @@ date          ::= YYYY-MM-DD
 ```
 
 - One slot per line, no trailing text, no negation, no comment.
-- A task frame names its parent with `parent-scope: program:<name>`. Lines of the parent scope hold
-  in every child task: a model assigned in `program:core-arch` holds that role in each task of
-  the program, so a second role for it in any of them breaks R-L2-002.2.
+- A task frame names its parent with `parent-scope: <scope_id>`, or `-` for none. Lines of the
+  parent scope are inherited defaults: a model that the frame's own lines do not name holds its
+  parent-scope role in the frame; a model that the frame's own lines name holds only those lines.
+  The one-role rule (R-L2-002.2) is checked on these effective lines of one frame (PROTO-DEC-0057
+  item 3). Independence across frames is judged by the lineage (R-L1-002.2) and the bars of
+  R-L0-05, R-L1-certifier.1 and R-L1-fixer.2, never by the merge.
 - The dispatcher is a script and never appears in a role line.
 - Conditions that are not roles (dates, pilots, priorities, history) go under `## Role notes`,
   which no script reads.
@@ -60,7 +63,8 @@ date          ::= YYYY-MM-DD
 2. Outside fences, exactly one heading `## Roles` must exist. Any other heading that begins with
    `## Roles` (for example `## Roles archive`) exits 2, so no decoy section can shadow the real one.
 3. The section ends at the next `## ` heading. Each line in it must match the grammar.
-4. Merge: the lines of the frame's scope and of its parent scope, together.
+4. Effective lines: the frame's own lines, plus each parent-scope line whose model the frame's own
+   lines do not name (section 2). The parent scope's own lines are checked as a frame of their own.
 
 Exit codes: 0 every line parses and no rule is broken; 1 a well-formed set breaks an independence
 rule (P-L1-002); 2 anything the grammar or the reading rules do not accept.
@@ -77,7 +81,7 @@ M below is `claude-opus-5-5`; the check asks whether M may certify a candidate o
 | F4 | the real line of F2 inside a four-tilde fence that contains two triple-backtick lines, and no other `## Roles` | 2 (no Roles section outside fences) | R3-C03 |
 | F5 | `- M @ task:x: authored` | 2 (`authored` is not a slot) | F-R3-02 |
 | F6 | `- M @ task:x: implementer` and `- claude-opus-5 @ task:x: reviewer` | 1 (one participant after the alias resolves, two roles) | R-L1-002.1 |
-| F7 | `- deepseek-flash @ program:core-arch: reviewer` and `- deepseek-flash @ task:s2-review: critic`, the task's parent being `program:core-arch` | 1 (parent merge) | R-L2-002.2 |
+| F7 | `- deepseek-flash @ program:core-arch: reviewer` and `- deepseek-flash @ task:s2-review: critic`, the task's parent being `program:core-arch` | 0 (the task's own line replaces the inherited one: one role in the frame; the lineage check still applies) | PROTO-DEC-0057 item 3 |
 | F8 | `- unknown-model @ task:x: reviewer` | 2 | P-L1-002 stop |
 
 The journal side of R3-C03 (a producer identity inside a fence) is closed by the same fence rule
@@ -111,11 +115,12 @@ The current section names brands. Under this grammar and the model matrix it wou
 - Product-pilot roles (Block-Puzzle, VPN) are on hold under PROTO-DEC-0048 item 1.
 ```
 
-Why the certifiers are not program-scope lines: a program-scope line holds in every task of the
-program (section 2), so it would forbid the same model the critic role that PROTO-DEC-0055 item 3
-allows it in a separate frame. A program-scope line is for a role held throughout the program;
-a role that changes from task to task is written at task or candidate scope, and the lineage
-check of P-L1-002 still catches a certifier that touched the candidate elsewhere.
+Why the certifiers are not program-scope lines: a program-scope line is the default role of its
+model in every task of the program that does not name that model (section 2), so a certifier line
+there would make the model a certifier by default in tasks where it certifies nothing. A
+program-scope line is for a role held throughout the program; a role that changes from task to
+task is written at task or candidate scope, and the lineage check of P-L1-002 still catches a
+certifier that touched the candidate elsewhere.
 
 The migration waits for the owner's confirmation and for package I-b, because the current hook
 reads only `- name: role` lines (`.ai/bin/protocol-hooks.cjs:300`).
@@ -123,3 +128,4 @@ reads only `- name: role` lines (`.ai/bin/protocol-hooks.cjs:300`).
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T04, S2-T05) — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame) — second pass pending.
