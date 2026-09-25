@@ -75,9 +75,16 @@
   In progress.
 - C-2: the validator migration plan. Decided: PROTO-DEC-0077 items 1-2 (early bounded migration
   inside CORE-ARCH; cloud Evidence fail-closed). Next: the section AC launch conditions (M-7).
-- C-7: the fourth review pass on package L after L-CORRECTION-4. The reviewer is independent of
-  DeepSeek (implementer) and of the spec author. Resolve it by workflowAI 1.5; certification-grade,
-  so a shortfall asks the owner first (PROTO-DEC-0078 item 3). Waits for C-1.
+- C-7: certification of L-CORRECTION-4, on a high-risk path (0038 item 1). It needs:
+  - the unified audit prompt `docs/core-arch/stage-4/L-CORRECTION-4-AUDIT.md`;
+  - two parallel independent certifiers (0041 item 2): certifier 1 is Gemini (owner-named,
+    Antigravity), certifier 2 is to be named by the owner (Codex proposed).
+
+  It runs on the committed candidate after DeepSeek finishes, and waits for C-1.
+- C-8: owner-approval question, PROTO-DEC-0079 (proposed by another agent). An implementation
+  from a senior spec takes its tier from the rubric, not the T7 floor, and the floor moves to the
+  spec, the review and certification. Not needed for L-CORRECTION-4, since item 9 is now the spec
+  author's. Open.
 - C-3: the kernel dispatch script: resolver per `workflowAI.md` plus supervisor per PROTO-DEC-0075,
   replacing the research runners. Source: PROTO-DEC-0050 item 4, 0074-0076.
 - C-4: sequencing of RISK_COUNCIL and H-AUTH-02. Owner. Source: earlier session.

@@ -48,7 +48,10 @@ Work in this order. Each item has its acceptance test; add every test to `launch
      `NO_PUSH_ENV` rule, which stays as defence in depth.
 
    Do not remove the model clients' own credentials: they live in their config files, not in these
-   variables. If a client breaks, record it and keep the scrub. Test: a canary token planted in each
+   variables. If a client breaks, record it and keep the scrub. An empty global config also drops
+   `user.name`, `user.email` and `safe.directory`; clients that call git themselves (codex,
+   copilot) may fail on that. Test each client you can run with `--smoke`, and list every
+   breakage under "Points to attack". Test: a canary token planted in each
    removed variable, and a canary credential helper in the real global config; the job's env and
    `git config --show-origin -l` inside the clone show none of them.
 3. Task git mode, default-deny.
@@ -66,8 +69,8 @@ Work in this order. Each item has its acceptance test; add every test to `launch
    - Any difference in a no-push mode is an incident: it invalidates the attempt, and the incident
      line is written to the attempt record.
    - Record the known blinds (push+revert, webhooks, remotes not listed) in R-L3-004.9.
-   - Test: against a local bare remote, a fake client that pushes by a bypass route leaves a ref
-     difference, and the attempt is invalidated.
+   - Test: against a temporary local bare remote only, never the checkout's real `origin`, a fake
+     client that pushes by a bypass route leaves a ref difference, and the attempt is invalidated.
 5. M-2, the job table out of code (PROTO-DEC-0073). Move `JOBS` (models, routes, levels, outputs,
    needs, and the new git mode) to `prompts/jobs.json`, with a strict loader: unknown keys or a
    missing field fail closed. Keep the models as they are; M-3 re-resolves them separately. Test:
@@ -81,11 +84,16 @@ Work in this order. Each item has its acceptance test; add every test to `launch
    - Test: fake clients that hold a lock briefly and permanently.
 7. S-3: the `a-deepseek` route `openai-compatible/deepseek/deepseek-flash` becomes
    `deepseek/deepseek-flash` in the job table (the openai-compatible one has no key in the Kilo
-   CLI).
+   CLI). Check that the new id exists in `docs/core-arch/stage-4/kilo-routes.json`.
+   `kiloCandidates` excludes the primary route, so the fallback list changes too: record
+   `launch.cjs --dry a-deepseek` before and after in your response file.
 8. S-2 (F-3P-4): K-launch step 0 and the improvement-research README name the governing review:
    the fourth pass on this correction, not the second pass.
-9. Records. Update `P-L3-004-route-failover.md` R-L3-004.9 and its risk rows with items 1-6, the
-   `-c` residual, and the audit blinds. Update the README test counts.
+9. Records. Update the improvement-research README test counts. Do not edit
+   `P-L3-004-route-failover.md` or any other record under `docs/core-arch/`. Those are candidate
+   kernel records, and PROTO-DEC-0072 item 3 puts them at the T7 floor. Instead, list in your
+   response file the text R-L3-004.9 needs (items 1-6, the `-c` residual, the audit blinds); the
+   spec author writes it into the record.
 
 ## 2. Hostile suite (the testable subset of Part 2)
 
@@ -100,7 +108,8 @@ Work in this order. Each item has its acceptance test; add every test to `launch
 ## 3. Do not
 
 - Build a publisher, give any job credentials, or touch an owner remote.
-- Change the kernel (`.ai/`), the validator, or another program's files.
+- Change the kernel (`.ai/`), any record under `docs/core-arch/`, the validator, or another
+  program's files.
 - Commit, tag or push. The owner commits after review.
 - Weaken an existing test. If one becomes invalid, say why in the response file.
 
