@@ -23,9 +23,11 @@
 ## Steps
 
 0. `git rev-parse --show-toplevel` must print the `D:/Colabs` checkout; otherwise stop.
-   `git rev-parse HEAD` must print the commit named in the owner's launch message: the commit whose
-   launcher passed review. If the message names no commit, ask the owner for it and stop until it
-   is given; if HEAD differs, stop. The jobs run on HEAD's tree, so this is the tree they get.
+   The owner's launch message names the commit whose launcher passed review. If it names none, ask
+   the owner for it and stop until it is given. The launcher at HEAD must be that launcher, whatever
+   else has been committed since:
+   `git diff --quiet <that commit> HEAD -- docs/research/2026-09-25-improvement-research/prompts docs/core-arch/stage-4/P-L3-004-route-failover.md docs/core-arch/stage-4/kilo-routes.json`
+   must exit 0; otherwise stop. The jobs run on HEAD's tree.
    `git status --porcelain --untracked-files=no` must print nothing; otherwise stop.
 1. `node .ai/bin/protocol-session.cjs start --agent kilo`. Use the owner name it prints for your
    journal. Journal line 1: `Launch: model=<id> effort=<value|unknown> client=kilo-code`.

@@ -5,9 +5,10 @@
   VS Code on the owner's Windows workstation.
 - Date (UTC): 2026-09-25. Mode: IMPLEMENTER addendum (not a review, no verdict token).
 - Baseline: `e44686b`, the head of `docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response.md`,
-  pulled locally after a pre-pull review. Candidate: the commit that adds this file. The owner's
-  launch message names its full SHA; read every path from that commit (CORE-ARCH-4 section 9
-  rule 7).
+  pulled locally after a pre-pull review. Candidate: the last commit that changes this file
+  (`git log -1 --format=%H -- <this file>`). The owner's launch message names its full SHA; read
+  every path from that commit (CORE-ARCH-4 section 9 rule 7). `docs/core-arch/PROPOSAL-node-validator.md`,
+  in the same commit, is a proposal for the owner and outside this review.
 - Diff under review: `ab23c63..<candidate>`, that is the 24 commits of the fix response plus this
   one. The fix response stays the answer for every other row, and its "Re-review instructions"
   apply, with the order and the additions below. Paths are repository-relative.
@@ -31,7 +32,7 @@ Report the two verdicts separately, so that L can release the launch while S is 
 | CB-12 | owner: A | PROTO-DEC-0068 narrows how far the Supersedes line of PROTO-DEC-0067 reaches. No code change. | `.ai/DECISIONS.md`, `docs/decisions/REGISTRY.md` |
 | CB-13 | owner: confirmed | PROTO-DEC-0069 adds the missing O-08 sentences. | same |
 | CB-21 | owner: new terms | PROTO-DEC-0070 quotes the owner's words in full. Implementation, which is the implementer's reading and is so marked in the block and in R-L3-004.9: (a) vibe `--enabled-tools` for read_file, grep, write_file, edit and powershell, then `--auto-approve --trust`. The tool names are vibe 2.25.5's tool classes; `--trust` only skips the trust prompt. (b) copilot `-C <worktree>` with `--allow-all-tools --no-ask-user`. `--no-ask-user` is listed by copilot 1.0.88 `--help`. Commit, push and tag are denied through `--deny-tool "shell(...)"`, and `--add-dir <temp>` is dropped. (c) Every attempt runs in a disposable git worktree of HEAD under the system temp directory, with the research package copied in. (d) A scope check runs on every tick and again before the copy back: only the job's outputs and new journals may change, HEAD may not move, and the tag list may not change. Otherwise `SCOPE_STOP`: nothing is copied back and the worktree is kept. (e) Every git the executor runs gets an unusable push URL through `GIT_CONFIG_COUNT`. (f) `SAFE` admits parentheses for (b). | `launch.cjs` (commands, worktree section, `run`, `settle`, `status`); P-L3-004 R-L3-004.9 |
-| K-launch | extended | Directives 0068-0070. Step 0: HEAD must equal the commit the owner's message names, and no tracked file may be changed. Step 2: the self-test runs before `--check`. Step 6: worktrees and `SCOPE_STOP`. Step 7: `git status --short` after every job settles, and `--stop` for an unsettled attempt. | `K-launch.md` |
+| K-launch | extended | Directives 0068-0070. Step 0: the launcher files at HEAD must equal those of the reviewed commit the owner's message names (`git diff --quiet`), so later unrelated commits do not block the launch, and no tracked file may be changed. Step 2: the self-test runs before `--check`. Step 6: worktrees and `SCOPE_STOP`. Step 7: `git status --short` after every job settles, and `--stop` for an unsettled attempt. | `K-launch.md` |
 | Records | updated | P-L3-004 0.3; the package README states the test counts and the launch condition; `.ai/TASK.md` gets one "Next" paragraph under the lock. | as named |
 
 ## Verified here, and how
@@ -81,4 +82,4 @@ Report the two verdicts separately, so that L can release the launch while S is 
 ## Launch line for DeepSeek (model and effort named at launch, as in round 1)
 
 `Read and follow the file docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-1.md`
-with, in the same message, `Candidate: <full SHA of the commit that adds this file>`.
+with, in the same message, `Candidate: <full SHA of the last commit that changes this file>`.
