@@ -32,7 +32,17 @@ const TMP = os.tmpdir();
 // smoke timeout are the implementer's proposal (P-L3-004 timer table, "Source" column).
 const DEFAULTS = { tickSeconds: 15, softSeconds: 150, hardSeconds: 480, usefulBytes: 16384, cpuSeconds: 0.5,
   capMinutes: { research: 360, synthesis: 180 }, smokeSeconds: 180 };
-const ERROR_TEXT = /\b(401|403|429)\b|unauthori[sz]ed|forbidden|not logged in|log ?in required|authenticat\w* (failed|error|required)|rate[ -]?limit|quota|insufficient[ _](credit|balance|funds|quota)|usage limit|limit (reached|exceeded)|model\W.{0,60}(not found|not available|unavailable|does not exist|unsupported)|unknown model|ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|network error|provider error|service unavailable|\b50[23]\b/i;
+// Hard-failure texts (P-L3-004). A bare number never matches: a status code counts only after an
+// HTTP/status/error/code word or before its reason phrase, so "line 503" or "429 tokens" stay normal.
+const CODES = '(?:401|403|429|500|502|503|504|529)';
+const ERROR_TEXT = new RegExp([
+  String.raw`\b(?:HTTP(?:\/\d(?:\.\d)?)?|status|error|code)\W{0,3}${CODES}\b`,
+  String.raw`\b${CODES}\W{0,3}(?:Unauthori[sz]ed|Forbidden|Too Many Requests|Internal Server Error|Bad Gateway|Service Unavailable|Gateway Time-?out|Overloaded)\b`,
+  String.raw`\bunauthori[sz]ed\b|not logged in|log ?in required|authenticat\w* (?:failed|error|required)|invalid[ _](?:api[ _-]?key|token|credentials)`,
+  String.raw`rate[ _-]?limit(?:ed|[ _](?:error|exceeded|reached|hit))|too many requests|quota[ _](?:exceeded|exhausted|reached|error)|exceeded (?:your|the) (?:current )?quota|insufficient[ _](?:credit|balance|funds|quota)|credit balance is too low|usage limit (?:reached|exceeded)|limit (?:reached|exceeded)|hit your (?:usage )?limit|RESOURCE_EXHAUSTED`,
+  String.raw`model\W.{0,60}(?:not found|not available|unavailable|does not exist|unsupported)|unknown model`,
+  String.raw`ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|fetch failed|socket hang up|network error|provider error|service unavailable|overloaded_error|(?:server|model|api|service)(?: is)? overloaded`,
+].join('|'), 'i');
 
 const LEVELS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
 const POSITION = { min: 0, mid: 1, max: 2 };

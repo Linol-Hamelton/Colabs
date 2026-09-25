@@ -96,9 +96,11 @@ third cost it never accepts is two executors doing one task.
 A hard failure is one of:
 - a non-zero exit before useful work;
 - an exit without useful work;
-- before useful work, an error text in L2 followed by soft silence. The error texts are:
-  authorisation, 401, 403, 429, rate limit, quota, insufficient credit, model not found or
-  unavailable, and network or provider errors.
+- before useful work, an error text in L2 followed by soft silence. The error texts are: the
+  status codes 401, 403, 429, 500, 502, 503, 504 and 529, but only after an HTTP, status, error or
+  code word or before their reason phrase (a bare number is normal output); authorisation
+  errors; a rate limit, quota, credit or usage limit reached; a model not found or unavailable;
+  network, provider and overload errors (`ERROR_TEXT` in the launcher, probes in its self-test).
 
 ### Timers (defaults; the launcher takes other values as options)
 
@@ -164,4 +166,4 @@ A hard failure is one of:
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added) — second pass pending.

@@ -74,6 +74,14 @@ function pureChecks() {
   }
   for (const argv of [['--status'], ['--start', 'a-sol', '--soft-seconds', '60', '--hard-seconds', '300', '--cap-minutes', '90'],
     ['--start', 'b-kimi', '--route', 'kilo:1', '--takeover'], ['--dry']]) out.push([`options ${JSON.stringify(argv)} parses`, code(argv) === 0]);
+  // CB-20: hard-failure texts are detected, normal output is not.
+  for (const t of ['Your credit balance is too low', 'overloaded_error: Overloaded', '500 Internal Server Error',
+    '504 Gateway Timeout', 'TypeError: fetch failed', 'Error: socket hang up', 'getaddrinfo EAI_AGAIN api.example',
+    "You've hit your limit", 'stream error: 429 rate limit exceeded', 'Error: 401 Unauthorized - not logged in',
+    '{"type":"error","error":{"type":"rate_limit_error"}}', 'HTTP 503', '"status":529', '403 Forbidden',
+    'You exceeded your current quota', 'RESOURCE_EXHAUSTED', 'Insufficient Balance']) out.push([`error text detected: ${t}`, L.ERROR_TEXT.test(t)]);
+  for (const t of ['line 503 of the spec', 'processed 429 tokens', 'Forbidden path: .claude/ is outside the sandbox',
+    'the quota section of the report', 'a rate limit policy for providers', 'wrote 500 lines']) out.push([`normal text not flagged: ${t}`, !L.ERROR_TEXT.test(t)]);
   return out;
 }
 
