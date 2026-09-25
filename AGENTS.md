@@ -389,8 +389,8 @@ Enforced by `validate-protocol.ps1`.
 | `.ai/TASK.md`              | 80 lines  | cut back to the current task only  |
 | `.ai/worklog/<journal>.md` | 150 lines | move oldest entries to the archive |
 | `.ai/PLAN.md`              | 200 lines | the task is too big; split it      |
-| `.ai/worklog/` file count  | 30 files  | archive the oldest journals        |
-| `docs/reviews/` active     | 60 files / 600 KB | archive non-active reviews to archive/ |
+| `.ai/worklog/` file count  | 100 files | archive the oldest journals        |
+| `docs/reviews/` active     | 200 files / 2 MB | archive non-active reviews to archive/ |
 | `.ai/DECISIONS.md`         | none      | never trimmed, never summarized    |
 | `.ai/ARCHIVE.md`           | none      | never trimmed                      |
 

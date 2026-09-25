@@ -508,18 +508,18 @@ test('C40-06: in-root junction is rejected by path safety check', t => {
 test('C40-07: non-.md files and nested subdirectories in docs/reviews are counted towards corpus budget', t => {
   const root = makeProtocolFixture(t);
   fs.mkdirSync(path.join(root, 'docs', 'reviews', 'sub'), { recursive: true });
-  for (let i = 0; i < 61; i++) {
+  for (let i = 0; i < 201; i++) {
     write(root, `docs/reviews/sub/file${i}.txt`, 'review content\n');
   }
 
   const out = validate(root).output;
-  assert.match(out, /active docs\/reviews\/ exceeds budget \(61 files/);
+  assert.match(out, /active docs\/reviews\/ exceeds budget \(201 files/);
 });
 
 test('C40-07: docs/reviews/archive is excluded from corpus budget count', t => {
   const root = makeProtocolFixture(t);
   fs.mkdirSync(path.join(root, 'docs', 'reviews', 'archive'), { recursive: true });
-  for (let i = 0; i < 65; i++) {
+  for (let i = 0; i < 205; i++) {
     write(root, `docs/reviews/archive/archived${i}.md`, 'archived review\n');
   }
 
@@ -530,7 +530,7 @@ test('C40-07: docs/reviews/archive is excluded from corpus budget count', t => {
 test('C40-07: corpus byte limit triggers warning independently of file count', t => {
   const root = makeProtocolFixture(t);
   fs.mkdirSync(path.join(root, 'docs', 'reviews'), { recursive: true });
-  const largeBuf = Buffer.alloc(650 * 1024, 'a');
+  const largeBuf = Buffer.alloc(2100 * 1024, 'a');
   fs.writeFileSync(path.join(root, 'docs', 'reviews', 'large-review.md'), largeBuf);
 
   const out = validate(root).output;
@@ -564,8 +564,8 @@ test('C40-07: junction / symlink outside root in docs/reviews is not traversed b
   const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'colabs-corpus-outside-'));
   t.after(() => fs.rmSync(outside, { recursive: true, force: true }));
 
-  // Create 65 files outside root
-  for (let i = 0; i < 65; i++) {
+  // Create 205 files outside root (above the PROTO-DEC-0057 cap of 200)
+  for (let i = 0; i < 205; i++) {
     fs.writeFileSync(path.join(outside, `outside-review-${i}.md`), 'content\n');
   }
 

@@ -1,0 +1,605 @@
+'use strict';
+
+// Launcher for the improvement research (PROTO-DEC-0066, 0067). It implements P-L3-004
+// (route failover, trial): the maker's CLI first, one automatic Kilo fallback on a hard
+// failure before useful work, liveness signals instead of a fixed silence rule, never two
+// executors on one task. A dispatch helper, not kernel code: it grants and certifies nothing.
+//
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --dry [jobs]
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --check [jobs]   parse only, no model call
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --smoke [jobs]   one-word answer per route
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start <jobs>
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --stop <job>
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start <job> --route kilo:<n> [--takeover]
+//
+// <jobs>: comma list of job ids, or `researchers` (the six), `a`, `b`. Options:
+// --soft-seconds N, --hard-seconds N, --cap-minutes N. State: .ai/runtime/improvement-research/.
+// Exit codes: 0 done, 1 a refusal the owner can resolve, 2 unknown or malformed input.
+
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { spawn, spawnSync, execFileSync, execSync } = require('node:child_process');
+
+const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+const REL = 'docs/research/2026-09-25-improvement-research';
+const OUT = path.join(ROOT, '.ai', 'runtime', 'improvement-research');
+const ROUTES = path.join(ROOT, 'docs', 'core-arch', 'stage-4', 'kilo-routes.json');
+const TMP = os.tmpdir();
+
+const DEFAULTS = { tickSeconds: 15, softSeconds: 150, hardSeconds: 480, usefulBytes: 16384, cpuSeconds: 0.5,
+  capMinutes: { research: 360, synthesis: 180 }, smokeSeconds: 180 };
+const ERROR_TEXT = /\b(401|403|429)\b|unauthori[sz]ed|forbidden|not logged in|log ?in required|authenticat\w* (failed|error|required)|rate[ -]?limit|quota|insufficient[ _](credit|balance|funds|quota)|usage limit|limit (reached|exceeded)|model\W.{0,60}(not found|not available|unavailable|does not exist|unsupported)|unknown model|ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|network error|provider error|service unavailable|\b50[23]\b/i;
+
+const LEVELS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
+const POSITION = { min: 0, mid: 1, max: 2 };
+
+const outputs = (study, model, parts) => parts.map(p => `${REL}/${study}/${model}-${p}.md`);
+const JOBS = {
+  'a-sol': { kind: 'research', agent: 'codex', model: 'gpt-5.6-sol', level: 'max', position: 'max',
+    primary: { client: 'codex', id: 'gpt-5.6-sol' }, outputs: outputs('A', 'gpt-5.6-sol', ['registry', 'cards', 'measurements', 'report']) },
+  'a-gemini': { kind: 'research', agent: 'gemini', model: 'gemini-3.1-pro', level: 'high', position: 'max',
+    primary: { client: 'agy', id: 'gemini-3.1-pro-high' }, outputs: outputs('A', 'gemini-3.1-pro', ['registry', 'cards', 'measurements', 'report']) },
+  'a-deepseek': { kind: 'research', agent: 'deepseek', model: 'deepseek-flash', level: null, position: 'max',
+    primary: { client: 'kilo', id: 'openai-compatible/deepseek/deepseek-flash' }, outputs: outputs('A', 'deepseek-flash', ['registry', 'cards', 'measurements', 'report']) },
+  'a-synth': { kind: 'synthesis', agent: 'copilot', model: 'kimi-k2.7-code', level: 'medium', position: 'mid',
+    primary: { client: 'copilot', id: 'kimi-k2.7-code' }, needs: ['a-sol', 'a-gemini', 'a-deepseek'],
+    outputs: [`${REL}/A/synthesis.md`, `${REL}/A/synthesis-registry.md`] },
+  'b-grok': { kind: 'research', agent: 'grok', model: 'grok-4.5', level: 'high', position: 'max',
+    primary: { client: 'copilot', id: 'grok-4.5' }, outputs: outputs('B', 'grok-4.5', ['taxonomy', 'policy']) },
+  'b-kimi': { kind: 'research', agent: 'kimi', model: 'kimi-k2.7-code', level: 'high', position: 'max',
+    primary: { client: 'copilot', id: 'kimi-k2.7-code' }, outputs: outputs('B', 'kimi-k2.7-code', ['taxonomy', 'policy']) },
+  'b-mistral': { kind: 'research', agent: 'mistral', model: 'mistral-medium-3.5', level: 'max', position: 'max',
+    primary: { client: 'vibe', id: null }, outputs: outputs('B', 'mistral-medium-3.5', ['taxonomy', 'policy']) },
+  'b-synth': { kind: 'synthesis', agent: 'agy', model: 'gemini-3.1-pro', level: 'high', position: 'mid',
+    primary: { client: 'agy', id: 'gemini-3.1-pro-high' }, needs: ['b-grok', 'b-kimi', 'b-mistral'],
+    outputs: [`${REL}/B/synthesis.md`] },
+};
+const GROUPS = { researchers: ['a-sol', 'a-gemini', 'a-deepseek', 'b-grok', 'b-kimi', 'b-mistral'],
+  a: ['a-sol', 'a-gemini', 'a-deepseek'], b: ['b-grok', 'b-kimi', 'b-mistral'] };
+
+// ---------- pure decisions (P-L3-004), exported for the self-test ----------
+
+function sortLevels(list) {
+  return (list || []).filter(v => LEVELS.includes(v)).sort((x, y) => LEVELS.indexOf(x) - LEVELS.indexOf(y));
+}
+
+// Three levels nearest the centre; even lists shift up; short lists repeat (PROTO-DEC-0059 items 3-4).
+function threeLevels(list) {
+  const v = sortLevels(list);
+  if (!v.length) return null;
+  if (v.length === 1) return [v[0], v[0], v[0]];
+  if (v.length === 2) return [v[0], v[1], v[1]];
+  const mid = v.length % 2 ? (v.length - 1) / 2 : v.length / 2;
+  return [v[mid - 1], v[mid], v[mid + 1]];
+}
+
+// R-L3-004.3: the level a route can give this job, or why it cannot.
+function resolveEffort(route, job) {
+  const v = sortLevels(route.variants);
+  if (job.level === null) {
+    if (!v.length) return { ok: true, variant: null, note: 'effort not settable; the primary cell is unknown too' };
+    return { ok: true, variant: threeLevels(v)[POSITION[job.position]], note: `tier position ${job.position}` };
+  }
+  if (!v.length) return { ok: false, why: 'cannot set effort' };
+  if (v.includes(job.level)) return { ok: true, variant: job.level, note: 'same level' };
+  const higher = v.filter(x => LEVELS.indexOf(x) > LEVELS.indexOf(job.level));
+  if (higher.length) return { ok: true, variant: higher[0], note: `stronger level (${job.level} not offered)` };
+  return { ok: false, why: `highest level ${v[v.length - 1]} is below ${job.level}` };
+}
+
+// R-L3-004.2: Kilo candidates, cheapest suitable first.
+function kiloCandidates(job, routes) {
+  const list = (routes.models[job.model] || []).filter(r => !(job.primary.client === 'kilo' && r.route === job.primary.id));
+  const rows = list.map(r => {
+    if (!r.present) return { ...r, ok: false, why: 'absent from the Kilo catalog' };
+    if (r.status !== 'active') return { ...r, ok: false, why: `status ${r.status}` };
+    if (!r.toolcall) return { ...r, ok: false, why: 'no tool calls' };
+    return { ...r, ...resolveEffort(r, job) };
+  });
+  const price = r => [Number(r.output) || 0, Number(r.input) || 0];
+  const suitable = rows.filter(r => r.ok).sort((x, y) => {
+    const [xo, xi] = price(x); const [yo, yi] = price(y);
+    return xo - yo || xi - yi || (y.own === true) - (x.own === true) || x.provider.localeCompare(y.provider);
+  });
+  return { suitable, unsuitable: rows.filter(r => !r.ok) };
+}
+
+// R-L3-004.4-6, 8: what the watchdog does on this tick for a live process.
+function decide(att, obs, cfg, now) {
+  if (obs.progress) att.lastProgressAt = now;
+  if (obs.useful) att.useful = true;
+  const silent = (now - att.lastProgressAt) / 1000;
+  if ((now - att.startedAt) / 60000 > att.capMinutes) return 'OVER_CAP';
+  if (!att.useful && obs.errorText && silent >= cfg.softSeconds) return 'FAILED_EARLY';
+  if (silent >= cfg.hardSeconds) return att.useful ? 'HUNG' : 'FAILED_EARLY';
+  if (silent >= cfg.softSeconds) return 'SUSPECT';
+  return att.useful ? 'WORKING' : 'STARTING';
+}
+
+// What an exit means (state table of P-L3-004).
+function classifyExit(att, code, outputsComplete) {
+  if (!att.useful) return 'FAILED_EARLY';
+  if (code === 0) return outputsComplete ? 'DONE' : 'INCOMPLETE';
+  return 'CRASHED';
+}
+
+// ---------- commands ----------
+
+const promptLine = job => `Read and follow the file ${REL}/prompts/run/${job}.md`;
+const SAFE = /^[A-Za-z0-9 _.,:=/\\"-]+$/;
+
+function primaryCommand(jobId, message, dir) {
+  const j = JOBS[jobId];
+  const m = `"${message}"`;
+  switch (j.primary.client) {
+    case 'codex': return `codex exec -m ${j.primary.id} -c model_reasoning_effort=${j.level} --approve-for-me --skip-git-repo-check -C "${dir}" --add-dir "${TMP}" --json ${m}`;
+    case 'agy': return `agy -p ${m} --model ${j.primary.id} --dangerously-skip-permissions --add-dir "${dir}" --add-dir "${TMP}" --output-format stream-json`;
+    case 'copilot': return `copilot -p ${m} --model ${j.primary.id} --reasoning-effort ${j.level} --allow-all-tools --no-ask-user --add-dir "${TMP}" --log-dir "${path.join(OUT, `${jobId}-copilot-log`)}"`;
+    case 'vibe': return `vibe -p ${m} --auto-approve --max-turns 400 --output streaming --workdir "${dir}"`;
+    case 'kilo': return kiloCommand(jobId, j.primary.id, null, message, dir);
+    default: throw new Error(`unknown client ${j.primary.client}`);
+  }
+}
+
+function kiloCommand(jobId, route, variant, message, dir) {
+  return `kilo run -m ${route}${variant ? ` --variant ${variant}` : ''} --auto --dir "${dir}" --format json --title ${jobId} "${message}"`;
+}
+
+function checkCommand(cmd) {
+  if (!SAFE.test(cmd)) throw new Error(`unsafe character in command: ${cmd}`);
+  if ((cmd.match(/"/g) || []).length % 2) throw new Error(`unbalanced quotes in command: ${cmd}`);
+  if (/\\"/.test(cmd)) throw new Error(`backslash before a quote in command: ${cmd}`);
+  return cmd;
+}
+
+// ---------- state ----------
+
+const jobFile = id => path.join(OUT, 'jobs', `${id}.json`);
+function readJob(id) { try { return JSON.parse(fs.readFileSync(jobFile(id), 'utf8')); } catch { return null; } }
+function writeJob(id, data) {
+  fs.mkdirSync(path.dirname(jobFile(id)), { recursive: true });
+  const tmp = `${jobFile(id)}.tmp`;
+  fs.writeFileSync(tmp, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  fs.renameSync(tmp, jobFile(id));
+}
+
+function alive(pid) {
+  if (!pid) return false;
+  try { return execFileSync('tasklist', ['/FI', `PID eq ${pid}`, '/NH'], { encoding: 'utf8' }).includes(String(pid)); }
+  catch { return false; }
+}
+
+function kill(pid) {
+  try { execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' }); } catch { /* already gone */ }
+}
+
+// L6-L7: CPU seconds and child set of each running tree, one query per tick.
+// One snapshot of all processes. `C` is the creation time (file time, UTC): a PID alone is not an
+// identity on Windows, because PIDs are reused and ParentProcessId keeps pointing at dead parents.
+function procTable() {
+  try {
+    const json = execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+      "Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,KernelModeTime,UserModeTime,@{n='C';e={$_.CreationDate.ToFileTimeUtc()}} | ConvertTo-Json -Compress"],
+    { encoding: 'utf8', maxBuffer: 1 << 26, windowsHide: true });
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch { return null; }
+}
+
+// L6-L7 for a live root: CPU seconds and descendants. A descendant counts only if it was created
+// no earlier than its parent, which excludes processes whose recorded parent is a dead namesake.
+function tree(rootPid, rows) {
+  if (!rows) return null;
+  const root = rows.find(r => r.ProcessId === rootPid);
+  if (!root) return null;
+  const kids = new Map();
+  for (const r of rows) { if (!kids.has(r.ParentProcessId)) kids.set(r.ParentProcessId, []); kids.get(r.ParentProcessId).push(r); }
+  let cpu = (Number(root.KernelModeTime) + Number(root.UserModeTime)) / 1e7;
+  const procs = [];
+  const stack = [root]; const seen = new Set([rootPid]);
+  while (stack.length) {
+    const p = stack.pop();
+    for (const c of kids.get(p.ProcessId) || []) {
+      if (seen.has(c.ProcessId) || Number(c.C) < Number(p.C)) continue;
+      seen.add(c.ProcessId); procs.push({ pid: c.ProcessId, created: Number(c.C) }); stack.push(c);
+      cpu += (Number(c.KernelModeTime) + Number(c.UserModeTime)) / 1e7;
+    }
+  }
+  return { cpu, procs, children: procs.map(x => x.pid).sort((a, b) => a - b).join(',') };
+}
+
+function fileSig(files) {
+  let sig = 0;
+  for (const f of files) { try { const s = fs.statSync(f); sig += s.size + s.mtimeMs; } catch { /* absent */ } }
+  return sig;
+}
+
+function journalsOf(agent) {
+  const dir = path.join(ROOT, '.ai', 'worklog');
+  try { return fs.readdirSync(dir).filter(f => f.startsWith(`${agent}-`) && f.endsWith('.md')).map(f => path.join(dir, f)); }
+  catch { return []; }
+}
+
+function dirFiles(dir) {
+  try { return fs.readdirSync(dir).map(f => path.join(dir, f)); } catch { return []; }
+}
+
+function tail(file, bytes) {
+  try {
+    const fd = fs.openSync(file, 'r'); const size = fs.fstatSync(fd).size;
+    const len = Math.min(size, bytes); const buf = Buffer.alloc(len);
+    fs.readSync(fd, buf, 0, len, size - len); fs.closeSync(fd);
+    return buf.toString('utf8');
+  } catch { return ''; }
+}
+
+// ---------- the watchdog (runs detached) ----------
+
+function sameProcess(pid, created, rows = procTable()) {
+  if (!pid || created === null || created === undefined) return null; // identity unknown
+  return Boolean(rows && rows.some(r => r.ProcessId === pid && Number(r.C) === created));
+}
+
+const stopFile = id => path.join(OUT, 'jobs', `${id}.stop`);
+const lockFile = id => path.join(OUT, 'jobs', `${id}.lock`);
+
+// R-L3-004.7: two starts of one job at the same moment must not both pass the state check. The
+// start lock is created atomically ('wx'); the watchdog takes it over and removes it when the job
+// settles. A lock with no live watchdog and older than a minute is stale and is replaced.
+function takeStartLock(id) {
+  fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
+  for (let i = 0; i < 2; i += 1) {
+    try {
+      const fd = fs.openSync(lockFile(id), 'wx');
+      fs.writeSync(fd, JSON.stringify({ starter: process.pid, at: Date.now() }));
+      fs.closeSync(fd);
+      return true;
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e;
+      let lock = {};
+      try { lock = JSON.parse(fs.readFileSync(lockFile(id), 'utf8')); } catch { /* unreadable: judge by age only */ }
+      const watchdogLive = lock.watchdog ? sameProcess(lock.watchdog, lock.watchdogCreated) === true : false;
+      const fresh = lock.at && Date.now() - lock.at < 60000;
+      if (watchdogLive || fresh) return false;
+      try { fs.unlinkSync(lockFile(id)); } catch { /* another starter removed it */ }
+    }
+  }
+  return false;
+}
+
+function run(jobId, routeArg, cfg, ov = {}) {
+  const j = (ov.jobs || JOBS)[jobId];
+  const routes = ov.routes || JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
+  const buildPrimary = ov.primaryCommand || primaryCommand;
+  const buildKilo = ov.kiloCommand || kiloCommand;
+  const { suitable } = kiloCandidates(j, routes);
+  const outFiles = j.outputs.map(f => path.resolve(ROOT, f));
+  const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
+  fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
+  try { fs.unlinkSync(stopFile(jobId)); } catch { /* no stop request */ }
+  const state = readJob(jobId) || { job: jobId, attempts: [] };
+  state.autoFallbackUsed = false; // a new dispatch by the owner; history stays in attempts
+  const stopRequested = () => fs.existsSync(stopFile(jobId));
+
+  // R-L3-004.7: the previous tree must be gone before anything else starts. Only processes seen as
+  // descendants while the root was alive, and still carrying the same creation time, are stopped;
+  // nothing is ever stopped by a PID alone.
+  const ensureGone = (att, rootPid, isExited, done) => {
+    let rounds = 0;
+    const check = setInterval(() => {
+      rounds += 1;
+      if (!isExited()) kill(rootPid); // the root is ours until Node reports its exit
+      const rows = procTable();
+      const left = rows ? Object.entries(att.known || {})
+        .filter(([pid, created]) => rows.some(r => r.ProcessId === Number(pid) && Number(r.C) === created))
+        .map(([pid]) => Number(pid)) : null;
+      if (isExited() && left && !left.length) { clearInterval(check); done(true); return; }
+      for (const p of left || []) kill(p);
+      if (rounds > 30) { clearInterval(check); done(false); }
+    }, 1000);
+  };
+
+  const start = route => {
+    const message = promptLine(jobId);
+    const primary = route.kind === 'primary';
+    const cmd = checkCommand(primary ? buildPrimary(jobId, message, ROOT) : buildKilo(jobId, route.route, route.variant, message, ROOT));
+    const logPath = path.join(OUT, `${jobId}-${state.attempts.length + 1}.log`);
+    const log = fs.openSync(logPath, 'a');
+    // Baselines are taken before the spawn, so nothing the executor writes can slip into them.
+    const baseline = { outputs: fileSig(outFiles), journals: journalsOf(j.agent) };
+    const child = spawn(cmd, { cwd: ROOT, env, shell: true, stdio: ['ignore', log, log], windowsHide: true });
+    const now = Date.now();
+    const rows0 = procTable();
+    const r0 = rows0 && rows0.find(r => r.ProcessId === child.pid);
+    const att = { primary, route: primary ? `${j.primary.client}:${j.primary.id || 'config'}` : route.route,
+      variant: primary ? j.level : route.variant, command: cmd, pid: child.pid, rootCreated: r0 ? Number(r0.C) : null,
+      log: logPath, startedAt: now, lastProgressAt: now, useful: false, known: {},
+      capMinutes: cfg.capMinutes || DEFAULTS.capMinutes[j.kind], baseline, status: 'STARTING' };
+    state.attempts.push(att); state.status = 'STARTING'; state.pid = child.pid; state.rootCreated = att.rootCreated;
+    const me = rows0 && rows0.find(r => r.ProcessId === process.pid);
+    state.watchdog = process.pid; state.watchdogCreated = me ? Number(me.C) : null; writeJob(jobId, state);
+    fs.writeFileSync(lockFile(jobId), JSON.stringify({ watchdog: process.pid, watchdogCreated: state.watchdogCreated, at: Date.now() }));
+    const logSize = () => { try { return fs.statSync(logPath).size; } catch { return 0; } };
+    const newJournals = () => journalsOf(j.agent).filter(f => !att.baseline.journals.includes(f));
+    const errorIn = () => (tail(logPath, 65536).match(ERROR_TEXT) || [null])[0];
+    // Log volume counts as useful work only while the log carries no error text (a retry loop is not work).
+    const usefulNow = () => fileSig(outFiles) !== att.baseline.outputs || newJournals().length > 0 || (logSize() >= cfg.usefulBytes && !errorIn());
+    let last = { logBytes: 0, outputs: att.baseline.outputs, journals: 0, clientLog: 0, cpu: null, children: '' };
+    let exited = null;
+    child.on('exit', code => { exited = code === null ? -1 : code; });
+    const finish = status => {
+      att.status = status; att.endedAt = new Date().toISOString();
+      ensureGone(att, child.pid, () => exited !== null, gone => { att.treeGone = gone; settle(att); });
+    };
+    const timer = setInterval(() => {
+      const t = Date.now();
+      if (stopRequested()) { clearInterval(timer); finish('STOPPED'); return; }
+      if (exited !== null) {
+        clearInterval(timer);
+        if (usefulNow()) att.useful = true;
+        att.exitCode = exited;
+        finish(classifyExit(att, exited, outFiles.every(f => fs.existsSync(f))));
+        return;
+      }
+      const logBytes = logSize();
+      const outputsNow = fileSig(outFiles);
+      const fresh = newJournals();
+      const journalsNow = fileSig(fresh);
+      const clientLog = fileSig(dirFiles(path.join(OUT, `${jobId}-copilot-log`)));
+      const tr = tree(child.pid, procTable()) || { cpu: last.cpu || 0, children: last.children, procs: [] };
+      for (const p of tr.procs) att.known[p.pid] = p.created;
+      const progress = logBytes !== last.logBytes || outputsNow !== last.outputs || journalsNow !== last.journals
+        || clientLog !== last.clientLog || (last.cpu !== null && tr.cpu - last.cpu >= cfg.cpuSeconds) || tr.children !== last.children;
+      const errNow = att.useful ? null : errorIn();
+      const useful = outputsNow !== att.baseline.outputs || fresh.length > 0 || (logBytes >= cfg.usefulBytes && !errNow);
+      const text = att.useful || useful ? null : errNow;
+      last = { logBytes, outputs: outputsNow, journals: journalsNow, clientLog, cpu: tr.cpu, children: tr.children };
+      const verdict = decide(att, { progress, useful, errorText: text }, cfg, t);
+      att.silentSeconds = Math.round((t - att.lastProgressAt) / 1000);
+      if (text) att.errorText = text;
+      if (verdict === 'SUSPECT' && att.status !== 'SUSPECT') {
+        att.inspections = (att.inspections || []).concat({ at: new Date(t).toISOString(), alive: exited === null, cpu: tr.cpu, children: tr.children, logTail: tail(logPath, 800) });
+      }
+      if (['FAILED_EARLY', 'HUNG', 'OVER_CAP'].includes(verdict)) { clearInterval(timer); finish(verdict); return; }
+      att.status = verdict; state.status = verdict; writeJob(jobId, state);
+    }, cfg.tickSeconds * 1000);
+  };
+
+  const settle = att => {
+    att.changed = j.outputs.filter(f => fs.existsSync(path.resolve(ROOT, f)));
+    att.journals = journalsOf(j.agent).filter(f => !att.baseline.journals.includes(f)).map(f => path.relative(ROOT, f));
+    const autoAllowed = !routeArg || routeArg === 'primary';
+    if (att.status === 'FAILED_EARLY' && att.primary && att.treeGone && !state.autoFallbackUsed && autoAllowed
+      && suitable.length && !stopRequested()) {
+      state.autoFallbackUsed = true; writeJob(jobId, state);
+      return start({ kind: 'kilo', route: suitable[0].route, variant: suitable[0].variant });
+    }
+    state.status = att.status === 'DONE' ? 'DONE' : 'NEEDS_OWNER';
+    const why = att.status === 'STOPPED' ? 'stopped by the owner' : `${att.status} on ${att.route}`;
+    state.reason = att.status === 'DONE' ? null
+      : `${why}${att.errorText ? ` (${att.errorText})` : ''}${att.treeGone === false ? '; process tree NOT confirmed gone' : ''}`;
+    state.pid = null; state.rootCreated = null; state.watchdog = null; state.watchdogCreated = null; writeJob(jobId, state);
+    try { fs.unlinkSync(lockFile(jobId)); } catch { /* no lock: started directly, as in the self-test */ }
+    return undefined;
+  };
+
+  if (routeArg && routeArg !== 'primary') {
+    const n = Number(routeArg.split(':')[1]);
+    const r = suitable[n - 1];
+    return start({ kind: 'kilo', route: r.route, variant: r.variant });
+  }
+  return start({ kind: 'primary' });
+}
+
+// ---------- commands of the CLI ----------
+
+function expand(list) {
+  const ids = [];
+  for (const x of String(list || '').split(',').filter(Boolean)) ids.push(...(GROUPS[x] || [x]));
+  return [...new Set(ids)];
+}
+
+function options(argv) {
+  const cfg = { ...DEFAULTS };
+  const num = flag => { const i = argv.indexOf(flag); return i === -1 ? null : Number(argv[i + 1]); };
+  if (num('--soft-seconds')) cfg.softSeconds = num('--soft-seconds');
+  if (num('--hard-seconds')) cfg.hardSeconds = num('--hard-seconds');
+  if (num('--cap-minutes')) cfg.capMinutes = num('--cap-minutes');
+  else cfg.capMinutes = null;
+  const r = argv.indexOf('--route');
+  cfg.route = r === -1 ? null : argv[r + 1];
+  cfg.takeover = argv.includes('--takeover');
+  return cfg;
+}
+
+function dry(ids) {
+  const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
+  for (const id of ids) {
+    const j = JOBS[id];
+    process.stdout.write(`\n${id} (${j.kind}, ${j.model}, level ${j.level || `unknown, position ${j.position}`}, agent ${j.agent})\n`);
+    process.stdout.write(`  primary: ${checkCommand(primaryCommand(id, promptLine(id), ROOT))}\n`);
+    const { suitable, unsuitable } = kiloCandidates(j, routes);
+    suitable.forEach((r, i) => process.stdout.write(`  kilo:${i + 1}${i === 0 ? ' (automatic fallback)' : ''}: ${checkCommand(kiloCommand(id, r.route, r.variant, promptLine(id), ROOT))}   [$${r.input}/$${r.output} per 1M in/out, ${r.note}]\n`));
+    for (const r of unsuitable) process.stdout.write(`  not suitable: ${r.route} (${r.why})\n`);
+    if (!suitable.length) process.stdout.write('  no automatic fallback: a primary failure goes to the owner\n');
+    const stub = path.join(ROOT, REL, 'prompts', 'run', `${id}.md`);
+    if (!fs.existsSync(stub)) process.stdout.write(`  MISSING prompt stub ${path.relative(ROOT, stub)}\n`);
+  }
+  process.stdout.write(`\nroutes: ${path.relative(ROOT, ROUTES)} (kilo ${routes.kilo}, ${routes.generated})\n`);
+  return 0;
+}
+
+function smoke(ids, cfg) {
+  // Availability and syntax probe: each route answers one word from a scratch directory outside
+  // the repository, so no hook, journal or file of the project is touched.
+  const dir = fs.mkdtempSync(path.join(TMP, 'colabs-smoke-'));
+  const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
+  const message = 'Reply with exactly the word OK and do nothing else';
+  const results = [];
+  const seen = new Set();
+  for (const id of ids) {
+    const j = JOBS[id];
+    const first = kiloCandidates(j, routes).suitable[0];
+    const probes = [[`primary ${j.primary.client}:${j.primary.id || 'config'} ${j.level || ''}`.trim(), primaryCommand(id, message, dir)]];
+    if (first) probes.push([`kilo:1 ${first.route} ${first.variant || ''}`.trim(), kiloCommand(id, first.route, first.variant, message, dir)]);
+    let primaryOk = false;
+    for (const [route, cmd] of probes) {
+      if (route.startsWith('kilo:') && primaryOk) continue;
+      if (seen.has(route)) { if (!route.startsWith('kilo:')) primaryOk = results.some(r => r.route === route && r.ok); continue; }
+      seen.add(route);
+      checkCommand(cmd);
+      const began = Date.now();
+      let out = ''; let code = 0;
+      try { out = execSync(cmd, { cwd: dir, encoding: 'utf8', timeout: DEFAULTS.smokeSeconds * 1000, env: { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' }, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 26, windowsHide: true }); }
+      catch (e) { code = e.status === null || e.status === undefined ? -1 : e.status; out = `${e.stdout || ''}${e.stderr || ''}`; }
+      const ok = code === 0 && /\bOK\b/.test(out);
+      const err = (out.match(ERROR_TEXT) || [null])[0];
+      results.push({ job: id, route, ok, exit: code, seconds: Math.round((Date.now() - began) / 1000), error: err });
+      if (!route.startsWith('kilo:')) primaryOk = ok;
+      process.stdout.write(`${id} ${route}: ${ok ? 'OK' : `FAIL exit ${code}${err ? ` (${err})` : ''}`}\n`);
+    }
+  }
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(path.join(OUT, 'smoke.json'), `${JSON.stringify({ at: new Date().toISOString(), results }, null, 2)}\n`);
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* scratch */ }
+  return results.every(r => r.ok) ? 0 : 1;
+}
+
+// Zero-cost syntax check: every flag must appear in the client's own help, and each client must
+// parse the exact command without starting a model (codex and kilo stop at --help; agy, copilot
+// and vibe reject a sentinel flag and name only that sentinel as unknown).
+const HELP = { codex: 'codex exec --help', agy: 'agy --help', copilot: 'copilot --help', vibe: 'vibe --help', kilo: 'kilo run --help' };
+const SENTINEL = '--zz-parse-check';
+const PROBE = {
+  codex: { suffix: ' --help', ok: code => code === 0 },
+  kilo: { suffix: ' --help', ok: code => code === 0 },
+  agy: { suffix: ` ${SENTINEL}`, ok: (code, out) => code !== 0 && /not defined: -zz-parse-check\s*$/m.test(out) },
+  // copilot rejects broken quoting and invalid values even with --help (measured 2026-09-25).
+  copilot: { suffix: ' --help', ok: code => code === 0 },
+  vibe: { suffix: ` ${SENTINEL}`, ok: (code, out) => code !== 0 && new RegExp(`unrecognized arguments: ${SENTINEL}\\s*$`, 'm').test(out) },
+};
+
+function shell(cmd, seconds) {
+  // stdout and stderr together: agy and kilo print their help on stderr.
+  const r = spawnSync(cmd, { cwd: ROOT, shell: true, encoding: 'utf8', timeout: seconds * 1000, maxBuffer: 1 << 26, windowsHide: true, env: { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' } });
+  return { code: r.status === null ? -1 : r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+}
+
+function check(ids) {
+  const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
+  const list = [];
+  for (const id of ids) {
+    list.push([id, 'primary', JOBS[id].primary.client, primaryCommand(id, promptLine(id), ROOT)]);
+    kiloCandidates(JOBS[id], routes).suitable.forEach((r, i) => list.push([id, `kilo:${i + 1}`, 'kilo', kiloCommand(id, r.route, r.variant, promptLine(id), ROOT)]));
+  }
+  const help = {};
+  let failed = 0;
+  for (const [id, route, client, cmd] of list) {
+    const problems = [];
+    try { checkCommand(cmd); } catch (e) { problems.push(e.message); }
+    if (!help[client]) help[client] = shell(HELP[client], 60).out;
+    for (const m of cmd.matchAll(/(?:^|\s)(--?[A-Za-z][\w-]*)/g)) if (!help[client].includes(m[1])) problems.push(`flag ${m[1]} not in \`${HELP[client]}\``);
+    const probe = shell(cmd + PROBE[client].suffix, 90);
+    if (!PROBE[client].ok(probe.code, probe.out)) problems.push(`parse probe failed (exit ${probe.code}): ${probe.out.split('\n').filter(Boolean).slice(0, 2).join(' | ')}`);
+    failed += problems.length ? 1 : 0;
+    process.stdout.write(`${problems.length ? 'FAIL' : 'ok  '} ${id} ${route} (${client})${problems.length ? `\n     ${problems.join('\n     ')}` : ''}\n`);
+  }
+  process.stdout.write(`${list.length - failed}/${list.length} commands parse; no model was called\n`);
+  return failed ? 1 : 0;
+}
+
+function status() {
+  for (const id of Object.keys(JOBS)) {
+    const s = readJob(id);
+    if (!s) { process.stdout.write(`${id}: not started\n`); continue; }
+    const a = s.attempts[s.attempts.length - 1] || {};
+    const present = JOBS[id].outputs.filter(f => fs.existsSync(path.join(ROOT, f))).length;
+    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${JOBS[id].outputs.length}; attempts ${s.attempts.length}\n`);
+  }
+  return 0;
+}
+
+function startJobs(ids, cfg) {
+  const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
+  let refused = 0;
+  for (const id of ids) {
+    const s = readJob(id);
+    const same = s && s.pid ? sameProcess(s.pid, s.rootCreated) : false;
+    if (same || (same === null && alive(s.pid))) { process.stdout.write(`${id}: refused, already running (pid ${s.pid})\n`); refused += 1; continue; }
+    const j = JOBS[id];
+    if (j.needs) {
+      const pending = j.needs.filter(n => { const x = readJob(n); return !x || (x.pid && sameProcess(x.pid, x.rootCreated) !== false); });
+      if (pending.length) { process.stdout.write(`${id}: refused, waiting for ${pending.join(', ')}\n`); refused += 1; continue; }
+    }
+    const present = j.outputs.filter(f => fs.existsSync(path.join(ROOT, f)));
+    if (present.length && !cfg.takeover) { process.stdout.write(`${id}: refused, outputs exist (${present.length}); a new executor needs --takeover from the owner\n`); refused += 1; continue; }
+    if (cfg.route && cfg.route !== 'primary') {
+      const n = Number(String(cfg.route).split(':')[1]);
+      if (!/^kilo:\d+$/.test(cfg.route) || !kiloCandidates(j, routes).suitable[n - 1]) { process.stdout.write(`${id}: refused, no route ${cfg.route}\n`); refused += 1; continue; }
+    }
+    checkCommand(primaryCommand(id, promptLine(id), ROOT));
+    if (!takeStartLock(id)) { process.stdout.write(`${id}: refused, another start or a live watchdog holds ${path.relative(ROOT, lockFile(id))}\n`); refused += 1; continue; }
+    const args = [__filename, '--run', id];
+    for (const f of ['--soft-seconds', '--hard-seconds', '--cap-minutes', '--route']) {
+      const v = f === '--route' ? cfg.route : f === '--soft-seconds' ? cfg.softSeconds : f === '--hard-seconds' ? cfg.hardSeconds : cfg.capMinutes;
+      if (v !== null && v !== undefined) args.push(f, String(v));
+    }
+    const child = spawn(process.execPath, args, { cwd: ROOT, detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+    process.stdout.write(`${id}: started (watchdog pid ${child.pid})\n`);
+  }
+  process.stdout.write(`check with: node ${REL}/prompts/launch.cjs --status\n`);
+  return refused ? 1 : 0;
+}
+
+// The owner's stop: a marker the watchdog obeys on its next tick (it stops the tree by identity and
+// starts no fallback). If the watchdog itself is gone, the root is stopped here, by identity only.
+function stop(ids) {
+  fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
+  for (const id of ids) {
+    fs.writeFileSync(stopFile(id), `${new Date().toISOString()}\n`);
+    const s = readJob(id);
+    if (!s || !s.pid) { process.stdout.write(`${id}: nothing running; stop request recorded\n`); continue; }
+    const rows = procTable();
+    const watchdogAlive = s.watchdog ? sameProcess(s.watchdog, s.watchdogCreated, rows) : false;
+    if (!watchdogAlive && sameProcess(s.pid, s.rootCreated, rows)) {
+      kill(s.pid); s.status = 'NEEDS_OWNER'; s.reason = 'stopped by the owner'; s.pid = null; writeJob(id, s);
+      process.stdout.write(`${id}: stopped (no watchdog was running)\n`);
+    } else process.stdout.write(`${id}: stop requested; the watchdog stops it within one tick\n`);
+  }
+  return 0;
+}
+
+function main(argv) {
+  const cfg = options(argv);
+  const pick = flag => {
+    const i = argv.indexOf(flag);
+    const next = argv[i + 1];
+    return i === -1 || !next || next.startsWith('--') ? [] : expand(next);
+  };
+  const bad = ids => ids.filter(id => !JOBS[id]);
+  if (argv.includes('--run')) { const id = argv[argv.indexOf('--run') + 1]; if (!JOBS[id]) return 2; run(id, cfg.route, cfg); return null; }
+  if (argv.includes('--status')) return status();
+  for (const flag of ['--dry', '--check', '--smoke', '--start', '--stop']) {
+    if (!argv.includes(flag)) continue;
+    const picked = pick(flag);
+    const ids = picked.length ? picked : (['--dry', '--check', '--smoke'].includes(flag) ? Object.keys(JOBS) : []);
+    if (!ids.length || bad(ids).length) { process.stdout.write(`unknown job(s): ${bad(ids).join(', ') || '(none given)'}; known: ${Object.keys(JOBS).join(', ')}; groups: ${Object.keys(GROUPS).join(', ')}\n`); return 2; }
+    if (flag === '--dry') return dry(ids);
+    if (flag === '--check') return check(ids);
+    if (flag === '--smoke') return smoke(ids, cfg);
+    if (flag === '--start') return startJobs(ids, cfg);
+    return stop(ids);
+  }
+  process.stdout.write('usage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route kilo:<n>] [--takeover] | --status | --stop <jobs>\n');
+  return 2;
+}
+
+if (require.main === module) {
+  const code = main(process.argv.slice(2));
+  if (code !== null) process.exitCode = code;
+}
+
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, JOBS, DEFAULTS, ERROR_TEXT };

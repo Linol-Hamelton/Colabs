@@ -197,3 +197,7 @@ Append-only ledger of archived review artifacts moved from `docs/reviews/` to `d
 | docs/reviews/2026-09-19-deepseek-flash-a2-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a2-audit.md |
 | docs/reviews/2026-09-19-deepseek-flash-a3-reaudit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a3-reaudit.md |
 | docs/reviews/2026-09-19-deepseek-flash-ci-hotfix-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-ci-hotfix-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-a5-b-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-a5-b-audit.md |
+| docs/reviews/2026-09-19-deepseek-flash-a5-b-audit-addendum.md | docs/reviews/archive/2026-09-19-deepseek-flash-a5-b-audit-addendum.md |
+| docs/reviews/2026-09-19-deepseek-flash-c1a-audit.md | docs/reviews/archive/2026-09-19-deepseek-flash-c1a-audit.md |
+| docs/reviews/2026-09-24-claude-core-arch-stage0-1-review-prompt.md | docs/reviews/archive/2026-09-24-claude-core-arch-stage0-1-review-prompt.md |

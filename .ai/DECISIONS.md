@@ -1959,3 +1959,721 @@ Consequences:
 Gemini implements under DeepSeek's coordination and aligns `docs/specs/2026-09-23-executable-rulebook-spec.md` with items 2 and 3, correcting line 89. The certification prompt must use neutral-requirement probes, or rule 3 hides the result. Journals stand above their cap and are unloaded before the round. The Jev evaluation still exists only outside the repository.
 
 Approved by: RuslanFomenko (direct owner confirmation, 2026-09-23: reject `..` with exit 2, protected set from the manifest's managed and source lists, certifiers Codex and a fresh Claude session, budget of at most two; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0047
+
+Status: Accepted
+Date: 2026-09-23
+Reopen-trigger: owner-directive
+
+Context:
+The executable-rulebook batch, the 13-question routing research and the owner's discussion with Claude and Codex produced a set of operating rules that the owner accepted in conversation on 2026-09-23. They answer failures measured this week rather than preferences: a certification round that reviewed a tree before its candidate existed; a batch that produced 13 root causes across two fix rounds while no single root cause reached its two-attempt budget; an implementer (Gemini via Antigravity) that stalled twice, 40 and 25 minutes without a write, and lost one resume to a provider EOF; scripts that needed some twenty reproduced defects before they could be trusted, the four worst of which all passed silently; telemetry in which 61 of 78 rows come from Claude and none from Mistral; and a user-level Codex configuration whose MCP schemas cost 8,627 input tokens per call (190,204 with it, 181,577 with `--ignore-user-config`), about 5.7 times the 1,500-token budget of PROTO-DEC-0034 item 2. Effort scales and permission flags were read from each CLI's `--help` on 2026-09-23 rather than assumed.
+
+Decision:
+1. Certifier selection. The owner's order Codex, then Claude, then DeepSeek is an availability order, applied as "the first available participant that is independent of the candidate". It is not three sequential checks. Independence is filtered by PROTO-DEC-0041 item 1 before availability is considered.
+2. Verdict asymmetry. Any participant, including the coordinator and the implementer, may report a FAIL or BLOCKED with a reproduction, and a reproduced defect blocks as PROTO-DEC-0041 items 4 and 5 already require. Only an independent certifier may issue PASS or RECOMMENDATION toward a completion gate. This refines PROTO-DEC-0041 item 1 and weakens nothing.
+3. Certifier count by risk. High-risk candidates keep two parallel independent certifiers. A confirmer that re-checks the first certifier's report in a new session is acceptable for medium risk only; a single reviewer remains the rule for low risk (PROTO-DEC-0038 item 2). Recorded ground: in this batch the second independent reviewer found what the first missed three times (F-C01; the round-3 F-003 closure later overturned; the PASS given over an existing blocker).
+4. Shadow certification. A participant not yet trusted for a binding slot (currently Mistral, Copilot) may certify in shadow: the same package, in parallel, independently, with its verdict recorded but never counted toward a gate, and scored against the final outcome. A record of accurate shadow rounds is the route into the succession order.
+5. Batch cap. The per-root-cause budget cannot bound a batch whose rounds keep finding new root causes. For the executable-rulebook batch, the certification of the freeze that follows the current remediation round is the last automatic round; if it finds new blocking root causes, the coordinator returns the list to the owner instead of opening another round. In general a batch gets at most three certification rounds on distinct frozen candidates before the owner decides whether to narrow, accept with recorded exceptions, or continue.
+6. Executor liveness. Liveness is progress, not process: no tree write, no journal update and no output for a set interval (15 minutes for an implementation step) means stalled. Executors write one checkpoint line to their journal after each block so that a fresh session resumes from the repository, not from lost context. Steps are verifiable from the tree so that re-running them is harmless. Two recoveries per executor; on the third the task passes to a deputy that is not a certifier of the same candidate, instead of raising a warning. Executors run non-interactively with a narrow pre-granted permission set and a time bound, because an interactive permission prompt and an unbounded wait both look like a hang. Measured from `--help`: agy `--print-timeout` defaults to 0s, which waits forever.
+7. Permission grants. Prefer narrow grants: agy `--print --mode accept-edits --sandbox --print-timeout`; claude `-p --allowedTools`; vibe `-p --enabled-tools --max-turns`; codex `exec --approve-for-me`. Copilot's `--allow-all-tools` is required for its non-interactive mode and is compensated by a narrow working directory. Full bypass flags (`--dangerously-skip-permissions`, `--yolo`, `--dangerously-bypass-approvals-and-sandbox`) are used only inside a disposable worktree and only with the owner's authorisation recorded in the journal, as `.ai/docs/CLI-AGENTS.md` section 6 already requires. Kilo's auto-approval lives in its own interface and is the coordinator's to configure.
+8. Script standard. Checks, analyses, tests and validations that meet the four conditions of section 1 of `docs/specs/2026-09-23-executable-rulebook-spec.md` are moved from assistants to scripts. Every such script must: fail closed, with unknown input exiting 2 and a test aimed specifically at silent pass-through; name the recorded decision it enforces; print the rows behind its result; carry a golden corpus of real past failures as regression tests; run in shadow beside the manual check before it is trusted; be certified like kernel code; and be re-verified when an input format it reads changes. Work that fails those four conditions stays with assistants.
+9. Client registry. Models, effort and permission settings are recorded as verified data, not hard-coded in kernel logic: per client and provider, every main model, the native effort values, a normalised tier mapping, the permission and time-bound flags, the CLI version and the verification date, all taken from `--help` and `models` output. Logs record the value actually used, not the one requested. Measured 2026-09-23: claude `--effort` low|medium|high|xhigh|max; copilot `--reasoning-effort` none|minimal|low|medium|high|xhigh|max; agy `--effort` low|medium|high; codex has no effort flag, only `-c model_reasoning_effort`; vibe exposes neither effort nor model in `--help`.
+10. Cost measurement. CodeBurn (npm `codeburn`) may serve as a local, read-only source of token, cost and time per task and model, joined to the findings ledger by session. It is not a quality measure: quality comes from ledger outcomes, escaped defects and owner interventions. Its hook installer (`codeburn guard`) is not used, and installing CodeBurn needs the owner's explicit approval under PROTO-DEC-0034. Reports are produced per closed task, with ratings reviewed every ten closed tasks rather than per session. Ratings stay advisory and never enter a gate.
+11. Tool governance. Skills, MCP servers and connectors are default-deny: a project allowlist is the ceiling, a task class decides what is activated, a session loads the union of its tasks lazily. Forced use applies only to the protocol's own deterministic tools and procedural lookups, never to an external tool in a gate path. A description justifies a trial, never activation. Trials reuse the MCP council's preregistered template, generalised: paired A/B on one frozen SHA in separate worktrees, with schema tokens, invocation rate, fallback rate and duplicate reads measured alongside quality, time and cost. A metric that changes no decision over successive reviews is dropped.
+12. Scope. This block records operating rules and direction. Items 1-7 apply from now. Items 8-11 are implemented as kernel changes under the PLAN batching rule, each certified under PROTO-DEC-0038 item 1; nothing here authorises an uncertified kernel change. `.ai/docs/CLI-AGENTS.md` is updated with the item 6-7 facts in the next kernel batch, not in the batch now being certified. PROTO-DEC-0034, 0038, 0041, 0045 and 0046 stand; this block supersedes nothing.
+
+Reasoning:
+Each item answers a measured loss this week. The asymmetry keeps every defect DeepSeek or any other participant can find in play while keeping self-approval out, which is the whole purpose of independence. The batch cap closes the loophole that per-root-cause counting leaves open. The liveness, permission and time-bound rules convert silent stalls into exits that a coordinator can act on. The script standard targets the one failure class all four of the worst script defects shared.
+
+Alternatives rejected:
+Letting the coordinator certify what it dispatched; a single senior certifier or a confirming second for high-risk work; activating tools on the strength of their descriptions; scoring quality from token spend; per-session ratings; full permission bypass outside disposable worktrees; hard-coding model names or a brand order in kernel logic.
+
+Consequences:
+The coordinator applies items 1-7 to the current batch and research. Q03/Q04 carry the registry of item 9, Q12 the cost measurement of item 10, Q14 the certification model of items 3-4, Q15 the tool governance of item 11. Freeze commits must be path-scoped to the candidate's declared scope, since unrelated work in the tree otherwise enters the candidate and fails its scope check.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-23, "принимаю все твои рекомендации"; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0048
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+The third certification round of the executable-rulebook batch, the last automatic one under PROTO-DEC-0047 item 5, failed in both binding slots on candidate `4ded1be`: Codex R3-C01..R3-C05 and Claude F-R3-01..F-R3-05. Mistral's shadow verdict was PASS against five reproduced defects. The deterministic parts had converged. The new root causes concentrated in `.ai/bin/protocol-scope.cjs`, which infers roles and identities from free prose in `.ai/TASK.md`. Across two rounds that produced five root causes. Its contract is spec section 6 of `docs/specs/2026-09-23-executable-rulebook-spec.md`. Claude recommended narrowing the batch and returning to product work. The owner rejected both. The owner's reason: participants' limits, Codex's above all, are spent almost at once, and the empty rounds are consequences of architectural defects. Product work on an unstable protocol, with no working metrics, would produce cycles for the sake of cycles.
+
+Decision:
+1. Batch disposition. The owner exercises the "continue" branch of PROTO-DEC-0047 item 5. The batch is not narrowed and not accepted with open defects. It is finished by removing the procedural and architectural defects behind the empty rounds. Product work does not resume until the protocol is stable and its metrics are measurable. This replaces the product-first ordering in the Next section of `.ai/TASK.md`.
+2. Converged parts accepted. Layers A/B/C, `.ai/bin/protocol-ledger.cjs` and `.ai/bin/protocol-verdict.cjs` are accepted as converged. The one finding found independently in both slots, R3-C04 = F-R3-01, is authorised for a fix: ledger collection must stay inside the set that spec section 4 records.
+3. Independence check weakened, not removed. Reports by different participants may not quote each other directly. Prose that matches between two reports is a citation defect. A participant may still endorse another's point, but only in a fixed form: agreement with `<model>` on item N, with one degree from a closed scale. The scale, from lowest to highest:
+   - categorically disagree, with reasons;
+   - disagree;
+   - partially agree;
+   - agree with reservations;
+   - fully agree;
+   - absolutely agree, with additional confirmation found.
+   Any degree other than full agreement carries the additions that justify the deviation, in either direction. The exact grammar and the matching rule are defined in the spec and certified like kernel code. Until then the check is applied by hand.
+4. Budget exhaustion. R3-C05, a blank line added inside a committed decision block that the validator does not see (RC-immutability-boundary, attempt 2), is recorded as an accepted exception. No third attempt is opened. A procedure is created that either prevents this behaviour or, when a root cause exhausts its budget, closes the cycle as failed at once and hands the case to an audit. It is designed as a proposal in `.ai/PLAN.md` and certified before use.
+5. Producer record and reproductions. A producing session writes a journal entry with an Evidence block anchoring the candidate it produced (F-R3-03). A ledger reproduction must resolve to a script inside the repository (F-R3-04). Exception: a sanctioned borrowing of a proven practice may reference an external script, provided the sanction and the script's location are recorded.
+6. Scope of kernel work now. Only critical failures that obstruct work are fixed now. Afterwards come research and design, with drawings and a skeleton of the architectural, semantic and meaning-level prototype, before any rebuild of the kernel.
+7. Concurrency.
+   - Edits to code, the kernel and the main documents (`.ai/TASK.md`, `.ai/PLAN.md`) have one coordinator and at most two active streams. At the current stage those streams are DeepSeek and Gemini.
+   - The limit does not apply to research, heuristic discussion, or the development of concepts, plans and proposals. There every participant writes a separate document of its own.
+8. Edits outside the repository. A change to a client's settings, or to anything else outside the repository, is made by one agent only. It keeps a backup, writes a journal entry, and writes a record in the folder where the change was made.
+
+Reasoning:
+Each empty round cost the full review budget of two certifiers, so the rounds spent the scarcest resource, Codex's limit, on defects that came from one design choice: parsing free prose. A fixed form for agreement turns an open text surface into a closed grammar while keeping legitimate endorsement. Recording the exhausted root cause as an exception and moving budget exhaustion to audit stops the same implementer from retrying past the budget. Separate documents for exploratory work keep independent reasoning, which a two-stream cap would otherwise suppress.
+
+Alternatives rejected:
+Narrowing the batch; accepting it with open defects; returning to product work now; removing the independence check from the script; a third attempt on RC-immutability-boundary; applying the two-stream cap to research and discussion.
+
+Consequences:
+The coordinator dispatches a remediation round covering items 2-5, with certification under PROTO-DEC-0038 item 1 and PROTO-DEC-0041 item 2. Items 3 and 4 need a spec change before code. `.ai/TASK.md` Next is replaced accordingly. PROTO-DEC-0034, 0038, 0041, 0045, 0046 and 0047 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-24, replies to Claude's regrouping proposal: "одобряю" on item 2, "проверку ослабить, но не убирать" on item 3, "подтверждаю" on item 4, "отказ. доработать и устранить процедурные и архитектурные недостатки" on the batch; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0049
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+Each re-certification round of the executable-rulebook batch had both certifiers re-read and re-probe the whole batch, although each fix round changed a small part of it. That is the main reason Codex's limit is exhausted within a round or two. The round-3 failures in `.ai/bin/protocol-scope.cjs` came from guessing roles out of free prose. Executor stalls this week sat for 25 and 40 minutes with no reads, writes or reasoning before anyone acted. Earlier research, the MCP council among it, treated a found risk, or a poor measurement of an untuned setup, as grounds to drop an approach rather than to cover the risk. agy in headless mode soft-denies every command outside its allow-list. Measured 2026-09-24: its PreToolUse hook is loaded and invoked, but neither a hook `allow` nor `permissionOverrides` satisfies its own permission check.
+
+Decision:
+1. Diff-based re-certification. From the second round of a batch onward, a certifier reviews the diff between the previous certified-against candidate and the new one, together with the findings that diff claims to close. The validator and the full regression suite run automatically over the whole tree and are attached as Evidence. Reading beyond the diff is never forbidden. The certifier widens it when the changed code depends on unchanged code, and records why. The first round of a batch still reviews the whole candidate.
+2. Fixed grammar, unknown exits 2. Every script check that reads human-written input — the roles in `.ai/TASK.md`, agreement lines between reports under PROTO-DEC-0048 item 3, and ledger rows — reads only lines in a fixed grammar. Anything it cannot parse exits 2 as unknown. It is never guessed. The grammar is defined in `docs/specs/2026-09-23-executable-rulebook-spec.md` and certified with the script.
+3. Idle exit. At any stage, more than five minutes with no reading, no writing and no reasoning, zero tokens, is a stall and not a wait. The executor or its watchdog exits and the run resumes or escalates under PROTO-DEC-0047 item 6. This refines the 15-minute interval of that item for idle time.
+4. Risk-seeking serves coverage. Risks are searched and forecast in order to prevent and compensate for them and to judge whether the expected gain can be reached. A found risk does not by itself reject a solution. A poor measurement of an untuned or undifferentiated setup is not evidence against the approach. It is evidence against that configuration. A solution is rejected only when its risks cannot be covered at acceptable cost, or when the net gain after coverage is negative. Each research report states, per risk, how it can be covered, what the coverage costs, and what residual remains.
+5. Executor permissions for agy. The owner authorises agy to run without CLI permission prompts, with full approval for all edits within the regulation of the procedure and the task. Violations are handled by the owner.
+   - Irreversible operations are hard-blocked by the PreToolUse gate `~/.gemini/config/protocol-gate.cjs`. Its list is recorded beside it in `~/.gemini/config/PROTOCOL-CHANGES.md`.
+   - Prompts are removed with `--dangerously-skip-permissions`, only after the owner has verified that the gate's deny path holds under that flag.
+   - This refines PROTO-DEC-0047 item 7 for agy only. The disposable-worktree condition is replaced by the gate.
+
+Reasoning:
+The diff is where new defects can be, and the automatic full-tree run keeps regressions visible. Reviewing the whole batch again spends a certifier's limit on code already certified. Guessing from prose produced five root causes in two rounds, and a closed grammar with an explicit unknown ends that class. An executor that burns no tokens for five minutes is not working. Risk search that ends in refusal forfeits the gain the work was meant to deliver.
+
+Alternatives rejected:
+Full re-review every round; heuristic prose parsing; a fixed 15-minute bound for idle stalls; rejecting solutions on the first risk found; interactive approvals for agy; a full bypass for agy without a gate.
+
+Consequences:
+The remediation round of PROTO-DEC-0048 is certified on its diff against `4ded1be`. Items 2 and 3 enter the spec and scripts in that round. The watchdog of item 3 is a kernel change and is certified. The research brief for junior models under item 4 is `docs/research/2026-09-24-remediation-mapping/BRIEF.md`. PROTO-DEC-0038, 0041, 0047 and 0048 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-24: "да, записывай" on diff-only certification, "применяй, но вопросы в CLI надо отключить и дать полное одобрение на все правки в рамках регламента процедуры и задания", "да" on fixed grammar with exit 2 for roles, the five-minute zero-token exit, and the principle that risks are sought to cover them and gain, not to justify refusal; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0050
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+Round 2 of the remediation-mapping research was dispatched through one launcher command, with each prompt kept in a file, and it ran without quoting refusals. Earlier dispatches of the same kind lost three to five attempts per agent to shell quoting and wrong flags. In the same round Mistral failed twice at its first output character. vibe is a Python program, and with stdout redirected to a file on Windows it encoded in the ANSI code page and died on U+2192. Both failures were fixed in the launcher, `docs/research/2026-09-24-remediation-mapping/prompts/launch-round2.cjs`. The owner's ruling was that each such break is a missing procedure. Plugging it locally with a workaround is not enough, and concentrating on procedures is the route to results.
+
+Decision:
+1. Failures become procedures. Every operational failure is classified by its root cause and closed by changing the procedure or registry entry it belongs to, so that the class cannot recur for any participant. A local workaround is allowed only to finish the work in hand. It is recorded as temporary, and the procedure change follows in the next kernel batch. The journal entry that reports a failure names the procedure it changes, or states that none exists yet.
+2. Dispatch procedure. A dispatcher does not compose a CLI command by hand. Specifically:
+   - Every prompt is a file in the repository.
+   - The dispatched agent receives one fixed ASCII line naming that file: "Read and follow the file <repo-relative path>".
+   - The command line is assembled by a script from recorded client data.
+   - Flags are used only as verified from the client's own `--help` and recorded with the CLI version and date.
+   - Every prompt begins by checking that the working tree is the intended repository, and stops if it is not.
+   - The dispatch script enforces the idle exit of PROTO-DEC-0049 item 3 and the hard time cap.
+   - A failed agent is restarted once. A second failure goes to the owner, unless the first failure was the dispatcher's own defect and that defect has been fixed.
+3. Client execution profiles. The client registry of PROTO-DEC-0047 item 9 records, for each client:
+   - the command template;
+   - the required environment, for example UTF-8 for Python-based clients: `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` for vibe;
+   - the permission and time-bound flags;
+   - the known failure modes with their cause and countermeasure.
+   A task written for a client is written against its profile. A new failure mode found in any run is added to the profile, not only fixed in the run.
+4. Home and timing. The dispatch procedure and the profiles belong in `.ai/docs/CLI-AGENTS.md`, together with a registry file that the dispatch script reads. The research launcher is generalised into a kernel dispatch script. Both are kernel changes. They enter the current remediation round, because dispatch failures spend the same limits PROTO-DEC-0048 set out to save. They are certified under PROTO-DEC-0038 item 1 on the diff, as PROTO-DEC-0049 item 1 provides.
+
+Reasoning:
+The two failures of one evening share a pattern. Each was invisible until it cost attempts, and each would have recurred for the next dispatcher and the next Python-based client. A procedure change removes the class, while a workaround removes one instance. The launcher and the environment fix have already worked once, so the procedure records something measured rather than something designed.
+
+Alternatives rejected:
+Leaving the fixes inside a research-directory script; hand-quoted commands with more careful instructions; per-incident notes in journals without a procedure home; deferring the registry to the kernel redesign.
+
+Consequences:
+The coordinator adds the dispatch script, the registry file and the `.ai/docs/CLI-AGENTS.md` update to the remediation round of PROTO-DEC-0048. Until they are certified, `docs/research/2026-09-24-remediation-mapping/prompts/launch-round2.cjs` is the recorded temporary workaround. PROTO-DEC-0047, 0048 and 0049 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-24: "вот тебе еще одна процедура для ядра. может немного доработать и зафиксировать"; "это процедура написания задач для мистраль"; "если каждое падение и поломку не затыкать пальцем и не лечить костылем, а сосредоточиться на процедурах, мы быстро придем к успеху"; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0051
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+PROTO-DEC-0050 made failures into procedures, but nothing yet notices a failure class early, records it in one place, or routes it into a procedure. The same holds for mechanical work that assistants keep getting wrong. This week's instances:
+- line citations that do not say what they claim, as in GLM's Z1 answer and the Q02 and Q10 challenges;
+- unmeasured MEASURED labels;
+- a hash comparison done with the wrong offset;
+- signals for four clients described without being measured.
+Each would have been deterministic as a script. Idle detection under PROTO-DEC-0049 item 3 stops a stalled agent outright. Yet every client in use can resume its own session by id, so a stalled agent can often be woken rather than lost.
+
+Decision:
+1. One signals ledger. The kernel keeps one append-only signals ledger. Its lines follow a fixed grammar under PROTO-DEC-0049 item 2, so a script can count them. Each signal records:
+   - its type: procedure-gap, script-candidate or fall;
+   - the date and the participant;
+   - the evidence path;
+   - the cost it caused (attempts, minutes or owner interventions);
+   - its disposition.
+   Any participant or script may append a signal. None may delete one.
+2. Procedure-gap signals. A signal of this type is recorded when:
+   - an operational failure costs an attempt or an owner intervention;
+   - the same workaround is used a second time;
+   - a rule is missing, so that "rule not found" applies;
+   - a dispatch or client breaks in a way no procedure foresaw.
+   One signal is enough to open a candidate. At batch planning the coordinator groups open signals by root cause and proposes, for each group, the procedure or registry change under PROTO-DEC-0050 item 1. The owner decides adoption. A group left open for two consecutive batches is escalated to the owner.
+3. Script-candidate signals. A signal of this type is recorded when either of these holds:
+   - an assistant performs the same check, count, comparison, parse or measurement on repository inputs a second time;
+   - an assistant's result on such work is found wrong.
+   The coordinator tests each candidate against the four conditions of section 1 of `docs/specs/2026-09-23-executable-rulebook-spec.md`. A candidate that meets them is scheduled as a script or an existing library under the script standard of PROTO-DEC-0047 item 8. One that does not stays with assistants, and the unmet condition is recorded.
+4. Wake-then-fail watchdog. It refines PROTO-DEC-0049 item 3.
+   - The dispatch script watches each agent's reasoning artifact: its streamed output, its transcript, its report and its journal.
+   - The artifact is stalled when its size does not change, or it does not appear, for five minutes.
+   - On a stall the watchdog wakes the agent by resuming the same session by id, with a fixed line telling it to continue from its last journal checkpoint. It does this up to three times.
+   - If the agent does not resume progress after the third wake, the watchdog ends the process and records it as FALLEN, with its logs, its session id and the wake history.
+   - A client that cannot resume by id skips the wakes and is recorded as FALLEN on the first stall. That gap is itself a procedure-gap signal.
+   - Every FALLEN outcome is appended to the signals ledger as type fall. A fall is investigated for its cause, and closed either by a bug fix or by a new procedure.
+5. Home and timing. The watchdog belongs to the dispatch script of PROTO-DEC-0050 item 4 and enters the current remediation round with it. The signals ledger and the processing of items 2 and 3 are specified in `.ai/docs/CLI-AGENTS.md` and a kernel procedure document, and are certified under PROTO-DEC-0038 item 1. Until the ledger exists, signals are recorded in the reporting journal under a line beginning "Signal:".
+
+Reasoning:
+Failures this week were noticed only when they had already cost a round, and the evidence for a procedure lay scattered over journals. One ledger with a grammar makes recurrence countable. The script-candidate signal targets the one kind of error that scripts remove entirely. Waking by session resume keeps an agent's accumulated context, which a fresh restart discards. The fall record turns a silent loss into an investigation.
+
+Alternatives rejected:
+Killing on the first stall; unlimited wakes; signals kept only in journals; letting each participant decide alone what becomes a procedure or a script.
+
+Consequences:
+The remediation round of PROTO-DEC-0048 now also carries the wake-then-fail watchdog and the signals ledger specification. PROTO-DEC-0047, 0049 and 0050 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-24: "надо в ядро добавить еще 2 процедуры ... процедура отслеживания сигналов на создание новых процедур и процедура отслеживания сигнала перевода обработки данных с нейросетей на скрипты или библиотеки ... скрипт с таймером, который отслеживает артефакт рассуждения ... будит ассистента 3 раза ... завершает процесс с флагом что он упал ... упавший флаг это сигнал на расследование причин и устранение бага или написание новой процедуры"; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0052
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+Research programs consumed most of this week and have no kernel procedure. The remediation-mapping cycle already runs under a structure the owner set: round 1 zone reports, one owner per zone; round 2 challenges, where nobody challenges their own zone, followed by DeepSeek's synthesis of that round; round 3 three independent syntheses by DeepSeek, Claude and Codex; then a final implementation plan by Claude or Codex. `.ai/docs/PAIRED-CYCLE.md:160` requires one synthesis and one disposition table per round. That rule was written for implementation cycles, and it conflicts with the third round (conflict K1 in `docs/research/2026-09-24-remediation-mapping/PROCEDURE-MAP.md`).
+
+Decision:
+1. Research cycle structure. A research or design cycle that the owner opens runs in up to three rounds:
+   - round 1: primary reports, exactly one owner per zone;
+   - round 2: challenges, where no participant challenges its own zone, plus one synthesis of the round;
+   - round 3: independent syntheses by the participants the owner names, followed by one final plan written by a participant the owner names.
+2. Independence of round-3 syntheses. Each round-3 synthesiser writes its synthesis without reading the other round-3 syntheses, and records in its journal that it did not open them. The final plan is written only after all syntheses exist. It states where the syntheses agree, where they diverge, and which divergence it resolves and why. Agreement with another synthesis is expressed only in the fixed form of PROTO-DEC-0048 item 3.
+3. Scope of the one-synthesis rule. `.ai/docs/PAIRED-CYCLE.md` section 5 item 3 continues to govern implementation and certification cycles. It does not apply to research cycles under item 1. The kernel text is aligned in the current remediation round.
+4. Research outputs are advisory. No synthesis or final plan is a decision. The owner adopts, amends or rejects the final plan, and only an approved block makes it binding.
+5. For the remediation-mapping cycle now running, the round-3 synthesisers are DeepSeek, Claude and Codex. The final plan is written by Claude or Codex, as the owner names. The research-cycle procedure is written into the kernel as a scenario, and is certified with the other kernel changes of this round.
+
+Reasoning:
+The cycle has already produced corrections that one synthesis would have absorbed, for example GLM's rejected answer and the defects found in the Gemini and Mistral reports. Independent syntheses expose disagreement while it is still cheap. Limiting the one-synthesis rule to implementation cycles keeps its original purpose, which is to stop per-item artifacts during remediation.
+
+Alternatives rejected:
+One synthesis in every round; syntheses written after reading each other; leaving research cycles without a procedure.
+
+Consequences:
+Conflict K1 is resolved. The research-cycle scenario is added to the remediation round alongside PROTO-DEC-0050 and 0051. PROTO-DEC-0041 and 0048 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-24: "да" to recording the three-synthesis research-cycle structure above PAIRED-CYCLE section 5 item 3 for research cycles; the structure itself was set by the owner earlier the same night; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0053
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0052 items 2 and 5, as to the final-plan step only
+
+Context:
+PROTO-DEC-0052 recorded the research cycle with one final plan written after three independent syntheses. The same night the owner refined the closing step, and made the procedure the one for changes to the kernel: a draft decision built on the syntheses must be criticised by the other two synthesisers before any plan is fixed.
+
+Decision:
+1. Kernel-change decision procedure. Every change to the protocol kernel, and every research cycle that prepares one, closes in four steps after the rounds of PROTO-DEC-0052 item 1:
+   - (a) three independent syntheses, each written without reading the others;
+   - (b) one draft decision built on all three, written by the synthesiser the owner names. It states where the syntheses agree, where they diverge, and how each divergence is resolved;
+   - (c) a critique of that draft by each of the two other synthesisers, written independently of each other, using the fixed agreement form of PROTO-DEC-0048 item 3 for each point of the draft;
+   - (d) the final plan, fixed by whichever of the three the owner names. It answers every point of both critiques by accepting it, rejecting it with a reason, or leaving it to the owner.
+2. Nothing in steps (a) to (d) is a decision. The owner approves, amends or rejects the final plan, and only an approved block makes it binding.
+3. For the remediation-mapping cycle now running, the synthesisers are DeepSeek, Claude and Codex. The owner names the drafter of step (b) and the fixer of step (d) when the syntheses are in. The Claude synthesis is written by a fresh Claude session, not by the session that wrote the cycle's briefs, leads and procedure map.
+4. The kernel scenario required by PROTO-DEC-0052 item 5 records this four-step closing.
+
+Reasoning:
+A draft written from three syntheses can still inherit its drafter's blind spots. Two independent critiques before fixing put every choice in the draft under challenge from both of the other perspectives. Naming the fixer only at the end keeps the choice with the owner.
+
+Alternatives rejected:
+The final plan written directly after the syntheses; a single critic; the drafter always fixing its own plan.
+
+Consequences:
+The closing step of PROTO-DEC-0052 is replaced by items 1 to 3. PROTO-DEC-0052 items 1, 3 and 4 stand.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-24: "новая процедура на правки в ядро. три синтеза, решение на их основе критика от двух оставшихся и после любой из трех фиксирует по указанию человека итоговый план"; transcribed by claude-ebd3e8a8eb29a6d7)
+
+---
+
+### PROTO-DEC-0054
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+The round-3 syntheses of the remediation-mapping cycle are in: Claude (`r3-claude-synthesis.md`), Codex (`r3-codex-synthesis.md`) and DeepSeek (`r3-deepseek-synthesis.md`), plus one external synthesis the owner supplied in conversation, which proposes Graph Memory as a reference architecture. The owner then directed, in conversation: finalize one consolidated synthesis on the hypotheses with the widest agreement; build around it a staged strategic plan for the evolution of the kernel, saved as `CORE-ARCH-1.md`, `CORE-ARCH-2.md` and so on; make the first stage a procedure for creating procedures, built from the most basic layer L0 up, with `https://github.com/graph-memory/graphmemory/blob/main/docs/architecture.md` as the reference; stop binding roles to model brands and assign any role to any participant per task; run the kernel work as code is run, with Claude as implementer and DeepSeek as reviewer; check before each next layer that the architecture of processes and procedures is consistent; temporarily lift the ban on kernel edits and on brand-dependent roles; make a backup of the repository and start.
+
+Decision:
+1. The CORE-ARCH program is opened: a layer-by-layer evolution of the protocol kernel, planned in `docs/core-arch/CORE-ARCH-<n>.md`. The plan files are proposals. The content of each stage becomes binding only through an approved block.
+2. Temporary freeze exception. For work inside the CORE-ARCH program, neither the feature freeze of PROTO-DEC-0039 item 1 nor the ordering in PROTO-DEC-0048 item 6 blocks kernel edits. The exception lasts until the owner revokes it or the program closes. The product hold of PROTO-DEC-0048 item 1 stands.
+3. Roles are not bound to brands in this program. Any role may be assigned to any participant per task. The brand-per-line practice of DEC-0020 and the naming of DeepSeek and Gemini as the edit streams in PROTO-DEC-0048 item 7 do not bind CORE-ARCH work. The owner's assignment now: Claude is the implementer and DeepSeek the reviewer. The cap of PROTO-DEC-0048 item 7, one coordinator and at most two edit streams, stands.
+4. Workflow. Each stage produces a candidate that DeepSeek reviews adversarially, with the closed verdict vocabulary of PROTO-DEC-0041 item 3, before the stage is presented to the owner. Before work on the next layer starts, the implementer checks the new layer's processes and procedures against the layers already built, and records the check.
+5. What stands unchanged: owner-only authority and transcription (PROTO-DEC-0030); the append-only decision log; no commit, tag or push without the owner; PROTO-DEC-0038 and PROTO-DEC-0041, so the final check of a high-risk kernel candidate needs two parallel independent certifiers, and Claude and DeepSeek, as its author and controller, certify none of it; PROTO-DEC-0034, 0036 and 0045, so Graph Memory is a design reference and is not adopted as a runtime, memory engine or MCP server.
+6. Backup. A full copy of the checkout, including `.git`, the dirty tree and untracked files, was made before any program edit at `D:\Colabs-backup-2026-09-24-pre-core-arch`, at HEAD `4ded1be`. No tag was created.
+
+Reasoning:
+The owner judged that the kernel's defects are architectural, and that more remediation inside the current structure repeats empty rounds. A layer-by-layer rebuild that starts from the rule for making rules addresses the cause: every later procedure is written, checked and retired by one procedure. Keeping the certification rules intact keeps the program's own output under independent review, while the exception frees the design work that PROTO-DEC-0048 item 6 had postponed.
+
+Alternatives rejected:
+Continuing the remediation round unchanged before any redesign; lifting the certification rules together with the freeze; adopting Graph Memory as a runtime service, which PROTO-DEC-0045 item 1 refuses; recording the program only in PLAN, which ranks below the freeze it must lift.
+
+Consequences:
+`docs/core-arch/CORE-ARCH-1.md` carries the consolidated synthesis, the program and the owner questions. It proposes how the consensus items of the remediation round (PROTO-DEC-0048 to 0053) are re-homed into the program's stages; the owner decides that re-homing. `.ai/TASK.md` Roles and Next are updated accordingly. PROTO-DEC-0038, 0041, 0048 items 1-5 and 7-8, and 0049-0053 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner directive, 2026-09-24: "Временно надо по решению владельца снять запрет на правки ядра и роли в зависимости от бренда, возможно сделать резервную копию репозитория и приступать к работе"; "имплементатором я хотел бы назначить тебя, а ревьюером дипсик"; "Сейчас первым этапом самым главным будет написать процедуру на создание процедуры"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0055
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0053 item 1 step (c) and item 3, for the remediation-mapping cycle only, as to who writes the two critiques
+
+Context:
+`docs/core-arch/CORE-ARCH-1.md` listed questions only the owner can answer. The owner answered four of them in conversation on 2026-09-24: re-home the remediation items into the program's stages (question 2); the second critique comes from Gemini (question 3); Codex and Gemini certify the program's packages (question 4); and, since no vote on the base layer exists outside the repository, the consensus base layer can be built now (question 9). The owner also stated how model and effort are chosen: each task is run in a session launched with the model and reasoning effort named explicitly.
+
+Decision:
+1. Re-homing. The remediation items that PROTO-DEC-0048 to 0053 placed in the current remediation round (R-01 to R-19 of `docs/core-arch/CORE-ARCH-1.md` section 3.2) are carried out inside the CORE-ARCH stages, as mapped in section 7 of that file. No separate DeepSeek-Gemini remediation round runs. Items marked critical there land first, in certification package I. The obligations themselves stand: this changes where and by whom they are done, not what they require.
+2. Research-cycle closing for the remediation-mapping cycle. `docs/core-arch/CORE-ARCH-1.md` is step (b), the draft decision, of PROTO-DEC-0053 item 1. Its two critiques in step (c) are written by DeepSeek and Gemini, independently of each other, in the fixed agreement form of PROTO-DEC-0048 item 3. Gemini replaces Codex as a critic because Codex's limits are exhausted. The fixer of step (d) is named by the owner later.
+3. Certifiers of the program. The final checks of CORE-ARCH certification packages I, II and III are made by Codex and Gemini, in parallel and independently (PROTO-DEC-0041 item 2). Claude, as author and implementer, and DeepSeek, as controller and reviewer, certify none of them. Gemini's critique of a design draft is neither authorship nor control of a kernel candidate; to keep that true, Gemini is not the fixer of step (d) and edits no program candidate. If either certifier is unavailable, PROTO-DEC-0047 item 1 applies and the owner confirms the replacement.
+4. Base layer. No vote on the base layer exists outside the repository. L0, the meta-root whose core is the procedure for creating procedures, is the base layer, and stage 1 proceeds now under DeepSeek's control.
+5. Model and effort. Every program session is launched with its model and reasoning effort named explicitly at launch, chosen before launch from the task's complexity. The session records in its journal the model and effort it actually ran with. An agent does not switch models inside a session; a mismatch is reported for a relaunch.
+
+Reasoning:
+Running the remediation items inside the layer that owns them avoids building on the structure the program replaces, and keeps one edit stream. Gemini is the available participant outside both the drafting and the review of the program, which is what an independent critique and an independent certifier need. Choosing model and effort at launch matches how every client in use is invoked non-interactively.
+
+Alternatives rejected:
+A separate Gemini-DeepSeek remediation round in parallel with the program; waiting for Codex to write the second critique; letting Claude or DeepSeek certify a package; letting a session choose its own model after launch.
+
+Consequences:
+`.ai/TASK.md` Roles and Next are updated. `docs/core-arch/CORE-ARCH-1.md`, `-2.md` and `-3.md` record the answers. DeepSeek's stage-1 control prompt replaces the earlier review prompt, which is archived. PROTO-DEC-0038, 0041, 0047, 0048 items 1-5 and 8, 0049-0052, 0053 items 1 (a), (b), (d) and 2, and 0054 stand.
+
+Approved by: RuslanFomenko (direct owner answers, 2026-09-24: to question 2 "да"; to question 3 "вторую критику дает Gemini"; to question 4 "именно так, Codex и Gemini!"; to question 9 "значит это можно реализовать уже сейчас"; on model choice "для задачи будет запускаться сессия с прямым указанием модели и уровнем усилий"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0056
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+Stage 1 of the CORE-ARCH program left owner questions open: whether CORE-ARCH-1 counts as step (b) of PROTO-DEC-0053 (finding CA-12); whether Gemini keeps its certifier independence after critiquing the design (CA-13); how to treat reviews that ran on `deepseek/deepseek-flash` instead of the requested tier; whether the back edge taken by P-L0-003 and P-L0-004 after a review FAIL satisfies the S1-T08 acceptance (CA-28); and whether to archive or raise the corpus limits (`docs/reviews/` at 70 files and 695 KB against 60 and 600 KB; 47 journals against 30). The owner answered on 2026-09-24.
+
+Decision:
+1. `docs/core-arch/CORE-ARCH-1.md` is step (b), the draft decision, of PROTO-DEC-0053 for the remediation-mapping cycle. This confirms the reading recorded in PROTO-DEC-0055 item 2 and closes CA-12.
+2. Executors, not brands. Roles are reasoned about in terms of executors, not model brands. Each task runs in a new terminal session, launched after an executor suited to the task and its complexity has been chosen. Rotating models from one step to the next is intended: models trained on different data, with different resulting weights, cover each other's blind spots. The one general rule is that the same model does not hold two roles within one task.
+3. Model selection. The model and effort for a task are chosen by the model-selection procedure. Until that procedure is approved, the draft `docs/core-arch/stage-2/P-L2-002-model-selection.md` is used as a trial. The owner records `deepseek-flash`, version 4.1, as a strong model; the stage-1 review passes that ran on it stand.
+4. The back edge from review to drafting taken by P-L0-003 and P-L0-004 after the S1-T11 FAIL satisfies the S1-T08 acceptance "one exercise covers a FAIL and a back edge". CA-28 is closed.
+5. Corpus limits. The review corpus and the journals are not archived to meet the current caps; the caps are raised instead. Navigation over the corpus must work as a pointer to the data a reader needs, without reading all of it; that navigation is what makes larger caps workable. The new numbers are set by the owner. Until then the current caps stay warnings under the WARN-first policy of PROTO-DEC-0037, and no archiving is done to meet them.
+
+Reasoning:
+Brand identity says nothing about what a session will do; the model, the task and the role do. Keeping one role per model per task preserves independence, and rotation between steps adds the diversity that different training brings. A procedure, not a request in a prompt, decides the model. Archiving to satisfy a cap moves material out of sight, while an index lets a reader reach it without the cost the cap was meant to limit.
+
+Alternatives rejected:
+Binding roles or certifier slots to brands; asking for "the strongest model" in a prompt without a procedure; archiving active reviews and journals to meet the old caps.
+
+Consequences:
+Open questions for the owner, recorded by the transcriber and not decided here: what counts as one task for item 2, and whether PROTO-DEC-0041 item 1 (an author, executor or controller never certifies its candidate) still applies when certification runs as a separate task; the new cap numbers and the form of the corpus navigation index for item 5. `.ai/TASK.md` and CORE-ARCH-1, -3 are updated. PROTO-DEC-0037, 0041, 0053, 0054 and 0055 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answers, 2026-09-24: to CA-12 "да!"; to CA-13 "я вообще не хочу привязываться к брендам. Надо рассуждать в категирии исполнителей. Если каджая следующая задача запускается в новом терминале после выбора подходящего исполнителя с подходящей сложностью, какое значение имеет кто эта модель??? Ротация моделей от одного шагу к другому обоснованна разницей в тех данных на которых обучались модели и того, какие веса они по итогу построили. Что компенсирует слепые зоны других бренов. Общее правило лишь в том, что одна и та же модель не может иметь две роли в рамках одной задачи."; to the tier question "deepseek-flash(версии 4.1 -сильная модель) должно решаться согласно процедуре выбора модели(если такой процедуры пока нет, надо ее описать и начать использовать)"; to CA-28 "да"; to the limits question "нет, надо повысить лимиты. навигация по корпусу должна работать как указатель на нужные данные, без необходимости чтения всех данных. это делается как раз для того, чтобы увеличить лимиты корпуса данных в ревью и журналах."; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0057
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0037 item 3, as to the numbers of the review-corpus cap only
+
+Context:
+PROTO-DEC-0056 left four points open, and the owner was asked to confirm three transcriber's readings in plain words. The owner answered in a structured poll on 2026-09-24.
+
+Decision:
+1. Readings confirmed. PROTO-DEC-0054 item 1 means: the CORE-ARCH program is open; everything in `docs/core-arch/CORE-ARCH-1.md` to `-7.md` is a proposal; anything becomes binding only when the owner approves it in a decision block. PROTO-DEC-0055 item 5 means: model and reasoning effort are chosen before a session and set at launch; the model is not changed inside a session; if it does not suit the task, the session is relaunched with another model.
+2. Stage review order. The order of PROTO-DEC-0054 item 4 - the reviewer checks each stage first, and only after its PASS or RECOMMENDATION does the stage go to the owner; before the next layer the implementer checks and records that the new layer is consistent with those already built - applies only to work on the kernel. In the standard work cycle, after the reviewer's PASS or RECOMMENDATION the work goes to the certifier. A PASS from the certifier approves the work on the certifier's authority. A FAIL or RECOMMENDATION from the certifier sends it to the owner.
+3. One task is one task frame, identified by its `scope-id`. The rule of PROTO-DEC-0056 item 2, that the same model does not hold two roles within one task, applies within one frame.
+4. The author, executor or controller of a candidate never certifies it, even when the certification runs as a task of its own. PROTO-DEC-0041 item 1 stands in full.
+5. Corpus caps. Active `docs/reviews/` is capped at 200 files and 2 MB; `.ai/worklog/` at 100 journal files. The 150-line cap per journal is unchanged. The caps stay warnings under the WARN-first policy of PROTO-DEC-0037. A navigation index over the reviews and journals, pointing a reader at the data it needs without reading the whole corpus, is built in CORE-ARCH package I-a.
+
+Reasoning:
+Items 3 and 4 together close CA-13: a model that critiqued the design in one frame may certify a package in another, because it is neither the author, the executor nor the controller of that candidate. Item 4 keeps the one-role rule from being bypassed by splitting work into separate tasks. Raising the caps instead of archiving keeps active material in place, and the navigation index keeps the cost of reading it bounded.
+
+Alternatives rejected:
+Treating the whole program as one task; allowing an author to certify its own candidate in a separate task; the 500-file and uncapped options offered in the poll.
+
+Consequences:
+CA-13 is closed. `validate-protocol.ps1`, its tests in `tests/validator.test.cjs`, `AGENTS.md` section 8 and `.ai/docs/PAIRED-CYCLE.md` guardrail 8 are updated to the new numbers inside the CORE-ARCH program (PROTO-DEC-0054 item 2); these are protected paths, so the change is reviewed and lands for certification with package I-a. The certifier count for high-risk work stays as PROTO-DEC-0041 item 2 sets it; this block changes no count. PROTO-DEC-0037 items 1, 2, 4 and 5, 0041, 0054, 0055 and 0056 stand.
+
+Approved by: RuslanFomenko (direct owner answers in a structured poll, 2026-09-24: 0054 item 1 "Верно"; 0054 item 4 "Верно, но только лишь для работ над ядром. В стандартном рабочем цикле после PASS или RECOMENDATION идет к сертификатору. Если он накладывект PASS - одобряется от имени сертификатора. Если FAIL или RECOMENDATION, тогда идет ко мне"; 0055 item 5 "Верно"; one task = "Одна рамка задачи"; author certifying its candidate as a separate task = "Нет, никогда"; caps = "200 / 2 MB и 100"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0058
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+The model-selection procedure `docs/core-arch/stage-2/P-L2-002-model-selection.md` (draft 0.1, in trial under PROTO-DEC-0056 item 3) was summarised for the owner. It held five rules and an interim tier table with three tiers, most of whose cells were the author's suggestion. The owner confirmed the rules, rejected the suggested cells, and set how the table is to be built.
+
+Decision:
+1. The five rules of P-L2-002 are confirmed as written: the tier is computed before launch and written into the task frame; one model holds one role in a task, a task being one frame with its own `scope-id`; models rotate between steps, because different training data and weights cover each other's blind spots; model and effort are set at launch and do not change inside a session; a brand is never the reason for a choice, the reasons are the tier, the ban on a second role, and the rotation.
+2. Table cells filled from the author's suggestion are not accepted. The interim tier table of P-L2-002 draft 0.1 is withdrawn.
+3. The participants of the tier table are determined by this procedure, recorded as `docs/core-arch/stage-4/P-L3-002-model-discovery.md`:
+   - (1) in any project, when Colabs is deployed, the available AI assistant providers are checked through the command line;
+   - (2) for each available provider, the list of available models is obtained by a request that returns the provider's own help;
+   - (3) candidates are selected from the available models: the flagship, the strongest; the second, next after the flagship; the workhorse, the model with the best price to quality per token;
+   - (4) the selected candidates are recorded in a candidate matrix;
+   - (5) the effort levels that exist for each model in the matrix are determined by queries to it;
+   - (6) minimum, middle and maximum effort are taken as the three levels nearest the centre of the list.
+4. The tier table grows to nine tiers: three for the rank of a model from one provider, times three for the effort level, giving T1 to T9.
+
+Reasoning:
+A table built from what each provider reports in the project at hand holds only models and effort levels that exist there. Three model ranks times three effort levels give each provider the same shape of table, so the rubric can point at a tier without naming a brand.
+
+Alternatives rejected:
+A tier table filled from the author's suggestion; three tiers only.
+
+Consequences:
+Open for the owner, recorded by the transcriber and not decided here: how the rubric's sum of 0 to 12 maps onto T1 to T9, and the hard floors for kernel changes, certifications and protected paths; the order of the nine tiers within a provider; which three levels are taken when a list has an even number of levels or fewer than three. P-L3-002 lands with CORE-ARCH package II and is run by the installer. The draft tier table was never a decision; PROTO-DEC-0056 item 3 stands and this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner directive, 2026-09-24: on the five rules "Это идеально"; on the table "Ячейки с пометкой «моё предложение» будут перемерены на этапе 4. - предложение не принимается. Необходимо зафиксировать процедуру определения участников таблицы рангов: 1. В любом проекте, при разворачивании решения Colabs происходит через CLI проверка доступных провайдеров ИИ Ассистентов. 2. После определения доступных провайдеров через запрос с получением справки от правайдера определяется список доступных моделей от каждого провайдера. 3. Кандидаты из доступных моделей отбираются по принципу: флагман - самый сильный, следующий на флагманом - второй по силе, рабочая лошадка - модель с наилучшим соотношением цена/качество за токен. 4. Фиксируем в матрицу отобраных кандидатов. 5. Запросами к моделям из матрицы отобраных кандидатов, определяем варианты существующих у них уровней усилий. 6. Определяем минимальный, средний и максимальный, как три ближайших к центру списка. Таблицу рангов увеличиваем до 9 вариантов: три отвечают за ранг модели от одного поставщика, три за уровень усилий итого T1, Т2, ... Т9"; "Зафиксируй это вместо старого решения"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0059
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+PROTO-DEC-0058 left four points of the nine-tier table open. The owner answered them in a structured poll on 2026-09-24.
+
+Decision:
+1. Order of the nine tiers within one provider: the model rank comes first. Workhorse at minimum, middle and maximum effort is T1, T2, T3; the second model is T4, T5, T6; the flagship is T7, T8, T9.
+2. The rubric's sum of 0 to 12 maps onto the tiers as: 0 to T1; 1-2 to T2; 3 to T3; 4-5 to T4; 6 to T5; 7-8 to T6; 9 to T7; 10-11 to T8; 12 to T9. A kernel change or a certification is at least T7; a protected path is at least T4.
+3. When a model has an even number of effort levels, the three levels nearest the centre are shifted up: the middle is the upper of the two central levels (for a, b, c, d: b, c, d).
+4. When a model has fewer than three effort levels, the available levels are repeated: one level fills all three slots; with two, the minimum is the lower and the middle and maximum are the upper.
+
+Reasoning:
+Putting the model rank first keeps a stronger model above any effort setting of a weaker one. The floors keep kernel changes and certifications on a flagship and protected paths off the workhorse.
+
+Alternatives rejected:
+Effort before model rank; the stricter floors of T9 and T5; shifting the centre down; leaving models with fewer than three effort levels out of the table.
+
+Consequences:
+`docs/core-arch/stage-2/P-L2-002-model-selection.md` 0.3 and `docs/core-arch/stage-4/P-L3-002-model-discovery.md` 0.2 carry these rules. PROTO-DEC-0056 item 3 and PROTO-DEC-0058 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answers in a structured poll, 2026-09-24: tier order "Сначала модель"; score mapping and floors "Вариант А" (0→T1, 1–2→T2, 3→T3, 4–5→T4, 6→T5, 7–8→T6, 9→T7, 10–11→T8, 12→T9; kernel change or certification not below T7, protected path not below T4); even number of levels "Сдвиг вверх"; fewer than three levels "Повторять имеющиеся"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0060
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+Stage 1 of the CORE-ARCH program (layer L0) reached RECOMMENDATION from its reviewer, and its package was put to the owner (`docs/core-arch/stage-1/S1-SUMMARY.md`) together with three open program questions: the fifth evidence class E with a three-batch disuse threshold, the home of the new kernel, and persisting the external synthesis the owner supplied in conversation. The owner answered in a structured poll on 2026-09-24.
+
+Decision:
+1. Stage 1 is approved only after a re-check: the reviewer first re-checks the last fixes (CA-32 to CA-35, two of them the second attempt of their root cause) and the changes this block requires.
+2. The proposed class E rule is rejected: disuse over three batches is not a reason to retire a procedure, because the architecture expects some procedures to go unused for many rounds when the work does not call for them. Instead:
+   - a procedure is written for identifying candidates for retirement or for improvement of a procedure;
+   - a procedure is written for A/B testing a candidate for retirement;
+   - after the work on the kernel is finished, A/B/C tests are run: A the new kernel, B the old kernel, C no kernel at all; two or three tasks are run with one model in a clone of some repository.
+3. The new kernel lives in `.ai/core/`.
+4. The external synthesis the owner supplied in conversation is persisted in `docs/research/2026-09-24-remediation-mapping/external-synthesis.md` with a transcription header.
+
+Reasoning:
+In a layered kernel a procedure is loaded when its role, stage or trigger comes up, so a long gap is expected and says nothing about its value. Retirement needs a finding and a test, not a count. Comparing the new kernel with the old one and with none measures whether the program produced a gain at all.
+
+Alternatives rejected:
+Retirement after three batches without use; keeping the new kernel in `.ai/docs/`; leaving the external synthesis only in chat history.
+
+Consequences:
+P-L0-001, the schema, the root and CORE-ARCH-2 drop the disuse trigger; the two procedures are drafted in stage 1 as L0 records and go to the reviewer's re-check with the fixes; CORE-ARCH-7 adds the A/B/C test to the program's exit. PROTO-DEC-0054 to 0059 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answers in a structured poll, 2026-09-24: stage 1 "Сначала перепроверка"; class E "Нет. Сама арзитектура нашего решения подразумевает, что некоторые процедуры могут не использоваться много кругов, если работа не подразумевает их использование. Вывод с 3 пакетами некоректный. Надо описать процедуру определения кандидатов на вывод или улучшение процедуры. Также надо описать процедуру по A/В тестированию кандидата на выбывание. А после завершения над доработкой ядра, запустить A/B/C тесты. А - новое ядро / B -старое ядро / C - без ядра вообще. Задачи 2-3 прогнать с одной моделью в клоне какого-нибудь репозитория."; kernel home ".ai/core/"; external synthesis "Да, сохранить"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0061
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+PROTO-DEC-0060 item 1 made the approval of CORE-ARCH stage 1 (layer L0) wait for a re-check. The re-check returned RECOMMENDATION (`docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck.md`). The owner then answered the approval poll with "Одобряю после ещё одной перепроверки". The second re-check returned RECOMMENDATION (`docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck2.md`), with two LOW findings, CA-41 and CA-42, fixed afterwards.
+
+Decision:
+1. Stage 1 of the CORE-ARCH program is approved. The records under `docs/core-arch/stage-1/` - the root `L0-ROOT.md`, `procedure.schema.md`, P-L0-001 to P-L0-007, `RULE-MAP.md`, the trial records and notes, and `SPEC-protocol-core.md` - are the approved design of layer L0.
+2. They are not yet the kernel. They land in `.ai/core/` with certification package I-a, certified by Codex and Gemini (PROTO-DEC-0055 item 3), after stages 2 and 3.
+3. Stage 2, layer L1 (roles), opens.
+
+Reasoning:
+The owner's condition was one more re-check; it returned RECOMMENDATION with no blocking finding, and the three root causes that used both attempts closed on their second.
+
+Alternatives rejected:
+Approving before the second re-check; landing the L0 records in the kernel before stages 2 and 3 and their certification.
+
+Consequences:
+`.ai/TASK.md` Next records stage 2 as open; CORE-ARCH-2 section 11 and `docs/core-arch/stage-1/S1-SUMMARY.md` mark the approval. PROTO-DEC-0054 to 0060 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answer in a structured poll, 2026-09-24: "Одобряю после ещё одной перепроверки"; the condition was met by the RECOMMENDATION of the second re-check the same day; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0062
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+With stage 1 approved (PROTO-DEC-0061), the owner was asked whether to start stage 2 (layer L1, roles) and three open program questions that affect it: where complexity assessment and model choice live (В-13), who assigns roles when the owner is not available (В-14), and whether to run the asynchronous-review pilot (В-7). The owner answered in a structured poll on 2026-09-24.
+
+Decision:
+1. Model discovery comes first: `docs/core-arch/stage-4/P-L3-002-model-discovery.md` is run on this workstation to build the tier table, and stage 2 starts after it.
+2. Complexity assessment and model choice stay where they are: the selection procedure P-L2-002 in layer L2, the tier table and the discovery procedure P-L3-002 in layer L3. No separate layer is added.
+3. When the owner is not available, the coordinator assigns roles, only within a delegation the owner has recorded (to whom, which task frames, until which date), under the one-role-per-model rule (PROTO-DEC-0056 item 2) and P-L2-002; every assignment is recorded.
+4. The asynchronous-review pilot runs from stage 2: while the reviewer checks stage N, the implementer may design stage N+1 but lands nothing in the kernel; at most two stages are under review at once; if stage N fails, stage N+1 is reworked where the failure touches it.
+
+Reasoning:
+A tier table built from the providers really available makes every later model choice checkable instead of `table-pending`. Keeping model choice in L2 and L3 keeps one home per rule. Delegation within a recorded scope keeps work moving without transferring the owner's authority. The pilot removes the idle wait between review passes and is measured by the rework it causes.
+
+Alternatives rejected:
+Starting stage 2 before discovery; a separate complexity layer; assigning roles only when the owner is present; sequential stages without the pilot.
+
+Consequences:
+The discovery result is written to `docs/core-arch/stage-4/MODEL-MATRIX.md`. CORE-ARCH-1 В-7 and CORE-ARCH-3 В-13, В-14 are closed. PROTO-DEC-0054 to 0061 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answers in a structured poll, 2026-09-24: stage 2 "Сначала подбор моделей"; В-13 "L2 + L3, как сейчас"; В-14 "Координатор по делегированию"; В-7 "Да, с этапа 2"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0063
+
+Status: Accepted
+Date: 2026-09-24
+Reopen-trigger: owner-directive
+
+Context:
+The first run of P-L3-002 (`docs/core-arch/stage-4/MODEL-MATRIX.md`) could settle flagship, second and workhorse only for codex; the other clients reported model names only, and no provider reported prices. The implementer asked the owner to pick the ranks. The owner pointed out that the kernel has no procedure for that choice. The implementer drafted `docs/core-arch/stage-4/P-L3-003-model-ranking.md`, and the owner answered a structured poll on it on 2026-09-24.
+
+Decision:
+1. When a client's own catalog does not settle a model's strength or price, both are taken from the provider's official pages on its own domain (model overview and prices per million tokens), each value with its address and date. The flagship is the model the provider calls its most capable; the second is the next one in the provider's own line; the workhorse is the model with the lowest output price among those the provider offers for general and coding work. Third-party leaderboards and a model's memory are not sources. The owner is asked only for what this leaves unsettled.
+2. A model belongs to the matrix of the provider that makes it. Clients that reach other providers' models, such as copilot and agy, are recorded as routes to them, with no ranks of their own. The one-role-per-model rule of PROTO-DEC-0056 item 2 applies to the model, whatever client runs it.
+3. P-L3-003 is run now, as a trial, to complete the tier table before stage 2.
+
+Reasoning:
+A provider ranks and prices its own models more reliably than any memory of them, and a route through another client does not change which model is working. Running the procedure now turns the owner questions of the first run into recorded evidence.
+
+Alternatives rejected:
+The CLI as the only source; measuring model strength with our own test runs at this step; giving every client ranks of its own over all the models it reaches.
+
+Consequences:
+MODEL-MATRIX.md is completed by P-L3-003 with sources and dates. PROTO-DEC-0058 and 0059 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner remark, 2026-09-24: "в нашем ядре нет процедуры описыващей выбор из твоекго ответа"; then answers in a structured poll: sources "Принять"; other providers' models "Принять"; run now "Да, сейчас"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0064
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+P-L3-003 (PROTO-DEC-0063) ranked Anthropic and part of OpenAI from the providers' official pages and left four points to the owner (`docs/core-arch/stage-4/MODEL-MATRIX.md`): the Google flagship, the OpenAI workhorse, DeepSeek's two models and makers with fewer than three reachable models, and whether to rank the models reached only through copilot. The owner answered a structured poll.
+
+Decision:
+1. Google: the flagship is gemini-3.8-flash; the second is gemini-3.1-pro; the workhorse is gemini-3.7-flash.
+2. OpenAI: the workhorse is gpt-5.6-luna.
+3. DeepSeek: the flagship is deepseek-flash 4.1 and the second is deepseek-v4-pro. When a maker has fewer than three reachable models, the models it has are repeated: the higher-ranked one above, the lower one filling the lower ranks. For DeepSeek the workhorse is therefore deepseek-v4-pro; for Mistral, mistral-medium-3.5 fills all three ranks.
+4. The models of xAI, Moonshot and Microsoft reached through copilot are ranked now under P-L3-003.
+
+Reasoning:
+Where the providers' pages did not settle a rank, the owner settled it, which is P-L3-003 step 5. One repeat rule for model ranks mirrors the rule for effort levels (PROTO-DEC-0059 item 4).
+
+Alternatives rejected:
+gemini-3.1-pro as the Google flagship; gpt-5.6-terra or gpt-5.3-codex as the OpenAI workhorse; deepseek-v4-pro as the DeepSeek flagship; leaving makers with fewer than three models out of the table; keeping the copilot-only makers as routes without ranks.
+
+Consequences:
+P-L3-003 gains the repeat rule; MODEL-MATRIX.md is completed. Recorded while applying item 4: Moonshot's page calls Kimi K3 "Kimi's most capable flagship model to date", so K3 is the flagship and K2.7 Code the second and, by item 3, the workhorse; xAI (grok-4.5) and Microsoft (mai-code-1.1-flash) each have one model reachable through copilot, which fills all three ranks. PROTO-DEC-0058, 0059 and 0063 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answers in a structured poll, 2026-09-24/25: Google "gemini-3.8-flash"; OpenAI "gpt-5.6-luna"; fewer models "Flash 4.1 — флагман; повторять" (option text: flash 4.1 flagship, v4-pro second, repeat as in the first option: the higher above, the lower filling the lower ranks); copilot-only makers "Ранжировать сейчас"; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0065
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+Under PROTO-DEC-0064 item 3 the DeepSeek workhorse became deepseek-v4-pro, a model with 3.3 times the output price of deepseek-flash whose availability in Kilo was not confirmed. The implementer also noted that clients do not report whether each model accepts each effort level. The owner answered on 2026-09-25 and told the implementer to start stage 2.
+
+Decision:
+1. deepseek-v4-pro is not used. DeepSeek has one model in the matrix, deepseek-flash 4.1, which fills all three ranks by the repeat rule of PROTO-DEC-0064 item 3.
+2. Clients differ in how a model and an effort level are set: some take them before the CLI starts, others after it has started. A separate procedure is written with per-client instructions for setting the model and effort after launch.
+3. Stage 2 of the CORE-ARCH program (layer L1, roles) starts now, under the asynchronous-review pilot of PROTO-DEC-0062 item 4.
+
+Reasoning:
+A model the owner does not want in use should not appear in a table that selects models. Setting the model is a client-specific act, so its steps belong in a procedure, not in each prompt.
+
+Alternatives rejected:
+Keeping deepseek-v4-pro as the DeepSeek workhorse; relying on the first launch alone to discover how each client sets its model.
+
+Consequences:
+`docs/core-arch/stage-4/MODEL-MATRIX.md` drops deepseek-v4-pro. The per-client procedure is a stage-4 task (L3/L4, CORE-ARCH-5). Transcriber's reading, not an owner statement: setting the model and effort through the client's own command right after launch and before the task begins counts as setting them at launch under PROTO-DEC-0055 item 5. PROTO-DEC-0055, 0062 and 0064 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner answers, 2026-09-25: "v4-pro вообще не хочу использовать"; "у всех разный воркфлоу. одни принимают комаду о модели перед запуском CLI другие после. На это нужно будет составить отдельную процедуру с инструкциями после запуска."; "Сейчас начинай: ... этап 2 (роли) с пилотом асинхронного ревью."; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0066
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+The owner asked for a prompt that works through as many hypotheses as possible for what AX can give Colabs, with the options explained simply and settled in a poll. In two polls on 2026-09-25 the owner defined AX as the integration of Google AX, replaced the question of who runs the prompt with a request for an adaptive policy of execution depth, and specified a multi-source model of hypothesis generation and a funnel format. The owner left the layout of the work to the implementer and pointed to seed hypotheses written as prompts in `OwnerIdeas/`. The full wording is persisted in `docs/research/2026-09-25-improvement-research/BRIEF.md` (O-01 to O-08).
+
+Decision:
+1. Two research studies run now: study A, what integrating Google AX and any other improvement can give Colabs in speed, agent accuracy, context quality, convenience, architecture, security, scalability, fault tolerance and cost, seeded by `OwnerIdeas/Google_AX.md`, `MCP_Server.md` and `Rust.md`; study B, an adaptive policy for the depth of agent execution, in which the task type sets a base frequency F1-F5, risk and complexity escalate the depth, the execution pattern sets the number and roles of independent agents, and models are chosen separately through P-L2-002. Their specifications are the owner's answers O-01 to O-04 of the brief.
+2. Hypotheses come from several sources with separate functions: repository evidence, external sources, systematic derivation, measurements, failures, contrarian, cross-domain, combinatorial and negative hypotheses. Each carries its provenance and novelty class. An external practice is a source of an idea, not proof that it helps Colabs.
+3. The output is a funnel: broad discovery, normalisation, fast screening, deep cards, a backlog, a rejected list, synergies and a priority set by the owner's value formula. Measurements take precedence over subjective scores.
+4. Each study runs as three independent researchers of different makers and one synthesiser who is not one of them. Models are chosen through P-L2-002.
+5. In this run researchers read and measure only. Prototypes and A/B tests are later, separate tasks under P-L0-007, in a disposable clone, after the owner approves the priorities.
+6. The results enter the CORE-ARCH program as candidates of classes C and D. The triage and escalation part of stage 3 waits for the synthesis of study B; the rest of stage 3 proceeds.
+
+Reasoning:
+One fixed execution scheme either wastes strong models on simple tasks or under-checks risky ones, so depth should follow the task. Several independent researchers of different makers widen the search, which is the purpose of the funnel. Measuring without prototyping keeps the kernel and the repository safe while still grounding the screening in numbers.
+
+Alternatives rejected:
+One execution scheme for every task; choosing between repository and internet sources; choosing between many short hypotheses and few detailed cards; a single researcher, or one researcher escalated only on failure; building prototypes inside the research run; running the research after the program or as a separate backlog.
+
+Consequences:
+`docs/research/2026-09-25-improvement-research/` holds the brief, a README with the dispatch table and four prompts; the owner launches the sessions. No decision is reopened: adopting MCP, Google AX, a Rust core or a memory engine stays governed by PROTO-DEC-0034 item 2, PROTO-DEC-0036, PROTO-DEC-0039 item 3 and PROTO-DEC-0045, and nothing from the research lands in the kernel without an approved block. Transcriber's reading, not an owner statement: the layout (one brief, one prompt per study, one per synthesis) is the implementer's choice, which the owner left open.
+
+Approved by: RuslanFomenko (direct owner answers in two polls, 2026-09-25: "интеграция Google AX может дать Colabs по скорости, точности работы агентов, качеству контекста, удобству, архитектуре, безопасности, масштабируемости, отказоустойчивости и стоимости."; "Количество исполнителей, независимых прогонов, глубина критики, необходимость синтеза и полный цикл проверки должны зависеть от ТИПА ЗАДАЧИ."; "Нужна многоисточниковая модель генерации гипотез"; "Используй многоступенчатый funnel."; "Оформь как удобнее всего нейросетям для чтения и памяти о ответах."; "3 независимых + синтез (Recommended)"; "Замеры сейчас, тесты потом (Recommended)"; "Сейчас, в CORE-ARCH (Recommended)"; full wording in docs/research/2026-09-25-improvement-research/BRIEF.md; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0067
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0049 item 3, as to the idle bound a dispatch watchdog applies before it stops an executor
+
+Context:
+Before launching the improvement research of PROTO-DEC-0066 through a Kilo Code session, the owner
+asked for two things. First, fallback routes in the table of models and efforts, without new
+candidates. Second, one rule: the launch workflow the procedures already describe comes first, and
+Kilo is used when models are unavailable there. The implementer recorded, read-only, the Kilo
+7.7.9 routes, effort variants and prices for every ranked model. Two questions went to the owner:
+the order of routes inside Kilo, and when to switch. The owner answered both and asked for a
+concrete state machine and set of liveness signals. The full wording is persisted as O-09 to O-11
+in `docs/research/2026-09-25-improvement-research/BRIEF.md`.
+
+Decision:
+1. Route order. The maker's official, authorised CLI is always the primary route. When it is
+   unavailable, Kilo is the fallback router. Inside Kilo, the cheapest suitable route is taken; if
+   it lacks the capabilities or the reasoning effort, a stronger route. This change adds routes
+   only; no new model candidates are considered.
+2. When to switch. Kilo is only a fallback. An immediate switch happens only on a hard failure
+   before useful work: a non-zero exit or crash, an authorisation error, an exhausted limit, an
+   unavailable model or provider, or an explicit network or provider error.
+3. Silence. Silence is judged by liveness and progress signals, not by one timeout. While there is
+   progress, the wait extends. A soft timer of about 2-3 minutes without progress leads only to an
+   inspection of the process. A hard idle timer of about 7-10 minutes of absolute silence, with the
+   process alive, marks a probable hang and allows the fallback. Both values are configurable and
+   are later to be adapted by task type and historical metrics.
+4. Useful work. Once an executor has started useful work, no other executor is started
+   automatically. Useful work is changed files, written state or journal, artifacts, or a
+   substantial intermediate result. The state is saved; handoff or recovery follows, and the owner
+   decides when needed.
+5. One attempt. Where a fallback is allowed: the official CLI, then one automatic launch through
+   Kilo. If Kilo does not start either, the task stops and the owner decides.
+6. No parallel runs. The primary and the fallback model never run on one task in parallel
+   without an explicit decision of the orchestration layer.
+7. The state machine, the liveness signals and the default timer values proposed by the
+   implementer are recorded as `docs/core-arch/stage-4/P-L3-004-route-failover.md`. They are put
+   on trial in the launcher of the improvement research.
+
+Reasoning:
+A fixed silence rule either kills long reasoning or waits too long on a dead process. Liveness
+signals separate the two. Forbidding an automatic second executor once work has started removes the
+risk of two executors writing one task. A single automatic Kilo attempt keeps cost and surprises
+bounded.
+
+Alternatives rejected:
+A fixed "ten minutes of silence is a failure" rule; switching whenever the primary is slow;
+unlimited automatic retries across routes; running the primary and the fallback in parallel by
+default; adding new model candidates while adding routes.
+
+Consequences:
+The following were written:
+- `docs/core-arch/stage-4/kilo-routes.cjs` and `kilo-routes.json` (the recorded Kilo catalog);
+- a fallback section in `docs/core-arch/stage-4/MODEL-MATRIX.md`;
+- `P-L3-004` (trial);
+- `docs/research/2026-09-25-improvement-research/prompts/launch.cjs`, its job files and the Kilo
+  Code prompt `K-launch.md`.
+
+The total cap of PROTO-DEC-0050 item 2 and its one-restart rule stand. The Supersedes line is the
+transcriber's reading, not an owner statement: the owner's hard idle timer replaces the five-minute
+idle bound of PROTO-DEC-0049 item 3 for dispatch watchdogs. The rest of item 3, that a stall at
+zero activity is not a wait, stands. Mistral has no Kilo route that reaches its tier's effort
+(max), so a failure of its primary route goes to the owner.
+
+Approved by: RuslanFomenko (direct owner answers, 2026-09-25: "Сначала приоритет запуска у текущего воркфлоу уже опиманого в процедуре инструкциями. А если по этим путям модели не доступны, используются лимиты kilo."; "Сейчас мы не рассатриваем новых кандидатов для таблицы. Только прописываем дополнения в виде новых маршрутов при недоступности нашего основного маршрута."; "Внутри Kilo: самый дешёвый подходящий маршрут ↓ если не хватает capabilities / reasoning effort 4. Более сильный маршрут"; "hard failure → immediate fallback; тишина без progress → adaptive timeout; есть progress → ждать; уже есть полезные изменения → никакого автоматического failover."; "Предложи конкретный алгоритм state machine и набор сигналов liveness"; full wording in docs/research/2026-09-25-improvement-research/BRIEF.md O-09 to O-11; transcribed by claude-eb97ac9d13050014)

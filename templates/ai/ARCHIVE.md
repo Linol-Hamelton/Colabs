@@ -27,7 +27,7 @@ A journal passed its 150-line limit:
 2. Paste them below, under a heading naming the journal and the archive date.
 3. Leave the newest entries in place, enough to explain the current state.
 
-`.ai/worklog/` passed 30 files:
+`.ai/worklog/` passed 100 files:
 
 1. Pick the oldest journals whose sessions have ended. A journal is closed when
    no lock names it and its newest entry carries evidence or a Next step that

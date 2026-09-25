@@ -184,7 +184,7 @@ To prevent unproductive cycles, token waste, and process thrashing:
 6. **Reuse Active Hook Journal (R3)**:
    - If an assistant operates in an environment where the `SessionStart` hook has already run and created an active session journal, it must reuse that active journal rather than running `protocol-session.cjs start` again (which would spawn a redundant session and journal).
 7. **Human Language Preference Taken from TASK**: Honor the human-facing language defined in `.ai/TASK.md` (e.g., Russian `ru-RU`) for user interaction and explanations. Internal agent-to-agent prompts, cycle runbooks, and repository documentation may use English.
-8. **Corpus Cap Protection**: Active review documents in `docs/reviews/` must not exceed 60 files or 600 KB. Reserve capacity before creating new artifacts. Archive older reviews when approaching the cap without rewriting immutable decision or archive ledgers.
+8. **Corpus Cap Protection**: Active review documents in `docs/reviews/` must not exceed 200 files or 2 MB (PROTO-DEC-0057). Reserve capacity before creating new artifacts. Archive older reviews when approaching the cap without rewriting immutable decision or archive ledgers.
 9. **No Commits Unless Owner Instructs**: AI assistants must not run `git commit`, `git tag`, or `git push` unless explicitly instructed by the human owner.
 
 ## 7. Prompt Templates

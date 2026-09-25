@@ -247,13 +247,13 @@ foreach ($relative in ($paths | Sort-Object -Unique)) {
 Write-Result "PASS" "inspected $textCount protocol-owned text files for UTF-8, BOM, LF and PowerShell syntax"
 
 # One journal per session keeps writers from colliding, but the directory grows
-# without bound unless old journals are archived. See AGENTS.md section 8 and PROTO-DEC-0037.
+# without bound unless old journals are archived. See AGENTS.md section 8, PROTO-DEC-0037 and 0057.
 $journals = @($paths | Where-Object { $_ -match '^\.ai/worklog/[^/]+\.md$' -and $_ -ne '.ai/worklog/README.md' } | Sort-Object -Unique)
-if ($journals.Count -gt 30) {
-    Write-Result "WARN" ("{0} session journals in .ai/worklog (cap 30, PROTO-DEC-0037 WARN-first policy); archive completed sessions into .ai/ARCHIVE.md" -f $journals.Count)
+if ($journals.Count -gt 100) {
+    Write-Result "WARN" ("{0} session journals in .ai/worklog (cap 100, PROTO-DEC-0057, WARN-first per PROTO-DEC-0037); archive completed sessions into .ai/ARCHIVE.md" -f $journals.Count)
 }
 
-# Active review corpus budget: <= 60 files and 600 KB (AGENTS.md section 8, PROTO-DEC-0037).
+# Active review corpus budget: <= 200 files and 2 MB (AGENTS.md section 8, PROTO-DEC-0057; WARN-first per PROTO-DEC-0037).
 # Enforced under WARN-first migration policy in role: source. Installed hosts choose their own review path.
 if ($script:ProtocolRole -eq 'source') {
     $activeReviewsDir = Join-Path $Root 'docs/reviews'
@@ -295,8 +295,8 @@ if ($script:ProtocolRole -eq 'source') {
         $activeCount = $activeReviews.Count
         $activeBytes = 0
         foreach ($r in $activeReviews) { $activeBytes += $r.Length }
-        if ($activeCount -gt 60 -or $activeBytes -gt 600KB) {
-            Write-Result "WARN" ("active docs/reviews/ exceeds budget ({0} files / {1} KB; limit 60 files / 600 KB, PROTO-DEC-0037); archive non-active reviews to docs/reviews/archive/" -f $activeCount, [math]::Round($activeBytes / 1KB, 1))
+        if ($activeCount -gt 200 -or $activeBytes -gt 2MB) {
+            Write-Result "WARN" ("active docs/reviews/ exceeds budget ({0} files / {1} KB; limit 200 files / 2048 KB, PROTO-DEC-0057); archive non-active reviews to docs/reviews/archive/" -f $activeCount, [math]::Round($activeBytes / 1KB, 1))
         }
     }
 }

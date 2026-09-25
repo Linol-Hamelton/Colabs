@@ -1,0 +1,701 @@
+{
+  "generated": "2026-09-24T23:49:47.174Z",
+  "kilo": "7.7.9",
+  "source": "kilo models <provider> --verbose",
+  "models": {
+    "claude-fable-5-1": [
+      {
+        "route": "openrouter/anthropic/claude-fable-5.1",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 10,
+        "output": 50,
+        "variants": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      },
+      {
+        "route": "vercel/anthropic/claude-fable-5.1",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 10,
+        "output": 50,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      }
+    ],
+    "claude-opus-5-5": [
+      {
+        "route": "openrouter/anthropic/claude-opus-5.5",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 4,
+        "output": 20,
+        "variants": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      },
+      {
+        "route": "vercel/anthropic/claude-opus-5.5",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 4,
+        "output": 20,
+        "variants": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      }
+    ],
+    "claude-haiku-4-5": [
+      {
+        "route": "openrouter/anthropic/claude-haiku-4.5",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 1,
+        "output": 5,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 200000
+      },
+      {
+        "route": "vercel/anthropic/claude-haiku-4.5",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 1,
+        "output": 5,
+        "variants": [
+          "high",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 200000
+      }
+    ],
+    "gpt-6-astra": [
+      {
+        "route": "openai/gpt-6-astra",
+        "provider": "openai",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 0,
+        "output": 0,
+        "variants": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      },
+      {
+        "route": "openrouter/openai/gpt-6-astra",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 10,
+        "output": 50,
+        "variants": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      },
+      {
+        "route": "vercel/openai/gpt-6-astra",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 10,
+        "output": 50,
+        "variants": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      }
+    ],
+    "gpt-5.6-sol": [
+      {
+        "route": "openai/gpt-5.6-sol",
+        "provider": "openai",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 0,
+        "output": 0,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      },
+      {
+        "route": "openrouter/openai/gpt-5.6-sol",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 2,
+        "output": 10,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      },
+      {
+        "route": "vercel/openai/gpt-5.6-sol",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 4,
+        "output": 20,
+        "variants": [
+          "none",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      }
+    ],
+    "gpt-5.6-luna": [
+      {
+        "route": "openai/gpt-5.6-luna",
+        "provider": "openai",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 0,
+        "output": 0,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      },
+      {
+        "route": "openrouter/openai/gpt-5.6-luna",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.2,
+        "output": 1.2,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      },
+      {
+        "route": "vercel/openai/gpt-5.6-luna",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.2,
+        "output": 1.2,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1050000
+      }
+    ],
+    "gemini-3.8-flash": [
+      {
+        "route": "google/gemini-3.8-flash",
+        "provider": "google",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 0.75,
+        "output": 3.75,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "openrouter/google/gemini-3.8-flash",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.75,
+        "output": 3.75,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "vercel/google/gemini-3.8-flash",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.75,
+        "output": 3.75,
+        "variants": [
+          "low",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      }
+    ],
+    "gemini-3.1-pro": [
+      {
+        "route": "google/gemini-3.1-pro-preview",
+        "provider": "google",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 2,
+        "output": 12,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "openrouter/google/gemini-3.1-pro-preview",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 2,
+        "output": 12,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "vercel/google/gemini-3.1-pro-preview",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 2,
+        "output": 12,
+        "variants": [
+          "low",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      }
+    ],
+    "gemini-3.7-flash": [
+      {
+        "route": "google/gemini-3.7-flash",
+        "provider": "google",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 0.75,
+        "output": 3.75,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "openrouter/google/gemini-3.7-flash",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.75,
+        "output": 3.75,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "vercel/google/gemini-3.7-flash",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.75,
+        "output": 3.75,
+        "variants": [
+          "low",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      }
+    ],
+    "deepseek-flash": [
+      {
+        "route": "openai-compatible/deepseek/deepseek-flash",
+        "provider": "openai-compatible",
+        "present": true,
+        "own": true,
+        "status": "active",
+        "input": 0,
+        "output": 0,
+        "variants": [],
+        "toolcall": true,
+        "reasoning": false,
+        "context": 1000000
+      },
+      {
+        "route": "openrouter/deepseek/deepseek-v4.1-flash",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.15,
+        "output": 0.6,
+        "variants": [
+          "low",
+          "high",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "vercel/deepseek/deepseek-v4.1-flash",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.3,
+        "output": 1.2,
+        "variants": [
+          "none",
+          "high",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "huggingface/deepseek-ai/DeepSeek-V4.1-Flash",
+        "provider": "huggingface",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.3,
+        "output": 1.2,
+        "variants": [
+          "none",
+          "low",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      }
+    ],
+    "mistral-medium-3.5": [
+      {
+        "route": "openrouter/mistralai/mistral-medium-3-5",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 1.5,
+        "output": 7.5,
+        "variants": [
+          "none",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 262144
+      },
+      {
+        "route": "vercel/mistral/mistral-medium-3.5",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 1.5,
+        "output": 7.5,
+        "variants": [
+          "none",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 262144
+      }
+    ],
+    "grok-4.5": [
+      {
+        "route": "openrouter/x-ai/grok-4.5",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 2,
+        "output": 6,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 500000
+      },
+      {
+        "route": "vercel/spacexai/grok-4.5",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 2,
+        "output": 6,
+        "variants": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 500000
+      }
+    ],
+    "kimi-k3": [
+      {
+        "route": "openrouter/moonshotai/kimi-k3",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 3,
+        "output": 15,
+        "variants": [
+          "low",
+          "high",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1048576
+      },
+      {
+        "route": "vercel/moonshotai/kimi-k3",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 3,
+        "output": 15,
+        "variants": [
+          "none",
+          "low",
+          "high",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      },
+      {
+        "route": "huggingface/moonshotai/Kimi-K3",
+        "provider": "huggingface",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 3,
+        "output": 15,
+        "variants": [
+          "low",
+          "high",
+          "max"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 1000000
+      }
+    ],
+    "kimi-k2.7-code": [
+      {
+        "route": "openrouter/moonshotai/kimi-k2.7-code",
+        "provider": "openrouter",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.6562,
+        "output": 3.3,
+        "variants": [],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 262144
+      },
+      {
+        "route": "vercel/moonshotai/kimi-k2.7-code",
+        "provider": "vercel",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.95,
+        "output": 4,
+        "variants": [
+          "none",
+          "low",
+          "medium",
+          "high"
+        ],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 256000
+      },
+      {
+        "route": "huggingface/moonshotai/Kimi-K2.7-Code",
+        "provider": "huggingface",
+        "present": true,
+        "own": false,
+        "status": "active",
+        "input": 0.95,
+        "output": 4,
+        "variants": [],
+        "toolcall": true,
+        "reasoning": true,
+        "context": 262144
+      }
+    ],
+    "mai-code-1.1-flash": []
+  }
+}
