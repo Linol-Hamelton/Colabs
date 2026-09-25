@@ -14,6 +14,7 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   switch (mode) {
     case 'fail': console.log('Error: 401 Unauthorized - not logged in'); process.exit(1); break;
     case 'ratelimit-hang': console.log('stream error: 429 rate limit exceeded'); await sleep(60000); break;
+    case 'ratelimit-loop': for (let i = 0; i < 300; i += 1) { console.log('stream error: 429 rate limit exceeded; retrying in 1s'); await sleep(700); } process.exit(1); break;
     case 'work': for (let i = 1; i <= 2; i += 1) { await sleep(1000); write(i, `part ${i}\n`); console.log(`wrote ${i}`); } process.exit(0); break;
     case 'work-hang': write(1, 'part 1\n'); await sleep(60000); break;
     case 'cpu-then-work': { const end = Date.now() + 8000; let x = 0; while (Date.now() < end) x += Math.sqrt(x + 1); write(1, 'a\n'); write(2, 'b\n'); process.exit(0); break; }

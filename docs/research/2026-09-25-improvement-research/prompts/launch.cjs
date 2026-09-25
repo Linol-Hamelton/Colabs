@@ -130,6 +130,13 @@ function decide(att, obs, cfg, now) {
   return att.useful ? 'WORKING' : 'STARTING';
 }
 
+// L2 progress (P-L3-004): new log bytes count only when at least one new line is neither an error
+// text nor a retry notice. A client that prints the same failure in a loop makes no progress (CB-19).
+const RETRY_TEXT = /\bretry(?:ing)?\b|\bretries\b|\bbacking off\b|\bwaiting \d+(?:\.\d+)? ?(?:ms|s|sec|seconds?)\b/i;
+function chunkIsProgress(chunk) {
+  return String(chunk).split(/\r?\n/).some(l => l.trim() && !ERROR_TEXT.test(l) && !RETRY_TEXT.test(l));
+}
+
 // What an exit means (state table of P-L3-004).
 function classifyExit(att, code, outputsComplete) {
   if (!att.useful) return 'FAILED_EARLY';
@@ -236,6 +243,16 @@ function journalsOf(agent) {
 
 function dirFiles(dir) {
   try { return fs.readdirSync(dir).map(f => path.join(dir, f)); } catch { return []; }
+}
+
+// Bytes [from, to) of a file, at most the last `cap` of them.
+function range(file, from, to, cap = 65536) {
+  try {
+    const start = Math.max(from, to - cap); const len = Math.max(0, to - start);
+    const fd = fs.openSync(file, 'r'); const buf = Buffer.alloc(len);
+    fs.readSync(fd, buf, 0, len, start); fs.closeSync(fd);
+    return buf.toString('utf8');
+  } catch { return ''; }
 }
 
 function tail(file, bytes) {
@@ -362,8 +379,13 @@ function run(jobId, routeArg, cfg, ov = {}) {
       const clientLog = fileSig(dirFiles(path.join(OUT, `${jobId}-copilot-log`)));
       const tr = tree(child.pid, procTable()) || { cpu: last.cpu || 0, children: last.children, procs: [] };
       for (const p of tr.procs) att.known[p.pid] = p.created;
-      const progress = logBytes !== last.logBytes || outputsNow !== last.outputs || journalsNow !== last.journals
-        || clientLog !== last.clientLog || (last.cpu !== null && tr.cpu - last.cpu >= cfg.cpuSeconds) || tr.children !== last.children;
+      // A tick whose new log lines are all error or retry lines is no progress, and the client's own
+      // log, which records the same retries, does not count in that tick either (CB-19).
+      const grew = logBytes > last.logBytes;
+      const logMoved = logBytes < last.logBytes || (grew && chunkIsProgress(range(logPath, last.logBytes, logBytes)));
+      const errorOnly = grew && !logMoved;
+      const progress = logMoved || outputsNow !== last.outputs || journalsNow !== last.journals
+        || (clientLog !== last.clientLog && !errorOnly) || (last.cpu !== null && tr.cpu - last.cpu >= cfg.cpuSeconds) || tr.children !== last.children;
       const errNow = att.useful ? null : errorIn();
       const useful = outputsNow !== att.baseline.outputs || fresh.length > 0 || (logBytes >= cfg.usefulBytes && !errNow);
       const text = att.useful || useful ? null : errNow;
@@ -643,4 +665,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };

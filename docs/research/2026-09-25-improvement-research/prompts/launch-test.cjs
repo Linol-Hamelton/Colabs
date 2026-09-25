@@ -28,6 +28,8 @@ const SC = {
   'zz-t6': { primary: 'exit0-nothing', kilo: 'work', expect: { status: 'DONE', attempts: 2, first: 'FAILED_EARLY' } },
   'zz-t7': { primary: 'work-hang', kilo: 'work', stopAfter: 3500, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'STOPPED' } },
   'zz-t8': { primary: 'ratelimit-hang', kilo: 'work', stopAfter: 2500, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'STOPPED' } },
+  // CB-19: a client that prints a rate-limit error in a loop is not making progress.
+  'zz-t9': { primary: 'ratelimit-loop', kilo: 'work', expect: { status: 'DONE', attempts: 2, first: 'FAILED_EARLY' } },
 };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
@@ -82,6 +84,11 @@ function pureChecks() {
     'You exceeded your current quota', 'RESOURCE_EXHAUSTED', 'Insufficient Balance']) out.push([`error text detected: ${t}`, L.ERROR_TEXT.test(t)]);
   for (const t of ['line 503 of the spec', 'processed 429 tokens', 'Forbidden path: .claude/ is outside the sandbox',
     'the quota section of the report', 'a rate limit policy for providers', 'wrote 500 lines']) out.push([`normal text not flagged: ${t}`, !L.ERROR_TEXT.test(t)]);
+  // CB-19: a retry loop's log lines are not progress; ordinary output is.
+  out.push(['error-only log chunk is not progress', !L.chunkIsProgress('stream error: 429 rate limit exceeded\nstream error: 429 rate limit exceeded; retrying in 1s\n')]);
+  out.push(['retry notices alone are not progress', !L.chunkIsProgress('Retrying in 5 seconds (attempt 3/10)\n\n')]);
+  out.push(['ordinary output is progress', L.chunkIsProgress('reading docs/research/BRIEF.md\n')]);
+  out.push(['one ordinary line among errors is progress', L.chunkIsProgress('HTTP 503\nwrote section 2\n')]);
   return out;
 }
 

@@ -86,8 +86,8 @@ third cost it never accepts is two executors doing one task.
 | # | Signal | Counts as progress | Counts as useful work |
 |---|---|---|---|
 | L1 | the process is alive | no, it only allows waiting | no |
-| L2 | bytes of stdout and stderr | any growth | 16 KB or more in total, while the log carries no error text |
-| L3 | the client's own log files, where the client writes them | any growth | no |
+| L2 | bytes of stdout and stderr | growth with at least one new line that is neither an error text nor a retry notice | 16 KB or more in total, while the log carries no error text |
+| L3 | the client's own log files, where the client writes them | any growth, except in a tick whose new L2 lines are all error or retry lines | no |
 | L4 | the task's output files (size, time) | any change | any change |
 | L5 | journals of the task's agent created after the launch | creation or growth | creation |
 | L6 | CPU time of the process tree | 0.5 s or more per tick | no |
@@ -157,7 +157,7 @@ A hard failure is one of:
 | Risk | Likelihood | Impact | Coverage | Cost | Residual |
 |---|---|---|---|---|---|
 | A long silent command is taken for a hang | medium | high | CPU and child signals L6-L7 count as progress; hard timer 8 min | slower detection | a command that waits without CPU for more than 8 min |
-| A retry loop after a provider error looks like work | medium | medium | log volume is not useful work while the log carries error text; the loop ends in a non-zero exit | one wasted wait | a client that retries forever |
+| A retry loop after a provider error looks like work | medium | medium | log volume is not useful work while the log carries error text; new log lines that are all error or retry lines are not progress (L2, L3), so the loop reaches soft silence: before useful work a hard failure, after it `SUSPECT` then `HUNG` | one soft wait | a loop that is silent on stdout while its client log grows, or that starts a process per retry (L7) |
 | An unrelated process is stopped | low | high | identity by PID and creation time; descendants must be younger than their parent | one process-table read per tick | none known |
 | An error text appears in normal output before work starts | low | medium | switch only after soft silence as well | one wrong fallback | the owner sees it in the state file |
 | The Kilo fallback spends money | medium | low | one attempt; the cheapest suitable route; the owner's own providers first when prices tie | route price | a costly model on its cheapest route |
@@ -166,4 +166,4 @@ A hard failure is one of:
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress) — second pass pending.
