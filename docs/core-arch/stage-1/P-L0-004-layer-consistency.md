@@ -1,6 +1,6 @@
 ---
 id: P-L0-004
-version: 0.3
+version: 0.4
 title: Layer consistency check before a layer lands or the next layer starts
 layer: L0
 type: procedure
@@ -14,7 +14,7 @@ back_edges: [5>2/2/owner]
 enforcement: none
 script_candidate: yes
 evidence_class: [C]
-evidence: [PROTO-DEC-0054, docs/core-arch/CORE-ARCH-1.md:240]
+evidence: [PROTO-DEC-0054, docs/core-arch/CORE-ARCH-1.md:243-253]
 trial: metric=M-001; kill=no defect found by the author's LCC in two layers while the reviewer finds LCC-class defects; until=CORE-ARCH package I-a
 ---
 
@@ -75,7 +75,7 @@ checked and a script can later check most of it.
 ## Evidence
 
 - C - owner directive, PROTO-DEC-0054 item 4; the nine checks are CORE-ARCH-1 §6.3
-  (`docs/core-arch/CORE-ARCH-1.md:240`). No practice evidence yet; trial M-001, counted by hand
+  (`docs/core-arch/CORE-ARCH-1.md:243-253`). No practice evidence yet; trial M-001, counted by hand
   until L6 defines it.
 
 ## Risks
@@ -91,3 +91,4 @@ checked and a script can later check most of it.
 - 0.1 — 2026-09-24 — claude-eb97ac9d13050014 — first draft — reviewer DeepSeek S1-T11: FAIL (CA-24, CA-30, CA-31).
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — anchored by root R-L0-19; LCC-1 checks anchoring; LCC-2 deviation from CORE-ARCH-1 §6.3 stated; LCC-7 covers R-L0-03 — reviewer DeepSeek r2: RECOMMENDATION (CA-35).
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — LCC-2 note describes CORE-ARCH-1 §6.3 as it now is (CA-35, attempt 2) — for the owner (S1-T12).
+- 0.4 — 2026-09-25 — claude-ad7cc4169e888ea8 — citation of the nine checks moved from the blank line 240 to the table at CORE-ARCH-1.md:243-253 (CB-09) — second pass pending.
