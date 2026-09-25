@@ -6,6 +6,7 @@
 // State lives in .ai/runtime/vmc-r2/ (disposable, git-ignored).
 //   node r2-dispatch.cjs start <slot> [--fallback]
 //   node r2-dispatch.cjs status
+//   node r2-dispatch.cjs operator            (the coordinator starts the Kilo operator)
 //   node r2-dispatch.cjs stop <slot>
 //   node r2-dispatch.cjs final <DONE|BLOCKED> <one line>
 const fs = require('fs');
@@ -45,7 +46,10 @@ const SLOTS = {
     cmd: m => kilo('kilo/anthropic/claude-opus-5.5', 'xhigh', 'vmc-r2-b', m) },
   'r2-c': { frame: 'task:vmc-r2-c', agent: 'deepseek', out: `${DIR}/round2/challenge-C.md`,
     msg: () => councilLine('R2-challenge.md', 'Target: C'),
-    cmd: m => kilo('openai-compatible/deepseek/deepseek-flash', null, 'vmc-r2-c', m) },
+    // The openai-compatible route has no key in the Kilo CLI (Missing Authorization header, 2026-09-25);
+    // deepseek/ uses the owner's DeepSeek key.
+    cmd: m => kilo('deepseek/deepseek-flash', null, 'vmc-r2-c', m),
+    fallback: m => kilo('kilo/~deepseek/deepseek-flash-latest', null, 'vmc-r2-c', m) },
   'r2-synthesis': { frame: 'task:vmc-r2-synthesis', agent: 'gemini', out: `${DIR}/round2/ISSUE-MATRIX.md`, needs: ['r2-a', 'r2-b', 'r2-c'],
     msg: () => councilLine('R2-issue-matrix.md', 'The three challenges are in the working tree under round2/.'),
     cmd: m => `agy -p "${m}" --model gemini-3.1-pro-low --mode accept-edits`,
@@ -53,7 +57,8 @@ const SLOTS = {
   'l3': { frame: null, agent: 'deepseek', out: null,
     msg: () => `Read and follow the file docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-2.md Candidate: ${L_CANDIDATE} ` +
       'This is the third pass on package L only. Nobody answers questions during this run: record open points in the review and continue.',
-    cmd: m => kilo('openai-compatible/deepseek/deepseek-flash', null, 'core-arch-l3', m) },
+    cmd: m => kilo('deepseek/deepseek-flash', null, 'core-arch-l3', m),
+    fallback: m => kilo('kilo/~deepseek/deepseek-flash-latest', null, 'core-arch-l3', m) },
 };
 
 const load = () => { try { return JSON.parse(fs.readFileSync(STATE, 'utf8')); } catch { return { jobs: {} }; } };
@@ -91,6 +96,33 @@ function slotStatus(slot, job) {
   return s;
 }
 
+// A detached node child gets no console, and kilo run exits silently without one (measured
+// 2026-09-25). The job runs from a .cmd file through Start-Process instead, which gives it a
+// hidden console of its own and lets this helper exit at once. The pid is that cmd.exe.
+function launch(cmd, log) {
+  const bat = log.replace(/.log$/, '.cmd');
+  fs.writeFileSync(bat, `@echo off
+cd /d "${ROOT}"
+${cmd} >> "${log}" 2>&1
+`);
+  const r = cp.spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+    "(Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c',$env:R2_BAT -WindowStyle Hidden -PassThru).Id"],
+    { encoding: 'utf8', env: { ...process.env, R2_BAT: bat } });
+  const pid = Number((r.stdout || '').trim());
+  if (r.status !== 0 || !pid) throw new Error(`launch failed: ${r.stderr}`);
+  return pid;
+}
+
+function operator() {
+  const st = load();
+  if (st.operator && alive(st.operator.pid)) throw new Error(`operator still running (pid ${st.operator.pid})`);
+  fs.mkdirSync(RT, { recursive: true });
+  const pid = launch(`kilo run -m kilo/google/gemini-3.7-flash --variant medium --auto --dir "${ROOT}" --title vmc-r2-dispatch "Read and follow the file ${DIR}/prompts/K-dispatch-r2.md"`, path.join(RT, 'operator.log'));
+  st.operator = { pid, started: Date.now() };
+  save(st);
+  console.log(`operator pid ${pid}`);
+}
+
 function start(slot, useFallback) {
   const def = SLOTS[slot];
   if (!def) throw new Error(`unknown slot ${slot}; one of ${Object.keys(SLOTS).join(', ')}`);
@@ -105,19 +137,18 @@ function start(slot, useFallback) {
   const cmd = (useFallback ? def.fallback : def.cmd)(m);
   fs.mkdirSync(RT, { recursive: true });
   const log = path.join(RT, `${slot}${useFallback ? '-fallback' : ''}.log`);
-  const fd = fs.openSync(log, 'a');
-  const child = cp.spawn(cmd, { cwd: ROOT, shell: true, detached: true, windowsHide: true, stdio: ['ignore', fd, fd] });
-  child.unref();
-  st.jobs[slot] = { pid: child.pid, started: Date.now(), route: useFallback ? 'fallback' : 'primary', log, cmd,
+  const pid = launch(cmd, log);
+  st.jobs[slot] = { pid, started: Date.now(), route: useFallback ? 'fallback' : 'primary', log, cmd,
     tries: ((st.jobs[slot] || {}).tries || 0) + 1 };
   save(st);
-  console.log(`started ${slot} pid ${child.pid} route ${st.jobs[slot].route}\n${cmd}`);
+  console.log(`started ${slot} pid ${pid} route ${st.jobs[slot].route}\n${cmd}`);
 }
 
 function status() {
   const st = load();
   const rows = Object.keys(SLOTS).map(k => [k, st.jobs[k] ? slotStatus(k, st.jobs[k]) : { state: 'NOT_STARTED' }]);
   const lines = rows.map(([k, s]) => `${k}: ${s.state}${s.pid ? ` pid=${s.pid} alive=${s.alive} route=${s.route} journal=${s.journal} launch=${s.launch} orientation=${s.orientation} outputLines=${s.output} evidence=${s.evidence} idleMin=${s.idleMin}` : ''}`);
+  if (st.operator) lines.push(`operator: pid=${st.operator.pid} alive=${alive(st.operator.pid)}`);
   if (st.final) lines.push(`FINAL: ${st.final}`);
   const text = `# vmc-r2 status ${new Date().toISOString()}\n\n${lines.join('\n')}\n`;
   fs.mkdirSync(RT, { recursive: true });
@@ -135,8 +166,9 @@ const [cmd, a, ...rest] = process.argv.slice(2);
 try {
   if (cmd === 'start') start(a, rest.includes('--fallback'));
   else if (cmd === 'status') status();
+  else if (cmd === 'operator') operator();
   else if (cmd === 'stop') stop(a);
   else if (cmd === 'show') { const d = SLOTS[a]; console.log(d.cmd(d.msg())); if (d.fallback) console.log(d.fallback(d.msg())); }
   else if (cmd === 'final') { const st = load(); st.final = `${a} ${rest.join(' ')}`.trim(); save(st); status(); }
-  else console.log('usage: start <slot> [--fallback] | show <slot> | status | stop <slot> | final <DONE|BLOCKED> <text>');
+  else console.log('usage: operator | start <slot> [--fallback] | show <slot> | status | stop <slot> | final <DONE|BLOCKED> <text>');
 } catch (e) { console.error(`r2-dispatch: ${e.message}`); process.exit(1); }

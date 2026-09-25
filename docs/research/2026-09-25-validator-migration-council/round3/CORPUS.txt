@@ -1,0 +1,13 @@
+8bf48ad7380b4e8f42d5d280cb4e3d8c53385429dbb2518deeccf6faa855168a  docs/research/2026-09-25-validator-migration-council/round1/A-contract-tcb.md
+ceaeddd5fef52aeca523ae7c4b012246393e9f36fc04831c19fe3c83a6c5dd85  docs/research/2026-09-25-validator-migration-council/round1/B-baseline-check.json
+6e1f6044f9492dda5e2547020c4353842806739889a32a25d2415259ab7b6be2  docs/research/2026-09-25-validator-migration-council/round1/B-performance-migration.md
+3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a  docs/research/2026-09-25-validator-migration-council/round1/C-adversarial-simplifier.md
+1e5b10b0b263b9f11dc71713b816462b6549c0a93328db7d8f8fc616207f9b22  docs/research/2026-09-25-validator-migration-council/round1/DECISION-BOUNDARY.md
+1d73fc0e24c860c5281e2b393fa4a49f5eb4107002ecaeb43028cc63fb041795  docs/research/2026-09-25-validator-migration-council/round1/IMPLEMENTATION-DAG.md
+798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415  docs/research/2026-09-25-validator-migration-council/round1/NOT-IN-SCOPE.md
+b88e313d510cd98211b2e5500c465c98ebdbdfce67038e8c3c52330885d0e1fa  docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CALL-GRAPH.md
+978b539bd1b6bc8bcf8b3cd53a0460398ebb44dd65a9c6796d98fad216b743a0  docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CONTRACT-MAP.md
+4478c9a2976c7d13bd5421e513f8e0d1bef7a4f06449fd70cf69cd48d9f1f44e  docs/research/2026-09-25-validator-migration-council/round2/ISSUE-MATRIX.md
+a0ed372cd1d6c4d4a249121e139c7725308fc97005476ed96f3a3ac8c8648304  docs/research/2026-09-25-validator-migration-council/round2/challenge-A.md
+eb06438009167f3e54657ef1be62c24320413fd4b7d625bebfb2faa84076dcbe  docs/research/2026-09-25-validator-migration-council/round2/challenge-B.md
+9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1  docs/research/2026-09-25-validator-migration-council/round2/challenge-C.md
