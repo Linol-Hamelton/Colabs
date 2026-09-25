@@ -59,6 +59,14 @@ block_id      ::= "PROTO-DEC-" 4 digits | "DEC-" 4 digits
 
 ## 3. Reading rules
 
+Inputs, all repository-relative, each read with rules 1-3:
+- the role document: the one file whose `## Roles` section holds the assignment and delegation
+  lines of every scope (today `.ai/TASK.md`). Each line carries its own scope-id, so the lines of a
+  scope are the lines that name it;
+- the scope registry (artifact `scope-registry`; its path is fixed with the task-frame schema in
+  S3-T03): one line per issued scope, `- <scope_id> frame=<path> parent=<scope_id or ->`, written by
+  whoever issues the scope-id, the owner or the coordinator (CORE-ARCH-4 section 4).
+
 1. Fenced blocks are removed first, by CommonMark rules: a fence closes only on the same character
    (backtick or tilde) repeated at least as many times as it opened; an unclosed fence runs to the
    end of the file.
@@ -67,6 +75,13 @@ block_id      ::= "PROTO-DEC-" 4 digits | "DEC-" 4 digits
 3. The section ends at the next `## ` heading. Each line in it must match the grammar.
 4. Effective lines: the frame's own lines, plus each parent-scope line whose model the frame's own
    lines do not name (section 2). The parent scope's own lines are checked as a frame of their own.
+5. Scope resolution. The frame's scope-id has exactly one registry line; its `frame=` file exists
+   and holds exactly one `scope-id:` and one `parent-scope:` field, equal to the registry line's
+   scope-id and `parent=`. Anything else exits 2.
+6. Parent resolution. `parent=-` means no parent. Otherwise the parent has its own registry line,
+   differs from the scope itself, and has `parent=-` (one level: a program parents tasks and
+   candidates; nothing parents a program). Anything else exits 2.
+7. A line whose scope-id has no registry line exits 2: no frame, no scope (CORE-ARCH-1 section 3.3).
 
 Exit codes: 0 every line parses and no rule is broken; 1 a well-formed set breaks an independence
 rule (P-L1-002); 2 anything the grammar or the reading rules do not accept.
@@ -87,6 +102,9 @@ M below is `claude-opus-5-5`; the check asks whether M may certify a candidate o
 | F8 | `- unknown-model @ task:x: reviewer` | 2 | P-L1-002 stop |
 | F9 | `- M @ task:x: owner` | 2 (`owner` is not an assignable slot) | R-L0-04 (CB-02) |
 | F10 | `- delegation @ task:x: M until 2026-10-31`, or the same line `by` a block that does not name M | 2 (no owner record the line can be checked against) | section 5 (CB-03) |
+| F11 | the frame of `task:x` says `parent-scope: program:gone`, and the registry has no line for `program:gone` | 2 (unresolved parent) | rule 6 (CB-04) |
+| F12 | two registry lines for `task:x`, or a frame with two `parent-scope:` fields | 2 | rule 5 (CB-04) |
+| F13 | `- M @ task:never-issued: reviewer` | 2 (no registry line) | rule 7 (CB-04) |
 
 The journal side of R3-C03 (a producer identity inside a fence) is closed by the same fence rule
 applied to journals: the producer is read only from the entry's `Launch:` line outside fences
@@ -138,4 +156,4 @@ reads only `- name: role` lines (`.ai/bin/protocol-hooks.cjs:300`).
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T04, S2-T05) — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9), CB-03 (delegation names its owner record; F10) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9), CB-03 (delegation names its owner record; F10), CB-04 (inputs, scope and parent resolution; F11-F13) — second pass pending.
