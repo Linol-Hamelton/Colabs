@@ -1,6 +1,6 @@
 ---
 id: ROLE-researcher
-version: 0.1
+version: 0.2
 title: Researcher - one zone of a research cycle
 layer: L1
 type: role
@@ -18,7 +18,7 @@ evidence: [PROTO-DEC-0052, docs/research/2026-09-23-kernel-architecture/BRIEF.md
 
 # ROLE-researcher
 
-Draft 0.1 of CORE-ARCH stage 2 (layer L1). Not binding until approved. A role is a slot, not a model: any model may hold it in a task, one role per model per task (PROTO-DEC-0056 item 2, 0057 item 3).
+Draft 0.2 of CORE-ARCH stage 2 (layer L1). Not binding until approved. A role is a slot, not a model: any model may hold it in a task, one role per model per task (PROTO-DEC-0056 item 2, 0057 item 3).
 
 ## Purpose
 
@@ -32,6 +32,7 @@ A researcher answers one zone of an owner question independently, so that agreem
 ## Rights
 
 - read the repository and the sources named in the brief
+- write its own report and journal (FS_WRITE; without it, the transcription route of `AGENTS.md` section 5.5, ADVISORY)
 
 ## Duties
 
@@ -59,3 +60,4 @@ A researcher answers one zone of an owner question independently, so that agreem
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T02) — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fix CB-07: the right to write its own report is stated — second pass pending.

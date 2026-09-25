@@ -1,6 +1,6 @@
 ---
 id: ROLE-drafter
-version: 0.1
+version: 0.2
 title: Drafter - draft decision built on the syntheses
 layer: L1
 type: role
@@ -18,7 +18,7 @@ evidence: [PROTO-DEC-0053, PROTO-DEC-0056]
 
 # ROLE-drafter
 
-Draft 0.1 of CORE-ARCH stage 2 (layer L1). Not binding until approved. A role is a slot, not a model: any model may hold it in a task, one role per model per task (PROTO-DEC-0056 item 2, 0057 item 3).
+Draft 0.2 of CORE-ARCH stage 2 (layer L1). Not binding until approved. A role is a slot, not a model: any model may hold it in a task, one role per model per task (PROTO-DEC-0056 item 2, 0057 item 3).
 
 ## Purpose
 
@@ -31,6 +31,7 @@ The drafter turns the syntheses into one draft decision that states agreement, d
 ## Rights
 
 - read all syntheses
+- write its own report and journal (FS_WRITE; without it, the transcription route of `AGENTS.md` section 5.5, ADVISORY)
 
 ## Duties
 
@@ -57,3 +58,4 @@ The drafter turns the syntheses into one draft decision that states agreement, d
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T02) — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fix CB-07: the right to write its own report is stated — second pass pending.
