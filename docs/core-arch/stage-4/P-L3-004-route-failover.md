@@ -1,6 +1,6 @@
 ---
 id: P-L3-004
-version: 0.1
+version: 0.2
 title: Route failover - the maker's CLI first, Kilo as the fallback router, liveness before any switch
 layer: L3
 type: procedure
@@ -42,7 +42,7 @@ third cost it never accepts is two executors doing one task.
 - R-L3-004.2. When the primary route is unavailable, Kilo is the fallback router. Within Kilo, the
   cheapest suitable route of the same model is taken, by output price and then input price, as
   the recorded Kilo catalog gives them. Ties go to the maker's own provider, then alphabetically
-  by provider.
+  by provider (the tie-break is the implementer's proposal, not the owner's words).
 - R-L3-004.3. A route is suitable when:
   - its model is active and can call tools;
   - it can set the effort of the tier. That is the level the primary cell names or, failing that,
@@ -102,12 +102,13 @@ A hard failure is one of:
 
 ### Timers (defaults; the launcher takes other values as options)
 
-| Timer | Default | On expiry |
-|---|---|---|
-| soft | 150 s without progress | inspect: record alive, CPU, children and the last log lines; no switch |
-| hard | 480 s without progress | before useful work: hard failure; after it: `HUNG` |
-| cap | 360 min for a researcher, 180 min for a synthesiser | `OVER_CAP` |
-| tick | 15 s | read the signals |
+| Timer | Default | On expiry | Source of the value |
+|---|---|---|---|
+| soft | 150 s without progress | inspect: record alive, CPU, children and the last log lines; no switch | the owner's "2-3 min" (O-11) |
+| hard | 480 s without progress | before useful work: hard failure; after it: `HUNG` | the owner's "7-10 min" (O-11) |
+| cap | 360 min for a researcher, 180 min for a synthesiser | `OVER_CAP` | implementer's proposal; PROTO-DEC-0050 item 2 names a cap but no value |
+| tick | 15 s | read the signals | implementer's proposal |
+| smoke | 180 s per probe (launcher `--smoke`) | the probe counts as failed | implementer's proposal |
 
 ### State table
 
@@ -143,8 +144,11 @@ A hard failure is one of:
   PROTO-DEC-0050 item 2). Clients set model and effort differently (PROTO-DEC-0065 item 2).
   Cost unknown.
 - C - the owner's failover policy and route order of 2026-09-25 (PROTO-DEC-0067). The signal
-  set, the thresholds and the state table are the implementer's proposal under that policy. They
-  are on trial, measured by M-007 and by the kill condition in the front matter.
+  set, the thresholds and the state table are the implementer's proposal under that policy, and
+  so are four values the owner did not name: the price tie-break of R-L3-004.2, the caps, the
+  tick and the smoke timeout (the "Source" column of the timer table). They are on trial,
+  measured by M-007 and by the kill condition in the front matter; the owner may replace any of
+  them.
 
 ## Risks
 
@@ -160,3 +164,4 @@ A hard failure is one of:
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal) — second pass pending.

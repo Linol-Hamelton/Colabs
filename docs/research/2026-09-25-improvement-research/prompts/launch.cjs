@@ -28,6 +28,8 @@ const OUT = path.join(ROOT, '.ai', 'runtime', 'improvement-research');
 const ROUTES = path.join(ROOT, 'docs', 'core-arch', 'stage-4', 'kilo-routes.json');
 const TMP = os.tmpdir();
 
+// soft and hard sit inside the owner's "2-3 min" and "7-10 min" (O-11); the tick, the caps and the
+// smoke timeout are the implementer's proposal (P-L3-004 timer table, "Source" column).
 const DEFAULTS = { tickSeconds: 15, softSeconds: 150, hardSeconds: 480, usefulBytes: 16384, cpuSeconds: 0.5,
   capMinutes: { research: 360, synthesis: 180 }, smokeSeconds: 180 };
 const ERROR_TEXT = /\b(401|403|429)\b|unauthori[sz]ed|forbidden|not logged in|log ?in required|authenticat\w* (failed|error|required)|rate[ -]?limit|quota|insufficient[ _](credit|balance|funds|quota)|usage limit|limit (reached|exceeded)|model\W.{0,60}(not found|not available|unavailable|does not exist|unsupported)|unknown model|ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|network error|provider error|service unavailable|\b50[23]\b/i;
