@@ -9072,3 +9072,110 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 288s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - Round 2 and l3 finished through Kilo; corpus frozen; register extended
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- Started the Kilo operator (`r2-dispatch.cjs operator`, gemini-3.7-flash / medium). It dispatched
+  r2-a, r2-b, r2-c and l3, then r2-synthesis, and wrote `FINAL: DONE`. Its journal is
+  kilo-c4e38342c421fb77.
+- Fixed the helper twice while it ran:
+  - jobs start from a `.cmd` file through Start-Process;
+  - DeepSeek runs on route `deepseek/deepseek-flash`, with Kilo `~deepseek` as fallback.
+- Restarted r2-c and l3 once by hand after their route failed.
+- Wrote `round3/CORPUS.txt`: sha256 of 13 files, 9 of round 1 (the README counted 8; the
+  extra file is B-baseline-check.json, same size bucket) and 4 of round 2.
+- I did not read the council outputs beyond the file names, line counts and the matrix. I am
+  excluded from the council by COMMON section 6.
+
+Result:
+- Round 2 is complete. Each participant has a journal with 
+
+Evidence:
+- anchor: 5ace76c6ed76500740f22a7649c1cf9e535541b3, uncommitted changes present
+- digest: sha256:bb43004856491f653e5df122572adb4c0d47ff6b7dfb89b7238fe9dc3845d999 over 463 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T10:08:17.029Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:d30e848a29688ec02243bbcf51f183960776b1bcc5d55510e6acb060997edeaf of this entry without this block
+- parent-entry: sha256:c05d66acb68925d546bf89ffdfaf5e328aef2bd1ba4f8fb2ce329f193c5cf92b
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 293s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - Abnormal-situation register with prevention; round 2 and l3 dispatched through Kilo
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner asked for every abnormal situation to be entered into the improvement process, with a
+  guaranteed prevention for each. TASK and PLAN are full (80/80, 200/200), so the register lives
+  here as `Signal:` lines (PROTO-DEC-0051). Each line gives a prevention and says whether it is
+  in force now or waits for the next kernel batch (PROTO-DEC-0047 item 12).
+- Owner decisions (chat, 2026-09-25):
+  - next stage = council round 2 plus DeepSeek's third pass on package L;
+  - dispatch "через kilo kode";
+  - r2-a = grok-4.5 / high via copilot instead of sol / max, for cost.
+- r2-b stays on its table cell, opus-5.5 / xhigh, but runs through Kilo `kilo/anthropic/claude-opus-5.5`.
+  The claude CLI shares this session's limit, which the owner reports at 48%.
+- New `prompts/K-dispatch-r2.md` (Kilo operator) and `tools/r2-dispatch.cjs`:
+  - start detached, with a log;
+  - canary by journal Launch and Orientation lines;
+  - a stall at 20 minutes idle, and one fallback per slot;
+  - the synthesis refuses to start before all three challenges are DONE;
+  - a FINAL line in `.ai/runtime/vmc-r2/STATUS.md`, which this session watches.
+- round1/ is committed so that round 2 reads a frozen corpus by SHA. The council README status
+  records the overrides.
+
+Register (every line: situation -> prevention; NOW = in force from this commit):
+Signal: fall. Roles injection told unnamed agents to ask the owner -> TASK Roles shim + `launch.cjs --preflight`; NOW.
+Signal: procedure-gap. Prompt step 1 demanded D:/Colabs as toplevel under isolation (IF-1) -> rule: a change of working directory re-reads every prompt assuming it; next batch, checklist item in CLI-AGENTS.
+Signal: fall. agy headless `--sandbox` auto-denied tools, run ended empty -> r2-dispatch runs agy without `--sandbox`, falls back to Kilo after 10 min without Orientation; NOW.
+Signal: fall. Participant skipped COMMON section 3 and read the working tree -> canary: no Launch+Orientation within 10 min = stop and restart (r2-dispatch status); NOW.
+Signal: procedure-gap. Round-2 corpus absent at the baseline SHA -> round1/ committed, launch line names its SHA; NOW.
+Signal: procedure-gap. Owner overrides lived only in journals -> README status row plus the launch line; NOW. Kernel fix: an in-repo override record, next batch.
+Signal: procedure-gap. PowerShell 5.1: binary pipe `git archive | tar`, `Get-Content` without `-Encoding UTF8`, unreliable `grep $'\r'` -> "Windows shell" note in CLI-AGENTS and prompt templates; next batch. Council launch lines use `git show <sha>:<path>`; NOW.
+Signal: fall. Kilo terminal blocked by a long `agy -p` -> detached start plus polling with commands under 5 min; NOW (r2-dispatch, K-dispatch-r2).
+Signal: fall. Model credits ran out (Fable) and a slot was reassigned ad hoc -> Kilo routes for Fable 5.1 and Opus 5.5 exist (`kilo models`, 2026-09-25) and are the named fallback; NOW in README. Pre-launch credit check: next batch.
+Signal: procedure-gap. Cost: r1-b took 62% of a 5-hour limit -> cost-aware choice among equal-tier cells in P-L2-002; next stage-2 round. r2-a moved to grok by the owner; NOW.
+Signal: procedure-gap. A shared limit between coordinator and participant stops both -> participants never share the coordinator's client limit (r2-b via Kilo); NOW.
+Signal: fall. Thin report (r1-c, 39 lines) -> round 2 challenges and the issue matrix record gaps; a minimum-coverage check per role file is a script-candidate for the next batch.
+Signal: fall. Diagnostic `if` without `$( )` inside a PowerShell expression (Kilo-written) -> Windows shell note; next batch.
+Signal: procedure-gap. A worktree shares config and refs (F-L2), and push blocks covered only existing remotes (F-L1) -> private clone and `insteadOf`; NOW (9a936dd).
+Signal: procedure-gap. Watchdog died before its first scan under load (CB-17) -> early scans and unsettled-attempt refusal; NOW.
+Signal: procedure-gap. A working copy with CRLF differed from its LF blob -> byte-level check of committed blobs; next batch, in the helper script.
+Signal: script-candidate. `r2-dispatch.cjs` is the first council dispatcher; generalise it into the kernel dispatch script (PROTO-DEC-0050 item 4) with Kilo as the single operator surface (owner direction).
+
+Result: Register written. Dispatch files checked: `node --check` passes, `show` prints the commands,
+`status` works, and its state path is git-ignored. Jobs are started by the Kilo operator, not by
+this session.
+
+Next step: The Kilo operator runs K-dispatch-r2. This session watches STATUS.md for `FINAL:` and
+reports to the owner. Round 3 needs owner confirmation of the Fable route via Kilo.
+
+Open:
+- The Kilo jobs run with `kilo run --auto`, which is Kilo's full auto-approve. The owner authorised
+  Kilo dispatch in chat. The copilot job uses a narrow allow-list.
+- Narrow the global agy rules after the council.
+
+Evidence:
+- anchor: 9a936ddf077793a0050597b06947bdd8650bb455, uncommitted changes present
+- digest: sha256:20fda300c5d2879fb2e0dbc6e32e8a943926067c233ecc1bc46f360b8e97fadf over 457 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T09:28:58.646Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:c05d66acb68925d546bf89ffdfaf5e328aef2bd1ba4f8fb2ce329f193c5cf92b of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 298s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
