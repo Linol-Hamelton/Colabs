@@ -56,4 +56,4 @@ researchers' four files each. The limits of section 3 of `A-research.md` bind yo
 - Label claims FACT, CLAIM or HYPOTHESIS. Do not quote the researchers' prose; cite `path:line`
   (PROTO-DEC-0048 item 3). Never write keys, tokens or passwords.
 - Journal: a checkpoint line per step, a five-label entry at the end, then
-  `node .ai/bin/protocol-handoff.cjs record --owner <your owner name>`.
+  `node .ai/bin/protocol-handoff.cjs record --quick --owner <your owner name>` (the validator only; PROTO-DEC-0071).

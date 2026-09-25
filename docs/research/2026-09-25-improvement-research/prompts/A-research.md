@@ -124,4 +124,4 @@ Statuses stay UNKNOWN unless a wave-1 measurement settles them.
 - If your context runs short, finish the file you are on, mark in it which stage is incomplete,
   and hand off. Never leave an unmarked partial file.
 - End with a complete five-label entry, then
-  `node .ai/bin/protocol-handoff.cjs record --owner <your owner name>`.
+  `node .ai/bin/protocol-handoff.cjs record --quick --owner <your owner name>` (the validator only; PROTO-DEC-0071).

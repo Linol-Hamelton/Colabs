@@ -2833,3 +2833,45 @@ Implementer's reading, not the owner's words, recorded in P-L3-004 and the launc
   other change in the worktree, a moved HEAD or a new tag stops the job, and nothing is copied.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
+
+---
+
+### PROTO-DEC-0071
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+One full `record` runs the validator and the regression suite. The implementer measured it on
+2026-09-25, in session `claude-c73232724159e5bd`, on the owner's workstation (i9-13900HX, 32
+threads, 31.7 GB):
+- the validator takes about 3 s;
+- the suite takes 302-322 s on 16 workers;
+- three full suites at once took 445-450 s each, with the CPU at 100% for about three minutes.
+Every researcher and synthesiser of the improvement research ended with a full `record`, and the
+validator migration council adds more participants. Research participants change only their own
+documents and journal, while the regression suite tests protocol code, which they do not touch.
+The owner was asked whether research frames may record Evidence with `record --quick`.
+
+Decision:
+1. In a research or design cycle, researchers, synthesisers and the other participants of a
+   council record their Evidence with `node .ai/bin/protocol-handoff.cjs record --quick`, which
+   runs the validator only.
+2. A full `record` (the validator and the regression suite) stays mandatory for any change to
+   code, to the kernel or to protocol tooling.
+
+Reasoning:
+The suite proves properties of protocol code that a research frame cannot change. Concurrent full
+suites each cost minutes of saturated CPU.
+
+Alternatives rejected:
+Keeping the full `record` for research frames.
+
+Consequences:
+The researcher and synthesiser prompts of the improvement research (A-research, B-research,
+A-synthesis, B-synthesis) use `--quick`, and so do the prompts of the validator migration council.
+The launch operator of K-launch is not a research participant and keeps the full `record`; this is
+the transcriber's reading, not the owner's words.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25: chose "Да, для исследований" on the question "Разрешить исследовательским рамкам фиксировать Evidence через record --quick?", whose option read "Исследователи, синтезаторы и участники совета записывают Evidence через record --quick (только валидатор, ~3 с). Полный record остаётся обязательным для правок кода и ядра."; transcribed by claude-c73232724159e5bd)

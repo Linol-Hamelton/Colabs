@@ -109,4 +109,4 @@ ranking. F1-F5 is not importance.
 - If your context runs short, finish the file you are on, mark in it what is incomplete, and hand
   off. Never leave an unmarked partial file.
 - End with a complete five-label entry, then
-  `node .ai/bin/protocol-handoff.cjs record --owner <your owner name>`.
+  `node .ai/bin/protocol-handoff.cjs record --quick --owner <your owner name>` (the validator only; PROTO-DEC-0071).
