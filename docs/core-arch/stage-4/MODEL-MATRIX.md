@@ -14,7 +14,7 @@
 |---|---|---|---|
 | claude | 2.1.278 | Anthropic | `claude --version`, `claude --help` |
 | codex | codex-cli 0.154.0 | OpenAI | `codex --version`, `codex debug models` |
-| agy | 1.2.9 | Google; also Anthropic, OpenAI (gpt-oss) | `agy --version`, `agy models` |
+| agy | 1.2.9 on 2026-09-24; 1.2.10 at the launcher's `--help` check on 2026-09-25 (implementer's journal, `.ai/ARCHIVE.md:8491`) | Google; also Anthropic, OpenAI (gpt-oss) | `agy --version`, `agy models` |
 | copilot | 1.0.88 | Anthropic, OpenAI, Google, xAI, Moonshot, Microsoft | `copilot --version`, `copilot help config` |
 | vibe | 2.25.5 | Mistral | `vibe --version`, `~/.vibe/config.toml` |
 | Kilo (IDE, no CLI) | — | DeepSeek | owner (PROTO-DEC-0043 item 7, 0056) |
@@ -171,9 +171,9 @@ model records the value it actually ran with (P-L2-002 R-L2-002.5).
 ## Notes
 
 1. DeepSeek: deepseek-v4-pro is not used (PROTO-DEC-0065 item 1); flash 4.1 fills every tier.
-4. How each client takes its model and effort (before launch or after) is the subject of a per-client
-   procedure still to be written (PROTO-DEC-0065 item 2, stage 4).
 2. xAI prices and the Moonshot price columns were read from embedded page data, not from a
    rendered table; the reading is stated in each row.
 3. Microsoft's catalog page was reached but not parsed; with one reachable model, price and
    positioning do not change its ranks.
+4. How each client takes its model and effort (before launch or after) is the subject of a per-client
+   procedure still to be written (PROTO-DEC-0065 item 2, stage 4).
