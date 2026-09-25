@@ -1,7 +1,7 @@
 # Trial S2-T10 — a packet compiled by hand for a past task, against that day's prompt
 
 Work product of CORE-ARCH stage 2, not a kernel record. Produced by `claude-eb97ac9d13050014` on
-2026-09-25. Past task: the stage-1 control, dispatched on 2026-09-24 with the hand-written prompt
+2026-09-25; rows 3 and 5 corrected by `claude-ad7cc4169e888ea8` on 2026-09-25 (CB-08). Past task: the stage-1 control, dispatched on 2026-09-24 with the hand-written prompt
 `docs/reviews/2026-09-24-claude-core-arch-stage1-control-prompt.md` (115 lines). The packet uses
 the format of CORE-ARCH-3 section 6 and the records of stages 1 and 2 as they stand today.
 
@@ -47,9 +47,9 @@ Carried: a record in the packet holds the rule. Frame: task-specific, belongs in
 |---|---|---|---|
 | 1 | the author certifies none of this work (3-4) | R-L0-05 | carried |
 | 2 | Mode ADVISORY; the controller never certifies (8-10) | R-L1-reviewer.5 with R-L0-05 | carried |
-| 3 | a reproduced FAIL or BLOCKED still blocks (9-10) | R-L1-002.3 | carried |
+| 3 | a reproduced FAIL or BLOCKED still blocks (9-10) | R-L1-reviewer.2, which names PROTO-DEC-0041 items 3-5 and `AGENTS.md:137-138` (R-L1-002.3 only says who may report; corrected by CB-08) | carried |
 | 4 | model and effort named at launch; tier (11-13) | R-L2-002.4, .5 through P-L1-001 step 2 | carried after fix T-1 |
-| 5 | launch line "Read and follow the file ..." (14) | ROLE-dispatcher.2; P-L2-006 | pending (stage 3) |
+| 5 | launch line "Read and follow the file ..." (14) | only PROTO-DEC-0050 item 2 today; home planned in P-L2-006, which R-L1-dispatcher.2 names without carrying the line (corrected by CB-08) | pending (stage 3) |
 | 6 | check the repository root (18) | P-L1-001 step 1 | carried |
 | 7 | `protocol-session start`; owner name for journal and Evidence (19-20) | P-L2-010 (RULE-MAP AR-033) | pending (stage 3) |
 | 8 | first journal line `Launch:` with actual values (21-22) | R-L2-002.5 | carried after fix T-1 |

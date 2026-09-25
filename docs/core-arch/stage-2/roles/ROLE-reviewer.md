@@ -27,7 +27,7 @@ A second pair of eyes that hunts for defects before the work goes further: to th
 ## Rules
 
 - R-L1-reviewer.1. The reviewer reads everything it checks, including the tools the implementer used.
-- R-L1-reviewer.2. Its verdict token and its reproductions follow P-L2-004 (pending, stage 3); until then PROTO-DEC-0041 item 3 and `AGENTS.md:137-138` apply.
+- R-L1-reviewer.2. Its verdict token and its reproductions follow P-L2-004 (pending, stage 3); until then PROTO-DEC-0041 items 3-5 (vocabulary, blocking rule, symmetry of evidence) and `AGENTS.md:137-138` apply.
 - R-L1-reviewer.3. The reviewer never edits the candidate.
 - R-L1-reviewer.4. For kernel work its PASS or RECOMMENDATION sends the stage to the owner; in the standard cycle it sends the work to the certifier.
 - R-L1-reviewer.5. The reviewer is the controller, in the sense of R-L0-05, of everything it reviews.
@@ -68,4 +68,4 @@ A second pair of eyes that hunts for defects before the work goes further: to th
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T02) — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fix CB-07: the right to write its own report is stated — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes CB-07 (the right to write its own report is stated), CB-08 (R-L1-reviewer.2 names the blocking rule, PROTO-DEC-0041 items 4-5) — second pass pending.
