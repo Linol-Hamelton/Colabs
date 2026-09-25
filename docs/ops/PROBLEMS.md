@@ -8,7 +8,7 @@ A blocking defect stops a named piece of work. Each entry states:
 
 Closed entries stay, with the closing commit.
 
-## P-1: package L push block defeated (F-3P-1) - OPEN
+## P-1: package L push block defeated (F-3P-1) - CLOSED 2026-09-26 (as a blocker)
 
 - Blocks: K-launch of the improvement research (PROTO-DEC-0066), the only consumer of the research
   launcher.
@@ -27,6 +27,14 @@ Closed entries stay, with the closing commit.
   2. the L correction pass implements it, together with S-2, S-3, M-1 and M-2: running on
      DeepSeek, per `docs/core-arch/stage-4/L-CORRECTION-4.md`;
   3. a fourth review pass on package L.
+- Closed. The candidate is 1302554, DeepSeek's implementation of L-CORRECTION-4. Two parallel
+  independent certifiers, both RECOMMENDATION with no blocking finding:
+  - Gemini: `docs/reviews/2026-09-25-gemini-core-arch-L-correction-4-audit.md`;
+  - Mistral: `docs/reviews/2026-09-25-mistral-core-arch-L-correction-4-audit.md`.
+
+  A Codex attempt was refused by the provider's safety filter and does not count. K-launch is no
+  longer blocked by P-1. F-3P-1 itself stays OPEN - HYPOTHESIS UNDER VALIDATION (PROTO-DEC-0077
+  item 3): its UNPROVED cases and the `-c insteadOf` residual remain.
 
 ## P-2: council participants without Evidence - OPEN, non-blocking unless certification needs it
 

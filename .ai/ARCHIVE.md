@@ -9639,3 +9639,141 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 299s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - L-CORRECTION-4 done by DeepSeek (1302554), certifier 1 Gemini RECOMMENDATION
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- DeepSeek's first turn hit its reasoning output limit and changed nothing. The owner resumed the
+  same session with an item-by-item message, following my advice.
+- DeepSeek finished items 1-9. The owner committed the candidate as 1302554 (response file, code,
+  `jobs.json`, and DeepSeek's journal with Evidence).
+- Remote after the run is equal to the owner's baseline before it (v2.0.0 2968778, main d38d2f2).
+  No push by the implementer.
+- Gemini, certifier 1, audited the candidate in a detached worktree:
+  - RECOMMENDATION, items 1-6, 8 and 9 PASS, item 7 RECOMMENDATION;
+  - hostile cases 1, 3, 5-8, 10 and 13 blocked; case 2 detected by the audit (`zz-t18`
+    REMOTE_INCIDENT);
+  - Evidence with the full suite.
+- Committed Gemini's report and journal; pushed 1302554 and this commit.
+
+Result: Certifier 1 done. `launch-test.cjs` passed in runs 1, 3 and 4. Run 2 timed out on `zz-t16`
+under concurrent WMI queries, so "three in a row" was not met strictly. It is recorded as a
+test-throttling finding.
+Signal: procedure-gap. A long implementation task to one model hit the output limit on the first
+reasoning pass -> specs for long tasks ask for item-by-item turns from the start.
+
+Next step:
+- The owner names certifier 2 (Codex proposed) for the same candidate.
+- After both certifiers, I write R-L3-004.9 into P-L3-004 and regenerate `kilo-routes.json`.
+- Backlog: test throttling.
+
+Open: certifier 2; the `zz-t16` flake.
+
+Evidence:
+- anchor: 130255471e0e610e48cfde2ff0c6ed369f4d4492, uncommitted changes present
+- digest: sha256:fbaff36272fcdcd9c3714584a7226cbe49e14df28011a070c688ccc8b1c5d4e8 over 522 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T19:51:43.463Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:4b96115f371b1ce5523401193759386e2b592c19860f4b378a43b6ab761c5670 of this entry without this block
+- parent-entry: sha256:8daa65ce2d9c9953ed8b19b0e49fbc31070bcd5efa61429bbe84ab2d900d99df
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 318s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - L-CORRECTION-4 amended after an outside review; Gemini audit prompt
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner pasted another agent's review of a62fa20. Applied:
+  - item 9 no longer edits `P-L3-004` or any `docs/core-arch/` record. This avoids the conflict
+    between the 0072 T7 floor and 0074 item 4 without a new block; the spec author writes the
+    R-L3-004.9 text from the response;
+  - item 2 names the empty-global-config side effects on clients;
+  - item 4 requires a temporary bare remote, never the real origin;
+  - item 7 checks `kilo-routes.json` and the `--dry a-deepseek` fallback change.
+- The owner named Gemini the certifier of the stage. Wrote the unified adversarial audit prompt
+  `L-CORRECTION-4-AUDIT.md` (0038 item 1): items 1-9, the hostile subset, regressions, a certifying
+  header, and the full record. Certifier 2 is to be named by the owner (0041 item 2).
+- Backlog: C-7 rewritten; C-8 added (the proposed PROTO-DEC-0079, an owner question).
+
+Result: Recorded. The DeepSeek pointer line is unchanged. Gemini gets its pointer plus
+`Candidate: <SHA>` after DeepSeek's result is committed.
+
+Next step: The owner checks `git ls-remote origin` before and after the DeepSeek run and sends the
+pointer. Then I commit the candidate. Then Gemini, and certifier 2.
+
+Open: certifier 2; C-8.
+
+Evidence:
+- anchor: a62fa205871f2ecba2146501aef24fbd450618e2, uncommitted changes present
+- digest: sha256:a18c821a8a1395928ef6185e462ec697c1d8f3716c703d1a9400eb74ea6c8a32 over 518 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T18:18:50.566Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:8daa65ce2d9c9953ed8b19b0e49fbc31070bcd5efa61429bbe84ab2d900d99df of this entry without this block
+- parent-entry: sha256:aeac454187f497ae783c8e5451db5262e3d07ac1483c56f9e6da2a8bf87e69f1
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 309s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - PROTO-DEC-0077/0078: council plan approved, workflowAI answers; L-CORRECTION-4 spec
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner answered workflowAI Q1-Q4 (Q5 was left to me) and the council's AA1, AA2, L-1 and
+  F-3P-1/F-3P-2 questions. Transcribed under the lock:
+  - PROTO-DEC-0077: `final-plan-2.md` is the design baseline, with an early bounded migration
+    inside CORE-ARCH. It supersedes PROTO-DEC-0039 item 3 as to timing only, with a `reopened`
+    trigger row for 0039. Cloud Evidence stays fail-closed. The boundary is the owner's remotes.
+    Variant 9 is the approved hypothesis, and the L pass is authorised.
+  - PROTO-DEC-0078: the workflowAI answers, where item 5 is my answer as the owner asked.
+- Replaced the Q marks in `workflowAI.md` with these answers.
+- Wrote `docs/core-arch/stage-4/L-CORRECTION-4.md`, the senior specification for DeepSeek:
+  - F-3P-2 first;
+  - the Level-1 credential scrub;
+  - task git modes, default-deny, with no publisher;
+  - the `ls-remote` audit;
+  - M-2, M-1, S-3 and S-2;
+  - the records;
+  - the testable hostile subset, with the rest marked UNPROVED.
+- Backlog: C-1 and C-2 decided; M-6 closed; C-7, M-7 and M-8 added.
+- Self-audit: `run-chain` jobs run in the checkout with the owner's credentials (Level 0), which
+  PROBLEMS P-1 misstated as isolated. Corrected, and M-8 added. The remote audit shows no push by
+  a job.
+
+Result: Recorded. The prompt for DeepSeek is one pointer line to `L-CORRECTION-4.md`.
+Signal: procedure-gap. PROTO-DEC-0072's Consequences, in the transcriber's reading, put launcher
+changes at the T7 floor, while the owner routes long implementation work to DeepSeek from a senior
+spec (0074 item 4). I flagged it to the owner and did not resolve it here.
+
+Next step: The owner sends the pointer to DeepSeek. Then C-7, the fourth review pass.
+
+Open: the T7 tension above; S-5.
+
+Evidence:
+- anchor: da2a738f226a8df64f7839674b89df10b701ac9e, uncommitted changes present
+- digest: sha256:8c29f262fe3f3cc1305ec149ae6ed50b99d7a50950f53ceceab58a54746f4d45 over 517 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T18:06:54.152Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:aeac454187f497ae783c8e5451db5262e3d07ac1483c56f9e6da2a8bf87e69f1 of this entry without this block
+- parent-entry: sha256:5c4714079a9962b2a229c518e58bcf71d57bf0c455e0139ad41f4a23e21c68bd
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 320s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

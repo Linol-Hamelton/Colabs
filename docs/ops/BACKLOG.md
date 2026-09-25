@@ -30,6 +30,17 @@
   "DeepSeek V4.1 Flash", and the session recorded effort as unknown. Confirm with the owner that
   "Max" is the effort level, and record the route id and effort in the ladder table. Open.
 
+- S-7: `launch-test.cjs` runs about 20 scenarios in parallel, and concurrent WMI queries once timed
+  out `zz-t16` (Gemini, 1 of 4 runs; Mistral 3/3 and Codex 3/3 clean). Throttle the scenarios.
+  Source: certifier 1. Open.
+- S-8: `kilo-routes.json` lacks `deepseek/deepseek-flash`, so the first fallback of a-deepseek is
+  the keyless route. Regenerate the snapshot. Source: DeepSeek, both certifiers. Open (coordinator).
+- S-9: the R-L3-004.9 text from the DeepSeek response goes into `P-L3-004` (spec author, item 9
+  of L-CORRECTION-4). Open (coordinator).
+- S-10: Mistral (vibe) twice edited its journal entry after `record` (round-3 reverify; L
+  certifier 2), which breaks the entry hash. Fixed each time by a new entry and a new record. Add
+  "never edit an entry after record; add a new one" to the vibe client profile and to prompt
+  templates. Source: coordinator. Open.
 - S-6: run-chain records a manual step's wall time as a negative number and its model as the name in
   the launch file ("DeepSeek V4.1"), while the step ran on `deepseek/deepseek-flash`. Source: the
   workflowAI review synthesis. Open.
@@ -69,18 +80,15 @@
 
 ## Complex, non-blocking (discuss and decide)
 
-- C-1: F-3P-1 architecture. Decided: PROTO-DEC-0077 item 3 (variant 9 as the hypothesis, F-3P-2
-  first, boundary = the owner's remotes). Implementation: `docs/core-arch/stage-4/L-CORRECTION-4.md`,
-  given to DeepSeek (owner-run). Then the fourth independent review pass. Covers S-2, S-3, M-1, M-2.
-  In progress.
+- C-1: F-3P-1 architecture. Decided: PROTO-DEC-0077 item 3. Implemented in 1302554 by DeepSeek
+  (L-CORRECTION-4, covering S-2, S-3, M-1 and M-2) and certified by Gemini and Mistral
+  (RECOMMENDATION, 2026-09-26). F-3P-1 stays a hypothesis under validation; the publisher and the
+  UNPROVED cases are future work. Done as a correction pass.
 - C-2: the validator migration plan. Decided: PROTO-DEC-0077 items 1-2 (early bounded migration
   inside CORE-ARCH; cloud Evidence fail-closed). Next: the section AC launch conditions (M-7).
-- C-7: certification of L-CORRECTION-4, on a high-risk path (0038 item 1). It needs:
-  - the unified audit prompt `docs/core-arch/stage-4/L-CORRECTION-4-AUDIT.md`;
-  - two parallel independent certifiers (0041 item 2): certifier 1 is Gemini (owner-named,
-    Antigravity), certifier 2 is to be named by the owner (Codex proposed).
-
-  It runs on the committed candidate after DeepSeek finishes, and waits for C-1.
+- C-7: certification of L-CORRECTION-4 (high-risk, 0038 item 1). Done 2026-09-26: the unified
+  audit prompt was used, with two parallel independent certifiers (0041 item 2), Gemini and
+  Mistral, both RECOMMENDATION.
 - C-8: owner-approval question, PROTO-DEC-0079 (proposed by another agent). An implementation
   from a senior spec takes its tier from the rubric, not the T7 floor, and the floor moves to the
   spec, the review and certification. Not needed for L-CORRECTION-4, since item 9 is now the spec
