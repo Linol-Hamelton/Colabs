@@ -120,20 +120,29 @@ A hard failure is one of:
 
 ### State table
 
+`SUSPECT` is one state with two phases: before useful work and after it. Every transition the
+launcher makes is a row (CB-15).
+
 | State | Event | Next |
 |---|---|---|
+| (not launched) | the owner's stop request is already recorded | `NEEDS_OWNER`, nothing launched |
 | `STARTING` | useful work | `WORKING` |
-| `STARTING` | hard failure | `FAILED_EARLY` |
+| `STARTING` | soft silence, no error text | `SUSPECT` (inspection recorded) |
+| `STARTING`, `SUSPECT` before useful work | hard failure (an exit without useful work, error text with soft silence, or hard silence) | `FAILED_EARLY` |
+| `SUSPECT` before useful work | progress, still no useful work | `STARTING` |
+| `SUSPECT` | useful work, or progress after useful work | `WORKING` |
 | `WORKING` | soft silence | `SUSPECT` (inspection recorded) |
-| `SUSPECT` | progress | `WORKING` |
-| `SUSPECT` | hard silence | `HUNG`: stop the tree, snapshot, `NEEDS_OWNER` |
-| `WORKING`, `SUSPECT` | exit 0, all outputs present | `DONE` |
-| `WORKING`, `SUSPECT` | exit 0, outputs missing | `INCOMPLETE`, then `NEEDS_OWNER` |
-| `WORKING`, `SUSPECT` | exit not 0 | `CRASHED`, then `NEEDS_OWNER` |
-| `FAILED_EARLY` | primary, a suitable Kilo route, no automatic switch yet | `STARTING` on that route |
+| `SUSPECT` after useful work | hard silence | `HUNG`: stop the tree, snapshot, `NEEDS_OWNER` |
+| `WORKING`, `SUSPECT` after useful work | exit 0, all outputs present | `DONE` |
+| `WORKING`, `SUSPECT` after useful work | exit 0, outputs missing | `INCOMPLETE`, then `NEEDS_OWNER` |
+| `WORKING`, `SUSPECT` after useful work | exit not 0 | `CRASHED`, then `NEEDS_OWNER` |
+| `FAILED_EARLY` | primary, a suitable Kilo route, no automatic switch yet, tree confirmed gone | `STARTING` on that route |
 | `FAILED_EARLY` | otherwise | `NEEDS_OWNER` |
 | any running state | cap reached | `OVER_CAP`: stop the tree, snapshot, `NEEDS_OWNER` |
 | any running state | the owner's stop request | `STOPPED`: stop the tree, no fallback, `NEEDS_OWNER` |
+
+When the hard timer is less than one tick above the soft timer, `WORKING` can reach `HUNG` in one
+tick without a recorded `SUSPECT`; the launcher requires soft below hard, not a tick apart.
 
 ## Stop conditions
 
@@ -172,4 +181,4 @@ A hard failure is one of:
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row) — second pass pending.
