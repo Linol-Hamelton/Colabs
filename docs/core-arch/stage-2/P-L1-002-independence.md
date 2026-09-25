@@ -38,8 +38,10 @@ judged, and when it is checked.
   alias, a new session, another client or another effort level of the same model is the same
   participant, so a new session inherits every role its model held in the candidate's lineage.
   This is the one home of the participant rule; SCHEMA-assignment section 1 points here.
-- R-L1-002.2. A candidate's lineage is every task frame that produced, fixed, reviewed or
-  coordinated it. Independence is judged over the whole lineage, not the certifying frame alone.
+- R-L1-002.2. A candidate's lineage is every task frame in which the candidate was produced, fixed,
+  reviewed, framed, dispatched, coordinated or otherwise controlled: every act that R-L0-05 and
+  R-L1-coordinator.2 bar from certifying. Independence is judged over the whole lineage, not the
+  certifying frame alone.
 - R-L1-002.3. Any participant may report FAIL or BLOCKED with a reproduction; only an independent
   certifier issues PASS or RECOMMENDATION toward a gate.
 - R-L1-002.4. The number of checks scales with risk: high risk as R-L0-05 requires; medium risk one
@@ -105,4 +107,4 @@ None.
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T03) — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-05 (R-L1-002.1 is the one home of the participant rule) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-05 (R-L1-002.1 is the one home of the participant rule), CB-06 (the lineage names framing, dispatching and control) — second pass pending.
