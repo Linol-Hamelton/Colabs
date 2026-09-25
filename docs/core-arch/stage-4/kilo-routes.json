@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-24T23:49:47.174Z",
+  "generated": "2026-09-25T22:07:53.621Z",
   "kilo": "7.7.9",
   "source": "kilo models <provider> --verbose",
   "models": {
@@ -460,16 +460,20 @@
     ],
     "deepseek-flash": [
       {
-        "route": "openai-compatible/deepseek/deepseek-flash",
-        "provider": "openai-compatible",
+        "route": "deepseek/deepseek-flash",
+        "provider": "deepseek",
         "present": true,
         "own": true,
         "status": "active",
-        "input": 0,
-        "output": 0,
-        "variants": [],
+        "input": 0.15,
+        "output": 0.6,
+        "variants": [
+          "low",
+          "high",
+          "max"
+        ],
         "toolcall": true,
-        "reasoning": false,
+        "reasoning": true,
         "context": 1000000
       },
       {
@@ -478,7 +482,7 @@
         "present": true,
         "own": false,
         "status": "active",
-        "input": 0.15,
+        "input": 0.099,
         "output": 0.6,
         "variants": [
           "low",

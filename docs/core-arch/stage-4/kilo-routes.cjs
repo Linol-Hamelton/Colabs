@@ -12,9 +12,11 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
 const OUT = path.join(__dirname, 'kilo-routes.json');
-const PROVIDERS = ['google', 'openai', 'openrouter', 'vercel', 'huggingface', 'openai-compatible'];
+// `deepseek` is the owner's own DeepSeek key. `openai-compatible` is listed by the catalog but has no key
+// in the Kilo CLI ("Missing Authorization header", measured 2026-09-25), so no model routes through it.
+const PROVIDERS = ['google', 'openai', 'openrouter', 'vercel', 'huggingface', 'deepseek'];
 // Maker's own provider inside Kilo (P-L3-004 R-L3-004.2: first among equal prices).
-const OWN = { anthropic: [], openai: ['openai'], google: ['google'], deepseek: ['openai-compatible'], mistral: [], xai: [], moonshot: [], microsoft: [] };
+const OWN = { anthropic: [], openai: ['openai'], google: ['google'], deepseek: ['deepseek'], mistral: [], xai: [], moonshot: [], microsoft: [] };
 // Pinned ids only: no "~...-latest" aliases, no "-fast" or "-pro" serving variants (R-L3-004.3).
 const MODELS = {
   'claude-fable-5-1': { maker: 'anthropic', ids: ['openrouter/anthropic/claude-fable-5.1', 'vercel/anthropic/claude-fable-5.1'] },
@@ -26,7 +28,7 @@ const MODELS = {
   'gemini-3.8-flash': { maker: 'google', ids: ['google/gemini-3.8-flash', 'openrouter/google/gemini-3.8-flash', 'vercel/google/gemini-3.8-flash'] },
   'gemini-3.1-pro': { maker: 'google', ids: ['google/gemini-3.1-pro-preview', 'openrouter/google/gemini-3.1-pro-preview', 'vercel/google/gemini-3.1-pro-preview'] },
   'gemini-3.7-flash': { maker: 'google', ids: ['google/gemini-3.7-flash', 'openrouter/google/gemini-3.7-flash', 'vercel/google/gemini-3.7-flash'] },
-  'deepseek-flash': { maker: 'deepseek', ids: ['openai-compatible/deepseek/deepseek-flash', 'openrouter/deepseek/deepseek-v4.1-flash', 'vercel/deepseek/deepseek-v4.1-flash', 'huggingface/deepseek-ai/DeepSeek-V4.1-Flash'] },
+  'deepseek-flash': { maker: 'deepseek', ids: ['deepseek/deepseek-flash', 'openrouter/deepseek/deepseek-v4.1-flash', 'vercel/deepseek/deepseek-v4.1-flash', 'huggingface/deepseek-ai/DeepSeek-V4.1-Flash'] },
   'mistral-medium-3.5': { maker: 'mistral', ids: ['openrouter/mistralai/mistral-medium-3-5', 'vercel/mistral/mistral-medium-3.5'] },
   'grok-4.5': { maker: 'xai', ids: ['openrouter/x-ai/grok-4.5', 'vercel/spacexai/grok-4.5'] },
   'kimi-k3': { maker: 'moonshot', ids: ['openrouter/moonshotai/kimi-k3', 'vercel/moonshotai/kimi-k3', 'huggingface/moonshotai/Kimi-K3'] },

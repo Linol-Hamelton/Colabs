@@ -34,9 +34,11 @@
   out `zz-t16` (Gemini, 1 of 4 runs; Mistral 3/3 and Codex 3/3 clean). Throttle the scenarios.
   Source: certifier 1. Open.
 - S-8: `kilo-routes.json` lacks `deepseek/deepseek-flash`, so the first fallback of a-deepseek is
-  the keyless route. Regenerate the snapshot. Source: DeepSeek, both certifiers. Open (coordinator).
+  the keyless route. Source: DeepSeek, both certifiers. Closed 2026-09-26: the generator now uses the
+  owner-key provider `deepseek` and drops the keyless `openai-compatible`; snapshot regenerated;
+  `--dry a-deepseek` shows primary `deepseek/deepseek-flash`, fallback openrouter.
 - S-9: the R-L3-004.9 text from the DeepSeek response goes into `P-L3-004` (spec author, item 9
-  of L-CORRECTION-4). Open (coordinator).
+  of L-CORRECTION-4). Closed 2026-09-26: P-L3-004 0.5.
 - S-10: Mistral (vibe) twice edited its journal entry after `record` (round-3 reverify; L
   certifier 2), which breaks the entry hash. Fixed each time by a new entry and a new record. Add
   "never edit an entry after record; add a new one" to the vibe client profile and to prompt

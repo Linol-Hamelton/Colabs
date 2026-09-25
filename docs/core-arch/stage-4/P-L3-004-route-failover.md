@@ -1,6 +1,6 @@
 ---
 id: P-L3-004
-version: 0.4
+version: 0.5
 title: Route failover - the maker's CLI first, Kilo as the fallback router, liveness before any switch
 layer: L3
 type: procedure
@@ -83,14 +83,42 @@ third cost it never accepts is two executors doing one task.
     the executor's working directory. A clone, unlike a linked worktree, shares no config, refs or
     hooks with the checkout. It has no remote.
   - Push. The rule `url.no-push://blocked.insteadOf` with an empty value is set in the executor's
-    environment and in the clone's own config. It rewrites every URL git resolves: existing
-    remotes, added remotes, explicit push URLs and URLs given on the command line. A network fetch
-    fails too.
+    environment and in the clone's own config. It blocks every direct URL form: existing remotes,
+    added remotes, explicit URLs, explicit push URLs and typed URLs. A network fetch fails too.
+    A longer `url.*.insteadOf` given through `-c` (command scope) or an ambient file supersedes
+    it (longest prefix wins). `GIT_CONFIG_NOSYSTEM=1` and an empty launcher-owned
+    `GIT_CONFIG_GLOBAL` remove the ambient-file source. The `-c` form remains a residual that only
+    the audit covers.
+  - Credentials, Level 1 (PROTO-DEC-0077 item 3). The executor's environment is built without git
+    credential vectors: `GH_TOKEN`, `GITHUB_TOKEN`, `GIT_ASKPASS`, `SSH_ASKPASS`,
+    `SSH_AUTH_SOCK`, and `*_TOKEN` and `*_PAT` names that mention GH, GITHUB or GIT. It also gets
+    an empty `credential.helper`, `GIT_TERMINAL_PROMPT=0` and `GCM_INTERACTIVE=never`. Model
+    clients keep their own keys in their config files.
+  - Git mode, default-deny. Each job's `git: {mode, target?, publishRequired}` is read only from
+    `prompts/jobs.json`, never from the job. `READ_ONLY` runs. `LOCAL_COMMIT` needs an
+    authorisation naming the decision that permits commits; none exists today. `BRANCH_PUSH` and
+    `RELEASE_PUSH` fail closed with "publisher not implemented". No publisher exists.
+  - Audit, never enforcement. Before and after every attempt, the launcher records `git ls-remote`
+    of each remote configured in the checkout (the owner's repositories only, L-1). A change in a
+    no-push mode is an incident: it invalidates the attempt, nothing is copied back, and the clone
+    is kept. The audit is blind to:
+    - a transient push that is reverted;
+    - an after-query that fails, which is recorded as `unverified`, not as an incident;
+    - webhook and CI side effects;
+    - remotes outside the configured list.
   - The scope check. It runs on every tick and again before the copy back. It compares the working
     files, HEAD, every ref, the clone's config and its hooks with the state at preparation. Any
     change other than the job's outputs and new journals stops the job at once (`SCOPE_STOP`).
-  - The launcher's own git calls in a clone run with `core.fsmonitor=false` and an empty
-    `core.hooksPath`.
+  - The launcher's own git calls run with `core.fsmonitor=false` and, per call, `core.hooksPath` set
+    to a random path that does not exist, under a private temp directory. No hook file exists to
+    run (F-3P-2). An adversarial job that predicts the path inside the call window is outside the
+    threat model.
+  - `index.lock`. A held lock makes the state unreadable. The read retries 5 times over about 4 s.
+    If the lock persists and a git process works in the copy, the tick waits for the next scan. If
+    none does, the attempt stops with "stale index.lock", nothing is copied back, and the clone is
+    kept. The lock is never deleted.
+  - The job table is `prompts/jobs.json` (PROTO-DEC-0073), with a strict loader: unknown keys or a
+    missing field fail closed.
   - The copy back. When the tree is gone, only the job's outputs and new journals are copied back
     into the checkout.
   - What the check does not read. Git-ignored paths (`.ai/runtime/`, scratch) are not read. They
@@ -216,7 +244,7 @@ implements the wakes and does not inherit this path.
 | The Kilo fallback spends money | medium | low | one attempt; the cheapest suitable route; the owner's own providers first when prices tie | route price | a costly model on its cheapest route |
 | Two executors on one task | low | high | R-L3-004.7: confirmed-dead check, running record, a start refused while any recorded process lives or while an attempt of a dead watchdog is unsettled, takeover only by the owner | one process-table read per start | a descendant no scan saw before the watchdog died: the owner's stop cannot name it and warns; under load one process-table read took seconds on Windows, so the first three seconds after a spawn can pass without a record |
 | An executor writes outside its scope | medium | high | R-L3-004.9: a private clone per attempt (its config, refs and hooks are its own), a scope check on every tick and before the copy back that covers files, HEAD, refs, config and hooks, only outputs and new journals copied | one clone per attempt, three git calls per tick | a shell command writing by absolute path outside the clone, for example into the checkout itself, is not seen by the check; the owner's `git status` and `git remote -v` after the run and the certifiers' diff review cover it |
-| An executor pushes | low | high | the no-push rule in the environment and in the clone's config blocks existing, added and explicit push URLs (F-L1, self-test push-block checks); removing it from the config is a scope stop | a network fetch also fails | an executor that deliberately clears the environment and edits the config in one step, or pushes through a service API with the owner's stored credentials; the scope stop comes after the fact and a push cannot be undone. Local cooperative mode is assumed (agents fallible, not hostile) |
+| An executor pushes | low | high | the no-push rule in the environment and in the clone's config blocks every direct URL form; the executor has no git credential in its environment (Level 1); the job's git mode is READ_ONLY and push modes fail closed; `ls-remote` before and after each attempt turns a remote change into an incident (L-CORRECTION-4, certified by two certifiers 2026-09-26) | a network fetch also fails; clients that call git lose `user.name` and `safe.directory` | a `-c` `insteadOf` push with credentials reachable outside the environment (OS store, SSH agent, sibling process); a hosting-API mutation; a transient push that is reverted. These are UNPROVED in the hostile suite, and F-3P-1 stays OPEN - HYPOTHESIS UNDER VALIDATION (PROTO-DEC-0077 item 3). Local cooperative mode is assumed |
 | A legitimate client file stops a job | low | medium | none: a file the client creates in its working directory (a cache or a config) is outside the scope and stops the job | a relaunch | the reason names the path; the owner decides |
 
 ## Change log
@@ -224,4 +252,5 @@ implements the wakes and does not inherit this path.
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
 - 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row), CB-22 (the HUNG path is recorded as a divergence from PROTO-DEC-0051 item 4) — second pass pending.
 - 0.4 — 2026-09-25 — claude-c73232724159e5bd — second-pass findings of report L: F-L1 (push through an added remote or explicit URL: `insteadOf` rule in the environment and the clone's config), F-L2 (a linked worktree shares config, refs and hooks: a private clone instead, and the scope check reads refs, config and hooks), F-L3 (`--trust` recorded here), F-L4 (ignored paths stated), F-L5 (lifecycle of kept clones stated) — third pass pending.
+- 0.5 — 2026-09-26 — claude-c73232724159e5bd — L-CORRECTION-4 (implemented by DeepSeek in 1302554, certified RECOMMENDATION by Gemini and Mistral): R-L3-004.9 gains credentials Level 1, git mode, the `ls-remote` audit, per-call hooks path (F-3P-2), the `index.lock` policy and the job table; the `-c` residual is recorded; push risk row updated. Text from the implementer's response, written by the spec author (L-CORRECTION-4 item 9).
 - 0.3 — 2026-09-25 — claude-c73232724159e5bd — CB-17 reopened by a Windows self-test failure (zz-t12, 3/3 runs): early scans, and an unsettled attempt of a dead watchdog blocks starts until the owner's stop; R-L3-004.9 isolation and scope under PROTO-DEC-0070 (disposable worktree, SCOPE_STOP, push blocked); three state rows and two risk rows added — second pass pending.
