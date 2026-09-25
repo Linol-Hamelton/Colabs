@@ -2677,3 +2677,159 @@ zero activity is not a wait, stands. Mistral has no Kilo route that reaches its 
 (max), so a failure of its primary route goes to the owner.
 
 Approved by: RuslanFomenko (direct owner answers, 2026-09-25: "Сначала приоритет запуска у текущего воркфлоу уже опиманого в процедуре инструкциями. А если по этим путям модели не доступны, используются лимиты kilo."; "Сейчас мы не рассатриваем новых кандидатов для таблицы. Только прописываем дополнения в виде новых маршрутов при недоступности нашего основного маршрута."; "Внутри Kilo: самый дешёвый подходящий маршрут ↓ если не хватает capabilities / reasoning effort 4. Более сильный маршрут"; "hard failure → immediate fallback; тишина без progress → adaptive timeout; есть progress → ждать; уже есть полезные изменения → никакого автоматического failover."; "Предложи конкретный алгоритм state machine и набор сигналов liveness"; full wording in docs/research/2026-09-25-improvement-research/BRIEF.md O-09 to O-11; transcribed by claude-eb97ac9d13050014)
+
+---
+
+### PROTO-DEC-0068
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0067, as to the scope of its Supersedes line only
+
+Context:
+The launch-package review (`docs/reviews/2026-09-25-deepseek-research-launch-review.md`, Part 4
+item 1; ledger row CB-12) found the Supersedes line of PROTO-DEC-0067 broader than the owner's
+answer O-11. PROTO-DEC-0049 item 3 (zero activity) measures something other than O-11 (no progress
+of a live process), and `launch-round2.cjs` still enforces five minutes. The fix response
+`docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response.md` offered two options; the owner
+chose A.
+
+Decision:
+1. The soft and hard timers of PROTO-DEC-0067 item 3 replace the idle bound of PROTO-DEC-0049
+   item 3 only in `docs/research/2026-09-25-improvement-research/prompts/launch.cjs` and in P-L3-004
+   while it is on trial.
+2. Elsewhere, including `launch-round2.cjs` and the kernel dispatch script of PROTO-DEC-0050
+   item 4 until an approved block adopts P-L3-004 there, PROTO-DEC-0049 item 3 stands in full.
+
+Reasoning:
+The two rules measure different things, so one should not silently replace the other outside the
+launcher where the owner's timers were asked for.
+
+Alternatives rejected:
+Keeping the Supersedes line wide and moving `launch-round2.cjs` to the O-11 timers in a separate
+change (option B of CB-12).
+
+Consequences:
+No code change. The text of PROTO-DEC-0067 is not edited; this block narrows only how far its
+Supersedes line reaches.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25: chose "A: сузить" on the CB-12 question; transcribed by claude-c73232724159e5bd)
+
+---
+
+### PROTO-DEC-0069
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+Ledger row CB-13: item 6 of PROTO-DEC-0066 omits two sentences of the option the owner chose in
+O-08 (`docs/research/2026-09-25-improvement-research/BRIEF.md`). The fix response offered this
+block for confirmation; the owner confirmed it.
+
+Decision:
+1. As chosen in O-08, the improvement research of PROTO-DEC-0066 runs in parallel with the stage-2
+   review, does not count under the two-stream limit of PROTO-DEC-0048 item 7, and touches no
+   kernel record. This adds to PROTO-DEC-0066 item 6 and changes nothing else in it.
+
+Reasoning:
+The decision block should carry the whole option the owner chose, not part of it.
+
+Alternatives rejected:
+Leaving the gap between PROTO-DEC-0066 item 6 and O-08 as an open question.
+
+Consequences:
+None beyond the record. PROTO-DEC-0066 is not edited.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25: chose "Подтвердить" on the CB-13 question; transcribed by claude-c73232724159e5bd)
+
+---
+
+### PROTO-DEC-0070
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+Ledger row CB-21: the research launcher ran `vibe --auto-approve` and copilot with
+`--allow-all-tools --no-ask-user` from the repository root, and no block authorised either. The
+fix response offered two options (authorise the flags as they were, or narrow them). The owner
+answered with new terms instead, quoted here in full:
+
+> Разрешить на весь прогон PROTO-DEC-0066 один раз, без повторных подтверждений уже разрешённых
+> действий. Для vibe использовать --enabled-tools <минимально необходимый список>; --auto-approve
+> разрешён только для этого ограниченного набора инструментов. Для copilot разрешить
+> --allow-all-tools в non-interactive режиме, как предусмотрено PROTO-DEC-0047 п.7, при явно
+> ограниченной рабочей директории; --no-ask-user использовать только если этот флаг подтверждён
+> текущим copilot --help. Исследователи вправе читать репозиторий, выполнять необходимые для
+> исследования измерительные и read-only команды и записывать только назначенные им
+> research-артефакты, собственный journal и служебное runtime-state. Изменения kernel, product
+> code и shared governance documents, а также commit, tag и push запрещены. Любой diff вне
+> разрешённого scope → STOP.
+> Повторное подтверждение владельца не требуется, если действие уже однозначно разрешено
+> действующим approved decision, active procedure, task-frame, этим разрешением или иным
+> записанным delegation и не расширяет scope, authority или permissions. Если из действующих
+> правил и текущего состояния следует ровно одно допустимое действие, агент выполняет его и
+> фиксирует основание, а не спрашивает владельца повторно.
+> Обращение к владельцу требуется только если: отсутствует необходимая authority; требуется
+> расширение scope/permissions/delegation; нужен exception к действующему правилу; есть
+> неразрешённый конфликт binding sources; остаются несколько существенно различных допустимых
+> вариантов, между которыми процедура не делегирует выбор; требуется ранее не разрешённое
+> необратимое действие; исчерпан предусмотренный budget/back-edge; либо действующие правила дают
+> UNKNOWN, а не однозначный результат. Локальный выбор между вариантами, который уже явно
+> делегирован роли или процедуре, не требует owner confirmation.
+> Эти разрешения действуют только в рамках PROTO-DEC-0066 и прекращаются с завершением
+> соответствующего research run; они не становятся постоянным профилем клиентов и не расширяют
+> полномочия за пределы этого scope.
+
+Decision:
+1. The authorisation is given once for the whole research run of PROTO-DEC-0066. Actions it
+   already allows are not confirmed again.
+2. vibe runs with `--enabled-tools <the minimal necessary list>`; `--auto-approve` is allowed only
+   for that limited tool set.
+3. copilot runs with `--allow-all-tools` in non-interactive mode, as PROTO-DEC-0047 item 7
+   provides, with an explicitly limited working directory. `--no-ask-user` is used only if the
+   current `copilot --help` confirms the flag.
+4. Researchers may read the repository, run the measurement and read-only commands the research
+   needs, and write only their assigned research artefacts, their own journal and service runtime
+   state. Changes to the kernel, product code and shared governance documents are forbidden, and
+   so are commit, tag and push. Any diff outside the allowed scope is a STOP.
+5. No owner re-confirmation is needed when an action is already unambiguously allowed by an
+   approved decision, an active procedure, a task frame, this authorisation or another recorded
+   delegation, and does not widen scope, authority or permissions. When the rules and the current
+   state admit exactly one admissible action, the agent takes it and records the basis instead of
+   asking the owner again.
+6. The owner is asked only when: authority is missing; scope, permissions or delegation would
+   widen; an exception to a rule is needed; binding sources conflict unresolved; several
+   materially different admissible options remain and no procedure delegates the choice; a
+   previously unauthorised irreversible action is needed; a provided budget or back-edge is
+   exhausted; or the rules give UNKNOWN rather than a definite result. A local choice already
+   delegated to a role or a procedure needs no owner confirmation.
+7. These permissions hold only within PROTO-DEC-0066 and end with its research run. They do not
+   become a standing client profile and grant nothing beyond this scope.
+
+Reasoning:
+The research needs autonomous clients; the owner bounds them by a minimal tool set, a limited
+working directory, a write scope and a stop on any diff outside it, instead of per-action
+confirmations.
+
+Alternatives rejected:
+Option A of CB-21 as drafted (the flags as they were, repository root as working directory) and
+option B as drafted (narrowed flags only, no scope stop).
+
+Consequences:
+Implementer's reading, not the owner's words, recorded in P-L3-004 and the launcher:
+- vibe's minimal list is `read_file`, `grep`, `write_file`, `edit`, `powershell`, read from the
+  installed vibe 2.25.5 tool classes; study B needs no web tool.
+- copilot 1.0.88's `--help` lists `--no-ask-user` ("Disable the ask_user tool"), so it is used.
+- copilot's path check cannot grant read-only access to a directory, so a working directory
+  narrower than the repository would stop the researchers reading it. The explicitly limited
+  working directory is therefore a disposable git worktree per job attempt under the system temp
+  directory, the place PROTO-DEC-0047 item 7 names for broad grants. Every job runs there.
+- The launcher copies back into the checkout only the job's outputs and its new journals. Any
+  other change in the worktree, a moved HEAD or a new tag stops the job, and nothing is copied.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)

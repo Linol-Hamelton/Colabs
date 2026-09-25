@@ -18,7 +18,9 @@ const { spawn, spawnSync } = require('node:child_process');
 const L = require('./launch.cjs');
 
 const FAKE = path.join(__dirname, 'launch-fake-client.cjs');
-const JOBS_DIR = path.resolve(__dirname, '..', '..', '..', '..', '.ai', 'runtime', 'improvement-research', 'jobs');
+const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+const REL = 'docs/research/2026-09-25-improvement-research';
+const JOBS_DIR = path.join(ROOT, '.ai', 'runtime', 'improvement-research', 'jobs');
 const SC = {
   'zz-t1': { primary: 'fail', kilo: 'work', expect: { status: 'DONE', attempts: 2, first: 'FAILED_EARLY' } },
   'zz-t2': { primary: 'ratelimit-hang', kilo: 'fail', expect: { status: 'NEEDS_OWNER', attempts: 2, first: 'FAILED_EARLY' } },
@@ -34,8 +36,15 @@ const SC = {
   'zz-t10': { primary: 'work', kilo: 'work', stopBefore: true, expect: { status: 'NEEDS_OWNER', attempts: 0 } },
   // CB-24: the root exits while a detached grandchild lives; the watchdog stops it by identity.
   'zz-t11': { primary: 'orphan-exit', kilo: 'work', orphanGone: true, expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
-  // CB-17: driven by deadWatchdog() below, not by the common loop.
-  'zz-t12': { primary: 'orphan-hang', kilo: 'work', own: true },
+  // CB-17: driven by deadWatchdog() below, not by the common loop. t12: the watchdog dies after it
+  // recorded the tree, so --stop must stop the grandchild. t15: it dies within seconds, maybe before
+  // any record, so the start is refused until --stop and nothing unrecorded can be stopped.
+  'zz-t12': { primary: 'orphan-hang-long', kilo: 'work', own: true, killAt: 6000, checkAt: 8000, mustRecord: true },
+  'zz-t15': { primary: 'orphan-hang', kilo: 'work', own: true, killAt: 2500, checkAt: 4000 },
+  // PROTO-DEC-0070: in a disposable worktree; the outputs come back into the checkout.
+  'zz-t13': { primary: 'work', kilo: 'work', isolate: true, imported: true, expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
+  // PROTO-DEC-0070 item 4: a write outside the job's scope stops it, and nothing is copied back.
+  'zz-t14': { primary: 'escape', kilo: 'work', isolate: true, imported: false, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'SCOPE_STOP' } },
 };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
@@ -49,14 +58,29 @@ function cleanup() {
   try { for (const f of fs.readdirSync(JOBS_DIR)) if (f.startsWith('zz-')) fs.unlinkSync(path.join(JOBS_DIR, f)); } catch { /* none */ }
   const logs = path.dirname(JOBS_DIR);
   try { for (const f of fs.readdirSync(logs)) if (f.startsWith('zz-')) fs.unlinkSync(path.join(logs, f)); } catch { /* none */ }
+  // Isolated scenarios: their copied-back outputs and any worktree a scope stop kept.
+  try { fs.rmSync(path.join(ROOT, REL, 'zz-out'), { recursive: true, force: true }); } catch { /* none */ }
+  const list = spawnSync('git', ['-C', ROOT, 'worktree', 'list', '--porcelain'], { encoding: 'utf8' }).stdout || '';
+  for (const m of list.matchAll(/^worktree (.+)$/gm)) {
+    if (/colabs-research[\\/]zz-/.test(m[1])) spawnSync('git', ['-C', ROOT, 'worktree', 'remove', '--force', m[1]]);
+  }
+  spawnSync('git', ['-C', ROOT, 'worktree', 'prune']);
 }
 
 // One scenario, run in its own process: node launch-test.cjs --one <id>
 if (process.argv[2] === '--one') {
   const id = process.argv[3];
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `${id}-`));
   const s = SC[id];
-  L.run(id, null, cfg, { jobs: jobFor(id, dir), routes,
+  if (s.isolate) {
+    const out = dir => path.join(dir, REL, 'zz-out', id);
+    const job = { ...jobFor(id, '.')[id], outputs: [`${REL}/zz-out/${id}/f1.md`, `${REL}/zz-out/${id}/f2.md`] };
+    L.run(id, null, cfg, { jobs: { [id]: job }, routes,
+      primaryCommand: (jobId, message, dir) => `node "${FAKE}" ${s.primary} "${out(dir)}" "${dir}"`,
+      kiloCommand: (jobId, route, variant, message, dir) => `node "${FAKE}" ${s.kilo} "${out(dir)}" "${dir}"` });
+    return;
+  }
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `${id}-`));
+  L.run(id, null, cfg, { jobs: jobFor(id, dir), routes, isolate: false,
     primaryCommand: () => `node "${FAKE}" ${s.primary} "${dir}"`,
     kiloCommand: () => `node "${FAKE}" ${s.kilo} "${dir}"` });
   return;
@@ -105,6 +129,20 @@ function pureChecks() {
   out.push(['retry notices alone are not progress', !L.chunkIsProgress('Retrying in 5 seconds (attempt 3/10)\n\n')]);
   out.push(['ordinary output is progress', L.chunkIsProgress('reading docs/research/BRIEF.md\n')]);
   out.push(['one ordinary line among errors is progress', L.chunkIsProgress('HTTP 503\nwrote section 2\n')]);
+  // PROTO-DEC-0070: git status parsing, the scope rule, and the client commands it fixes.
+  const ents = L.parsePorcelainZ('?? a/out.md\0 M docs/x.md\0R  new.md\0old.md\0?? .ai/worklog/codex-0123456789abcdef.md\0');
+  out.push(['porcelain -z: a rename yields both paths', JSON.stringify(ents.map(e => e.path)) === JSON.stringify(['a/out.md', 'docs/x.md', 'new.md', 'old.md', '.ai/worklog/codex-0123456789abcdef.md'])]);
+  const same = L.scopeViolations(ents, ['a/out.md'], [['docs/x.md', 'h1']], p => (p === 'docs/x.md' ? 'h1' : 'absent'));
+  out.push(['scope: outputs, a new journal and an unchanged baseline path pass; anything else stops', JSON.stringify(same) === JSON.stringify(['new.md', 'old.md'])]);
+  out.push(['scope: a baseline path changed again stops', L.scopeViolations([{ code: ' M', path: 'docs/x.md' }], [], [['docs/x.md', 'h0']], () => 'h1').length === 1]);
+  out.push(['scope: an edit to a tracked journal stops', L.scopeViolations([{ code: ' M', path: '.ai/worklog/codex-0123456789abcdef.md' }], [], [], () => 'x').length === 1]);
+  const vibe = L.primaryCommand('b-mistral', 'm', 'D:/w');
+  out.push(['vibe: minimal tool set under --auto-approve, no web tool', /--enabled-tools read_file .*--enabled-tools powershell --auto-approve/.test(vibe) && !/web_/.test(vibe)]);
+  const copilot = L.primaryCommand('b-grok', 'm', 'D:/w');
+  let parses = true;
+  try { L.checkCommand(copilot); } catch { parses = false; }
+  out.push(['copilot: worktree as working directory, no --add-dir, commit/push/tag denied, command passes checkCommand',
+    /-C "D:\/w"/.test(copilot) && !/--add-dir/.test(copilot) && /shell\(git push\)/.test(copilot) && parses]);
   return out;
 }
 
@@ -144,26 +182,37 @@ const pidAlive = pid => {
 const quiet = fn => { const w = process.stdout.write; process.stdout.write = () => true; try { return fn(); } finally { process.stdout.write = w; } };
 
 // CB-17: the watchdog dies, the root exits, a grandchild lives on. A new start must be refused
-// until --stop has stopped the recorded tree by identity; then it is allowed again.
-function deadWatchdog(finish) {
-  const id = 'zz-t12';
+// until the owner's --stop has settled the attempt; then it is allowed again. If the watchdog
+// recorded the tree before it died, --stop must also have stopped the grandchild; if it never did,
+// no process table can name the grandchild (the residual in P-L3-004), and the test stops its own
+// grandchild so that none outlives the run.
+function deadWatchdog(id, finish) {
+  const s = SC[id];
   const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
-  setTimeout(() => child.kill('SIGKILL'), 2500);
+  setTimeout(() => child.kill('SIGKILL'), s.killAt);
   setTimeout(() => {
     const before = L.startBlockers(id);
     quiet(() => L.stop([id]));
     setTimeout(() => {
       const after = L.startBlockers(id);
       const st = L.readJob(id);
-      const ok = Boolean(before) && after === null && st && st.status === 'NEEDS_OWNER';
-      finish(`${ok ? 'PASS' : 'FAIL'} ${id}: dead watchdog, live grandchild: refused before --stop (${before}), allowed after (${after})`);
+      const a0 = st && st.attempts[0];
+      const dir = a0 && (a0.command.match(/"([^"]+)"\s*$/) || [])[1];
+      let orphan = null;
+      try { orphan = Number(fs.readFileSync(path.join(dir, 'orphan.pid'), 'utf8')); } catch { /* not written */ }
+      const scanned = Boolean(a0 && a0.scanned);
+      const alive = orphan !== null && pidAlive(orphan);
+      if (alive) { try { process.kill(orphan); } catch { /* gone */ } }
+      const ok = Boolean(before) && after === null && st && st.status === 'NEEDS_OWNER' && !(scanned && alive) && (scanned || !s.mustRecord);
+      finish(`${ok ? 'PASS' : 'FAIL'} ${id}: dead watchdog, live grandchild: refused before --stop (${before}), allowed after (${after}); tree recorded before the watchdog died: ${scanned}; grandchild after --stop: ${alive ? 'alive' : 'gone'}`);
     }, 1500);
-  }, 4000);
+  }, s.checkAt);
 }
 
 function scenarios() {
   const ids = Object.keys(SC).filter(id => !SC[id].own);
-  let left = ids.length + 1;
+  const own = Object.keys(SC).filter(id => SC[id].own);
+  let left = ids.length + own.length;
   const report = line => {
     results.push(line);
     left -= 1;
@@ -172,7 +221,7 @@ function scenarios() {
     process.stdout.write(`${results.sort().join('\n')}\n`);
     process.exitCode = results.every(r => r.startsWith('PASS')) ? 0 : 1;
   };
-  deadWatchdog(report);
+  for (const id of own) deadWatchdog(id, report);
   for (const id of ids) {
     if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
     const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
@@ -187,7 +236,13 @@ function scenarios() {
       const e = SC[id].expect;
       const got = st ? { status: st.status, attempts: st.attempts.length, first: st.attempts[0] && st.attempts[0].status } : null;
       const ok = got && got.status === e.status && got.attempts === e.attempts && got.first === e.first;
-      const line = note => `${ok && !/ALIVE/.test(note) ? 'PASS' : 'FAIL'} ${id}: expected ${JSON.stringify(e)} got ${JSON.stringify(got)}${st && st.reason ? `; reason: ${st.reason}` : ''}${note}`;
+      const line = note => `${ok && !/ALIVE|MISMATCH|LEAKED/.test(note) ? 'PASS' : 'FAIL'} ${id}: expected ${JSON.stringify(e)} got ${JSON.stringify(got)}${st && st.reason ? `; reason: ${st.reason}` : ''}${note}`;
+      if (SC[id].imported !== undefined) {
+        const back = fs.existsSync(path.join(ROOT, REL, 'zz-out', id, 'f1.md'));
+        const leaked = fs.existsSync(path.join(ROOT, 'OwnerIdeas', 'zz-escape.md'));
+        report(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}`));
+        return;
+      }
       if (!SC[id].orphanGone) { report(line('')); return; }
       const f = st && st.attempts[0] && (st.attempts[0].changed || [])[0];
       const orphanPid = f ? Number(fs.readFileSync(path.join(path.dirname(f), 'orphan.pid'), 'utf8')) : null;

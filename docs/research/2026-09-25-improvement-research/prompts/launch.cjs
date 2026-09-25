@@ -16,6 +16,10 @@
 // <jobs>: comma list of job ids, or `researchers` (the six), `a`, `b`. Options:
 // --soft-seconds N, --hard-seconds N, --cap-minutes N. State: .ai/runtime/improvement-research/.
 // Exit codes: 0 done, 1 a refusal the owner can resolve, 2 unknown or malformed input.
+//
+// PROTO-DEC-0070: every attempt runs in a disposable git worktree of HEAD under the system temp
+// directory. Only the job's outputs and its new journals are copied back into the checkout; any
+// other change there, a moved HEAD or a new tag stops the job (SCOPE_STOP) and nothing is copied.
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -147,7 +151,16 @@ function classifyExit(att, code, outputsComplete) {
 // ---------- commands ----------
 
 const promptLine = job => `Read and follow the file ${REL}/prompts/run/${job}.md`;
-const SAFE = /^[A-Za-z0-9 _.,:=/\\"-]+$/;
+const SAFE = /^[A-Za-z0-9 _.,:=/\\"()-]+$/;
+
+// PROTO-DEC-0070 item 2: vibe gets the minimal tool set a study-B researcher needs (read, search,
+// write its own files, a shell for the session script and read-only commands); --auto-approve covers
+// only these. Names are vibe 2.25.5's tool classes; study B needs no web tool. `--trust` only skips
+// the trust prompt for the disposable worktree, as for the checkout it copies; it adds no tool.
+const VIBE_TOOLS = ['read_file', 'grep', 'write_file', 'edit', 'powershell'];
+// PROTO-DEC-0070 items 3-4: copilot runs in the job's worktree (-C), with --no-ask-user (listed by
+// copilot 1.0.88 --help) and with commit, push and tag denied as tools.
+const COPILOT_DENY = ['git commit', 'git push', 'git tag'].map(c => `--deny-tool "shell(${c})"`).join(' ');
 
 function primaryCommand(jobId, message, dir) {
   const j = JOBS[jobId];
@@ -155,8 +168,8 @@ function primaryCommand(jobId, message, dir) {
   switch (j.primary.client) {
     case 'codex': return `codex exec -m ${j.primary.id} -c model_reasoning_effort=${j.level} --approve-for-me --skip-git-repo-check -C "${dir}" --add-dir "${TMP}" --json ${m}`;
     case 'agy': return `agy -p ${m} --model ${j.primary.id} --dangerously-skip-permissions --add-dir "${dir}" --add-dir "${TMP}" --output-format stream-json`;
-    case 'copilot': return `copilot -p ${m} --model ${j.primary.id} --reasoning-effort ${j.level} --allow-all-tools --no-ask-user --add-dir "${TMP}" --log-dir "${path.join(OUT, `${jobId}-copilot-log`)}"`;
-    case 'vibe': return `vibe -p ${m} --auto-approve --max-turns 400 --output streaming --workdir "${dir}"`;
+    case 'copilot': return `copilot -p ${m} --model ${j.primary.id} --reasoning-effort ${j.level} -C "${dir}" --allow-all-tools --no-ask-user ${COPILOT_DENY} --log-dir "${path.join(OUT, `${jobId}-copilot-log`)}"`;
+    case 'vibe': return `vibe -p ${m} ${VIBE_TOOLS.map(t => `--enabled-tools ${t}`).join(' ')} --auto-approve --trust --max-turns 400 --output streaming --workdir "${dir}"`;
     case 'kilo': return kiloCommand(jobId, j.primary.id, null, message, dir);
     default: throw new Error(`unknown client ${j.primary.client}`);
   }
@@ -241,6 +254,11 @@ function startBlockers(id, rows = procTable()) {
   const left = aliveTree(rows, recordedTree(s, true), true);
   if (left.length) return `a process of an earlier attempt is still alive (pid ${left.map(p => p.pid).join(', ')}); stop it with --stop ${id}`;
   if (s.pid && (s.rootCreated === null || s.rootCreated === undefined) && alive(s.pid)) return `pid ${s.pid} is alive and its identity is unknown`;
+  // CB-17: a watchdog that died before its attempt settled may have missed processes it never saw,
+  // and no process table can name them later. Only the owner's --stop settles such an attempt.
+  const n = (s.attempts || []).length;
+  const lastAtt = n ? s.attempts[n - 1] : null;
+  if (lastAtt && !lastAtt.endedAt) return `its watchdog died before attempt ${n} settled${lastAtt.scanned ? '' : ', before it recorded any process tree'}; processes of that attempt may run unrecorded; check them, then run --stop ${id}`;
   return null;
 }
 
@@ -285,8 +303,8 @@ function fileSig(files) {
   return sig;
 }
 
-function journalsOf(agent) {
-  const dir = path.join(ROOT, '.ai', 'worklog');
+function journalsOf(agent, root = ROOT) {
+  const dir = path.join(root, '.ai', 'worklog');
   try { return fs.readdirSync(dir).filter(f => f.startsWith(`${agent}-`) && f.endsWith('.md')).map(f => path.join(dir, f)); }
   catch { return []; }
 }
@@ -312,6 +330,102 @@ function tail(file, bytes) {
     fs.readSync(fd, buf, 0, len, size - len); fs.closeSync(fd);
     return buf.toString('utf8');
   } catch { return ''; }
+}
+
+// ---------- the disposable worktree (PROTO-DEC-0070) ----------
+
+// A journal a session creates: `.ai/worklog/<agent>-<16 hex>.md`, new (untracked) in the worktree.
+const JOURNAL_RE = /^\.ai\/worklog\/[a-z][a-z0-9]*-[0-9a-f]{16}\.md$/;
+const sleepSync = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+const git = (args, cwd = ROOT) => spawnSync('git', args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 1 << 26 });
+
+// No push (item 4): every git the executor runs sees an unusable push URL for each remote.
+function noPushEnv() {
+  const remotes = (git(['remote']).stdout || '').split(/\r?\n/).filter(Boolean);
+  const env = { GIT_CONFIG_COUNT: String(remotes.length) };
+  remotes.forEach((r, i) => { env[`GIT_CONFIG_KEY_${i}`] = `remote.${r}.pushurl`; env[`GIT_CONFIG_VALUE_${i}`] = 'no-push://blocked-by-launcher'; });
+  return remotes.length ? env : {};
+}
+
+// `git status --porcelain=v1 -z` entries: {code, path}; a rename or copy also yields its source.
+function parsePorcelainZ(text) {
+  const parts = String(text).split('\0').filter(Boolean);
+  const out = [];
+  for (let i = 0; i < parts.length; i += 1) {
+    const code = parts[i].slice(0, 2); const p = parts[i].slice(3);
+    out.push({ code, path: p });
+    if (/[RC]/.test(code) && parts[i + 1] !== undefined) { out.push({ code, path: parts[i + 1] }); i += 1; }
+  }
+  return out;
+}
+
+function fileHash(file) {
+  try { return require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex'); } catch { return 'absent'; }
+}
+
+function workdirState(dir) {
+  const st = git(['status', '--porcelain=v1', '-z', '--untracked-files=all'], dir);
+  const head = git(['rev-parse', 'HEAD'], dir);
+  const tags = git(['tag', '--list'], dir);
+  if (st.status !== 0 || head.status !== 0 || tags.status !== 0) return null;
+  return { entries: parsePorcelainZ(st.stdout), head: head.stdout.trim(), tags: require('node:crypto').createHash('sha256').update(tags.stdout).digest('hex') };
+}
+
+// Paths changed outside the job's scope. Allowed: the job's outputs, and new journals. A path that
+// was already different at preparation (the copied research package) counts only if it changed.
+function scopeViolations(entries, outputs, baseFiles, hashOf) {
+  const base = new Map(baseFiles);
+  return entries.filter(e => !outputs.includes(e.path) && !(e.code === '??' && JOURNAL_RE.test(e.path))
+    && !(base.has(e.path) && base.get(e.path) === hashOf(e.path))).map(e => e.path);
+}
+
+// A worktree of HEAD with the research package copied in (earlier outputs, prompt stubs), and the
+// baseline the scope check compares against. Six watchdogs may start at once, so it retries.
+function prepareWorkdir(jobId, n) {
+  fs.mkdirSync(path.join(TMP, 'colabs-research'), { recursive: true });
+  let r = null; let dir = null;
+  for (let i = 0; i < 3; i += 1) {
+    // A fresh name per try: a failed add may leave its directory behind.
+    dir = path.join(TMP, 'colabs-research', `${jobId}-${n}-${Date.now().toString(36)}-${i}`);
+    r = git(['worktree', 'add', '--detach', dir, 'HEAD']);
+    if (r.status === 0) break;
+    sleepSync(700);
+  }
+  if (r.status !== 0) throw new Error(`git worktree add failed: ${(r.stderr || '').trim().split('\n')[0]}`);
+  fs.cpSync(path.join(ROOT, REL), path.join(dir, REL), { recursive: true, force: true });
+  const st = workdirState(dir);
+  if (!st) throw new Error('git status failed in the new worktree');
+  return { dir, base: { head: st.head, tags: st.tags, files: st.entries.map(e => [e.path, fileHash(path.join(dir, e.path))]) } };
+}
+
+// Why the worktree is out of scope now, or null. Unreadable state is a violation, never a pass.
+function scopeCheck(dir, base, outputs) {
+  const st = workdirState(dir);
+  if (!st) return ['git state of the worktree cannot be read'];
+  const bad = scopeViolations(st.entries, outputs, base.files, p => fileHash(path.join(dir, p)));
+  if (st.head !== base.head) bad.push(`HEAD moved to ${st.head.slice(0, 12)} (a commit or checkout)`);
+  if (st.tags !== base.tags) bad.push('tags changed');
+  return bad.length ? bad : null;
+}
+
+// Copies the job's outputs and its new journals into the checkout; returns what was copied.
+function importResults(dir, outputs) {
+  const st = workdirState(dir);
+  const journals = st ? st.entries.filter(e => e.code === '??' && JOURNAL_RE.test(e.path)).map(e => e.path) : [];
+  const copied = [];
+  for (const f of [...outputs, ...journals]) {
+    const src = path.join(dir, f);
+    if (!fs.existsSync(src)) continue;
+    fs.mkdirSync(path.dirname(path.join(ROOT, f)), { recursive: true });
+    fs.copyFileSync(src, path.join(ROOT, f));
+    copied.push(f);
+  }
+  return copied;
+}
+
+function dropWorkdir(dir) {
+  const r = git(['worktree', 'remove', '--force', dir]);
+  return r.status === 0;
 }
 
 // ---------- the watchdog (runs detached) ----------
@@ -354,8 +468,9 @@ function run(jobId, routeArg, cfg, ov = {}) {
   const buildPrimary = ov.primaryCommand || primaryCommand;
   const buildKilo = ov.kiloCommand || kiloCommand;
   const { suitable } = kiloCandidates(j, routes);
-  const outFiles = j.outputs.map(f => path.resolve(ROOT, f));
-  const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
+  // The self-test runs its fake jobs in place (outputs in scratch directories); real jobs are isolated.
+  const isolate = ov.isolate !== false;
+  const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8', ...(isolate ? noPushEnv() : {}) };
   fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
   // The stop marker is never removed here: `--start` clears an old one before it spawns this
   // watchdog, so a marker seen now is an owner stop issued after that start (CB-18).
@@ -387,38 +502,64 @@ function run(jobId, routeArg, cfg, ov = {}) {
   const start = route => {
     const message = promptLine(jobId);
     const primary = route.kind === 'primary';
-    const cmd = checkCommand(primary ? buildPrimary(jobId, message, ROOT) : buildKilo(jobId, route.route, route.variant, message, ROOT));
+    let dir = ROOT; let base = null;
+    if (isolate) {
+      try { ({ dir, base } = prepareWorkdir(jobId, state.attempts.length + 1)); } catch (e) {
+        state.status = 'NEEDS_OWNER'; state.reason = `no disposable worktree, nothing launched: ${e.message}`; writeJob(jobId, state);
+        try { fs.unlinkSync(lockFile(jobId)); } catch { /* no lock */ }
+        return undefined;
+      }
+    }
+    const outFiles = j.outputs.map(f => path.resolve(dir, f));
+    const cmd = checkCommand(primary ? buildPrimary(jobId, message, dir) : buildKilo(jobId, route.route, route.variant, message, dir));
     const logPath = path.join(OUT, `${jobId}-${state.attempts.length + 1}.log`);
     const log = fs.openSync(logPath, 'a');
     // Baselines are taken before the spawn, so nothing the executor writes can slip into them.
-    const baseline = { outputs: fileSig(outFiles), journals: journalsOf(j.agent) };
-    const child = spawn(cmd, { cwd: ROOT, env, shell: true, stdio: ['ignore', log, log], windowsHide: true });
+    const baseline = { outputs: fileSig(outFiles), journals: journalsOf(j.agent, dir) };
+    const child = spawn(cmd, { cwd: dir, env, shell: true, stdio: ['ignore', log, log], windowsHide: true });
     const now = Date.now();
     const rows0 = procTable();
     const r0 = rows0 && rows0.find(r => r.ProcessId === child.pid);
     const att = { primary, route: primary ? `${j.primary.client}:${j.primary.id || 'config'}` : route.route,
       variant: primary ? j.level : route.variant, command: cmd, pid: child.pid, rootCreated: r0 ? Number(r0.C) : null,
-      log: logPath, startedAt: now, lastProgressAt: now, useful: false, known: {},
+      log: logPath, workdir: isolate ? dir : null, base, startedAt: now, lastProgressAt: now, useful: false, known: {},
       capMinutes: cfg.capMinutes || DEFAULTS.capMinutes[j.kind], baseline, status: 'STARTING' };
     state.attempts.push(att); state.status = 'STARTING'; state.pid = child.pid; state.rootCreated = att.rootCreated;
     const me = rows0 && rows0.find(r => r.ProcessId === process.pid);
     state.watchdog = process.pid; state.watchdogCreated = me ? Number(me.C) : null; writeJob(jobId, state);
     fs.writeFileSync(lockFile(jobId), JSON.stringify({ watchdog: process.pid, watchdogCreated: state.watchdogCreated, at: Date.now() }));
     const logSize = () => { try { return fs.statSync(logPath).size; } catch { return 0; } };
-    const newJournals = () => journalsOf(j.agent).filter(f => !att.baseline.journals.includes(f));
+    const newJournals = () => journalsOf(j.agent, dir).filter(f => !att.baseline.journals.includes(f));
     const errorIn = () => (tail(logPath, 65536).match(ERROR_TEXT) || [null])[0];
     // Log volume counts as useful work only while the log carries no error text (a retry loop is not work).
     const usefulNow = () => fileSig(outFiles) !== att.baseline.outputs || newJournals().length > 0 || (logSize() >= cfg.usefulBytes && !errorIn());
     let last = { logBytes: 0, outputs: att.baseline.outputs, journals: 0, clientLog: 0, cpu: null, children: '' };
     let exited = null;
     child.on('exit', code => { exited = code === null ? -1 : code; });
+    // CB-17: the tree is first recorded one and three seconds after the spawn, not one tick later, so
+    // a watchdog that dies early leaves on record the processes it could see.
+    const scan = () => {
+      if (exited !== null || att.endedAt) return;
+      const tr = tree(child.pid, procTable());
+      if (!tr) return;
+      for (const p of tr.procs) att.known[p.pid] = p.created;
+      att.scanned = true; writeJob(jobId, state);
+    };
+    setTimeout(scan, 1000); setTimeout(scan, 3000);
     const finish = status => {
       att.status = status; att.endedAt = new Date().toISOString();
       ensureGone(att, child, () => exited !== null, gone => { att.treeGone = gone; settle(att); });
     };
+    const outOfScope = () => {
+      if (!isolate) return false;
+      const bad = scopeCheck(dir, base, j.outputs);
+      if (bad) att.scope = bad;
+      return Boolean(bad);
+    };
     const timer = setInterval(() => {
       const t = Date.now();
       if (stopRequested()) { clearInterval(timer); finish('STOPPED'); return; }
+      if (outOfScope()) { clearInterval(timer); finish('SCOPE_STOP'); return; }
       if (exited !== null) {
         clearInterval(timer);
         if (usefulNow()) att.useful = true;
@@ -431,8 +572,10 @@ function run(jobId, routeArg, cfg, ov = {}) {
       const fresh = newJournals();
       const journalsNow = fileSig(fresh);
       const clientLog = fileSig(dirFiles(path.join(OUT, `${jobId}-copilot-log`)));
-      const tr = tree(child.pid, procTable()) || { cpu: last.cpu || 0, children: last.children, procs: [] };
+      const seen = tree(child.pid, procTable());
+      const tr = seen || { cpu: last.cpu || 0, children: last.children, procs: [] };
       for (const p of tr.procs) att.known[p.pid] = p.created;
+      if (seen) att.scanned = true;
       // A tick whose new log lines are all error or retry lines is no progress, and the client's own
       // log, which records the same retries, does not count in that tick either (CB-19).
       const grew = logBytes > last.logBytes;
@@ -456,8 +599,19 @@ function run(jobId, routeArg, cfg, ov = {}) {
   };
 
   const settle = att => {
+    if (att.workdir) {
+      // The tree is gone, so the worktree no longer changes: one last scope check, then the copy
+      // back. A scope stop copies nothing and keeps the worktree for the owner to inspect.
+      if (att.status !== 'SCOPE_STOP') {
+        const bad = scopeCheck(att.workdir, att.base, j.outputs);
+        if (bad) { att.scope = bad; att.status = 'SCOPE_STOP'; }
+      }
+      att.imported = att.status === 'SCOPE_STOP' ? [] : importResults(att.workdir, j.outputs);
+      if (att.status !== 'SCOPE_STOP' && att.treeGone) att.workdirRemoved = dropWorkdir(att.workdir);
+    }
     att.changed = j.outputs.filter(f => fs.existsSync(path.resolve(ROOT, f)));
-    att.journals = journalsOf(j.agent).filter(f => !att.baseline.journals.includes(f)).map(f => path.relative(ROOT, f));
+    att.journals = att.workdir ? att.imported.filter(f => JOURNAL_RE.test(f))
+      : journalsOf(j.agent).filter(f => !att.baseline.journals.includes(f)).map(f => path.relative(ROOT, f));
     const autoAllowed = !routeArg || routeArg === 'primary';
     if (att.status === 'FAILED_EARLY' && att.primary && att.treeGone && !state.autoFallbackUsed && autoAllowed
       && suitable.length && !stopRequested()) {
@@ -467,7 +621,8 @@ function run(jobId, routeArg, cfg, ov = {}) {
     state.status = att.status === 'DONE' ? 'DONE' : 'NEEDS_OWNER';
     const why = att.status === 'STOPPED' ? 'stopped by the owner'
       : att.status === 'HUNG' ? `HUNG on ${att.route}; FALLEN without wakes, the launcher resumes no session (PROTO-DEC-0051 item 4, P-L3-004)`
-        : `${att.status} on ${att.route}`;
+        : att.status === 'SCOPE_STOP' ? `SCOPE_STOP on ${att.route}: ${att.scope.slice(0, 5).join('; ')}${att.scope.length > 5 ? ` (+${att.scope.length - 5} more)` : ''}; nothing copied back, worktree kept at ${att.workdir} (PROTO-DEC-0070 item 4)`
+          : `${att.status} on ${att.route}`;
     state.reason = att.status === 'DONE' ? null
       : `${why}${att.errorText ? ` (${att.errorText})` : ''}${att.treeGone === false ? '; process tree NOT confirmed gone' : ''}`;
     state.pid = null; state.rootCreated = null; state.watchdog = null; state.watchdogCreated = null; writeJob(jobId, state);
@@ -634,8 +789,10 @@ function status() {
     const s = readJob(id);
     if (!s) { process.stdout.write(`${id}: not started\n`); continue; }
     const a = s.attempts[s.attempts.length - 1] || {};
-    const present = JOBS[id].outputs.filter(f => fs.existsSync(path.join(ROOT, f))).length;
-    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${JOBS[id].outputs.length}; attempts ${s.attempts.length}\n`);
+    // A running attempt writes into its worktree; a settled one has been copied back.
+    const where = a.workdir && !a.endedAt ? a.workdir : ROOT;
+    const present = JOBS[id].outputs.filter(f => fs.existsSync(path.join(where, f))).length;
+    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${JOBS[id].outputs.length}; attempts ${s.attempts.length}${where !== ROOT ? `; worktree ${where}` : ''}\n`);
   }
   return 0;
 }
@@ -694,8 +851,18 @@ function stop(ids) {
     if (!left) { process.stdout.write(`${id}: the process table cannot be read; nothing was stopped\n`); continue; }
     for (const p of left) killExact(p.pid);
     const after = aliveTree(procTable(), recordedTree(s));
+    // The owner's stop settles an attempt its dead watchdog left open (CB-17). Its tree counts as
+    // gone only if it was ever scanned and nothing recorded is alive now.
+    const unscanned = [];
+    (s.attempts || []).forEach((a, i) => {
+      if (a.endedAt) return;
+      a.status = 'STOPPED'; a.endedAt = new Date().toISOString();
+      a.treeGone = Boolean(a.scanned && after && !after.length);
+      if (!a.scanned) unscanned.push(i + 1);
+    });
     s.status = 'NEEDS_OWNER'; s.reason = 'stopped by the owner'; s.pid = null; s.watchdog = null; writeJob(id, s);
     process.stdout.write(`${id}: no watchdog was running; stopped ${left.length} process(es) by identity${after && after.length ? `; still alive: ${after.map(p => p.pid).join(', ')}` : ''}\n`);
+    if (unscanned.length) process.stdout.write(`${id}: WARNING attempt ${unscanned.join(', ')} ended before its process tree was recorded; processes it started may still run and must be checked by hand\n`);
   }
   return 0;
 }
@@ -735,4 +902,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, parsePorcelainZ, scopeViolations, JOURNAL_RE, JOBS, DEFAULTS, ERROR_TEXT };

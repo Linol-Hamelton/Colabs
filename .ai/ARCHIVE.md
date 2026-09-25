@@ -8573,3 +8573,118 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 308s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - Measured PowerShell cost in the check suite (owner question)
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: The owner asked how much time the scripts take per run and whether PowerShell should go.
+Ran test-protocol.ps1 at e44686b with a scratchpad NODE_OPTIONS preload that logs every
+PowerShell spawn and its wall time. I also aggregated the timings in all Evidence blocks and
+timed cold starts. No tracked file changed.
+
+Result: Suite 376/376, wall 309 s, 16 workers, sum of test durations 1263 s.
+- PowerShell spawns per suite run: 300, 686 s summed:
+  - validate-protocol.ps1: 201 calls, 584 s, 2.9 s average;
+  - setup-ai-protocol.ps1: 86 calls, 96 s.
+- Critical path: tests/validator.test.cjs, 283 s of the 309 s, with 34 tests run in sequence
+  against the real validator.
+- Cold start: powershell about 170 ms, node about 80 ms.
+- Across Evidence blocks: the validator averages 3 s over 240 runs; the suite averages 224 s over
+  194 runs, 12.1 h in total.
+- Existing authority: PROTO-DEC-0025 item 5 and PROTO-DEC-0039 item 3 schedule one Node
+  validator, with differential verification against the PowerShell reference, for v2.0 after the
+  pilot report. Rust appears only in OwnerIdeas/.
+
+Next step: The owner decides whether to move the Node validator port forward (a new block would
+be needed to change 0039 item 3's timing). A cheaper interim option: split validator.test.cjs so
+the workers run it in parallel. That is an estimate, not measured.
+
+Open: none beyond the entry below.
+
+Evidence:
+- anchor: e44686b7e8b4a7da28232b60345967588372f965, uncommitted changes present
+- digest: sha256:944c7cf57d5f1edcdc8edb3fad563cecaf7b2a1a929cb77d6ab94f53d9409549 over 425 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T03:03:21.221Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:35b3f20bbf64f5677cfbdbec27d02bbe1eebeca5927add3041b47301617f3648 of this entry without this block
+- parent-entry: sha256:17f36d5e2adb35f9ffdc5ecea1de02bb951173fa7787d975905103bb13fa8e23
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 9s
+- test-protocol.ps1: exit 0 in 318s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - Pre-pull safety review of the cloud fix round (ab23c63..e44686b), then fast-forward
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: The owner asked for the diff of the cloud session `claude-ad7cc4169e888ea8` to be analysed
+without touching the local repository, and for a pull only if it is safe.
+- Fetched with `git fetch --refmap= origin v2.0.0`: objects and FETCH_HEAD only; branch, index and
+  tree unchanged. Remote head e44686b, a fast-forward of ab23c63 by 24 commits and 26 files.
+- Scope check over every commit: no change under .ai/bin, .claude, hooks, validator, tests/,
+  AGENTS.md, CLAUDE.md, TASK/PLAN/DECISIONS/ARCHIVE, docs/decisions, OwnerIdeas, manifest,
+  .gitattributes or .gitignore.
+- Mechanical checks: all modes 100644; no binary, BOM or CRLF; the three .cjs files ASCII-only;
+  no credential in added lines; no collision with the untracked journals.
+- Read the full launcher diff (ERROR_TEXT, chunkIsProgress, aliveTree, killExact, startBlockers,
+  ensureGone, options, stop) and the self-test diff. Kills are identity-checked (PID plus creation
+  time, no taskkill /T); the root goes through Node's child handle. The self-test deletes only zz-*
+  files under .ai/runtime. Client permission flags are unchanged (CB-21 is still the owner's).
+- Read every docs diff: drafts stay "not binding", with "second pass pending". The three
+  `Approved by:` lines in the fix response are placeholder templates for the owner.
+- Exported the three launcher files at e44686b to the scratchpad (git archive) and ran them on
+  Windows before the pull. Then `git ls-remote` confirmed e44686b, `git merge --ff-only e44686b`,
+  and a fetch to update origin/v2.0.0.
+
+Result: The pull is safe. HEAD = origin/v2.0.0 = e44686b.
+- validate-protocol.ps1: "Protocol OK. 0 warning(s).", exit 0, 67 decision blocks unchanged.
+- Windows checks at e44686b: `node --check` on the three files passes; `launch-test.cjs --pure`
+  gives 46/46, exit 0.
+- Full `launch-test.cjs`: 60/61, exit 1, three runs of three. The failing case is always
+  `zz-t12` (CB-17): "refused before --stop (null)", and one test grandchild outlives the run. The
+  grandchild self-exits in 60 s; I stopped it after each run.
+- Cause, shown by an instrumented copy: at the check the record holds `known: {}` and status
+  STARTING. Under the suite's parallel load, the watchdog dies before its first tick records any
+  descendant. `throughDead` walks one dead level, so a grandchild below a dead client is missed.
+- In isolation (diag run, record filled) the same check refuses correctly.
+- So the CB-17 guard holds only after a tick has recorded the tree. With the default 15 s tick,
+  the uncovered window is the whole first tick after each spawn, wider than the residual stated in
+  P-L3-004's risk table. The cloud's "15/15 three times" held under its /proc emulation only.
+- The defect is permissive (a start allowed, as at ab23c63), not a wrong kill, so it does not make
+  the pull unsafe.
+Signal: fall - the CB-17 fix fails its own self-test on Windows (zz-t12, 3/3 full runs); the Linux
+emulation hid the timing.
+
+Next step: DeepSeek's second pass on ab23c63..e44686b should take zz-t12 as a reproduced open
+item against CB-17. Possible fixes are for the next fix round: record the tree at spawn and on a
+short first tick, or walk dead levels through the recorded root's creation-time bound. Owner
+decisions CB-12, CB-13 and CB-21 are unchanged. Do not use `--start` for the research launch until
+CB-21 and CB-17 are closed.
+
+Open:
+- `launch.cjs --check researchers` was not run here; it calls the client CLIs' help.
+- `OwnerIdeas/RISK_COUNCIL.md` appeared untracked during the session. Not from the pull, not mine,
+  untouched.
+- The untracked journals claude-18924e5419a9376a and claude-aee441bae2736a4a belong to other
+  sessions, untouched.
+
+Evidence:
+- anchor: e44686b7e8b4a7da28232b60345967588372f965, uncommitted changes present
+- digest: sha256:944c7cf57d5f1edcdc8edb3fad563cecaf7b2a1a929cb77d6ab94f53d9409549 over 425 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T02:43:27.054Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:17f36d5e2adb35f9ffdc5ecea1de02bb951173fa7787d975905103bb13fa8e23 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 302s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

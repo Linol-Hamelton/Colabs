@@ -4,7 +4,10 @@
   `docs/research/2026-09-25-improvement-research/prompts/launch.cjs` for the owner. The launcher is
   the dispatcher and makes every routing decision (procedure P-L3-004, trial). You decide nothing,
   certify nothing, and hold no role in the research frames. Mode: ADVISORY.
-- Directives: PROTO-DEC-0066 (the research), PROTO-DEC-0067 (routes and failover).
+- Directives: PROTO-DEC-0066 (the research), PROTO-DEC-0067 (routes and failover), PROTO-DEC-0068
+  (its timers hold in this launcher only), PROTO-DEC-0069 (the research runs beside the stage-2
+  review), PROTO-DEC-0070 (client permissions for this run; every job in a disposable worktree; any
+  diff outside a job's scope stops it).
 - Author: `claude-opus-5-5` (coordinator), 2026-09-25. Talk to the owner in Russian.
 
 ## Rules
@@ -20,11 +23,18 @@
 ## Steps
 
 0. `git rev-parse --show-toplevel` must print the `D:/Colabs` checkout; otherwise stop.
+   `git rev-parse HEAD` must print the commit named in the owner's launch message: the commit whose
+   launcher passed review. If the message names no commit, ask the owner for it and stop until it
+   is given; if HEAD differs, stop. The jobs run on HEAD's tree, so this is the tree they get.
+   `git status --porcelain --untracked-files=no` must print nothing; otherwise stop.
 1. `node .ai/bin/protocol-session.cjs start --agent kilo`. Use the owner name it prints for your
    journal. Journal line 1: `Launch: model=<id> effort=<value|unknown> client=kilo-code`.
    Journal line 2:
    `Orientation: <model> @ task:research-dispatch: operator | rights=run launch.cjs | limits=Rules 1-4 | tools=terminal | success=six researchers started or each refusal reported | tier=T2`
-2. Syntax check, no model is called:
+2. Self-test, no model is called; it starts only fake clients and takes about 20 seconds:
+   `node docs/research/2026-09-25-improvement-research/prompts/launch-test.cjs`
+   Expected: exit 0 and no line starting with `FAIL`.
+   Then the syntax check, no model is called either:
    `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --check researchers`
    Expected: exit 0 and a last line ending in `commands parse; no model was called`, with no
    `FAIL` line.
@@ -49,8 +59,16 @@
    do not retry.
 6. `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status`
    Expected: exit 0. Report the state of each job as printed. The six watchdogs keep running after your session ends.
+   Each running job works in its own worktree under the system temp directory; the status line
+   names it. A job in `SCOPE_STOP` changed something outside its scope: nothing was copied back and
+   its worktree was kept; report the paths in its reason and delete nothing.
 7. Tell the owner the later commands; do not run them now:
    - `--status` at any time;
+   - `git status --short` once every job has settled: anything besides the research outputs and
+     new journals goes to the owner, since a write by absolute path outside a worktree is not seen
+     by the scope check (P-L3-004 risks);
+   - `--stop <job>` also settles a job whose watchdog died; a refusal that names an unsettled
+     attempt clears only after it;
    - `--start a-synth` once the three `a-` jobs are DONE or NEEDS_OWNER;
    - `--start b-synth` once the three `b-` jobs are;
    - `--stop <job>` to stop a job (no fallback follows a stop);

@@ -7,8 +7,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 
-const [mode, out] = process.argv.slice(2);
-const write = (n, text) => fs.writeFileSync(path.join(out, `f${n}.md`), text);
+const [mode, out, root] = process.argv.slice(2);
+const write = (n, text) => { fs.mkdirSync(out, { recursive: true }); fs.writeFileSync(path.join(out, `f${n}.md`), text); };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 // A detached grandchild that outlives this process, as a client's helper may (CB-17, CB-24).
 const orphan = () => {
@@ -26,8 +26,13 @@ const orphan = () => {
     case 'cpu-then-work': { const end = Date.now() + 8000; let x = 0; while (Date.now() < end) x += Math.sqrt(x + 1); write(1, 'a\n'); write(2, 'b\n'); process.exit(0); break; }
     case 'work-crash': write(1, 'part 1\n'); await sleep(500); process.exit(3); break;
     case 'exit0-nothing': process.exit(0); break;
-    case 'orphan-exit': orphan(); write(1, 'a\n'); write(2, 'b\n'); await sleep(2500); process.exit(0); break;
+    // Lives long enough for the watchdog's first scans to see the grandchild, even under the load of
+    // the whole self-test on Windows, where one process-table read can take seconds.
+    case 'orphan-exit': orphan(); write(1, 'a\n'); write(2, 'b\n'); await sleep(6000); process.exit(0); break;
     case 'orphan-hang': orphan(); write(1, 'a\n'); await sleep(3000); process.exit(0); break;
+    case 'orphan-hang-long': orphan(); write(1, 'a\n'); await sleep(9000); process.exit(0); break;
+    // PROTO-DEC-0070: writes its output, then a file outside its scope in the worktree it runs in.
+    case 'escape': write(1, 'a\n'); fs.mkdirSync(path.join(root, 'OwnerIdeas'), { recursive: true }); fs.writeFileSync(path.join(root, 'OwnerIdeas', 'zz-escape.md'), 'x\n'); await sleep(8000); process.exit(0); break;
     default: process.exit(9);
   }
 })();

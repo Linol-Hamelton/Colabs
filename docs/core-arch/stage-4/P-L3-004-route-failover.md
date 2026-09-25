@@ -1,6 +1,6 @@
 ---
 id: P-L3-004
-version: 0.2
+version: 0.3
 title: Route failover - the maker's CLI first, Kilo as the fallback router, liveness before any switch
 layer: L3
 type: procedure
@@ -15,7 +15,7 @@ enforcement: S~
 enforced_by: [docs/research/2026-09-25-improvement-research/prompts/launch.cjs]
 script_candidate: yes
 evidence_class: [B, C]
-evidence: [PROTO-DEC-0049, PROTO-DEC-0050, PROTO-DEC-0065, PROTO-DEC-0067, docs/research/2026-09-24-remediation-mapping/prompts/launch-round2.cjs:11]
+evidence: [PROTO-DEC-0049, PROTO-DEC-0050, PROTO-DEC-0065, PROTO-DEC-0067, PROTO-DEC-0068, PROTO-DEC-0070, docs/research/2026-09-24-remediation-mapping/prompts/launch-round2.cjs:11]
 cost_basis: unknown
 trial: metric=M-007; kill=a working agent stopped as hung, or two executors live on one task; until=CORE-ARCH package I-a
 ---
@@ -69,9 +69,20 @@ third cost it never accepts is two executors doing one task.
   Windows reuses PIDs, and the parent id of a live process can name a long-dead parent. A tree is
   stopped leaf first: each descendant by its PID only right after its identity was confirmed in a
   fresh process table, the root through the dispatcher's own child handle, and never by a tree
-  kill that selects children by parent linkage (`taskkill /T`).
+  kill that selects children by parent linkage (`taskkill /T`). The tree is first recorded one and
+  three seconds after the spawn, then on every tick. A watchdog that died before its attempt
+  settled blocks every new start until the owner's stop settles that attempt, because processes it
+  never recorded cannot be named later by any process table; the stop warns when the attempt was
+  never scanned (CB-17).
 - R-L3-004.8. The total cap of PROTO-DEC-0050 item 2 stays. Reaching it saves the state and goes
   to the owner; it never starts another route.
+- R-L3-004.9. Isolation and scope (PROTO-DEC-0070). Each attempt runs in a disposable git worktree
+  of HEAD under the system temp directory, with the research package copied in; that worktree is
+  the executor's working directory. When the tree is gone, only the job's outputs and its new
+  journals are copied back into the checkout. Any other change in the worktree, a moved HEAD or a
+  changed tag list stops the job at once (`SCOPE_STOP`): nothing is copied back and the worktree
+  is kept for the owner. Every git the executor runs sees an unusable push URL. The owner named
+  the terms; this mechanism is the implementer's reading of them.
 
 ## Steps
 
@@ -140,6 +151,9 @@ launcher makes is a row (CB-15).
 | `FAILED_EARLY` | otherwise | `NEEDS_OWNER` |
 | any running state | cap reached | `OVER_CAP`: stop the tree, snapshot, `NEEDS_OWNER` |
 | any running state | the owner's stop request | `STOPPED`: stop the tree, no fallback, `NEEDS_OWNER` |
+| (not launched) | the worktree cannot be created | `NEEDS_OWNER`, nothing launched |
+| any running state, or any end state before the copy back | a change outside the job's scope in its worktree, a moved HEAD or a changed tag list | `SCOPE_STOP`: stop the tree, copy nothing back, keep the worktree, `NEEDS_OWNER` |
+| (dead watchdog) | a start while the last attempt never settled | refused until the owner's `--stop` settles it |
 
 When the hard timer is less than one tick above the soft timer, `WORKING` can reach `HUNG` in one
 tick without a recorded `SUSPECT`; the launcher requires soft below hard, not a tick apart.
@@ -185,9 +199,12 @@ implements the wakes and does not inherit this path.
 | An unrelated process is stopped | low | high | identity by PID and creation time; descendants must be younger than their parent | one process-table read per tick | none known |
 | An error text appears in normal output before work starts | low | medium | switch only after soft silence as well | one wrong fallback | the owner sees it in the state file |
 | The Kilo fallback spends money | medium | low | one attempt; the cheapest suitable route; the owner's own providers first when prices tie | route price | a costly model on its cheapest route |
-| Two executors on one task | low | high | R-L3-004.7: confirmed-dead check, running record, a start refused while any recorded process lives, takeover only by the owner | one process-table read per start | a descendant started and orphaned between two ticks while the watchdog also died |
+| Two executors on one task | low | high | R-L3-004.7: confirmed-dead check, running record, a start refused while any recorded process lives or while an attempt of a dead watchdog is unsettled, takeover only by the owner | one process-table read per start | a descendant no scan saw before the watchdog died: the owner's stop cannot name it and warns; under load one process-table read took seconds on Windows, so the first three seconds after a spawn can pass without a record |
+| An executor writes outside its scope | medium | high | R-L3-004.9: a disposable worktree per attempt, a scope check on every tick and before the copy back, only outputs and new journals copied, push blocked | one worktree per attempt, three git calls per tick | a shell command writing by absolute path outside the worktree, for example into the checkout itself, is not seen by the check; the owner's `git status` after the run and the certifiers' diff review cover it |
+| A legitimate client file stops a job | low | medium | none: a file the client creates in its working directory (a cache or a config) is outside the scope and stops the job | a relaunch | the reason names the path; the owner decides |
 
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
 - 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row), CB-22 (the HUNG path is recorded as a divergence from PROTO-DEC-0051 item 4) — second pass pending.
+- 0.3 — 2026-09-25 — claude-c73232724159e5bd — CB-17 reopened by a Windows self-test failure (zz-t12, 3/3 runs): early scans, and an unsettled attempt of a dead watchdog blocks starts until the owner's stop; R-L3-004.9 isolation and scope under PROTO-DEC-0070 (disposable worktree, SCOPE_STOP, push blocked); three state rows and two risk rows added — second pass pending.

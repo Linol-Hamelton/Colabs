@@ -67,8 +67,10 @@ No floor applies: the frames write only under this folder. Cells come from
   prompt. The Kilo session itself: any T2 cell of the matrix, for example gemini-3.7-flash / medium
   through Kilo's `google/gemini-3.7-flash` route; it holds no role in the research frames.
 - The launcher checks every command against its client's own help before anything runs
-  (`--check`: 24 of 24 commands parse, no model called, 2026-09-25). It fails over by P-L3-004. Its
-  state machine was tested with fake clients: eight scenarios, passing three runs in a row.
+  (`--check`: 24 of 24 commands parse, no model called, 2026-09-25). It fails over by P-L3-004. Every
+  attempt runs in a disposable git worktree, and only the job's outputs and new journals come back
+  (PROTO-DEC-0070, R-L3-004.9). Its self-test (`prompts/launch-test.cjs`, fake clients) has 15
+  scenarios and 52 pure checks: 70 of 70 in three runs in a row on Windows, 2026-09-25.
 - One model holds one role in a frame (R-L2-002.2). A synthesiser is never a researcher of its own
   study. Researchers of one study do not read each other before their own files are written
   (R-L1-researcher.2). Swapping a job's model means editing `launch.cjs` and its job file, and is
@@ -80,7 +82,7 @@ No floor applies: the frames write only under this folder. Cells come from
 
 | Output | State |
 |---|---|
-| Launch | waits for the verdict on the launch package: `docs/reviews/2026-09-25-claude-stage2-and-launch-review-prompt.md`, report L |
+| Launch | waits for DeepSeek's second-pass verdict on package L: `docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-1.md` |
 | A researchers (3) | not started |
 | B researchers (3) | not started |
 | A synthesis | waits for A |
