@@ -38,13 +38,15 @@ model         ::= a model id present in the model matrix
 scope_id      ::= kind ":" name
 kind          ::= "program" | "task" | "candidate"
 name          ::= [a-z0-9][a-z0-9-]{2,63}         for "candidate", the 40-hex SHA
-slot          ::= owner | coordinator | implementer | reviewer | certifier | shadow-certifier
+slot          ::= coordinator | implementer | reviewer | certifier | shadow-certifier
                 | auditor | researcher | synthesiser | drafter | critic | fixer | procedure-author
 assigner      ::= model | "owner"
 date          ::= YYYY-MM-DD
 ```
 
 - One slot per line, no trailing text, no negation, no comment.
+- `owner` is not a slot of an assignment line: the owner is the human who writes the lines or
+  delegates them (R-L0-04, R-L1-owner.2). A line that names `owner` as its slot exits 2.
 - A task frame names its parent with `parent-scope: <scope_id>`, or `-` for none. Lines of the
   parent scope are inherited defaults: a model that the frame's own lines do not name holds its
   parent-scope role in the frame; a model that the frame's own lines name holds only those lines.
@@ -83,6 +85,7 @@ M below is `claude-opus-5-5`; the check asks whether M may certify a candidate o
 | F6 | `- M @ task:x: implementer` and `- claude-opus-5 @ task:x: reviewer` | 1 (one participant after the alias resolves, two roles) | R-L1-002.1 |
 | F7 | `- deepseek-flash @ program:core-arch: reviewer` and `- deepseek-flash @ task:s2-review: critic`, the task's parent being `program:core-arch` | 0 (the task's own line replaces the inherited one: one role in the frame; the lineage check still applies) | PROTO-DEC-0057 item 3 |
 | F8 | `- unknown-model @ task:x: reviewer` | 2 | P-L1-002 stop |
+| F9 | `- M @ task:x: owner` | 2 (`owner` is not an assignable slot) | R-L0-04 (CB-02) |
 
 The journal side of R3-C03 (a producer identity inside a fence) is closed by the same fence rule
 applied to journals: the producer is read only from the entry's `Launch:` line outside fences
@@ -92,8 +95,9 @@ applied to journals: the producer is read only from the entry's `Launch:` line o
 
 `- delegation @ program:core-arch: claude-opus-5-5 until 2026-10-31` lets that model, as
 coordinator, write assignment lines in that scope until that date. Only the owner writes
-delegation lines. A delegated coordinator writes assignment lines only, never delegation lines,
-and records each one in its journal.
+delegation lines. A delegated coordinator writes assignment lines only, never delegation lines and
+never a `coordinator` line (the delegation already names the coordinator; R-L1-coordinator.1), and
+records each one in its journal.
 
 ## 6. Proposed migration of the current `.ai/TASK.md` Roles (owner question В-12)
 
@@ -128,4 +132,4 @@ reads only `- name: role` lines (`.ai/bin/protocol-hooks.cjs:300`).
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T04, S2-T05) — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-01 (parent lines are inherited defaults; one role per frame), CB-02 (`owner` not assignable; F9) — second pass pending.

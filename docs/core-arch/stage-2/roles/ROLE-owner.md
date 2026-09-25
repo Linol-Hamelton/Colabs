@@ -1,6 +1,6 @@
 ---
 id: ROLE-owner
-version: 0.1
+version: 0.2
 title: Owner - the human who holds all authority
 layer: L1
 type: role
@@ -19,7 +19,7 @@ evidence: [AGENTS.md:52, PROTO-DEC-0030, PROTO-DEC-0062]
 
 # ROLE-owner
 
-Draft 0.1 of CORE-ARCH stage 2 (layer L1). Not binding until approved. A role is a slot, not a model: any model may hold it in a task, one role per model per task (PROTO-DEC-0056 item 2, 0057 item 3).
+Draft 0.2 of CORE-ARCH stage 2 (layer L1). Not binding until approved. Unlike every other slot, this one is held by the human owner and never by a model: no assignment line names it (SCHEMA-assignment section 2; R-L0-04).
 
 ## Purpose
 
@@ -65,3 +65,4 @@ The owner is the only source of authority in the kernel. Every other slot acts i
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft (stage 2, S2-T02) — review pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fix CB-02: the slot is the human's, never a model's — second pass pending.
