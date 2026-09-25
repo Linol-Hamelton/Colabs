@@ -22,7 +22,7 @@ your own prompt. Directives: PROTO-DEC-0066 (the research), PROTO-DEC-0067 (rout
 | `prompts/A-research.md`, `prompts/B-research.md` | one prompt per study, the same for its three researchers | coordinator |
 | `prompts/A-synthesis.md`, `prompts/B-synthesis.md` | one prompt per study for its synthesiser | coordinator |
 | `prompts/run/<job>.md` | one job file per executor: agent name, model id, output files | coordinator |
-| `prompts/launch.cjs`, `prompts/K-launch.md` | the launcher (P-L3-004) and the prompt of the Kilo Code session that runs it | coordinator |
+| `prompts/launch.cjs`, `prompts/jobs.json`, `prompts/K-launch.md` | the launcher (P-L3-004), the strict job table it reads (M-2) and the prompt of the Kilo Code session that runs it | coordinator |
 | `A/<model>-registry.md`, `-cards.md`, `-report.md`, `-measurements.md` | one set per study-A researcher | each researcher |
 | `B/<model>-taxonomy.md`, `-policy.md` | one set per study-B researcher | each researcher |
 | `A/synthesis.md`, `A/synthesis-registry.md`, `B/synthesis.md` | the syntheses | each synthesiser |
@@ -67,11 +67,12 @@ No floor applies: the frames write only under this folder. Cells come from
   prompt. The Kilo session itself: any T2 cell of the matrix, for example gemini-3.7-flash / medium
   through Kilo's `google/gemini-3.7-flash` route; it holds no role in the research frames.
 - The launcher checks every command against its client's own help before anything runs
-  (`--check`: 24 of 24 commands parse, no model called, 2026-09-25). It fails over by P-L3-004. Every
-  attempt runs in a disposable private clone of HEAD, and only the job's outputs and new journals come back
-  (PROTO-DEC-0070, R-L3-004.9). Its self-test (`prompts/launch-test.cjs`, fake clients) has 16
-  scenarios, 55 pure checks and 6 push-block checks: 80 of 80 in three runs in a row on Windows,
-  2026-09-25.
+  (`--check`: 25 of 25 commands parse, no model called, 2026-09-25). It fails over by P-L3-004. Every
+  attempt runs in a disposable private clone of HEAD, with a credential-separated environment, and only
+  the job's outputs and new journals come back (PROTO-DEC-0070, R-L3-004.9). Its self-test
+  (`prompts/launch-test.cjs`, fake clients) has 22 scenarios, 55 pure checks, 13 push-block checks,
+  5 executor-environment checks, 19 job-table checks, 8 git-mode checks, 4 hook checks and 3 start-lock
+  checks: 129 of 129 in three runs in a row on Windows, 2026-09-25.
   `--preflight` checks, read-only, that every job's agent has a `## Roles` line pointing to its
   job, so that no researcher is told to ask the owner before starting work.
 - One model holds one role in a frame (R-L2-002.2). A synthesiser is never a researcher of its own
@@ -85,7 +86,7 @@ No floor applies: the frames write only under this folder. Cells come from
 
 | Output | State |
 |---|---|
-| Launch | waits for DeepSeek's second-pass verdict on package L: `docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-1.md` |
+| Launch | waits for DeepSeek's fourth-pass verdict on package L (the correction pass `docs/core-arch/stage-4/L-CORRECTION-4.md`): `docs/reviews/2026-09-25-deepseek-core-arch-L-correction-4-response.md` |
 | A researchers (3) | not started |
 | B researchers (3) | not started |
 | A synthesis | waits for A |

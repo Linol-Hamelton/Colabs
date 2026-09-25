@@ -52,29 +52,91 @@ const ERROR_TEXT = new RegExp([
 const LEVELS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
 const POSITION = { min: 0, mid: 1, max: 2 };
 
-const outputs = (study, model, parts) => parts.map(p => `${REL}/${study}/${model}-${p}.md`);
-const JOBS = {
-  'a-sol': { kind: 'research', agent: 'codex', model: 'gpt-5.6-sol', level: 'max', position: 'max',
-    primary: { client: 'codex', id: 'gpt-5.6-sol' }, outputs: outputs('A', 'gpt-5.6-sol', ['registry', 'cards', 'measurements', 'report']) },
-  'a-gemini': { kind: 'research', agent: 'gemini', model: 'gemini-3.1-pro', level: 'high', position: 'max',
-    primary: { client: 'agy', id: 'gemini-3.1-pro-high' }, outputs: outputs('A', 'gemini-3.1-pro', ['registry', 'cards', 'measurements', 'report']) },
-  'a-deepseek': { kind: 'research', agent: 'deepseek', model: 'deepseek-flash', level: null, position: 'max',
-    primary: { client: 'kilo', id: 'openai-compatible/deepseek/deepseek-flash' }, outputs: outputs('A', 'deepseek-flash', ['registry', 'cards', 'measurements', 'report']) },
-  'a-synth': { kind: 'synthesis', agent: 'copilot', model: 'kimi-k2.7-code', level: 'medium', position: 'mid',
-    primary: { client: 'copilot', id: 'kimi-k2.7-code' }, needs: ['a-sol', 'a-gemini', 'a-deepseek'],
-    outputs: [`${REL}/A/synthesis.md`, `${REL}/A/synthesis-registry.md`] },
-  'b-grok': { kind: 'research', agent: 'grok', model: 'grok-4.5', level: 'high', position: 'max',
-    primary: { client: 'copilot', id: 'grok-4.5' }, outputs: outputs('B', 'grok-4.5', ['taxonomy', 'policy']) },
-  'b-kimi': { kind: 'research', agent: 'kimi', model: 'kimi-k2.7-code', level: 'high', position: 'max',
-    primary: { client: 'copilot', id: 'kimi-k2.7-code' }, outputs: outputs('B', 'kimi-k2.7-code', ['taxonomy', 'policy']) },
-  'b-mistral': { kind: 'research', agent: 'mistral', model: 'mistral-medium-3.5', level: 'max', position: 'max',
-    primary: { client: 'vibe', id: null }, outputs: outputs('B', 'mistral-medium-3.5', ['taxonomy', 'policy']) },
-  'b-synth': { kind: 'synthesis', agent: 'agy', model: 'gemini-3.1-pro', level: 'high', position: 'mid',
-    primary: { client: 'agy', id: 'gemini-3.1-pro-high' }, needs: ['b-grok', 'b-kimi', 'b-mistral'],
-    outputs: [`${REL}/B/synthesis.md`] },
-};
 const GROUPS = { researchers: ['a-sol', 'a-gemini', 'a-deepseek', 'b-grok', 'b-kimi', 'b-mistral'],
   a: ['a-sol', 'a-gemini', 'a-deepseek'], b: ['b-grok', 'b-kimi', 'b-mistral'] };
+
+// M-2 (PROTO-DEC-0073): the job table lives in prompts/jobs.json, out of this code. The loader is
+// strict: a missing field, an unknown key, an unknown mode or a tampered descriptor fails closed
+// (exit 2), so no job can be given a route, a model or a git mode by editing its own inputs.
+const JOBS_FILE = path.join(__dirname, 'jobs.json');
+const JOB_KEYS = ['kind', 'agent', 'model', 'level', 'position', 'primary', 'outputs', 'needs', 'git'];
+const CLIENT_NAMES = ['codex', 'agy', 'copilot', 'vibe', 'kilo'];
+// Task git modes, default-deny (final-plan-2 Part 2 item 1): a mode restricts an authorised task,
+// it never creates authority. BRANCH_PUSH and RELEASE_PUSH fail closed because no publisher exists.
+const GIT_MODES = ['READ_ONLY', 'LOCAL_COMMIT', 'BRANCH_PUSH', 'RELEASE_PUSH'];
+const GIT_KEYS = ['mode', 'publishRequired', 'target', 'authorisation'];
+const PUSH_MODES = ['BRANCH_PUSH', 'RELEASE_PUSH'];
+class TableError extends Error {}
+const isPlainObject = v => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
+
+function parseGit(git, where) {
+  if (!isPlainObject(git)) throw new TableError(`${where}: git descriptor is missing or not an object`);
+  for (const k of Object.keys(git)) if (!GIT_KEYS.includes(k)) throw new TableError(`${where}: unknown git key "${k}"`);
+  if (typeof git.mode !== 'string' || !GIT_MODES.includes(git.mode)) throw new TableError(`${where}: git.mode must be one of ${GIT_MODES.join(', ')}`);
+  if (typeof git.publishRequired !== 'boolean') throw new TableError(`${where}: git.publishRequired must be true or false`);
+  if (git.target !== undefined && (typeof git.target !== 'string' || !git.target)) throw new TableError(`${where}: git.target must be a non-empty string`);
+  if (git.authorisation !== undefined && (typeof git.authorisation !== 'string' || !git.authorisation)) throw new TableError(`${where}: git.authorisation must be a non-empty string`);
+  if (PUSH_MODES.includes(git.mode) && !git.target) throw new TableError(`${where}: ${git.mode} needs git.target`);
+  if (!PUSH_MODES.includes(git.mode) && git.target !== undefined) throw new TableError(`${where}: git.target is only for a push mode`);
+  if (git.mode === 'LOCAL_COMMIT' && !git.authorisation) throw new TableError(`${where}: LOCAL_COMMIT needs git.authorisation naming the decision that permits commits`);
+  if (git.mode !== 'LOCAL_COMMIT' && git.authorisation !== undefined) throw new TableError(`${where}: git.authorisation is only for LOCAL_COMMIT`);
+  return { mode: git.mode, publishRequired: git.publishRequired, target: git.target || null, authorisation: git.authorisation || null };
+}
+
+// Item 3, default-deny. The descriptor comes from the job table (item 5), never from the job. A
+// mode restricts an authorised task; it never creates authority. No publisher exists, so a push
+// mode fails closed, and LOCAL_COMMIT is unreachable today because no job carries the authorisation
+// the loader requires. The dispatcher and the watchdog both call this.
+function gitRefusal(job) {
+  const g = job && job.git;
+  if (!g || typeof g.mode !== 'string') return 'no git descriptor in the job table';
+  if (PUSH_MODES.includes(g.mode)) return 'publisher not implemented';
+  if (g.mode !== 'READ_ONLY' && g.mode !== 'LOCAL_COMMIT') return `unknown git mode ${g.mode}`;
+  return null;
+}
+
+function loadJobTable(file = JOBS_FILE) {
+  let raw;
+  try { raw = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { throw new TableError(`job table ${file} cannot be read: ${e.message}`); }
+  if (!isPlainObject(raw)) throw new TableError(`job table ${file} must be an object`);
+  for (const k of Object.keys(raw)) if (k !== 'jobs') throw new TableError(`job table ${file}: unknown top-level key "${k}"`);
+  if (!isPlainObject(raw.jobs) || !Object.keys(raw.jobs).length) throw new TableError(`job table ${file}: "jobs" must be a non-empty object`);
+  const jobs = {};
+  for (const [id, job] of Object.entries(raw.jobs)) {
+    if (!/^[a-z][a-z0-9-]*$/.test(id)) throw new TableError(`job id "${id}" is not a lowercase id`);
+    if (!isPlainObject(job)) throw new TableError(`job ${id}: not an object`);
+    for (const k of Object.keys(job)) if (!JOB_KEYS.includes(k)) throw new TableError(`job ${id}: unknown key "${k}"`);
+    for (const k of ['kind', 'agent', 'model', 'level', 'position', 'primary', 'outputs', 'git']) {
+      if (!(k in job)) throw new TableError(`job ${id}: missing field ${k}`);
+    }
+    if (!['research', 'synthesis'].includes(job.kind)) throw new TableError(`job ${id}: kind must be research or synthesis`);
+    if (typeof job.agent !== 'string' || !job.agent) throw new TableError(`job ${id}: agent must be a non-empty string`);
+    if (typeof job.model !== 'string' || !job.model) throw new TableError(`job ${id}: model must be a non-empty string`);
+    if (!(job.level === null || LEVELS.includes(job.level))) throw new TableError(`job ${id}: level must be null or one of ${LEVELS.join(', ')}`);
+    if (!Object.keys(POSITION).includes(job.position)) throw new TableError(`job ${id}: position must be one of ${Object.keys(POSITION).join(', ')}`);
+    if (!isPlainObject(job.primary)) throw new TableError(`job ${id}: primary must be an object`);
+    for (const k of Object.keys(job.primary)) if (!['client', 'id'].includes(k)) throw new TableError(`job ${id}: unknown primary key "${k}"`);
+    if (!CLIENT_NAMES.includes(job.primary.client)) throw new TableError(`job ${id}: primary.client must be one of ${CLIENT_NAMES.join(', ')}`);
+    if (!(job.primary.id === null || (typeof job.primary.id === 'string' && job.primary.id))) throw new TableError(`job ${id}: primary.id must be null or a non-empty string`);
+    if (job.needs !== undefined && (!Array.isArray(job.needs) || !job.needs.length || job.needs.some(x => typeof x !== 'string' || !x))) throw new TableError(`job ${id}: needs must be a non-empty array of job ids`);
+    if (!Array.isArray(job.outputs) || !job.outputs.length || job.outputs.some(x => typeof x !== 'string' || !x)) throw new TableError(`job ${id}: outputs must be a non-empty array of paths`);
+    jobs[id] = { ...job, git: parseGit(job.git, `job ${id}`) };
+  }
+  for (const [id, job] of Object.entries(jobs)) for (const n of job.needs || []) if (!jobs[n]) throw new TableError(`job ${id}: needs unknown job ${n}`);
+  for (const [name, ids] of Object.entries(GROUPS)) for (const id of ids) if (!jobs[id]) throw new TableError(`group ${name}: unknown job ${id}`);
+  return { jobs };
+}
+
+// Loaded at most once per process; a broken table is remembered and re-thrown, so every command
+// fails closed rather than running with a partial table.
+let TABLE_JOBS = null; let TABLE_ERROR = null;
+function table() {
+  if (TABLE_ERROR) throw TABLE_ERROR;
+  if (!TABLE_JOBS) {
+    try { TABLE_JOBS = loadJobTable().jobs; } catch (e) { TABLE_ERROR = e; throw e; }
+  }
+  return TABLE_JOBS;
+}
 
 // ---------- pure decisions (P-L3-004), exported for the self-test ----------
 
@@ -163,8 +225,8 @@ const VIBE_TOOLS = ['read_file', 'grep', 'write_file', 'edit', 'powershell'];
 // copilot 1.0.88 --help) and with commit, push and tag denied as tools.
 const COPILOT_DENY = ['git commit', 'git push', 'git tag'].map(c => `--deny-tool "shell(${c})"`).join(' ');
 
-function primaryCommand(jobId, message, dir) {
-  const j = JOBS[jobId];
+function primaryCommand(jobId, message, dir, jobs = table()) {
+  const j = jobs[jobId];
   const m = `"${message}"`;
   switch (j.primary.client) {
     case 'codex': return `codex exec -m ${j.primary.id} -c model_reasoning_effort=${j.level} --approve-for-me --skip-git-repo-check -C "${dir}" --add-dir "${TMP}" --json ${m}`;
@@ -339,11 +401,20 @@ function tail(file, bytes) {
 const JOURNAL_RE = /^\.ai\/worklog\/[a-z][a-z0-9]*-[0-9a-f]{16}\.md$/;
 const sleepSync = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 const sha = data => require('node:crypto').createHash('sha256').update(data).digest('hex');
-const git = (args, cwd = ROOT) => spawnSync('git', args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 1 << 26 });
-// The launcher's own git calls inside a job's copy run no hook and no fsmonitor, whatever the job
-// wrote into the copy's config or hooks directory (F-L2).
-const EMPTY_HOOKS = path.join(TMP, 'colabs-research', '.no-hooks');
-const gitIn = (dir, args) => git(['-c', 'core.fsmonitor=false', '-c', `core.hooksPath=${EMPTY_HOOKS}`, ...args], dir);
+const firstLine = text => String(text || '').trim().split(/\r?\n/)[0] || '';
+// F-3P-2: every launcher git call runs no fsmonitor and no hook. The hooks path is a fresh random
+// name under a launcher-private directory, chosen per call and never created, so git resolves no
+// hook file at all. The old shared `<temp>/colabs-research/.no-hooks` was predictable and
+// job-writable: a job could plant a hook there and the launcher's next checkout executed it.
+// Both the private directory and the empty global config are created on first use, so a parse-only
+// or --pure run writes nothing.
+let HOOKS_ROOT = null;
+function hooksRoot() { if (!HOOKS_ROOT) HOOKS_ROOT = fs.mkdtempSync(path.join(TMP, 'colabs-hooks-')); return HOOKS_ROOT; }
+const hooksRootPath = () => HOOKS_ROOT;
+const noHooksPath = () => path.join(hooksRoot(), `none-${require('node:crypto').randomBytes(8).toString('hex')}`);
+const gitOpts = () => ['-c', 'core.fsmonitor=false', '-c', `core.hooksPath=${noHooksPath()}`];
+const git = (args, cwd = ROOT, opts = {}) => spawnSync('git', [...gitOpts(), ...args], { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 1 << 26, ...opts });
+const gitIn = (dir, args) => git(args, dir);
 
 // No push (PROTO-DEC-0070 item 4; F-L1). Every URL git resolves is rewritten to an unusable scheme:
 // existing remotes, remotes a job adds, explicit push URLs and URLs typed on the command line alike
@@ -351,7 +422,50 @@ const gitIn = (dir, args) => git(['-c', 'core.fsmonitor=false', '-c', `core.hook
 // The rule is in the executor's environment and in each copy's own config; removing it from the
 // config changes the config, which is a scope stop.
 const NO_PUSH = { key: 'url.no-push://blocked.insteadOf', value: '' };
-const NO_PUSH_ENV = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: NO_PUSH.key, GIT_CONFIG_VALUE_0: NO_PUSH.value };
+
+// Credential-separated executor, Level 1 (PROTO-DEC-0070 item 4; final-plan-2 Part 2). The job
+// environment is `process.env` minus git credential vectors; the clients keep their own credentials
+// in their config files, not in these variables. `GIT_CONFIG_NOSYSTEM=1` and a launcher-owned empty
+// `GIT_CONFIG_GLOBAL` outside every clone drop the ambient config sources (including `user.name`,
+// `user.email` and `safe.directory`). The empty `credential.helper` clears whatever helper the
+// ambient config would have contributed; the empty-prefix no-push rule stays as defence in depth.
+const CRED_ENV_KEYS = ['GH_TOKEN', 'GITHUB_TOKEN', 'GIT_ASKPASS', 'SSH_ASKPASS', 'SSH_AUTH_SOCK'];
+const CRED_ENV_SUFFIX = /_(TOKEN|PAT)$/;
+const CRED_ENV_NAME = /(^|_)(GH|GITHUB|GIT)(_|$)/;
+let EMPTY_GLOBAL_CONFIG = null;
+function emptyGlobalConfig() {
+  if (!EMPTY_GLOBAL_CONFIG) {
+    EMPTY_GLOBAL_CONFIG = path.join(hooksRoot(), 'empty-gitconfig');
+    fs.writeFileSync(EMPTY_GLOBAL_CONFIG, '');
+  }
+  return EMPTY_GLOBAL_CONFIG;
+}
+const gitEnv = () => ({
+  GIT_CONFIG_NOSYSTEM: '1',
+  GIT_CONFIG_GLOBAL: emptyGlobalConfig(),
+  GIT_TERMINAL_PROMPT: '0',
+  GCM_INTERACTIVE: 'never',
+  GIT_CONFIG_COUNT: '2',
+  GIT_CONFIG_KEY_0: NO_PUSH.key, GIT_CONFIG_VALUE_0: NO_PUSH.value,
+  GIT_CONFIG_KEY_1: 'credential.helper', GIT_CONFIG_VALUE_1: '',
+});
+const NO_PUSH_ENV = { GIT_CONFIG_COUNT: '2',
+  GIT_CONFIG_KEY_0: NO_PUSH.key, GIT_CONFIG_VALUE_0: NO_PUSH.value,
+  GIT_CONFIG_KEY_1: 'credential.helper', GIT_CONFIG_VALUE_1: '' };
+
+// The job's environment: the parent environment minus the credential vectors, plus the hardened
+// git variables. `parent` is a parameter only so the self-test can plant canaries.
+function executorEnv(parent = process.env) {
+  const out = {};
+  for (const key of Object.keys(parent)) {
+    const up = key.toUpperCase();
+    if (CRED_ENV_KEYS.includes(up)) continue;
+    if (CRED_ENV_SUFFIX.test(up) && CRED_ENV_NAME.test(up.replace(CRED_ENV_SUFFIX, ''))) continue;
+    out[key] = parent[key];
+  }
+  Object.assign(out, { PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' }, gitEnv());
+  return out;
+}
 
 // `git status --porcelain=v1 -z` entries: {code, path}; a rename or copy also yields its source.
 function parsePorcelainZ(text) {
@@ -373,6 +487,9 @@ function fileHash(file) {
 // hooks. Ignored paths (`.gitignore`: `.ai/runtime/` and scratch) are not read; they are never
 // copied back and are deleted with the copy (F-L4).
 function workdirState(dir) {
+  // M-1: while `.git/index.lock` exists the index is mid-write or stale; the state is not read
+  // here. The retry and stale-lock policy lives in scopeCheck; the lock is never deleted.
+  if (fs.existsSync(path.join(dir, '.git', 'index.lock'))) return null;
   const st = gitIn(dir, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
   const head = gitIn(dir, ['rev-parse', 'HEAD']);
   const refs = gitIn(dir, ['for-each-ref', '--format=%(refname) %(objectname)']);
@@ -398,7 +515,6 @@ function scopeViolations(entries, outputs, baseFiles, hashOf) {
 // in the copy. `--shared` borrows the checkout's objects instead of copying them. Six watchdogs may
 // start at once, so it retries under a fresh name.
 function prepareWorkdir(jobId, n) {
-  fs.mkdirSync(EMPTY_HOOKS, { recursive: true });
   const head = git(['rev-parse', 'HEAD']);
   if (head.status !== 0) throw new Error('the checkout HEAD cannot be read');
   let r = null; let dir = null;
@@ -424,16 +540,52 @@ function prepareWorkdir(jobId, n) {
     files: st.entries.map(e => [e.path, fileHash(path.join(dir, e.path))]) } };
 }
 
-// Why the copy is out of scope now, or null. Unreadable state is a violation, never a pass.
-function scopeCheck(dir, base, outputs) {
-  const st = workdirState(dir);
-  if (!st) return ['git state of the copy cannot be read'];
+// M-1 (F-3P-5): a transient `.git/index.lock` must not look like a scope violation. The state read
+// is retried with bounded backoff (5 tries, about 4 s), so a lock a git process holds for a moment
+// no longer kills a working attempt. The lock is never deleted.
+const STATE_RETRIES = [250, 500, 1000, 2000];
+function readStateRetried(dir) {
+  let st = workdirState(dir);
+  for (let i = 0; st === null && i < STATE_RETRIES.length; i += 1) { sleepSync(STATE_RETRIES[i]); st = workdirState(dir); }
+  return st;
+}
+
+// M-1: is a git process still working in this copy? Only queried while the index lock outlives the
+// retries. A process counts if its command line names the copy or its parent is a recorded process
+// of the attempt. `null` means the process table cannot be read: unknown, treated as busy.
+function gitProcessIn(dir, known = {}) {
+  try {
+    const json = execFileSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+      "Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^git' } | Select-Object ProcessId,ParentProcessId,CommandLine | ConvertTo-Json -Compress"],
+    { encoding: 'utf8', maxBuffer: 1 << 26, windowsHide: true });
+    const parsed = JSON.parse(json || 'null');
+    const rows = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);
+    if (!rows.length) return false;
+    const needle = String(dir).toLowerCase();
+    const pids = new Set(Object.keys(known || {}).map(Number));
+    return rows.some(r => String(r.CommandLine || '').toLowerCase().includes(needle) || pids.has(Number(r.ParentProcessId)));
+  } catch { return null; }
+}
+
+// Why the copy is out of scope now, or null. Outcomes: null (in scope), { bad: [...] } (a
+// violation), { wait: true } (a transient lock, look again on the next tick) and { staleLock: true }
+// (the lock outlived the retries and no git process works in the copy).
+function scopeCheck(dir, base, outputs, known = {}) {
+  const st = readStateRetried(dir);
+  if (!st) {
+    if (fs.existsSync(path.join(dir, '.git', 'index.lock'))) {
+      const busy = gitProcessIn(dir, known);
+      if (busy !== false) return { wait: true };
+      return { staleLock: true };
+    }
+    return { bad: ['git state of the copy cannot be read'] };
+  }
   const bad = scopeViolations(st.entries, outputs, base.files, p => fileHash(path.join(dir, p)));
   if (st.head !== base.head) bad.push(`HEAD moved to ${st.head.slice(0, 12)} (a commit or checkout)`);
   if (st.refs !== base.refs) bad.push('refs changed (a branch, tag or ref was created, moved or deleted)');
   if (st.config !== base.config) bad.push('repository config changed (a remote added, or the no-push rule removed)');
   if (st.hooks !== base.hooks) bad.push('git hooks changed');
-  return bad.length ? bad : null;
+  return bad.length ? { bad } : null;
 }
 
 // Copies the job's outputs and its new journals into the checkout; returns what was copied.
@@ -449,6 +601,41 @@ function importResults(dir, outputs) {
     copied.push(f);
   }
   return copied;
+}
+
+// Item 4: the remote audit. Before and after every attempt, record `git ls-remote` of each remote
+// configured in the checkout (L-1: the owner's repositories only). ls-remote is never enforcement:
+// in a no-push mode a difference is an incident that invalidates the attempt. Known blinds, for the
+// record: a push reverted before the after-snapshot, webhook or CI side effects, and remotes outside
+// the configured list. The audit call is non-interactive with a timeout, so it can neither prompt
+// nor hang the launcher.
+function lsRemoteSnapshot(repo) {
+  const env = { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' };
+  const remotes = git(['remote'], repo, { timeout: 30000, env });
+  if (remotes.status !== 0) return { '*': `remotes cannot be listed: ${firstLine(remotes.stderr) || 'unknown error'}` };
+  const out = {};
+  for (const name of (remotes.stdout || '').split(/\r?\n/).filter(Boolean).sort()) {
+    const r = git(['ls-remote', name], repo, { timeout: 60000, env });
+    out[name] = r.status === 0 ? sha(r.stdout) : `error: ${firstLine(r.stderr) || (r.status === null ? 'timeout' : `exit ${r.status}`)}`;
+  }
+  return out;
+}
+
+// The names whose recorded ls-remote value changed between the two snapshots. A change between a
+// ref digest and an error string is not proof of mutation: it is returned as `unverified` (the
+// query failed), which the record names as an audit blind. A digest that changed, or a remote that
+// appeared, is an incident.
+function remoteAuditVerdict(before, after) {
+  const names = [...new Set([...Object.keys(before || {}), ...Object.keys(after || {})])].sort();
+  const incident = []; const unverified = [];
+  const err = v => typeof v === 'string' && v.startsWith('error:');
+  for (const n of names) {
+    const b = (before || {})[n]; const a = (after || {})[n];
+    if (b === a) continue;
+    if (err(b) || err(a)) unverified.push(`${n}: ${b} -> ${a}`);
+    else incident.push(`${n}: ${b} -> ${a}`);
+  }
+  return { incident, unverified };
 }
 
 // Deletes a settled copy. A copy kept by a scope stop, or left by a watchdog that died, stays under
@@ -497,19 +684,29 @@ function takeStartLock(id) {
 }
 
 function run(jobId, routeArg, cfg, ov = {}) {
-  const j = (ov.jobs || JOBS)[jobId];
+  const jobs = ov.jobs || table();
+  const j = jobs[jobId];
   const routes = ov.routes || JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
   const buildPrimary = ov.primaryCommand || primaryCommand;
   const buildKilo = ov.kiloCommand || kiloCommand;
   const { suitable } = kiloCandidates(j, routes);
-  // The self-test runs its fake jobs in place (outputs in scratch directories); real jobs are isolated.
+  // The self-test runs its fake jobs in place (outputs in scratch directories); real jobs are
+  // isolated and run with the credential-separated executor environment (item 2).
   const isolate = ov.isolate !== false;
-  const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8', ...(isolate ? NO_PUSH_ENV : {}) };
+  const env = isolate ? executorEnv() : { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
   fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
   // The stop marker is never removed here: `--start` clears an old one before it spawns this
   // watchdog, so a marker seen now is an owner stop issued after that start (CB-18).
   const state = readJob(jobId) || { job: jobId, attempts: [] };
   state.autoFallbackUsed = false; // a new dispatch by the owner; history stays in attempts
+  // Item 3, default-deny, defence in depth: the watchdog refuses a mode the dispatcher should have
+  // refused, so a direct `--run` of a push-mode job cannot start a client either.
+  const gitBad = gitRefusal(j);
+  if (gitBad) {
+    state.status = 'NEEDS_OWNER'; state.reason = `refused: ${gitBad}`; writeJob(jobId, state);
+    try { fs.unlinkSync(lockFile(jobId)); } catch { /* no lock: started directly, as in the self-test */ }
+    return undefined;
+  }
   const stopRequested = () => fs.existsSync(stopFile(jobId));
 
   // R-L3-004.7: the previous tree must be gone before anything else starts. Only processes seen as
@@ -550,6 +747,10 @@ function run(jobId, routeArg, cfg, ov = {}) {
     const log = fs.openSync(logPath, 'a');
     // Baselines are taken before the spawn, so nothing the executor writes can slip into them.
     const baseline = { outputs: fileSig(outFiles), journals: journalsOf(j.agent, dir) };
+    // Item 4: the before-snapshot of the checkout's remotes, taken before the executor exists.
+    // `ov.auditRepo` is a test seam: null disables the audit, a path replaces the checkout.
+    const auditRepo = ov.auditRepo !== undefined ? ov.auditRepo : (isolate ? ROOT : null);
+    const remoteAudit = auditRepo ? { repo: auditRepo, before: lsRemoteSnapshot(auditRepo) } : null;
     const child = spawn(cmd, { cwd: dir, env, shell: true, stdio: ['ignore', log, log], windowsHide: true });
     const now = Date.now();
     const rows0 = procTable();
@@ -557,7 +758,8 @@ function run(jobId, routeArg, cfg, ov = {}) {
     const att = { primary, route: primary ? `${j.primary.client}:${j.primary.id || 'config'}` : route.route,
       variant: primary ? j.level : route.variant, command: cmd, pid: child.pid, rootCreated: r0 ? Number(r0.C) : null,
       log: logPath, workdir: isolate ? dir : null, base, startedAt: now, lastProgressAt: now, useful: false, known: {},
-      capMinutes: cfg.capMinutes || DEFAULTS.capMinutes[j.kind], baseline, status: 'STARTING' };
+      capMinutes: cfg.capMinutes || DEFAULTS.capMinutes[j.kind], baseline, status: 'STARTING',
+      git: { mode: j.git.mode, publishRequired: j.git.publishRequired }, remoteAudit };
     state.attempts.push(att); state.status = 'STARTING'; state.pid = child.pid; state.rootCreated = att.rootCreated;
     const me = rows0 && rows0.find(r => r.ProcessId === process.pid);
     state.watchdog = process.pid; state.watchdogCreated = me ? Number(me.C) : null; writeJob(jobId, state);
@@ -584,16 +786,22 @@ function run(jobId, routeArg, cfg, ov = {}) {
       att.status = status; att.endedAt = new Date().toISOString();
       ensureGone(att, child, () => exited !== null, gone => { att.treeGone = gone; settle(att); });
     };
-    const outOfScope = () => {
-      if (!isolate) return false;
-      const bad = scopeCheck(dir, base, j.outputs);
-      if (bad) att.scope = bad;
-      return Boolean(bad);
+    // M-1: the ticking scope check. `wait` is a transient lock and leaves the attempt alone; a
+    // stale lock stops it with its own reason; anything else is a scope violation.
+    const scopeStatus = () => {
+      if (!isolate) return null;
+      const sc = scopeCheck(dir, base, j.outputs, att.known);
+      if (!sc) return null;
+      if (sc.wait) return null;
+      if (sc.staleLock) { att.scope = ['stale index.lock: the lock outlived the retries and no git process works in the copy']; return 'INDEX_LOCK'; }
+      att.scope = sc.bad;
+      return 'SCOPE_STOP';
     };
     const timer = setInterval(() => {
       const t = Date.now();
       if (stopRequested()) { clearInterval(timer); finish('STOPPED'); return; }
-      if (outOfScope()) { clearInterval(timer); finish('SCOPE_STOP'); return; }
+      const sc = scopeStatus();
+      if (sc) { clearInterval(timer); finish(sc); return; }
       if (exited !== null) {
         clearInterval(timer);
         if (usefulNow()) att.useful = true;
@@ -635,13 +843,25 @@ function run(jobId, routeArg, cfg, ov = {}) {
   const settle = att => {
     if (att.workdir) {
       // The tree is gone, so the copy no longer changes: one last scope check, then the copy back.
-      // A scope stop copies nothing and keeps the copy for the owner to inspect.
-      if (att.status !== 'SCOPE_STOP') {
-        const bad = scopeCheck(att.workdir, att.base, j.outputs);
-        if (bad) { att.scope = bad; att.status = 'SCOPE_STOP'; }
+      // A scope stop or an unresolved index lock copies nothing and keeps the copy for inspection.
+      if (att.status !== 'SCOPE_STOP' && att.status !== 'INDEX_LOCK') {
+        const sc = scopeCheck(att.workdir, att.base, j.outputs, att.known);
+        if (sc && sc.bad) { att.scope = sc.bad; att.status = 'SCOPE_STOP'; }
+        else if (sc) { att.scope = ['stale index.lock: the lock did not clear while the copy was read']; att.status = 'INDEX_LOCK'; }
       }
-      att.imported = att.status === 'SCOPE_STOP' ? [] : importResults(att.workdir, j.outputs);
-      if (att.status !== 'SCOPE_STOP' && att.treeGone) att.workdirRemoved = dropWorkdir(att.workdir);
+      // Item 4: the after-snapshot. In a no-push mode any difference is an incident: the attempt is
+      // invalidated, nothing is copied back and the copy is kept for inspection.
+      if (att.remoteAudit) {
+        att.remoteAudit.after = lsRemoteSnapshot(att.remoteAudit.repo);
+        const verdict = remoteAuditVerdict(att.remoteAudit.before, att.remoteAudit.after);
+        if (verdict.unverified.length) att.remoteAudit.unverified = verdict.unverified;
+        if (verdict.incident.length) {
+          att.remoteAudit.incident = verdict.incident;
+          att.status = 'REMOTE_INCIDENT';
+        }
+      }
+      att.imported = ['SCOPE_STOP', 'REMOTE_INCIDENT', 'INDEX_LOCK'].includes(att.status) ? [] : importResults(att.workdir, j.outputs);
+      if (!['SCOPE_STOP', 'REMOTE_INCIDENT', 'INDEX_LOCK'].includes(att.status) && att.treeGone) att.workdirRemoved = dropWorkdir(att.workdir);
     }
     att.changed = j.outputs.filter(f => fs.existsSync(path.resolve(ROOT, f)));
     att.journals = att.workdir ? att.imported.filter(f => JOURNAL_RE.test(f))
@@ -656,7 +876,9 @@ function run(jobId, routeArg, cfg, ov = {}) {
     const why = att.status === 'STOPPED' ? 'stopped by the owner'
       : att.status === 'HUNG' ? `HUNG on ${att.route}; FALLEN without wakes, the launcher resumes no session (PROTO-DEC-0051 item 4, P-L3-004)`
         : att.status === 'SCOPE_STOP' ? `SCOPE_STOP on ${att.route}: ${att.scope.slice(0, 5).join('; ')}${att.scope.length > 5 ? ` (+${att.scope.length - 5} more)` : ''}; nothing copied back, copy kept at ${att.workdir} (PROTO-DEC-0070 item 4)`
-          : `${att.status} on ${att.route}`;
+          : att.status === 'REMOTE_INCIDENT' ? `REMOTE_INCIDENT on ${att.route}: a configured remote changed during a ${att.git.mode} attempt (${att.remoteAudit.incident.slice(0, 3).join('; ')}${att.remoteAudit.incident.length > 3 ? ` (+${att.remoteAudit.incident.length - 3} more)` : ''}); the attempt is invalidated, nothing copied back, copy kept at ${att.workdir} (ls-remote audit, PROTO-DEC-0070 item 4)`
+            : att.status === 'INDEX_LOCK' ? `INDEX_LOCK on ${att.route}: stale index.lock (${att.scope.join('; ')}); nothing copied back, copy kept at ${att.workdir} for inspection (never deleted, F-3P-5)`
+              : `${att.status} on ${att.route}`;
     state.reason = att.status === 'DONE' ? null
       : `${why}${att.errorText ? ` (${att.errorText})` : ''}${att.treeGone === false ? '; process tree NOT confirmed gone' : ''}`;
     state.pid = null; state.rootCreated = null; state.watchdog = null; state.watchdogCreated = null; writeJob(jobId, state);
@@ -722,12 +944,12 @@ function options(argv) {
   return cfg;
 }
 
-function dry(ids) {
+function dry(ids, jobs) {
   const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
   for (const id of ids) {
-    const j = JOBS[id];
+    const j = jobs[id];
     process.stdout.write(`\n${id} (${j.kind}, ${j.model}, level ${j.level || `unknown, position ${j.position}`}, agent ${j.agent})\n`);
-    process.stdout.write(`  primary: ${checkCommand(primaryCommand(id, promptLine(id), ROOT))}\n`);
+    process.stdout.write(`  primary: ${checkCommand(primaryCommand(id, promptLine(id), ROOT, jobs))}\n`);
     const { suitable, unsuitable } = kiloCandidates(j, routes);
     suitable.forEach((r, i) => process.stdout.write(`  kilo:${i + 1}${i === 0 ? ' (automatic fallback)' : ''}: ${checkCommand(kiloCommand(id, r.route, r.variant, promptLine(id), ROOT))}   [$${r.input}/$${r.output} per 1M in/out, ${r.note}]\n`));
     for (const r of unsuitable) process.stdout.write(`  not suitable: ${r.route} (${r.why})\n`);
@@ -739,18 +961,19 @@ function dry(ids) {
   return 0;
 }
 
-function smoke(ids, cfg) {
+function smoke(ids, cfg, jobs) {
   // Availability and syntax probe: each route answers one word from a scratch directory outside
-  // the repository, so no hook, journal or file of the project is touched.
+  // the repository, so no hook, journal or file of the project is touched. The probe runs with the
+  // job's own environment (item 2), so a client that the credential separation breaks fails here.
   const dir = fs.mkdtempSync(path.join(TMP, 'colabs-smoke-'));
   const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
   const message = 'Reply with exactly the word OK and do nothing else';
   const results = [];
   const seen = new Set();
   for (const id of ids) {
-    const j = JOBS[id];
+    const j = jobs[id];
     const first = kiloCandidates(j, routes).suitable[0];
-    const probes = [[`primary ${j.primary.client}:${j.primary.id || 'config'} ${j.level || ''}`.trim(), primaryCommand(id, message, dir)]];
+    const probes = [[`primary ${j.primary.client}:${j.primary.id || 'config'} ${j.level || ''}`.trim(), primaryCommand(id, message, dir, jobs)]];
     if (first) probes.push([`kilo:1 ${first.route} ${first.variant || ''}`.trim(), kiloCommand(id, first.route, first.variant, message, dir)]);
     let primaryOk = false;
     for (const [route, cmd] of probes) {
@@ -760,7 +983,7 @@ function smoke(ids, cfg) {
       checkCommand(cmd);
       const began = Date.now();
       let out = ''; let code = 0;
-      try { out = execSync(cmd, { cwd: dir, encoding: 'utf8', timeout: DEFAULTS.smokeSeconds * 1000, env: { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' }, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 26, windowsHide: true }); }
+      try { out = execSync(cmd, { cwd: dir, encoding: 'utf8', timeout: DEFAULTS.smokeSeconds * 1000, env: executorEnv(), stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 26, windowsHide: true }); }
       catch (e) { code = e.status === null || e.status === undefined ? -1 : e.status; out = `${e.stdout || ''}${e.stderr || ''}`; }
       const ok = code === 0 && /\bOK\b/.test(out);
       const err = (out.match(ERROR_TEXT) || [null])[0];
@@ -795,12 +1018,12 @@ function shell(cmd, seconds) {
   return { code: r.status === null ? -1 : r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
 }
 
-function check(ids) {
+function check(ids, jobs) {
   const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
   const list = [];
   for (const id of ids) {
-    list.push([id, 'primary', JOBS[id].primary.client, primaryCommand(id, promptLine(id), ROOT)]);
-    kiloCandidates(JOBS[id], routes).suitable.forEach((r, i) => list.push([id, `kilo:${i + 1}`, 'kilo', kiloCommand(id, r.route, r.variant, promptLine(id), ROOT)]));
+    list.push([id, 'primary', jobs[id].primary.client, primaryCommand(id, promptLine(id), ROOT, jobs)]);
+    kiloCandidates(jobs[id], routes).suitable.forEach((r, i) => list.push([id, `kilo:${i + 1}`, 'kilo', kiloCommand(id, r.route, r.variant, promptLine(id), ROOT)]));
   }
   const help = {};
   let failed = 0;
@@ -823,7 +1046,7 @@ function check(ids) {
 // starting work. Every job's agent must have a line that points to that job; the K-launch operator
 // must have its operator line. Read-only: the session hook's own parser is used and nothing is
 // written.
-function rolePreflight(entries, jobs = JOBS) {
+function rolePreflight(entries, jobs = table()) {
   const text = agent => entries.filter(e => e.agent === agent).map(e => e.role).join('; ');
   const rows = [];
   for (const agent of [...new Set(Object.values(jobs).map(j => j.agent))]) {
@@ -840,34 +1063,36 @@ function rolePreflight(entries, jobs = JOBS) {
   return rows;
 }
 
-function preflight() {
+function preflight(jobs) {
   const hooks = require(path.join(ROOT, '.ai', 'bin', 'protocol-hooks.cjs'));
-  const rows = rolePreflight(hooks.assignment(ROOT));
+  const rows = rolePreflight(hooks.assignment(ROOT), jobs);
   for (const r of rows) process.stdout.write(`${r.ok ? 'ok  ' : 'FAIL'} ${r.agent}: ${r.why}\n`);
   process.stdout.write(`${rows.filter(r => r.ok).length}/${rows.length} role lines point to their jobs; nothing was written\n`);
   return rows.every(r => r.ok) ? 0 : 1;
 }
 
-function status() {
-  for (const id of Object.keys(JOBS)) {
+function status(jobs) {
+  for (const id of Object.keys(jobs)) {
     const s = readJob(id);
     if (!s) { process.stdout.write(`${id}: not started\n`); continue; }
     const a = s.attempts[s.attempts.length - 1] || {};
     // A running attempt writes into its copy; a settled one has been copied back.
     const where = a.workdir && !a.endedAt ? a.workdir : ROOT;
-    const present = JOBS[id].outputs.filter(f => fs.existsSync(path.join(where, f))).length;
-    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${JOBS[id].outputs.length}; attempts ${s.attempts.length}${where !== ROOT ? `; copy ${where}` : ''}\n`);
+    const present = jobs[id].outputs.filter(f => fs.existsSync(path.join(where, f))).length;
+    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${jobs[id].outputs.length}; attempts ${s.attempts.length}${where !== ROOT ? `; copy ${where}` : ''}\n`);
   }
   return 0;
 }
 
-function startJobs(ids, cfg) {
+function startJobs(ids, cfg, jobs) {
   const routes = JSON.parse(fs.readFileSync(ROUTES, 'utf8'));
   let refused = 0;
   for (const id of ids) {
     const blocker = startBlockers(id);
     if (blocker) { process.stdout.write(`${id}: refused, ${blocker}\n`); refused += 1; continue; }
-    const j = JOBS[id];
+    const j = jobs[id];
+    const gitBad = gitRefusal(j);
+    if (gitBad) { process.stdout.write(`${id}: refused, ${gitBad}\n`); refused += 1; continue; }
     if (j.needs) {
       const pending = j.needs.filter(n => { const x = readJob(n); return !x || (x.pid && sameProcess(x.pid, x.rootCreated) !== false); });
       if (pending.length) { process.stdout.write(`${id}: refused, waiting for ${pending.join(', ')}\n`); refused += 1; continue; }
@@ -878,7 +1103,7 @@ function startJobs(ids, cfg) {
       const n = Number(String(cfg.route).split(':')[1]);
       if (!/^kilo:\d+$/.test(cfg.route) || !kiloCandidates(j, routes).suitable[n - 1]) { process.stdout.write(`${id}: refused, no route ${cfg.route}\n`); refused += 1; continue; }
     }
-    checkCommand(primaryCommand(id, promptLine(id), ROOT));
+    checkCommand(primaryCommand(id, promptLine(id), ROOT, jobs));
     if (!takeStartLock(id)) { process.stdout.write(`${id}: refused, another start or a live watchdog holds ${path.relative(ROOT, lockFile(id))}\n`); refused += 1; continue; }
     // This start is a new owner act: an earlier stop marker is cleared now, never by the watchdog.
     try { fs.unlinkSync(stopFile(id)); } catch { /* no earlier stop */ }
@@ -931,11 +1156,19 @@ function stop(ids) {
   return 0;
 }
 
-function main(argv) {
+function main(argv, ov = {}) {
   let cfg;
   try { cfg = options(argv); } catch (e) {
     if (!(e instanceof UsageError)) throw e;
     process.stdout.write(`${e.message}\nusage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route primary|kilo:<n>] [--takeover] [--soft-seconds N] [--hard-seconds N] [--cap-minutes N] | --status | --preflight | --stop <jobs>\n`);
+    return 2;
+  }
+  // The job table is read here, once per command, and every command fails closed on a broken file
+  // (exit 2). `ov.jobsFile` is a test seam: the CLI entry never passes it.
+  let jobs;
+  try { jobs = ov.jobs || loadJobTable(ov.jobsFile).jobs; } catch (e) {
+    if (!(e instanceof TableError)) throw e;
+    process.stdout.write(`${e.message}\n`);
     return 2;
   }
   const pick = flag => {
@@ -943,19 +1176,19 @@ function main(argv) {
     const next = argv[i + 1];
     return i === -1 || !next || next.startsWith('--') ? [] : expand(next);
   };
-  const bad = ids => ids.filter(id => !JOBS[id]);
-  if (argv.includes('--run')) { const id = argv[argv.indexOf('--run') + 1]; if (!JOBS[id]) return 2; run(id, cfg.route, cfg); return null; }
-  if (argv.includes('--status')) return status();
-  if (argv.includes('--preflight')) return preflight();
+  const bad = ids => ids.filter(id => !jobs[id]);
+  if (argv.includes('--run')) { const id = argv[argv.indexOf('--run') + 1]; if (!jobs[id]) return 2; run(id, cfg.route, cfg, { jobs }); return null; }
+  if (argv.includes('--status')) return status(jobs);
+  if (argv.includes('--preflight')) return preflight(jobs);
   for (const flag of ['--dry', '--check', '--smoke', '--start', '--stop']) {
     if (!argv.includes(flag)) continue;
     const picked = pick(flag);
-    const ids = picked.length ? picked : (['--dry', '--check', '--smoke'].includes(flag) ? Object.keys(JOBS) : []);
-    if (!ids.length || bad(ids).length) { process.stdout.write(`unknown job(s): ${bad(ids).join(', ') || '(none given)'}; known: ${Object.keys(JOBS).join(', ')}; groups: ${Object.keys(GROUPS).join(', ')}\n`); return 2; }
-    if (flag === '--dry') return dry(ids);
-    if (flag === '--check') return check(ids);
-    if (flag === '--smoke') return smoke(ids, cfg);
-    if (flag === '--start') return startJobs(ids, cfg);
+    const ids = picked.length ? picked : (['--dry', '--check', '--smoke'].includes(flag) ? Object.keys(jobs) : []);
+    if (!ids.length || bad(ids).length) { process.stdout.write(`unknown job(s): ${bad(ids).join(', ') || '(none given)'}; known: ${Object.keys(jobs).join(', ')}; groups: ${Object.keys(GROUPS).join(', ')}\n`); return 2; }
+    if (flag === '--dry') return dry(ids, jobs);
+    if (flag === '--check') return check(ids, jobs);
+    if (flag === '--smoke') return smoke(ids, cfg, jobs);
+    if (flag === '--start') return startJobs(ids, cfg, jobs);
     return stop(ids);
   }
   process.stdout.write('usage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route kilo:<n>] [--takeover] | --status | --preflight | --stop <jobs>\n');
@@ -967,4 +1200,5 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, rolePreflight, NO_PUSH_ENV, parsePorcelainZ, scopeViolations, JOURNAL_RE, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, rolePreflight, NO_PUSH_ENV, parsePorcelainZ, scopeViolations, JOURNAL_RE, DEFAULTS, ERROR_TEXT, git, gitIn, prepareWorkdir, dropWorkdir, workdirState, executorEnv, gitEnv, emptyGlobalConfig, hooksRootPath, noHooksPath, CRED_ENV_KEYS, loadJobTable, TableError, parseGit, gitRefusal, startJobs, GROUPS,
+  get JOBS() { return table(); } };

@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 
-const [mode, out, root] = process.argv.slice(2);
+const [mode, out, root, bare] = process.argv.slice(2);
 const write = (n, text) => { fs.mkdirSync(out, { recursive: true }); fs.writeFileSync(path.join(out, `f${n}.md`), text); };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 // A detached grandchild that outlives this process, as a client's helper may (CB-17, CB-24).
@@ -38,6 +38,39 @@ const orphan = () => {
       spawnSync('git', ['-C', root, 'remote', 'add', 'evil', path.join(require('node:os').tmpdir(), 'zz-evil.git')]);
       spawnSync('git', ['-C', root, 'update-ref', 'refs/heads/zz-probe', 'HEAD']);
       await sleep(8000); process.exit(0); break;
+    }
+    // Item 4: push through the known `-c` insteadOf residual (prevention-impossible by config), so
+    // that only the audit can see it; and the same push reverted, the audit's named blind.
+    case 'push-bypass':
+    case 'push-transient': {
+      write(1, 'a\n'); write(2, 'b\n');
+      const { execFileSync } = require('node:child_process');
+      const url = `file:///${String(bare).replace(/\\/g, '/')}`;
+      const push = args => execFileSync('git', ['-c', `url.${url}.insteadOf=no-push://blocked`, 'push', '-q', 'no-push://blocked', ...args], { cwd: root, stdio: 'ignore' });
+      if (mode === 'push-bypass') push(['HEAD:refs/heads/zz-bypass']);
+      else { push(['HEAD:refs/heads/zz-transient']); push([':refs/heads/zz-transient']); }
+      await sleep(800); process.exit(0); break;
+    }
+    // Item 6 (M-1): hold .git/index.lock briefly (clears before the bounded retries give up) and
+    // permanently (the launcher must stop with "stale index.lock" and keep the copy).
+    case 'index-lock-brief': {
+      const lock = path.join(root, '.git', 'index.lock');
+      fs.writeFileSync(lock, '');
+      await sleep(1200);
+      try { fs.rmSync(lock, { force: true }); } catch { /* gone */ }
+      write(1, 'a\n'); write(2, 'b\n'); process.exit(0); break;
+    }
+    case 'index-lock-permanent': {
+      fs.writeFileSync(path.join(root, '.git', 'index.lock'), '');
+      write(1, 'a\n'); write(2, 'b\n'); await sleep(1500); process.exit(0); break;
+    }
+    // Item 2: dump the job environment and the effective git config of the copy it runs in.
+    case 'env-dump': {
+      write(1, `${JSON.stringify(process.env, null, 1)}\n`);
+      const { spawnSync } = require('node:child_process');
+      const r = spawnSync('git', ['config', '--show-origin', '-l'], { cwd: root, encoding: 'utf8' });
+      write(2, `${r.stdout || ''}${r.stderr || ''}`);
+      process.exit(0); break;
     }
     // PROTO-DEC-0070: writes its output, then a file outside its scope in the copy it runs in.
     case 'escape': write(1, 'a\n'); fs.mkdirSync(path.join(root, 'OwnerIdeas'), { recursive: true }); fs.writeFileSync(path.join(root, 'OwnerIdeas', 'zz-escape.md'), 'x\n'); await sleep(8000); process.exit(0); break;

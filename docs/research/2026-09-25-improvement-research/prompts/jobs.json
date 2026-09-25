@@ -1,0 +1,115 @@
+{
+  "jobs": {
+    "a-sol": {
+      "kind": "research",
+      "agent": "codex",
+      "model": "gpt-5.6-sol",
+      "level": "max",
+      "position": "max",
+      "primary": { "client": "codex", "id": "gpt-5.6-sol" },
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/A/gpt-5.6-sol-registry.md",
+        "docs/research/2026-09-25-improvement-research/A/gpt-5.6-sol-cards.md",
+        "docs/research/2026-09-25-improvement-research/A/gpt-5.6-sol-measurements.md",
+        "docs/research/2026-09-25-improvement-research/A/gpt-5.6-sol-report.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "a-gemini": {
+      "kind": "research",
+      "agent": "gemini",
+      "model": "gemini-3.1-pro",
+      "level": "high",
+      "position": "max",
+      "primary": { "client": "agy", "id": "gemini-3.1-pro-high" },
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/A/gemini-3.1-pro-registry.md",
+        "docs/research/2026-09-25-improvement-research/A/gemini-3.1-pro-cards.md",
+        "docs/research/2026-09-25-improvement-research/A/gemini-3.1-pro-measurements.md",
+        "docs/research/2026-09-25-improvement-research/A/gemini-3.1-pro-report.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "a-deepseek": {
+      "kind": "research",
+      "agent": "deepseek",
+      "model": "deepseek-flash",
+      "level": null,
+      "position": "max",
+      "primary": { "client": "kilo", "id": "deepseek/deepseek-flash" },
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/A/deepseek-flash-registry.md",
+        "docs/research/2026-09-25-improvement-research/A/deepseek-flash-cards.md",
+        "docs/research/2026-09-25-improvement-research/A/deepseek-flash-measurements.md",
+        "docs/research/2026-09-25-improvement-research/A/deepseek-flash-report.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "a-synth": {
+      "kind": "synthesis",
+      "agent": "copilot",
+      "model": "kimi-k2.7-code",
+      "level": "medium",
+      "position": "mid",
+      "primary": { "client": "copilot", "id": "kimi-k2.7-code" },
+      "needs": ["a-sol", "a-gemini", "a-deepseek"],
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/A/synthesis.md",
+        "docs/research/2026-09-25-improvement-research/A/synthesis-registry.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "b-grok": {
+      "kind": "research",
+      "agent": "grok",
+      "model": "grok-4.5",
+      "level": "high",
+      "position": "max",
+      "primary": { "client": "copilot", "id": "grok-4.5" },
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/B/grok-4.5-taxonomy.md",
+        "docs/research/2026-09-25-improvement-research/B/grok-4.5-policy.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "b-kimi": {
+      "kind": "research",
+      "agent": "kimi",
+      "model": "kimi-k2.7-code",
+      "level": "high",
+      "position": "max",
+      "primary": { "client": "copilot", "id": "kimi-k2.7-code" },
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/B/kimi-k2.7-code-taxonomy.md",
+        "docs/research/2026-09-25-improvement-research/B/kimi-k2.7-code-policy.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "b-mistral": {
+      "kind": "research",
+      "agent": "mistral",
+      "model": "mistral-medium-3.5",
+      "level": "max",
+      "position": "max",
+      "primary": { "client": "vibe", "id": null },
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/B/mistral-medium-3.5-taxonomy.md",
+        "docs/research/2026-09-25-improvement-research/B/mistral-medium-3.5-policy.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    },
+    "b-synth": {
+      "kind": "synthesis",
+      "agent": "agy",
+      "model": "gemini-3.1-pro",
+      "level": "high",
+      "position": "mid",
+      "primary": { "client": "agy", "id": "gemini-3.1-pro-high" },
+      "needs": ["b-grok", "b-kimi", "b-mistral"],
+      "outputs": [
+        "docs/research/2026-09-25-improvement-research/B/synthesis.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false }
+    }
+  }
+}

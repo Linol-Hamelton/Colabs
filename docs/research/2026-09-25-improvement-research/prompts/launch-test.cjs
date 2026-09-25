@@ -48,17 +48,36 @@ const SC = {
   // F-L1, F-L2: a remote added and a branch created in the copy stop the job; the checkout's own
   // config and refs are untouched, because the copy is a private clone.
   'zz-t16': { primary: 'git-escape', kilo: 'work', isolate: true, imported: false, gitEscape: true, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'SCOPE_STOP' } },
+  // Item 2: a job's environment and the git config it sees carry no canary credential vector;
+  // scenarios() plants the canaries in this child's environment.
+  'zz-t17': { primary: 'env-dump', kilo: 'work', isolate: true, imported: true, envCanary: true, expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
+  // Item 4: a bypass push (the known `-c` residual) is invisible to prevention, so the ls-remote
+  // audit invalidates the attempt. zz-t19 is the positive case; zz-t20 the audit's named blind.
+  'zz-t18': { primary: 'push-bypass', kilo: 'work', isolate: true, imported: false, audit: 'diff', expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'REMOTE_INCIDENT' } },
+  'zz-t19': { primary: 'work', kilo: 'work', isolate: true, imported: true, audit: 'empty', expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
+  'zz-t20': { primary: 'push-transient', kilo: 'work', isolate: true, imported: true, audit: 'transient', expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
+  // Item 6 (M-1): a transient index.lock must not stop a working attempt; a permanent one stops it
+  // with its own reason, keeps the copy and never deletes the lock.
+  'zz-t21': { primary: 'index-lock-brief', kilo: 'work', isolate: true, imported: true, indexLock: 'brief', expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
+  'zz-t22': { primary: 'index-lock-permanent', kilo: 'work', isolate: true, imported: false, indexLock: 'stale', expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'INDEX_LOCK' } },
 };
+// The host global config and the credential canaries the item-2 scenario plants in the job parent.
+const CANARY_HOST = path.join(os.tmpdir(), 'zz-host-global.gitconfig');
+const CANARY_ENV = { GH_TOKEN: 'canary-gh', GITHUB_TOKEN: 'canary-github', GIT_ASKPASS: 'canary-askpass',
+  SSH_ASKPASS: 'canary-ssh-askpass', SSH_AUTH_SOCK: 'canary-agent', MY_GIT_TOKEN: 'canary-git-token',
+  OPENAI_TOKEN: 'keep-openai-token', GIT_CONFIG_GLOBAL: CANARY_HOST };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
 
 function jobFor(id, dir) {
   return { [id]: { kind: 'research', agent: 'zzfake', model: 'fake-model', level: 'high', position: 'max',
-    primary: { client: 'fake', id: 'fake' }, outputs: [path.join(dir, 'f1.md'), path.join(dir, 'f2.md')] } };
+    primary: { client: 'fake', id: 'fake' }, outputs: [path.join(dir, 'f1.md'), path.join(dir, 'f2.md')],
+    git: { mode: 'READ_ONLY', publishRequired: false } } };
 }
 
 function cleanup() {
   try { for (const f of fs.readdirSync(JOBS_DIR)) if (f.startsWith('zz-')) fs.unlinkSync(path.join(JOBS_DIR, f)); } catch { /* none */ }
+  try { fs.rmSync(CANARY_HOST, { force: true }); } catch { /* none */ }
   const logs = path.dirname(JOBS_DIR);
   try { for (const f of fs.readdirSync(logs)) if (f.startsWith('zz-')) fs.unlinkSync(path.join(logs, f)); } catch { /* none */ }
   // Isolated scenarios: their copied-back outputs, and any copy a scope stop kept (clones now,
@@ -75,6 +94,16 @@ function cleanup() {
     if (/colabs-research[\\/]zz-/.test(m[1])) spawnSync('git', ['-C', ROOT, 'worktree', 'remove', '--force', m[1]]);
   }
   spawnSync('git', ['-C', ROOT, 'worktree', 'prune']);
+  // The launcher's private hooks/config directory of this test process, when it was created.
+  try { const root = L.hooksRootPath(); if (root) fs.rmSync(root, { recursive: true, force: true, maxRetries: 3 }); } catch { /* none */ }
+  // Audit and hook fixtures that a crashed run may have left in the temp root.
+  try {
+    for (const d of fs.readdirSync(os.tmpdir())) {
+      if (d.startsWith('zz-audit-') || d.startsWith('zz-hooks-') || d.startsWith('zz-push-') || d.startsWith('zz-env-') || d.startsWith('zz-table-') || d.startsWith('zz-gitmode-')) {
+        fs.rmSync(path.join(os.tmpdir(), d), { recursive: true, force: true, maxRetries: 3 });
+      }
+    }
+  } catch { /* none */ }
 }
 
 // One scenario, run in its own process: node launch-test.cjs --one <id>
@@ -83,10 +112,12 @@ if (process.argv[2] === '--one') {
   const s = SC[id];
   if (s.isolate) {
     const out = dir => path.join(dir, REL, 'zz-out', id);
+    const bare = process.env.ZZ_AUDIT_BARE || '';
+    const arg = bare ? ` "${bare}"` : '';
     const job = { ...jobFor(id, '.')[id], outputs: [`${REL}/zz-out/${id}/f1.md`, `${REL}/zz-out/${id}/f2.md`] };
-    L.run(id, null, cfg, { jobs: { [id]: job }, routes,
-      primaryCommand: (jobId, message, dir) => `node "${FAKE}" ${s.primary} "${out(dir)}" "${dir}"`,
-      kiloCommand: (jobId, route, variant, message, dir) => `node "${FAKE}" ${s.kilo} "${out(dir)}" "${dir}"` });
+    L.run(id, null, cfg, { jobs: { [id]: job }, routes, auditRepo: process.env.ZZ_AUDIT_REPO || null,
+      primaryCommand: (jobId, message, dir) => `node "${FAKE}" ${s.primary} "${out(dir)}" "${dir}"${arg}`,
+      kiloCommand: (jobId, route, variant, message, dir) => `node "${FAKE}" ${s.kilo} "${out(dir)}" "${dir}"${arg}` });
     return;
   }
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), `${id}-`));
@@ -171,31 +202,206 @@ if (process.argv[2] === '--pure') {
   return;
 }
 
-// F-L1: with the executor's environment, no push leaves a scratch repository: not to its remote,
-// not to a remote added later, not to an explicit URL, not through an explicit push URL.
+// F-L1, Part 2 cases 1,3,5,6,7,8,10,13: with the executor's environment (item 2), no push leaves a
+// scratch repository, in any direct form. The `-c` bypass is prevention-impossible by config and is
+// covered by the audit scenario (zz-t18 below); the audit and receiver state are the rest.
 function pushBlockChecks() {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-push-'));
   const bare = path.join(base, 'remote.git'); const work = path.join(base, 'work');
-  const g = (args, env) => spawnSync('git', args, { encoding: 'utf8', env: env ? { ...process.env, ...env } : process.env });
+  const g = (args, env) => spawnSync('git', args, { encoding: 'utf8', env: env || process.env });
   g(['init', '-q', '--bare', bare]); g(['init', '-q', work]);
   g(['-C', work, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'x']);
   g(['-C', work, 'remote', 'add', 'origin', bare]);
+  // Case 5 and 9 locally: the host global config holds a canary helper and a longer `insteadOf`
+  // mapping. The job environment must override the file it names.
+  const hostGlobal = path.join(base, 'host.gitconfig');
+  fs.writeFileSync(hostGlobal, `[credential]\n\thelper = canary-helper\n[url "${bare}"]\n\tinsteadOf = no-push://blocked\n`);
+  const env = L.executorEnv({ ...process.env, GIT_CONFIG_GLOBAL: hostGlobal, GIT_ASKPASS: 'canary-askpass' });
+  const no = r => r.status !== 0;
   const out = [];
-  out.push(['push to the remote present at launch is refused', g(['-C', work, 'push', '-q', 'origin', 'HEAD:refs/heads/a'], L.NO_PUSH_ENV).status !== 0]);
+  out.push(['(1) push to the remote present at launch is refused', no(g(['-C', work, 'push', '-q', 'origin', 'HEAD:refs/heads/a'], env))]);
+  out.push(['(7) a new branch cannot be created on the remote', no(g(['-C', work, 'push', '-q', 'origin', 'HEAD:refs/heads/new'], env))]);
   g(['-C', work, 'remote', 'add', 'added', bare]);
-  out.push(['push to a remote added later is refused', g(['-C', work, 'push', '-q', 'added', 'HEAD:refs/heads/b'], L.NO_PUSH_ENV).status !== 0]);
-  out.push(['push to an explicit URL is refused', g(['-C', work, 'push', '-q', bare, 'HEAD:refs/heads/c'], L.NO_PUSH_ENV).status !== 0]);
+  out.push(['(3) push to a remote added later is refused', no(g(['-C', work, 'push', '-q', 'added', 'HEAD:refs/heads/b'], env))]);
+  out.push(['(3) push to an explicit URL is refused', no(g(['-C', work, 'push', '-q', bare, 'HEAD:refs/heads/c'], env))]);
   g(['-C', work, 'remote', 'set-url', '--push', 'added', bare]);
-  out.push(['push through an explicit push URL is refused', g(['-C', work, 'push', '-q', 'added', 'HEAD:refs/heads/d'], L.NO_PUSH_ENV).status !== 0]);
-  out.push(['git status still works', g(['-C', work, 'status', '--short'], L.NO_PUSH_ENV).status === 0]);
-  out.push(['the scratch remote received no ref', !(g(['-C', bare, 'for-each-ref']).stdout || '').trim()]);
+  out.push(['(3) push through an explicit push URL is refused', no(g(['-C', work, 'push', '-q', 'added', 'HEAD:refs/heads/d'], env))]);
+  out.push(['(6) a tag push is refused', no(g(['-C', work, 'push', '-q', 'origin', 'HEAD:refs/tags/v1'], env))]);
+  out.push(['(8) a force push is refused', no(g(['-C', work, 'push', '-q', '--force', 'origin', 'HEAD:refs/heads/a'], env))]);
+  g(['-C', work, 'push', '-q', bare, 'HEAD:refs/heads/doomed']);
+  out.push(['(13) a branch deletion through push is refused', no(g(['-C', work, 'push', '-q', 'origin', ':refs/heads/doomed'], env))]);
+  out.push(['(5) an ambient global config does not restore the URL', no(g(['-C', work, 'push', '-q', 'no-push://blocked', 'HEAD:refs/heads/e'], env))]);
+  // (10) another git executable or absolute path: the environment still applies.
+  let gitExe = null;
+  try { if (process.platform === 'win32') gitExe = (require('node:child_process').execFileSync('where', ['git'], { encoding: 'utf8' }).split(/\r?\n/).filter(Boolean)[0] || null); } catch { /* skip */ }
+  if (gitExe) out.push([`(10) an absolute git path is refused too (${gitExe})`, no(spawnSync(gitExe, ['-C', work, 'push', '-q', 'origin', 'HEAD:refs/heads/f'], { encoding: 'utf8', env }))]);
+  out.push(['git status still works under the job environment', g(['-C', work, 'status', '--short'], env).status === 0]);
+  const refs = (g(['-C', bare, 'for-each-ref', '--format=%(refname)']).stdout || '').trim().split('\n').filter(Boolean);
+  out.push([`the scratch remote received no pushed ref (${JSON.stringify(refs)})`, refs.length === 1 && refs[0] === 'refs/heads/doomed']);
+  const listed = g(['-C', work, 'config', '--show-origin', '-l'], env).stdout || '';
+  out.push(['(9) the canary helper is not the effective credential helper', !listed.includes('canary-helper')]);
+  try { fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 }); } catch { /* scratch */ }
+  return out;
+}
+
+// Item 2: the job environment carries no git credential vector, and the ambient global config
+// (canary credential helper) is not read. The in-job path is zz-t17 below.
+function envChecks() {
+  const out = [];
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-env-'));
+  const hostGlobal = path.join(base, 'host.gitconfig');
+  fs.writeFileSync(hostGlobal, '[credential]\n\thelper = canary-helper\n');
+  const canaries = { GH_TOKEN: 'canary-gh', GITHUB_TOKEN: 'canary-github', GIT_ASKPASS: 'canary-askpass',
+    SSH_ASKPASS: 'canary-ssh-askpass', SSH_AUTH_SOCK: 'canary-agent', MY_GIT_TOKEN: 'canary-git-token',
+    GITHUB_PAT: 'canary-github-pat', OPENAI_TOKEN: 'keep-openai-token', FORGE_PAT: 'keep-forge-pat' };
+  const env = L.executorEnv({ ...process.env, ...canaries, GIT_CONFIG_GLOBAL: hostGlobal });
+  const leaked = Object.entries(canaries).filter(([k, v]) => v.startsWith('canary') && String(env[k]) === v).map(([k]) => k);
+  out.push([`every planted credential vector is removed (${leaked.length ? leaked.join(', ') : 'none left'})`, leaked.length === 0]);
+  out.push(['a token that does not name GitHub or git survives the scrub', env.OPENAI_TOKEN === 'keep-openai-token' && env.FORGE_PAT === 'keep-forge-pat']);
+  out.push(['the job does not inherit the host global config',
+    env.GIT_CONFIG_GLOBAL !== hostGlobal && !env.GIT_CONFIG_GLOBAL.includes('zz-env-')
+    && env.GIT_CONFIG_NOSYSTEM === '1' && env.GIT_TERMINAL_PROMPT === '0' && env.GCM_INTERACTIVE === 'never'
+    && fs.existsSync(env.GIT_CONFIG_GLOBAL) && fs.readFileSync(env.GIT_CONFIG_GLOBAL, 'utf8') === '']);
+  const work = path.join(base, 'work');
+  spawnSync('git', ['init', '-q', work], { encoding: 'utf8' });
+  const cfg = spawnSync('git', ['config', '--show-origin', '-l'], { cwd: work, encoding: 'utf8', env }).stdout || '';
+  const helper = spawnSync('git', ['config', '--get', 'credential.helper'], { cwd: work, encoding: 'utf8', env });
+  out.push(['git config inside the job shows no canary helper and no host origin', !cfg.includes('canary-helper') && !cfg.includes(hostGlobal)]);
+  out.push([`the effective credential helper is empty, not the canary (${JSON.stringify(helper.stdout.trim())})`, helper.stdout.trim() === '' || helper.status !== 0]);
+  try { fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 }); } catch { /* scratch */ }
+  return out;
+}
+
+// F-3P-2: plant post-checkout and pre-commit hooks where a job can write, run every launcher git
+// call, and assert that none executed. The positive control proves the planted hooks do run when
+// git is pointed at their directory, so a silent environment cannot pass this check by accident.
+function hookChecks() {
+  const out = [];
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-hooks-'));
+  const marker = path.join(base, 'ran.txt').replace(/\\/g, '/');
+  const plant = dir => {
+    fs.mkdirSync(dir, { recursive: true });
+    for (const h of ['post-checkout', 'pre-commit', 'post-commit', 'pre-push']) {
+      const f = path.join(dir, h);
+      fs.writeFileSync(f, `#!/bin/sh\necho ${h} >> "${marker}"\n`);
+      fs.chmodSync(f, 0o755);
+    }
+  };
+  const ran = () => fs.existsSync(marker);
+  const g = (args, cwd) => spawnSync('git', args, { cwd, encoding: 'utf8' });
+  const repo = path.join(base, 'clone');
+  g(['init', '-q', repo]);
+  g(['-C', repo, 'config', 'user.email', 't@t']);
+  g(['-C', repo, 'config', 'user.name', 't']);
+  g(['-C', repo, 'commit', '-q', '--allow-empty', '-m', 'x']);
+  // Positive control: the planted hooks execute when git is told to use their directory.
+  const planted = path.join(base, 'planted');
+  plant(planted);
+  g(['-C', repo, '-c', `core.hooksPath=${planted}`, 'checkout', '-q', '--detach', 'HEAD']);
+  out.push(['a planted post-checkout hook runs when git uses its directory (positive control)', ran()]);
+  try { fs.rmSync(marker); } catch { /* not written */ }
+  // Where a job can write: the retired shared directory and a copy's own hooks directory.
+  plant(path.join(os.tmpdir(), 'colabs-research', '.no-hooks'));
+  plant(path.join(repo, '.git', 'hooks'));
+  // Every git call the launcher makes on a copy, including the two that run hooks.
+  L.gitIn(repo, ['checkout', '-q', '--detach', 'HEAD']);
+  L.gitIn(repo, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+  L.gitIn(repo, ['rev-parse', 'HEAD']);
+  L.gitIn(repo, ['for-each-ref', '--format=%(refname) %(objectname)']);
+  L.gitIn(repo, ['config', 'core.hooksPath']);
+  L.gitIn(repo, ['commit', '-q', '--allow-empty', '-m', 'y']);
+  out.push(['no launcher git call ran a hook planted in a job-writable directory', !ran()]);
+  // The launcher's preparation path: the checkout of a fresh copy while the retired shared
+  // directory holds hooks; the one that executed under the old mechanism (F-3P-2).
+  let dir = null;
+  try { ({ dir } = L.prepareWorkdir('zz-hooks', 1)); } catch { /* reported below */ }
+  out.push(['prepareWorkdir (clone + checkout) runs no planted hook', dir !== null && !ran()]);
+  if (dir) L.dropWorkdir(dir);
+  out.push(['the per-call hooks path is never created', !fs.existsSync(L.noHooksPath()) && !fs.existsSync(L.noHooksPath())]);
+  try { fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 }); } catch { /* scratch */ }
+  return out;
+}
+
+// M-2 (PROTO-DEC-0073): the job table is strict. Unknown keys and missing fields fail closed at
+// load and at the CLI; `--check`, `--preflight` and `--dry` pass with the real file.
+function tableChecks() {
+  const out = [];
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-table-'));
+  const good = JSON.parse(fs.readFileSync(path.join(__dirname, 'jobs.json'), 'utf8'));
+  const write = (name, mutate) => { const copy = JSON.parse(JSON.stringify(good)); mutate(copy); const f = path.join(base, name); fs.writeFileSync(f, JSON.stringify(copy)); return f; };
+  const throws = f => { try { L.loadJobTable(f); return false; } catch (e) { return e instanceof L.TableError; } };
+  try { out.push(['the real job table loads, 8 jobs', Object.keys(L.loadJobTable().jobs).length === 8]); } catch { out.push(['the real job table loads, 8 jobs', false]); }
+  out.push(['an unknown top-level key fails closed', throws(write('top.json', t => { t.extra = 1; }))]);
+  out.push(['an unknown job key fails closed', throws(write('jobkey.json', t => { t.jobs['a-sol'].extra = 1; }))]);
+  out.push(['a missing field fails closed', throws(write('missing.json', t => { delete t.jobs['a-sol'].level; }))]);
+  out.push(['an unknown client fails closed', throws(write('client.json', t => { t.jobs['a-sol'].primary.client = 'other'; }))]);
+  out.push(['an unknown position fails closed', throws(write('position.json', t => { t.jobs['a-sol'].position = 'top'; }))]);
+  out.push(['a need on an unknown job fails closed', throws(write('needs.json', t => { t.jobs['a-synth'].needs = ['a-sol', 'nope']; }))]);
+  out.push(['an empty jobs object fails closed', throws(write('empty.json', t => { t.jobs = {}; }))]);
+  const badGit = (name, mutate) => throws(write(name, t => mutate(t.jobs['a-sol'].git)));
+  out.push(['(14) an unknown git mode fails closed', badGit('mode.json', g => { g.mode = 'PUSH_MAYBE'; })]);
+  out.push(['(14) publishRequired missing fails closed', badGit('pub.json', g => { delete g.publishRequired; })]);
+  out.push(['(14) an unknown git key fails closed', badGit('gitkey.json', g => { g.extra = 1; })]);
+  out.push(['(14) a missing git descriptor fails closed', throws(write('nogit.json', t => { delete t.jobs['a-sol'].git; }))]);
+  out.push(['(14) LOCAL_COMMIT without an authorisation fails closed', throws(write('lc.json', t => { t.jobs['a-sol'].git = { mode: 'LOCAL_COMMIT', publishRequired: false }; }))]);
+  out.push(['(14) a push mode without a target fails closed', throws(write('push.json', t => { t.jobs['a-sol'].git = { mode: 'BRANCH_PUSH', publishRequired: false }; }))]);
+  out.push(['LOCAL_COMMIT with an authorisation parses', (() => { try { return L.loadJobTable(write('oklc.json', t => { t.jobs['a-sol'].git = { mode: 'LOCAL_COMMIT', publishRequired: false, authorisation: 'PROTO-DEC-0000' }; })).jobs['a-sol'].git.mode === 'LOCAL_COMMIT'; } catch { return false; } })()]);
+  const quiet = (argv, ov) => { const w = process.stdout.write; process.stdout.write = () => true; try { try { return L.main(argv, ov); } catch { return 99; } } finally { process.stdout.write = w; } };
+  const broken = write('cli-broken.json', t => { t.jobs['a-sol'].extra = 1; });
+  out.push(['the CLI fails closed (exit 2) on a broken table file', quiet(['--dry', 'a-sol'], { jobsFile: broken }) === 2]);
+  out.push(['--dry passes with the job table file', quiet(['--dry', 'researchers']) === 0]);
+  out.push(['--check passes with the job table file', quiet(['--check', 'a-sol']) === 0]);
+  out.push(['--preflight passes with the job table file', quiet(['--preflight']) === 0]);
+  try { fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 }); } catch { /* scratch */ }
+  return out;
+}
+
+// Item 3: task git modes, default-deny. Every mode is exercised: READ_ONLY runs, LOCAL_COMMIT
+// needs the loader-enforced authorisation, both push modes fail closed with "publisher not
+// implemented" at the dispatcher and again in the watchdog.
+function gitModeChecks() {
+  const out = [];
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-gitmode-'));
+  const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
+  const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
+  const mode = (id, g) => ({ [id]: { kind: 'research', agent: 'zzfake', model: 'fake-model', level: 'high', position: 'max',
+    primary: { client: 'fake', id: 'fake' }, outputs: [path.join(base, id, 'f1.md')], git: g } });
+  const capture = fn => { const w = process.stdout.write; let text = ''; process.stdout.write = chunk => { text += chunk; return true; }; try { return { code: fn(), text }; } finally { process.stdout.write = w; } };
+  const readOnly = { mode: 'READ_ONLY', publishRequired: false, target: null, authorisation: null };
+  const local = { mode: 'LOCAL_COMMIT', publishRequired: false, target: null, authorisation: 'PROTO-DEC-0000' };
+  out.push(['READ_ONLY is allowed', L.gitRefusal({ git: readOnly }) === null]);
+  out.push(['LOCAL_COMMIT with an authorisation is allowed', L.gitRefusal({ git: local }) === null]);
+  out.push(['(14) BRANCH_PUSH fails closed with "publisher not implemented"', L.gitRefusal({ git: { ...readOnly, mode: 'BRANCH_PUSH', target: 'refs/heads/x' } }) === 'publisher not implemented']);
+  out.push(['(14) RELEASE_PUSH fails closed with "publisher not implemented"', L.gitRefusal({ git: { ...readOnly, mode: 'RELEASE_PUSH', target: 'refs/tags/v1' } }) === 'publisher not implemented']);
+  out.push(['a missing descriptor fails closed', L.gitRefusal({}) === 'no git descriptor in the job table']);
+  const pushTable = mode('zz-pushmode', { mode: 'BRANCH_PUSH', publishRequired: false, target: 'refs/heads/x', authorisation: null });
+  const started = capture(() => L.startJobs(['zz-pushmode'], cfg, pushTable));
+  out.push([`the dispatcher refuses a push-mode job with nothing started (${started.text.trim()})`, started.code === 1 && /publisher not implemented/.test(started.text)]);
+  let clientRan = false;
+  L.run('zz-pushmode', null, cfg, { jobs: pushTable, routes, isolate: false,
+    primaryCommand: () => { clientRan = true; return 'node -e ""'; }, kiloCommand: () => 'node -e ""' });
+  const st = L.readJob('zz-pushmode');
+  out.push([`the watchdog refuses the same job before any client runs (${st && st.reason})`,
+    !clientRan && st && st.status === 'NEEDS_OWNER' && /publisher not implemented/.test(st.reason || '')]);
+  const readTable = { 'zz-readonly': { kind: 'research', agent: 'zzfake', model: 'fake-model', level: 'high', position: 'max',
+    primary: { client: 'vibe', id: null }, outputs: [path.join(base, 'zz-readonly', 'f1.md')], git: readOnly } };
+  const startedRead = capture(() => L.startJobs(['zz-readonly'], cfg, readTable));
+  out.push([`a READ_ONLY job passes the git gate (${startedRead.text.trim().split('\n')[0]})`, startedRead.code === 0 && /started/.test(startedRead.text)]);
+  try { fs.rmSync(path.join(base, 'zz-readonly.lock'), { force: true }); } catch { /* none */ }
+  try { fs.rmSync(path.join(ROOT, '.ai', 'runtime', 'improvement-research', 'jobs', 'zz-pushmode.json'), { force: true }); } catch { /* none */ }
+  try { fs.rmSync(path.join(ROOT, '.ai', 'runtime', 'improvement-research', 'jobs', 'zz-readonly.json'), { force: true }); } catch { /* none */ }
+  try { fs.rmSync(path.join(ROOT, '.ai', 'runtime', 'improvement-research', 'jobs', 'zz-readonly.lock'), { force: true }); } catch { /* none */ }
   try { fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 }); } catch { /* scratch */ }
   return out;
 }
 
 cleanup();
 const results = pureChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} pure: ${n}`)
-  .concat(pushBlockChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} push-block: ${n}`));
+  .concat(pushBlockChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} push-block: ${n}`))
+  .concat(envChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} env: ${n}`))
+  .concat(tableChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} table: ${n}`))
+  .concat(gitModeChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} git-mode: ${n}`))
+  .concat(hookChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} hook: ${n}`));
 const race = Array.from({ length: 5 }, () => spawn(process.execPath, [__filename, '--lock', 'zz-race'], { stdio: ['ignore', 'pipe', 'ignore'] }));
 let raceOut = '';
 let raceLeft = race.length;
@@ -265,7 +471,20 @@ function scenarios() {
   for (const id of own) deadWatchdog(id, report);
   for (const id of ids) {
     if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
-    const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
+    let childEnv = process.env;
+    if (SC[id].envCanary) { fs.writeFileSync(CANARY_HOST, '[credential]\n\thelper = canary-helper\n'); childEnv = { ...process.env, ...CANARY_ENV }; }
+    let auditBare = null;
+    if (SC[id].audit) {
+      const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-audit-'));
+      auditBare = path.join(base, 'remote.git');
+      const repo = path.join(base, 'repo');
+      spawnSync('git', ['init', '-q', '--bare', auditBare], { encoding: 'utf8' });
+      spawnSync('git', ['init', '-q', repo], { encoding: 'utf8' });
+      spawnSync('git', ['-C', repo, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'x'], { encoding: 'utf8' });
+      spawnSync('git', ['-C', repo, 'remote', 'add', 'origin', auditBare], { encoding: 'utf8' });
+      childEnv = { ...childEnv, ZZ_AUDIT_BARE: auditBare, ZZ_AUDIT_REPO: repo };
+    }
+    const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore', env: childEnv });
     if (SC[id].stopAfter) setTimeout(() => fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'), SC[id].stopAfter);
     const began = Date.now();
     const poll = setInterval(() => {
@@ -287,7 +506,39 @@ function scenarios() {
           const ref = spawnSync('git', ['-C', ROOT, 'show-ref', '--verify', '--quiet', 'refs/heads/zz-probe']).status === 0;
           gitLeak = remote || ref ? `; GIT ESCAPE LEAKED into the checkout (remote ${remote}, ref ${ref})` : '; checkout config and refs untouched';
         }
-        report(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}${gitLeak}`));
+        let canary = '';
+        if (SC[id].envCanary) {
+          const outDir = path.join(ROOT, REL, 'zz-out', id);
+          const dump = fs.readFileSync(path.join(outDir, 'f1.md'), 'utf8');
+          const cfg = fs.readFileSync(path.join(outDir, 'f2.md'), 'utf8');
+          const envOk = !/canary-/.test(dump) && dump.includes('keep-openai-token');
+          const cfgOk = !cfg.includes('canary-helper') && !cfg.includes(CANARY_HOST);
+          canary = `; ${envOk && cfgOk ? '' : 'CANARY LEAKED '}job env clean: ${envOk}; job git config clean: ${cfgOk}`;
+        }
+        let audit = '';
+        if (SC[id].audit) {
+          const refs = (spawnSync('git', ['-C', auditBare, 'for-each-ref', '--format=%(refname)'], { encoding: 'utf8' }).stdout || '').trim();
+          const ra = st && st.attempts[0] && st.attempts[0].remoteAudit;
+          const inc = ra && ra.incident;
+          const same = ra && JSON.stringify(ra.before) === JSON.stringify(ra.after);
+          let okAudit = false;
+          if (SC[id].audit === 'diff') okAudit = Boolean(inc && inc.length) && refs.includes('refs/heads/zz-bypass') && st.attempts[0].imported.length === 0;
+          if (SC[id].audit === 'empty') okAudit = !inc && refs === '' && same;
+          if (SC[id].audit === 'transient') okAudit = !inc && refs === '' && same;
+          audit = `; ${okAudit ? '' : 'AUDIT MISMATCH '}remote refs [${refs}], incident ${inc ? inc.join('; ') : 'none'}, snapshots equal: ${same}`;
+        }
+        let indexLock = '';
+        if (SC[id].indexLock) {
+          const a0 = st.attempts[0];
+          const wd = a0.workdir;
+          const lock = fs.existsSync(path.join(wd, '.git', 'index.lock'));
+          const kept = fs.existsSync(wd);
+          const okLock = SC[id].indexLock === 'stale'
+            ? lock && kept && /stale index.lock/.test(st.reason || '') && a0.imported.length === 0
+            : !lock && a0.workdirRemoved === true;
+          indexLock = `; ${okLock ? '' : 'LOCK MISMATCH '}lock ${lock ? 'present' : 'gone'}, copy kept: ${kept}, workdirRemoved: ${a0.workdirRemoved}`;
+        }
+        report(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}${gitLeak}${canary}${audit}${indexLock}`));
         return;
       }
       if (!SC[id].orphanGone) { report(line('')); return; }

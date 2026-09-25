@@ -23,10 +23,11 @@
 ## Steps
 
 0. `git rev-parse --show-toplevel` must print the `D:/Colabs` checkout; otherwise stop.
-   Pre-launch gate: the owner's launch message says that DeepSeek's second pass on package L has a
-   non-blocking verdict, and names the commit whose launcher passed that review. If it says neither,
-   ask the owner and stop until both are given. The launcher at HEAD must be that launcher, whatever
-   else has been committed since:
+   Pre-launch gate: the owner's launch message says that DeepSeek's fourth pass on package L, the
+   correction pass `docs/core-arch/stage-4/L-CORRECTION-4.md`, has a non-blocking verdict, and names
+   the commit whose launcher passed that review. If it says neither, ask the owner and stop until
+   both are given. The launcher at HEAD must be that launcher, whatever else has been committed
+   since:
    `git diff --quiet <that commit> HEAD -- docs/research/2026-09-25-improvement-research/prompts docs/core-arch/stage-4/P-L3-004-route-failover.md docs/core-arch/stage-4/kilo-routes.json`
    must exit 0; otherwise stop. The jobs run on HEAD's tree.
    `git status --porcelain --untracked-files=no` must print nothing; otherwise stop.
