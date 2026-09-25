@@ -3044,3 +3044,149 @@ Consequences:
   the primary.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
+
+### PROTO-DEC-0075
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0050 item 2, as to its sentence "A failed agent is restarted once" and the rest of that sentence only
+
+Context:
+The owner answered the fork and the approval items of
+`docs/core-arch/PROPOSAL-role-resolver-supervisor.md`. The answers are saved verbatim in
+`docs/core-arch/OWNER-DECISION-execution-model-2026-09-25.md` (sha256
+5292108d187eafbee71e0655297a092c39ea7b39ba368fb378c37d1b0a3d5ade), which is the authority for
+this block. The text is too long to quote here; its main sentences:
+"Выбираю расширенный F-c: error-aware hybrid recovery с ограниченным общим бюджетом попыток,
+resume-first после начатой работы и двумя динамически выбранными заместителями."
+"Принять B1–B6 с указанными ниже уточнениями и одновременно добавить B7–B8. Фиксировать именно
+эти инварианты, а не текущие конкретные имена моделей/маршрутов."
+Where this block and the owner's text differ, the owner's text wins.
+
+Decision:
+1. Three levels. The protocol keeps apart:
+   - the task or workflow;
+   - the stage or role;
+   - the execution attempt.
+
+   Process completion, stage completion and task completion are different states.
+2. Recovery within one stage is error-aware, supervised and bounded.
+   - The action follows the class of the failure, the work already done and the routes available.
+   - Repeating an operation that is known not to work is forbidden.
+   - Every new attempt has a stated reason: a transient retry, a resume, a change of route or
+     client, a change of model, a repair of an invalid result, or an escalation for quality.
+3. Budget. A primary and two substitutes. At most:
+   - on the primary, the first attempt and one retry on a retryable transient failure;
+   - two attempts on each substitute.
+
+   That is at most five fresh invocations after the first launch, and they are never spent
+   blindly. A resume of a started session is counted apart from fresh invocations. There are
+   budgets per route, per step, and in hard time, plus a money or token budget where possible.
+   When a critical budget is exhausted, the step is BLOCKED.
+4. Error classes steer recovery, with the behaviour per class given in the owner's text:
+   - AUTH_ERROR, QUOTA_EXHAUSTED, RATE_LIMIT, MODEL_UNAVAILABLE, CONFIG_ERROR;
+   - NETWORK_ERROR, PROVIDER_ERROR, PROCESS_CRASH, STALL, TIMEOUT;
+   - INVALID_OUTPUT, VALIDATION_FAILURE, SEMANTIC_FAILURE, DEPENDENCY_FAILURE, POLICY_FAILURE.
+
+   Dependency and policy failures spend no retry budget, and no change of model treats them.
+5. Liveness. A stall is judged by progress signals, starting at 10-15 minutes without progress
+   and calibrated later. There is also an independent hard ceiling per step: 120 minutes until
+   data exists, then per role class, preferably from p90 or p95 of its history. A heartbeat never
+   keeps a looping step alive.
+6. Completion contract. A step is DONE only when all of these hold:
+   - the process ended and its exit code is recorded;
+   - the required outputs exist and are not empty;
+   - they pass a minimal structural check, and any required specialised validator;
+   - Evidence is recorded;
+   - the supervisor registered the step as done.
+7. Launch provenance. Before a launch the supervisor records:
+   - HEAD;
+   - the launch file's path and sha256, and the role file's sha256 if it is separate;
+   - the corpus or manifest hash;
+   - the dispatch version;
+   - the model resolution.
+
+   An input changed after pinning stops the launch or creates a new launch revision. Unrelated
+   uncommitted changes do not block. Critical protocol inputs may be required to be committed.
+8. Model tier follows uncertainty and the consequence of an error, never volume, which refines
+   PROTO-DEC-0074 item 4. Its parameters are:
+   - uncertainty or novelty, and reasoning depth;
+   - the consequence of an error, and its reversibility;
+   - cross-system coupling;
+   - the independent judgement required.
+
+   Context window, modality, tools, route capability and language support are hard constraints,
+   not tier inputs.
+9. Resolver order:
+   1. the capability floor first;
+   2. then technical compatibility;
+   3. then quality, reliability, availability, latency and cost;
+   4. then the step budget.
+
+   If no model at or above the floor fits the budget, the answer is ASK OWNER or BLOCKED_BUDGET,
+   before the start. A senior model is never silently replaced by a weaker one for price.
+   Estimated, actual and cumulative cost are recorded and feed the resolver.
+10. Dynamic resolver, refining PROTO-DEC-0074 items 2-3.
+    - A task or dispatch file describes the role, responsibility, capability floor, criticality,
+      reasoning, context, tools, modality, budget and the number of substitutes.
+    - The resolver picks the primary and two substitutes at launch, from the available routes,
+      limits, capabilities, route health, observed reliability, latency and price.
+    - The resolution and its reasons go into Evidence.
+    - Protocol roles outlive models.
+11. Execution supervisor.
+    - It covers: dependency readiness, launch, process tracking, progress tracking, stall and
+      timeout detection, error classification, resume, retry and fallback, output validation,
+      Evidence, and the final state.
+    - Its states are PENDING, READY, RUNNING, DONE, RETRYABLE, REPAIRING, WAITING_DEPENDENCY,
+      BLOCKED and FAILED, plus RESUMING and RETRYING. Every transition is logged with its reason.
+    - It stays the smallest mechanism that removes human waiting and handles the failures
+      actually observed.
+12. Scope boundary.
+    - Retry, resume, fallback and execution repair stay inside one stage and are not a review
+      round.
+    - A semantic repair after a reviewer or certifier rejects a result is a new workflow stage,
+      counted apart from the execution budget.
+    - The supervisor never turns one into the other.
+    - Workflow templates set, where they apply: `max_review_rounds`, `max_semantic_repairs`,
+      `max_escalations` and `max_certification_rounds`.
+13. Independence constraints are chosen per workflow and criticality:
+    - a different model, model family or provider;
+    - no certifying one's own work;
+    - not being the only reviewer of one's own synthesis.
+14. A task is complete when all of these hold:
+    - every required stage has reached an admissible terminal state;
+    - the required gates have passed;
+    - no P0 or P1 condition is unresolved, unless it was passed to the owner;
+    - the final artefacts are valid;
+    - the final Evidence is recorded.
+
+Reasoning:
+Long unattended chains fail in known ways. Each failure class has one sensible response. A blind
+retry wastes money and time, and a clean restart loses work a resume would keep. Keeping execution
+attempts, stages and workflow rounds apart stops technical recovery from silently becoming an
+unbounded review loop.
+
+Alternatives rejected:
+- A fixed 1+2+2 ladder for any failure (option F-a).
+- A budget without a ladder (option F-b).
+- The one-restart rule of PROTO-DEC-0050 item 2 for supervised chains.
+- A mandatory agent heartbeat as the only liveness signal.
+- Seniority by volume.
+- Price-driven downgrade below the capability floor.
+
+Consequences:
+- P-L3-004 R-L3-004.4 (one Kilo attempt) and R-L3-004.5 (no automatic executor after useful work)
+  conflict with items 2-3 and 7 of this block. They are rewritten in the next stage-2 fix round
+  or in the stage-4 dispatch script, whichever the owner schedules first. Until then they stand
+  for the kernel records under review, and this block governs dispatch practice.
+- P-L2-002's rubric is realigned to items 8-9, and the role catalogue to item 10. No record under
+  review is changed now.
+- The research runner `run-chain.cjs` implements only part of this: file liveness, one fallback,
+  dependency blocking, and the coordinator's recorded acceptance. It is a research tool until the
+  kernel dispatch script of PROTO-DEC-0050 item 4 takes these rules.
+- Transcriber's reading: "restarted once" in PROTO-DEC-0050 item 2 is superseded only for its
+  restart rule. Its other parts stand: prompt files, the pointer line, script-built commands,
+  verified flags, the repository check, and the idle and hard caps.
+
+Approved by: RuslanFomenko (direct owner answers in chat, 2026-09-25, saved verbatim in docs/core-arch/OWNER-DECISION-execution-model-2026-09-25.md; transcribed by claude-c73232724159e5bd)

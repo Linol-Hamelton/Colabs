@@ -14,7 +14,7 @@ const cp = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const [DISPATCH, CMD, ARG] = process.argv.slice(2);
-if (!DISPATCH || !CMD) { console.log('usage: run-chain.cjs <dispatch.json> runner | run | status | show <slot> | stop <slot>'); process.exit(2); }
+if (!DISPATCH || !CMD) { console.log('usage: run-chain.cjs <dispatch.json> runner | run | status | show <slot> | stop <slot> | accept <slot> <reason>'); process.exit(2); }
 const D = JSON.parse(fs.readFileSync(path.resolve(ROOT, DISPATCH), 'utf8'));
 const RT = path.join(ROOT, D.stateDir);
 const STATE = path.join(RT, 'state.json');
@@ -45,7 +45,7 @@ const command = (slot, route) => {
 const load = () => {
   let s = {};
   try { s = JSON.parse(fs.readFileSync(STATE, 'utf8')); } catch { /* first run */ }
-  for (const k of ['jobs', 'blocked', 'waits', 'skipped']) s[k] = s[k] || {};
+  for (const k of ['jobs', 'blocked', 'waits', 'skipped', 'accepted']) s[k] = s[k] || {};
   return s;
 };
 const save = s => { fs.mkdirSync(RT, { recursive: true }); fs.writeFileSync(STATE, JSON.stringify(s, null, 2)); };
@@ -102,7 +102,7 @@ function slotStatus(slot, job) {
   return s;
 }
 const done = (st, k) => Boolean(st.jobs[k] && slotStatus(k, st.jobs[k]).state === 'DONE');
-const settledOk = (st, k) => st.skipped[k] || done(st, k);
+const settledOk = (st, k) => st.skipped[k] || st.accepted[k] || done(st, k);
 
 function start(slot, useFallback) {
   const def = SLOTS[slot];
@@ -156,6 +156,7 @@ function writeUsage(st) {
 
 function statusText(st) {
   const lines = ORDER.map(k => {
+    if (st.accepted[k]) return `${k}: ACCEPTED ${st.accepted[k]}`;
     if (st.blocked[k]) return `${k}: BLOCKED ${st.blocked[k]}`;
     if (st.skipped[k]) return `${k}: SKIPPED ${st.skipped[k]}`;
     if (!st.jobs[k]) return `${k}: ${st.waits[k] ? `WAITING ${st.waits[k]}` : 'NOT_STARTED'}`;
@@ -171,7 +172,7 @@ function tick() {
   let st = load();
   for (const slot of ORDER) {
     const def = SLOTS[slot];
-    if (st.blocked[slot] || st.skipped[slot]) continue;
+    if (st.blocked[slot] || st.skipped[slot] || st.accepted[slot]) continue;
     const job = st.jobs[slot];
     if (!job) {
       if (def.adopted) continue;
@@ -242,5 +243,14 @@ try {
   else if (CMD === 'status') { const t = statusText(load()); fs.mkdirSync(RT, { recursive: true }); fs.writeFileSync(path.join(RT, 'STATUS.md'), t); process.stdout.write(t); }
   else if (CMD === 'show') { const d = SLOTS[ARG]; console.log(command(ARG, d.route)); if (d.fallback) console.log(command(ARG, d.fallback)); }
   else if (CMD === 'stop') stop(ARG);
+  // A coordinator's recorded acceptance of a step whose output is complete but whose run did not
+  // close normally. It unblocks the dependents; the reason is kept in the state and the status.
+  else if (CMD === 'accept') {
+    const reason = process.argv.slice(5).join(' ');
+    if (!SLOTS[ARG] || !reason) throw new Error('accept <slot> <reason>');
+    const st = load(); st.accepted[ARG] = `${now()} ${reason}`; delete st.blocked[ARG];
+    for (const k of ORDER) if (/^input .* blocked$/.test(st.blocked[k] || '')) delete st.blocked[k];
+    delete st.final; save(st); console.log(statusText(st));
+  }
   else throw new Error(`unknown command ${CMD}`);
 } catch (e) { console.error(`run-chain: ${e.message}`); process.exit(1); }

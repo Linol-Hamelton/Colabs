@@ -7,6 +7,9 @@
   - another agent's answer to it, pasted by the owner;
   - this session's round-2 and round-3 runs.
 - Status per item: AGREED (recorded in PROTO-DEC-0074), FOR APPROVAL, FORK, DISAGREE or ALTERNATIVE.
+- Answered by the owner on 2026-09-25: the fork as an extended F-c, B1-B6 with refinements, B7-B8
+  added, and a three-level execution model. See PROTO-DEC-0075 and
+  `OWNER-DECISION-execution-model-2026-09-25.md`. Where this proposal differs, those win.
 
 ## 0. What already binds, so nothing is decided twice
 
