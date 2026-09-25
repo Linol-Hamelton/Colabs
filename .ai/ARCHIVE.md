@@ -9294,3 +9294,143 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 6s
 - test-protocol.ps1: exit 0 in 294s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - Model economics as a dynamic layer; substitutes for the final plan
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner gave the current reality of budgets (screenshots) and a model ranking, and said it
+  belongs in a dynamic layer, not the kernel. New `docs/ops/MODEL-ECONOMICS.md` holds:
+  - the owner's words verbatim and the ranking read as routing preferences;
+  - the snapshot of every subscription and balance;
+  - prices and measured runs.
+- Copilot credits were at 84%, and kimi-k3 took about 436 credits for two steps. So the final plan
+  and the revision got the substitute `deepseek/deepseek-v4-pro` (own key, $0.435/$0.87 per 1M
+  tokens; a ping answered) in `R3-DISPATCH.json`.
+- Restarted the runner.
+
+Result: The runner is alive (node 48948); the final plan is running on kimi-k3.
+Signal: fall. Killing the runner's cmd.exe without /T left its node child running with the old
+dispatch file, and the relaunched runner vanished without a log line. Found by listing node
+processes -> stop a runner by its node process, or with /T; the kernel supervisor needs a runner
+lock of its own.
+
+Next step: The chain finishes by itself. The resolver (PROTO-DEC-0075 items 9-10) reads
+`docs/ops/MODEL-ECONOMICS.md` when it is built.
+
+Open: The dispatch file still names models per slot, a transitional breach of PROTO-DEC-0074
+item 2 until the resolver exists.
+
+Evidence:
+- anchor: bf6b58bf902b9471bdd99fc95eba6f9926716b7a, uncommitted changes present
+- digest: sha256:487685b38fa7d7bd63883fdf65afc2d72cebdab6d9164bbff28bc3bcededecde over 494 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T15:35:47.336Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:295df42b97d79cb4fb07b266ada9b40f9cd3fbb90dbdc023177b3e3ed9f54457 of this entry without this block
+- parent-entry: sha256:d80671c4cbd687a3b32ef6eb24d7e74d0483e38845b41b6a1098101fa3e08b8b
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 297s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - PROTO-DEC-0075 execution model; critique-a accepted after a quota cut
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner answered the synthesis:
+  - the fork as an extended F-c;
+  - B1-B6 accepted with refinements;
+  - B7 (dynamic resolver) and B8 (supervisor) added;
+  - a three-level execution model: workflow, stage, attempt.
+- Saved the answers verbatim in `docs/core-arch/OWNER-DECISION-execution-model-2026-09-25.md`.
+- Transcribed them as PROTO-DEC-0075, under the lock, with a registry row. It supersedes only the
+  restart rule of PROTO-DEC-0050 item 2. The proposal is marked as answered.
+- Round 3:
+  - critique-a (codex, gpt-6-astra) wrote a complete `critique-A.md` (185 lines, verdict and
+    quality line), then hit the OpenAI usage limit before its journal entry;
+  - the Kilo substitute (codex-9402a2825c3eafe9, $1.97) refused to overwrite the file, recorded
+    Evidence and stopped;
+  - the runner marked the slot BLOCKED.
+- Added `accept <slot> <reason>` to `run-chain.cjs`. I accepted critique-a with the reason
+  recorded in the state, and restarted the runner. The final plan is running.
+
+Result: Recorded. The runner continues with final, verify and, if needed, revise and reverify.
+Signal: fall. QUOTA_EXHAUSTED after the output but before the journal left a complete artefact
+without its participant's Evidence. The runner treated it as FAILED and sent a fresh substitute.
+PROTO-DEC-0075 item 4 now handles this: QUOTA goes to a substitute, and a complete output should be
+completed or resumed, not redone. Supervisor rule: check for an existing complete output before a
+fresh start.
+Signal: procedure-gap. A codex session cut by quota cannot close its journal until the limit
+resets (22:01 local); the entry is missing for codex-fda1eee5684e0097. Candidate: resume it with
+`codex exec resume` after the reset to write its entry.
+
+Next step: Round 3 finishes by itself. Then the implementation of PROTO-DEC-0074/0075 goes into the
+kernel dispatch script, scheduled by the owner.
+
+Open: codex-fda1eee5684e0097 has no closing entry; the owner decides whether to resume it.
+
+Evidence:
+- anchor: fced02b71e43c64805719d2692538c4fe73ee62a, uncommitted changes present
+- digest: sha256:4cfaa09306000cd3ac284b02ac8b7d0847006d99e853bd9f48e9bf2d24b4b7a3 over 492 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T15:27:18.725Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:d80671c4cbd687a3b32ef6eb24d7e74d0483e38845b41b6a1098101fa3e08b8b of this entry without this block
+- parent-entry: sha256:079d553122c420d21fb8f4ebe72e15bd456376b0a26dd233717381eee4719d05
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 304s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - Synthesis on roles, resolver and supervisor; PROTO-DEC-0074; H-PROMPT-DELIVERY-01
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner asked for the hypothesis file `OwnerIdeas/H-PROMPT-DELIVERY-01_...md`, which is now
+  written. The file existed before my write, and any earlier content is lost; the owner has been
+  told.
+- The owner then asked for a synthesis of their message and another agent's answer. Rule:
+  agreement is recorded, doubts go for approval, forks come with criteria, disagreement is argued.
+- Wrote `docs/core-arch/PROPOSAL-role-resolver-supervisor.md`:
+  - A1-A5 AGREED;
+  - B1-B6 FOR APPROVAL;
+  - a FORK on retries, recommending option c;
+  - D1 and D2 DISAGREE: no mandatory agent heartbeat, no content validator per output;
+  - E1-E3 ALTERNATIVES.
+- Transcribed A1-A5 as PROTO-DEC-0074, under the lock, with a registry row.
+- Found while checking the kernel: PROTO-DEC-0050 item 2 already required the pointer line and the
+  one-restart rule, so PROTO-DEC-0073 partly restates it. The runner's restart after useful work
+  goes beyond R-L3-004.5. Both are stated in the proposal, section 0.
+
+Result: Recorded. No kernel record is changed; the alignment goes to the next stage-2 fix round or
+the stage-4 dispatch script.
+Signal: procedure-gap. A new rule (0073) was written without first checking an older block (0050 item 2) that covered half of it -> before transcribing a block, grep DECISIONS for its subject; applied in this entry.
+
+Next step: The owner chooses the fork (F-a, F-b or F-c) and approves or rejects B1-B6.
+
+Open: Round 3 is running under run-chain; its watcher is active.
+
+Evidence:
+- anchor: 88376ed1cd1f6f469ac84e419936a36730b8b05c, uncommitted changes present
+- digest: sha256:56d662e649123f2a0624290a2f9b2be89114cf2d90be82da585550dba8488734 over 491 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T15:04:58.122Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:079d553122c420d21fb8f4ebe72e15bd456376b0a26dd233717381eee4719d05 of this entry without this block
+- parent-entry: sha256:96c61567f164ac3b85400b4124a0af091fdb77369b004fb8bb5370d9d4d77515
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 296s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

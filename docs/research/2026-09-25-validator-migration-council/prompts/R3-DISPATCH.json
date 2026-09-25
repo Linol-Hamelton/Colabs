@@ -143,11 +143,6 @@
         "notMatch": "^Verdict: ACCEPT[ \t\r]*$"
       },
       "route": {
-        "client": "copilot",
-        "model": "kimi-k3",
-        "effort": "high"
-      },
-      "fallback": {
         "client": "kilo",
         "model": "deepseek/deepseek-v4-pro"
       }

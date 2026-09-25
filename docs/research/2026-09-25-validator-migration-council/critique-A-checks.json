@@ -1,0 +1,148 @@
+{
+  "date": "2026-09-25T14:59:53.927Z",
+  "mode": "ADVISORY source-contract reproductions; not execution of a proposed engine or security profile",
+  "baseline": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+  "part2": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+  "corpus": [
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/A-contract-tcb.md",
+      "expected": "8bf48ad7380b4e8f42d5d280cb4e3d8c53385429dbb2518deeccf6faa855168a",
+      "actual": "8bf48ad7380b4e8f42d5d280cb4e3d8c53385429dbb2518deeccf6faa855168a",
+      "lf": "8bf48ad7380b4e8f42d5d280cb4e3d8c53385429dbb2518deeccf6faa855168a"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/B-baseline-check.json",
+      "expected": "ceaeddd5fef52aeca523ae7c4b012246393e9f36fc04831c19fe3c83a6c5dd85",
+      "actual": "ceaeddd5fef52aeca523ae7c4b012246393e9f36fc04831c19fe3c83a6c5dd85",
+      "lf": "ceaeddd5fef52aeca523ae7c4b012246393e9f36fc04831c19fe3c83a6c5dd85"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/B-performance-migration.md",
+      "expected": "6e1f6044f9492dda5e2547020c4353842806739889a32a25d2415259ab7b6be2",
+      "actual": "6e1f6044f9492dda5e2547020c4353842806739889a32a25d2415259ab7b6be2",
+      "lf": "6e1f6044f9492dda5e2547020c4353842806739889a32a25d2415259ab7b6be2"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/C-adversarial-simplifier.md",
+      "expected": "3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a",
+      "actual": "3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a",
+      "lf": "3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/DECISION-BOUNDARY.md",
+      "expected": "1e5b10b0b263b9f11dc71713b816462b6549c0a93328db7d8f8fc616207f9b22",
+      "actual": "1e5b10b0b263b9f11dc71713b816462b6549c0a93328db7d8f8fc616207f9b22",
+      "lf": "1e5b10b0b263b9f11dc71713b816462b6549c0a93328db7d8f8fc616207f9b22"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/IMPLEMENTATION-DAG.md",
+      "expected": "1d73fc0e24c860c5281e2b393fa4a49f5eb4107002ecaeb43028cc63fb041795",
+      "actual": "1d73fc0e24c860c5281e2b393fa4a49f5eb4107002ecaeb43028cc63fb041795",
+      "lf": "1d73fc0e24c860c5281e2b393fa4a49f5eb4107002ecaeb43028cc63fb041795"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/NOT-IN-SCOPE.md",
+      "expected": "798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415",
+      "actual": "798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415",
+      "lf": "798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CALL-GRAPH.md",
+      "expected": "b88e313d510cd98211b2e5500c465c98ebdbdfce67038e8c3c52330885d0e1fa",
+      "actual": "b88e313d510cd98211b2e5500c465c98ebdbdfce67038e8c3c52330885d0e1fa",
+      "lf": "b88e313d510cd98211b2e5500c465c98ebdbdfce67038e8c3c52330885d0e1fa"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CONTRACT-MAP.md",
+      "expected": "978b539bd1b6bc8bcf8b3cd53a0460398ebb44dd65a9c6796d98fad216b743a0",
+      "actual": "978b539bd1b6bc8bcf8b3cd53a0460398ebb44dd65a9c6796d98fad216b743a0",
+      "lf": "978b539bd1b6bc8bcf8b3cd53a0460398ebb44dd65a9c6796d98fad216b743a0"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round2/ISSUE-MATRIX.md",
+      "expected": "4478c9a2976c7d13bd5421e513f8e0d1bef7a4f06449fd70cf69cd48d9f1f44e",
+      "actual": "4478c9a2976c7d13bd5421e513f8e0d1bef7a4f06449fd70cf69cd48d9f1f44e",
+      "lf": "4478c9a2976c7d13bd5421e513f8e0d1bef7a4f06449fd70cf69cd48d9f1f44e"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round2/challenge-A.md",
+      "expected": "23b2dea084e2fc6ac0673e262e1815b944f2e97d663243da0cf431a198c7d08f",
+      "actual": "23b2dea084e2fc6ac0673e262e1815b944f2e97d663243da0cf431a198c7d08f",
+      "lf": "23b2dea084e2fc6ac0673e262e1815b944f2e97d663243da0cf431a198c7d08f"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round2/challenge-B.md",
+      "expected": "eb06438009167f3e54657ef1be62c24320413fd4b7d625bebfb2faa84076dcbe",
+      "actual": "eb06438009167f3e54657ef1be62c24320413fd4b7d625bebfb2faa84076dcbe",
+      "lf": "eb06438009167f3e54657ef1be62c24320413fd4b7d625bebfb2faa84076dcbe"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round2/challenge-C.md",
+      "expected": "9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1",
+      "actual": "9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1",
+      "lf": "9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1"
+    }
+  ],
+  "inputs": [
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/draft-decision.md",
+      "sha256": "d2be5e2eda0c7248cf891a276bec2012f55836342919d36441a85f94e12b8cf8"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-A.md",
+      "sha256": "2980406291ec0b36828ffbb2e9e5e7ae8cdfe0b2f639bdeae518d8f5f7eee8e8"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-B.md",
+      "sha256": "e75189d8a5c73b4b2c0a58f0009ea579d62507ed1522e24343f5144f469bef49"
+    },
+    {
+      "file": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-C.md",
+      "sha256": "b7638bddbeda0b93943c85d222765302ba4d534481116ef25f7e0926cdfc8b40"
+    }
+  ],
+  "observations": [
+    {
+      "id": "CA-01",
+      "fact": "Node presence branch has no numeric minimum-version predicate",
+      "lines": "validate-protocol.ps1:344-360",
+      "confirmed": true
+    },
+    {
+      "id": "CA-02",
+      "fact": "Missing Bash is an unconditional FAIL, before per-wrapper existence tests",
+      "lines": "validate-protocol.ps1:408-415",
+      "confirmed": true
+    },
+    {
+      "id": "CA-03",
+      "fact": "Zero failures renders Protocol OK and exits zero",
+      "lines": "validate-protocol.ps1:1104-1109",
+      "confirmed": true
+    },
+    {
+      "id": "CA-04",
+      "fact": "Certification cap counts distinct frozen candidates in a batch",
+      "lines": ".ai/DECISIONS.md:1979",
+      "confirmed": true
+    },
+    {
+      "id": "CA-05",
+      "fact": "Research permission explicitly forbids commit, tag and push",
+      "lines": ".ai/DECISIONS.md:2796-2799",
+      "confirmed": true
+    },
+    {
+      "id": "CA-06",
+      "fact": "PowerShell standalone gate invokes the handoff path in its root",
+      "lines": "validate-protocol.ps1:869-885",
+      "source": "        if ($script:ProtocolRole -eq 'source' -and $nodeCommand) {\n            if ($env:PROTOCOL_SKIP_GATE -eq '1') {\n                Write-Result \"PASS\" \"gate-check skipped during evidence recording\"\n            }\n            else {\n                $gateScript = Join-Path $Root '.ai/bin/protocol-handoff.cjs'\n                if (Test-Path -LiteralPath $gateScript -PathType Leaf) {\n                    $gateRes = Invoke-External $nodeCommand.Source @($gateScript, 'gate-check', '--root', $Root)\n                    if ($gateRes.Code -ne 0) {\n                        $combined = ($gateRes.Error + \"`n\" + $gateRes.Output).Trim()\n                        $lastLine = ($combined.Split(\"`n\") | Where-Object { $_.Trim() } | Select-Object -Last 1)\n                        if (-not $lastLine) { $lastLine = \"gate-check failed\" }\n                        $msg = $lastLine.Trim() -replace '^(?:AI protocol:\\s*)?(?:gate-check:\\s*)?', ''\n                        Write-Result \"FAIL\" (\"gate-check: \" + $msg)\n                    }\n                    else {\n                        Write-Result \"PASS\" \"completion gate verified fresh by gate-check\""
+    },
+    {
+      "id": "CA-07",
+      "fact": "M-13 measures a CIM process query, not isolation provisioning",
+      "row": "MEASUREMENTS.md M-13",
+      "source": "| M-13 | One CIM process-table query (the launcher's `procTable`) | 519 ms idle; under the load of the launcher self-test it took seconds (a first scan did not complete within 2.5 s) | one timed call; self-test observation, `P-L3-004` risk rows |"
+    }
+  ]
+}

@@ -5,3 +5,4 @@
 - Role file: `docs/research/2026-09-25-validator-migration-council/prompts/C-verify.md`, then `docs/research/2026-09-25-validator-migration-council/prompts/R3-ADDENDUM.md`.
 - Plan to verify: `final-plan.md`. Output: `verification.md`.
 - Shared values: `docs/research/2026-09-25-validator-migration-council/prompts/run-r3/COMMON-LAUNCH.md`.
+- Write your output file with your file-writing tool (for example `write_file`). Text in your chat reply is not read by anyone and does not count as output. Then write your journal entry and record Evidence (COMMON section 5).

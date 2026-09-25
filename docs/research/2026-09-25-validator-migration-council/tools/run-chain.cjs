@@ -27,7 +27,7 @@ const now = () => new Date().toISOString();
 const COPILOT_TOOLS = ['write', 'shell(git:*)', 'shell(node:*)', 'shell(powershell:*)', 'shell(Get-Content:*)',
   'shell(Get-ChildItem:*)', 'shell(Select-String:*)', 'shell(Test-Path:*)', 'shell(Measure-Object:*)']
   .map(t => `--allow-tool="${t}"`).concat(['git commit', 'git push', 'git tag'].map(c => `--deny-tool="shell(${c})"`)).join(' ');
-const VIBE_TOOLS = ['read_file', 'grep', 'write_file', 'edit', 'powershell'].map(t => `--enabled-tools ${t}`).join(' ');
+const VIBE_TOOLS = ['read_file', 'grep', 'write_file', 'edit', 'bash'].map(t => `--enabled-tools ${t}`).join(' ');
 const CLIENTS = {
   copilot: (r, m) => `copilot -p "${m}" --model ${r.model}${r.effort ? ` --reasoning-effort ${r.effort}` : ''} --no-ask-user ${COPILOT_TOOLS}`,
   codex: (r, m) => `codex exec -m ${r.model}${r.effort ? ` -c model_reasoning_effort=${r.effort}` : ''} --approve-for-me --skip-git-repo-check -C "${ROOT}" "${m}"`,
@@ -35,6 +35,9 @@ const CLIENTS = {
   kilo: (r, m, id) => `kilo run -m ${r.model}${r.effort ? ` --variant ${r.effort}` : ''} --auto --dir "${ROOT}" --title ${id} --format json "${m}"`,
   vibe: (r, m) => `vibe -p "${m}" ${VIBE_TOOLS} --auto-approve --trust --max-turns 400 --output streaming --workdir "${ROOT}"`,
 };
+// Environment a client needs (its PROTO-DEC-0050 item 3 profile). vibe is Python and fails on a
+// non-ASCII character under the Windows code page (measured again 2026-09-25: 'charmap' codec).
+const CLIENT_ENV = { vibe: { PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' } };
 const command = (slot, route) => {
   const m = `Read and follow the file ${SLOTS[slot].launch}`;
   if (/["%^&|<>']/.test(m)) throw new Error('launch path holds a shell metacharacter');
@@ -50,10 +53,14 @@ const load = () => {
 };
 const save = s => { fs.mkdirSync(RT, { recursive: true }); fs.writeFileSync(STATE, JSON.stringify(s, null, 2)); };
 const mtime = p => { try { return fs.statSync(p).mtimeMs; } catch { return 0; } };
-function alive(pid) {
-  if (!pid) return false;
-  const out = cp.spawnSync('tasklist', ['/FI', `PID eq ${pid}`, '/NH', '/FO', 'CSV'], { encoding: 'utf8' }).stdout || '';
-  return out.includes(`"${pid}"`);
+// A process is ours only if both its pid and its start time match the launch record: Windows
+// reuses pids, and a pid alone once made this runner restart a finished step and kill an unrelated
+// process (2026-09-25). A record without a start time is never treated as alive.
+const startTimeOf = pid => (cp.spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
+  `try { (Get-Process -Id ${Number(pid)} -ErrorAction Stop).StartTime.ToFileTimeUtc() } catch { '' }`], { encoding: 'utf8' }).stdout || '').trim();
+function alive(pid, startTime) {
+  if (!pid || !startTime) return false;
+  return startTimeOf(pid) === String(startTime);
 }
 function balance() {
   const r = cp.spawnSync('kilo profile', { shell: true, encoding: 'utf8', timeout: 60000 });
@@ -63,15 +70,16 @@ function balance() {
 
 // A detached node child gets no console, and kilo run exits silently without one (measured
 // 2026-09-25). A job runs from a .cmd file through Start-Process, with a hidden console of its own.
-function launch(cmd, log) {
+function launch(cmd, log, env = {}) {
   const bat = log.replace(/\.log$/, '.cmd');
-  fs.writeFileSync(bat, `@echo off\r\ncd /d "${ROOT}"\r\n${cmd} >> "${log}" 2>&1\r\n`);
+  const sets = Object.entries(env).map(([k, v]) => `set ${k}=${v}\r\n`).join('');
+  fs.writeFileSync(bat, `@echo off\r\ncd /d "${ROOT}"\r\n${sets}${cmd} >> "${log}" 2>&1\r\necho EXIT=%ERRORLEVEL% >> "${log}"\r\n`);
   const r = cp.spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
-    "(Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c',$env:RUN_BAT -WindowStyle Hidden -PassThru).Id"],
+    "$p = Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c',$env:RUN_BAT -WindowStyle Hidden -PassThru; \"$($p.Id) $($p.StartTime.ToFileTimeUtc())\""],
     { encoding: 'utf8', env: { ...process.env, RUN_BAT: bat } });
-  const pid = Number((r.stdout || '').trim());
-  if (r.status !== 0 || !pid) throw new Error(`launch failed: ${r.stderr}`);
-  return pid;
+  const [pid, startTime] = (r.stdout || '').trim().split(/s+/);
+  if (r.status !== 0 || !Number(pid) || !startTime) throw new Error(`launch failed: ${r.stderr}`);
+  return { pid: Number(pid), startTime };
 }
 
 // A journal belongs to a slot by its Orientation line, so a journal that only cites a frame is not taken.
@@ -84,11 +92,13 @@ function journalOf(slot, since) {
   return hits.sort((a, b) => mtime(b) - mtime(a))[0] || null;
 }
 function slotStatus(slot, job) {
+  // A step found DONE stays DONE: its process record is never checked again.
+  if (job.doneAt) return { state: 'DONE', route: job.route, pid: job.pid, journal: job.journal, output: job.outputLines, evidence: true, idleMin: 0 };
   const j = journalOf(slot, job.started);
   const text = j ? fs.readFileSync(j, 'utf8') : '';
   const out = abs(SLOTS[slot].out);
   const outLines = fs.existsSync(out) && mtime(out) >= job.started ? fs.readFileSync(out, 'utf8').split('\n').length : 0;
-  const run = alive(job.pid);
+  const run = alive(job.pid, job.startTime);
   const last = Math.max(mtime(job.log), j ? mtime(j) : 0, mtime(out), job.started);
   const s = { route: job.route, pid: job.pid, alive: run, journal: j ? path.basename(j) : null,
     launch: /^Launch:/m.test(text), orientation: /^Orientation:/m.test(text), output: outLines,
@@ -108,15 +118,15 @@ function start(slot, useFallback) {
   const def = SLOTS[slot];
   const st = load();
   const prev = st.jobs[slot];
-  if (prev && alive(prev.pid)) throw new Error(`${slot} is still running (pid ${prev.pid})`);
+  if (prev && alive(prev.pid, prev.startTime)) throw new Error(`${slot} is still running (pid ${prev.pid})`);
   const route = useFallback ? def.fallback : def.route;
   if (!route) throw new Error(`${slot} has no ${useFallback ? 'fallback' : 'primary'} route`);
   const cmd = command(slot, route);
   fs.mkdirSync(RT, { recursive: true });
   const tries = ((prev || {}).tries || 0) + 1;
   const log = path.join(RT, `${slot}-${tries}.log`);
-  const pid = launch(cmd, log);
-  st.jobs[slot] = { pid, started: Date.now(), route: useFallback ? 'fallback' : 'primary', client: route.client,
+  const { pid, startTime } = launch(cmd, log, CLIENT_ENV[route.client]);
+  st.jobs[slot] = { pid, startTime, started: Date.now(), route: useFallback ? 'fallback' : 'primary', client: route.client,
     model: route.model, effort: route.effort || null, log, cmd, tries, fallbackUsed: useFallback || Boolean(prev && prev.fallbackUsed) };
   delete st.waits[slot];
   save(st);
@@ -124,7 +134,7 @@ function start(slot, useFallback) {
 }
 function stop(slot) {
   const job = load().jobs[slot];
-  if (job && alive(job.pid)) cp.spawnSync('taskkill', ['/PID', String(job.pid), '/T', '/F'], { stdio: 'ignore' });
+  if (job && alive(job.pid, job.startTime)) cp.spawnSync('taskkill', ['/PID', String(job.pid), '/T', '/F'], { stdio: 'ignore' });
 }
 
 // Usage per run from what each client prints: kilo JSON step costs, copilot AI credits, codex tokens.
@@ -163,7 +173,7 @@ function statusText(st) {
     const s = slotStatus(k, st.jobs[k]);
     return `${k}: ${s.state} pid=${s.pid} ${st.jobs[k].client || ''} ${st.jobs[k].model || ''} try=${st.jobs[k].tries} journal=${s.journal} outputLines=${s.output} evidence=${s.evidence} idleMin=${s.idleMin}`;
   });
-  if (st.runner) lines.push(`runner: pid=${st.runner.pid} alive=${alive(st.runner.pid)}`);
+  if (st.runner) lines.push(`runner: pid=${st.runner.pid} alive=${alive(st.runner.pid, st.runner.startTime)}`);
   if (st.final) lines.push(`FINAL: ${st.final}`);
   return `# chain status ${now()} (${DISPATCH})\n\n${lines.join('\n')}\n`;
 }
@@ -194,7 +204,11 @@ function tick() {
       continue;
     }
     const s = slotStatus(slot, job);
-    if (s.state === 'DONE' && !job.usage) { job.usage = { ...usageOf(job), outputLines: s.output, state: 'DONE' }; save(st); writeUsage(st); }
+    if (s.state === 'DONE' && !job.doneAt) {
+      Object.assign(job, { doneAt: now(), journal: s.journal, outputLines: s.output });
+      if (!job.usage) job.usage = { ...usageOf(job), outputLines: s.output, state: 'DONE' };
+      save(st); writeUsage(st);
+    }
     if (['FAILED', 'STALLED', 'NO_START'].includes(s.state)) {
       stop(slot);
       job.usage = { ...usageOf(job), outputLines: s.output, state: s.state }; save(st); writeUsage(st);
@@ -228,9 +242,9 @@ function run() {
 }
 function runner() {
   const st = load();
-  if (st.runner && alive(st.runner.pid)) throw new Error(`runner still running (pid ${st.runner.pid})`);
+  if (st.runner && alive(st.runner.pid, st.runner.startTime)) throw new Error(`runner still running (pid ${st.runner.pid})`);
   fs.mkdirSync(RT, { recursive: true });
-  st.runner = { pid: launch(`node "${__filename}" "${DISPATCH}" run`, path.join(RT, 'runner.log')), started: Date.now() };
+  st.runner = { ...launch(`node "${__filename}" "${DISPATCH}" run`, path.join(RT, 'runner.log')), started: Date.now() };
   st.skipped = st.skipped || {};
   delete st.final;
   save(st);
@@ -245,6 +259,12 @@ try {
   else if (CMD === 'stop') stop(ARG);
   // A coordinator's recorded acceptance of a step whose output is complete but whose run did not
   // close normally. It unblocks the dependents; the reason is kept in the state and the status.
+  else if (CMD === 'reset') {
+    // Clears a blocked slot once its cause is fixed, and the dependents it blocked.
+    const st = load(); delete st.blocked[ARG]; delete st.jobs[ARG];
+    for (const k of ORDER) if (/^input .* blocked$/.test(st.blocked[k] || '')) delete st.blocked[k];
+    delete st.final; save(st); console.log(statusText(st));
+  }
   else if (CMD === 'accept') {
     const reason = process.argv.slice(5).join(' ');
     if (!SLOTS[ARG] || !reason) throw new Error('accept <slot> <reason>');

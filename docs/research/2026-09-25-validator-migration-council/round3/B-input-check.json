@@ -1,0 +1,437 @@
+{
+  "kind": "read-only synthesis input and artifact checks; not certification",
+  "utc": "2026-09-25T14:13:46.079Z",
+  "baseline": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+  "part2Input": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+  "deliveryHead": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+  "corpus": [
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/A-contract-tcb.md",
+      "expected": "8bf48ad7380b4e8f42d5d280cb4e3d8c53385429dbb2518deeccf6faa855168a",
+      "actual": "8bf48ad7380b4e8f42d5d280cb4e3d8c53385429dbb2518deeccf6faa855168a",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/B-baseline-check.json",
+      "expected": "ceaeddd5fef52aeca523ae7c4b012246393e9f36fc04831c19fe3c83a6c5dd85",
+      "actual": "ceaeddd5fef52aeca523ae7c4b012246393e9f36fc04831c19fe3c83a6c5dd85",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/B-performance-migration.md",
+      "expected": "6e1f6044f9492dda5e2547020c4353842806739889a32a25d2415259ab7b6be2",
+      "actual": "6e1f6044f9492dda5e2547020c4353842806739889a32a25d2415259ab7b6be2",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/C-adversarial-simplifier.md",
+      "expected": "3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a",
+      "actual": "3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/DECISION-BOUNDARY.md",
+      "expected": "1e5b10b0b263b9f11dc71713b816462b6549c0a93328db7d8f8fc616207f9b22",
+      "actual": "1e5b10b0b263b9f11dc71713b816462b6549c0a93328db7d8f8fc616207f9b22",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/IMPLEMENTATION-DAG.md",
+      "expected": "1d73fc0e24c860c5281e2b393fa4a49f5eb4107002ecaeb43028cc63fb041795",
+      "actual": "1d73fc0e24c860c5281e2b393fa4a49f5eb4107002ecaeb43028cc63fb041795",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/NOT-IN-SCOPE.md",
+      "expected": "798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415",
+      "actual": "798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CALL-GRAPH.md",
+      "expected": "b88e313d510cd98211b2e5500c465c98ebdbdfce67038e8c3c52330885d0e1fa",
+      "actual": "b88e313d510cd98211b2e5500c465c98ebdbdfce67038e8c3c52330885d0e1fa",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CONTRACT-MAP.md",
+      "expected": "978b539bd1b6bc8bcf8b3cd53a0460398ebb44dd65a9c6796d98fad216b743a0",
+      "actual": "978b539bd1b6bc8bcf8b3cd53a0460398ebb44dd65a9c6796d98fad216b743a0",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/ISSUE-MATRIX.md",
+      "expected": "4478c9a2976c7d13bd5421e513f8e0d1bef7a4f06449fd70cf69cd48d9f1f44e",
+      "actual": "4478c9a2976c7d13bd5421e513f8e0d1bef7a4f06449fd70cf69cd48d9f1f44e",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/challenge-A.md",
+      "expected": "23b2dea084e2fc6ac0673e262e1815b944f2e97d663243da0cf431a198c7d08f",
+      "actual": "23b2dea084e2fc6ac0673e262e1815b944f2e97d663243da0cf431a198c7d08f",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/challenge-B.md",
+      "expected": "eb06438009167f3e54657ef1be62c24320413fd4b7d625bebfb2faa84076dcbe",
+      "actual": "eb06438009167f3e54657ef1be62c24320413fd4b7d625bebfb2faa84076dcbe",
+      "match": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/challenge-C.md",
+      "expected": "9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1",
+      "actual": "9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1",
+      "match": true
+    }
+  ],
+  "addedInputs": [
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/OWNER-DECISION-R3.md",
+      "commit": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "sha256": "bfeb982e03c267b974b86debcbabf461b45c8aaa0bdfe318dda2c577b7354735"
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/prompts/R3-ADDENDUM.md",
+      "commit": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "sha256": "f3a05d88e422c4f330729dcf706249b6146ee1e7142c45d59ff16ca98ff5eb94"
+    },
+    {
+      "path": "docs/reviews/2026-09-25-deepseek-core-arch-stage2-review-packageL-third-pass.md",
+      "commit": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "sha256": "a241683433443306efb2f42866c6b7d5032e8651631db2fee469e9318f96277a"
+    },
+    {
+      "path": "docs/research/2026-09-25-improvement-research/prompts/launch.cjs",
+      "commit": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "sha256": "abd2e20a8ab05e3f7d39df25a6b4ca0e7f7f7a7f7b0cea72cbfd7fa456d6cb90"
+    },
+    {
+      "path": "docs/core-arch/stage-4/P-L3-004-route-failover.md",
+      "commit": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "sha256": "27f7bfdf815c96ed8b85141895be6d52ef4a3e9ec4b87e638118197a3fbadaaf"
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "commit": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "sha256": "e82b528db240bdb2f46430b5abdd1d11065e3043a65518cc711529159991aea9"
+    }
+  ],
+  "inventoryCount": 537,
+  "allCorpusTracked": true,
+  "baselineCodeDiff": "",
+  "report": {
+    "path": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-B.md",
+    "sha256": "e75189d8a5c73b4b2c0a58f0009ea579d62507ed1522e24343f5144f469bef49",
+    "lines": 278,
+    "part1Lines": 175,
+    "part2Lines": 103,
+    "lfOnly": true,
+    "noBom": true,
+    "sectionNumbers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "questions": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "citations": [
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1171,
+      "end": 1172,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1709,
+      "end": 1709,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 2243,
+      "end": 2247,
+      "valid": true
+    },
+    {
+      "path": "tests/helpers.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 62,
+      "end": 92,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/tools/ps-probe.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 15,
+      "end": 34,
+      "valid": true
+    },
+    {
+      "path": "validate-protocol.ps1",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 30,
+      "end": 57,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/challenge-C.md",
+      "at": "CORPUS",
+      "start": 17,
+      "end": 24,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1709,
+      "end": 1709,
+      "valid": true
+    },
+    {
+      "path": "validate-protocol.ps1",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1085,
+      "end": 1100,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CONTRACT-MAP.md",
+      "at": "CORPUS",
+      "start": 29,
+      "end": 78,
+      "valid": true
+    },
+    {
+      "path": "validate-protocol.ps1",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 11,
+      "end": 11,
+      "valid": true
+    },
+    {
+      "path": "validate-protocol.ps1",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 237,
+      "end": 245,
+      "valid": true
+    },
+    {
+      "path": ".github/workflows/protocol.yml",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 28,
+      "end": 36,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1795,
+      "end": 1795,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/challenge-B.md",
+      "at": "CORPUS",
+      "start": 109,
+      "end": 123,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/VALIDATOR-CALL-GRAPH.md",
+      "at": "CORPUS",
+      "start": 51,
+      "end": 53,
+      "valid": true
+    },
+    {
+      "path": ".ai/bin/protocol-handoff.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 89,
+      "end": 92,
+      "valid": true
+    },
+    {
+      "path": ".ai/bin/protocol-handoff.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 94,
+      "end": 106,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round2/challenge-B.md",
+      "at": "CORPUS",
+      "start": 40,
+      "end": 45,
+      "valid": true
+    },
+    {
+      "path": ".ai/bin/protocol-handoff.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 25,
+      "end": 47,
+      "valid": true
+    },
+    {
+      "path": "validate-protocol.ps1",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 869,
+      "end": 885,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 2858,
+      "end": 2862,
+      "valid": true
+    },
+    {
+      "path": ".ai/bin/protocol-handoff.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 109,
+      "end": 133,
+      "valid": true
+    },
+    {
+      "path": ".ai/bin/protocol-handoff.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 717,
+      "end": 721,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 2245,
+      "end": 2245,
+      "valid": true
+    },
+    {
+      "path": "tests/manifest.test.cjs",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 68,
+      "end": 72,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/round1/A-contract-tcb.md",
+      "at": "CORPUS",
+      "start": 171,
+      "end": 174,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1792,
+      "end": 1796,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 2908,
+      "end": 2910,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-validator-migration-council/OWNER-DECISION-R3.md",
+      "at": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "start": 1,
+      "end": 25,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-improvement-research/prompts/launch.cjs",
+      "at": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "start": 348,
+      "end": 354,
+      "valid": true
+    },
+    {
+      "path": "docs/research/2026-09-25-improvement-research/prompts/launch.cjs",
+      "at": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "start": 400,
+      "end": 435,
+      "valid": true
+    },
+    {
+      "path": "docs/reviews/2026-09-25-deepseek-core-arch-stage2-review-packageL-third-pass.md",
+      "at": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "start": 72,
+      "end": 102,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 2796,
+      "end": 2799,
+      "valid": true
+    },
+    {
+      "path": "docs/reviews/2026-09-25-deepseek-core-arch-stage2-review-packageL-third-pass.md",
+      "at": "cd90be1d3c1fede4e02f7ecff5b6507ea1f34338",
+      "start": 104,
+      "end": 122,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 2796,
+      "end": 2812,
+      "valid": true
+    },
+    {
+      "path": ".ai/DECISIONS.md",
+      "at": "a4e6aef86440bc0e8da8f06c8f1d3f65af254367",
+      "start": 1981,
+      "end": 1981,
+      "valid": true
+    }
+  ],
+  "gitRewriteProbe": {
+    "argv": [
+      "-c",
+      "url.no-push://blocked.insteadOf=",
+      "-c",
+      "url.file:///nonexistent-local-proof.insteadOf=no-push://blocked",
+      "ls-remote",
+      "--get-url",
+      "no-push://blocked"
+    ],
+    "exit": 0,
+    "output": "file:///nonexistent-local-proof",
+    "contactedRemote": false,
+    "gitVersion": "git version 2.53.0.windows.2"
+  },
+  "independence": "did not open the other round-3 outputs before this",
+  "fullSuiteRun": false
+}
