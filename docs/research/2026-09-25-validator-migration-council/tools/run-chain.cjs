@@ -78,8 +78,8 @@ function launch(cmd, log, env = {}) {
   const r = cp.spawnSync('powershell', ['-NoProfile', '-NonInteractive', '-Command',
     "$p = Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c',$env:RUN_BAT -WindowStyle Hidden -PassThru; \"$($p.Id) $($p.StartTime.ToFileTimeUtc())\""],
     { encoding: 'utf8', env: { ...process.env, RUN_BAT: bat } });
-  const [pid, startTime] = (r.stdout || '').trim().split(/s+/);
-  if (r.status !== 0 || !Number(pid) || !startTime) throw new Error(`launch failed: ${r.stderr}`);
+  const [pid, startTime] = (r.stdout || '').trim().split(/\s+/);
+  if (r.status !== 0 || !Number(pid) || !startTime) throw new Error(`launch failed: status=${r.status} out=${JSON.stringify(r.stdout)} err=${JSON.stringify(r.stderr).slice(0, 300)}`);
   return { pid: Number(pid), startTime };
 }
 
