@@ -22,7 +22,7 @@ PROTO-DEC-0057 item 2 (the two review orders) and PROTO-DEC-0062 item 4 (asynchr
 | 7 | It hands the work to review | P-L2-004 accept; P-L2-008 freeze | candidate package | pending; trial |
 | 7a | Standard cycle: after the reviewer's PASS or RECOMMENDATION the work goes to a certifier, whose PASS approves it and whose FAIL or RECOMMENDATION sends it to the owner | R-L1-reviewer.4, R-L1-certifier.4 | certifier's verdict | draft |
 | 7b | Kernel work: after the reviewer's PASS or RECOMMENDATION the stage goes to the owner | R-L1-reviewer.4; R-L0-19 | owner's decision block | draft; approved (stage 1) |
-| 8 | It does not wait for the reviewer: it designs the next stage, lands nothing, at most two stages in review | P-L2-009 pipelined review | — | pending; pilot running (PROTO-DEC-0062 item 4) |
+| 8 | It does not wait for the reviewer: it designs the next stage, lands nothing, at most two stages in review; what is under review is frozen | P-L2-009 pipelined review (freeze: CORE-ARCH-4 section 9 rule 7, CB-11) | reviewed commit SHA or path hashes in the review prompt | pending; pilot running (PROTO-DEC-0062 item 4) |
 | 9 | After the cycle it checks for findings and answers them | P-L2-009 "collect verdicts"; S-005 fix round | fix response with a line per finding | pending (stage 3) |
 
 ## Checks of this map
