@@ -93,6 +93,17 @@ function journalOf(slot, since) {
   return hits.sort((a, b) => mtime(b) - mtime(a))[0] || null;
 }
 function slotStatus(slot, job) {
+  // A manual step is run by the owner outside the runner (route client "manual"): no process to
+  // watch, so it is judged by its journal and output only, and never stopped or retried.
+  if (job.manual) {
+    const jm = journalOf(slot, job.started);
+    const tm = jm ? fs.readFileSync(jm, 'utf8') : '';
+    const om = abs(SLOTS[slot].out);
+    const lines = fs.existsSync(om) && mtime(om) >= job.started ? fs.readFileSync(om, 'utf8').split('\n').length : 0;
+    const ev = /^Evidence:/m.test(tm);
+    return { state: ev && lines ? 'DONE' : 'WAITING_MANUAL', route: 'manual', pid: null, journal: jm ? path.basename(jm) : null,
+      output: lines, evidence: ev, idleMin: 0 };
+  }
   // A step found DONE stays DONE: its process record is never checked again.
   if (job.doneAt) return { state: 'DONE', route: job.route, pid: job.pid, journal: job.journal, output: job.outputLines, evidence: true, idleMin: 0 };
   const j = journalOf(slot, job.started);
@@ -197,6 +208,10 @@ function tick() {
       if (def.notBefore && Date.now() < Date.parse(def.notBefore)) { st.waits[slot] = `not before ${def.notBefore}`; save(st); continue; }
       if (def.when && new RegExp(def.when.notMatch, 'm').test(fs.readFileSync(abs(def.when.file), 'utf8'))) {
         st.skipped[slot] = `${def.when.file} matches ${def.when.notMatch}`; save(st); continue;
+      }
+      if (def.route.client === 'manual') {
+        st.jobs[slot] = { manual: true, started: Date.now(), route: 'manual', client: 'manual', model: def.route.model, tries: 1 };
+        delete st.waits[slot]; save(st); console.log(`${now()} ${slot}: waiting for the owner's manual run`); continue;
       }
       if (def.route.minBalance) {
         const b = balance();

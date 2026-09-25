@@ -5,18 +5,62 @@
   "stallMin": 15,
   "runLimitHours": 8,
   "slots": [
-    { "id": "discuss-a", "frame": "task:wai-discuss-a", "out": "docs/research/2026-09-25-workflowai-review/positions/A.md", "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/discuss-a.md",
-      "route": { "client": "agy", "model": "gemini-3.8-flash-high" },
-      "fallback": { "client": "agy", "model": "gemini-3.7-flash-high" } },
-    { "id": "discuss-b", "frame": "task:wai-discuss-b", "out": "docs/research/2026-09-25-workflowai-review/positions/B.md", "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/discuss-b.md",
-      "route": { "client": "vibe", "model": "mistral-medium-3.5" } },
-    { "id": "critique", "frame": "task:wai-critique", "out": "docs/research/2026-09-25-workflowai-review/critique.md", "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/critique.md",
-      "needs": ["discuss-a", "discuss-b"], "notBefore": "2026-09-25T19:05:00Z",
-      "route": { "client": "codex", "model": "gpt-5.6-sol", "effort": "medium" },
-      "fallback": { "client": "claude", "model": "claude-opus-5-5", "effort": "medium" } },
-    { "id": "synthesis", "frame": "task:wai-synthesis", "out": "docs/research/2026-09-25-workflowai-review/synthesis.md", "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/synthesis.md",
-      "needs": ["critique"],
-      "route": { "client": "claude", "model": "claude-opus-5-5", "effort": "high" },
-      "fallback": { "client": "claude", "model": "claude-opus-5-5", "effort": "xhigh" } }
+    {
+      "id": "discuss-a",
+      "frame": "task:wai-discuss-a",
+      "out": "docs/research/2026-09-25-workflowai-review/positions/A.md",
+      "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/discuss-a.md",
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      },
+      "fallback": {
+        "client": "agy",
+        "model": "gemini-3.7-flash-high"
+      }
+    },
+    {
+      "id": "discuss-b",
+      "frame": "task:wai-discuss-b",
+      "out": "docs/research/2026-09-25-workflowai-review/positions/B.md",
+      "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/discuss-b.md",
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
+      }
+    },
+    {
+      "id": "critique",
+      "frame": "task:wai-critique",
+      "out": "docs/research/2026-09-25-workflowai-review/critique.md",
+      "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/critique.md",
+      "needs": [
+        "discuss-a",
+        "discuss-b"
+      ],
+      "route": {
+        "client": "manual",
+        "model": "DeepSeek V4.1 (owner-run, Kilo chat)"
+      }
+    },
+    {
+      "id": "synthesis",
+      "frame": "task:wai-synthesis",
+      "out": "docs/research/2026-09-25-workflowai-review/synthesis.md",
+      "launch": "docs/research/2026-09-25-workflowai-review/prompts/run/synthesis.md",
+      "needs": [
+        "critique"
+      ],
+      "route": {
+        "client": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "fallback": {
+        "client": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "xhigh"
+      }
+    }
   ]
 }
