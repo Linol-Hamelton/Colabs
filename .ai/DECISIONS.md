@@ -3190,3 +3190,67 @@ Consequences:
   verified flags, the repository check, and the idle and hard caps.
 
 Approved by: RuslanFomenko (direct owner answers in chat, 2026-09-25, saved verbatim in docs/core-arch/OWNER-DECISION-execution-model-2026-09-25.md; transcribed by claude-c73232724159e5bd)
+
+### PROTO-DEC-0076
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+After council round 3, the owner set the current routes, the supervision rule, a kernel file for
+choosing owner-defined models, and a triage rule for defects. Quoted in full, except the model
+ladder, which is data and is recorded verbatim in `docs/ops/MODEL-ECONOMICS.md`:
+
+> Все вызовы только через CLI кроме Deepseek 4.1 Max - вся работа идет через него, ему после
+> ручного согласования я отправляю длинные долгие задачи!
+> Никакие другие модели сейчас не работают!
+> Запиши в отдельный workflowAI.md файл слоя ядра как инструкцию процедуры выбора определенных
+> владельцем моделей. Саму инструкцию выбора и фиксации определенных владельцем моделей отметь как
+> тех долг потенциально workflowai.md - слой между нашей таблицей доступных моделей и слоеем на шаг
+> выше(выбора набора исполнителей в зависимости от сложности).
+> Важно процессы должен проверять скрипт, а не нейронка! Скрипт лишь копит статусы в процессе и
+> отдает их с отчетом о проделаной работе.
+> [...]
+> Давай больше пока не будем расширять гипотезы, отработаем то что есть. Все простые недостатки
+> решаем походу, средней сложности между раундами, сложные но не блокирующие обсуждаем и решаем,
+> блокирующие недостатки изолируем и записываем в файл с проблемами. После катаем все, что в работе
+> до полного исчерпания теукущих задач и сертификации всех работ.
+
+Decision:
+1. Routes, until the owner changes them:
+   - every model call goes through a maker's CLI;
+   - the exception is DeepSeek V4.1 Max, which gets long tasks only after the owner's manual
+     approval;
+   - no other route is used.
+2. `docs/core-arch/stage-4/workflowAI.md` is the kernel-layer procedure for choosing
+   owner-defined models. It sits between the table of available models and the layer that chooses
+   the set of executors by complexity. The procedure itself is marked technical debt
+   (TD-MODEL-QUALIFICATION).
+3. Processes are checked by a script, not by a model. The script accumulates statuses while the
+   work runs and hands them over with a report of the work done.
+4. No new hypotheses are opened for now; the existing work is carried through.
+5. Defect triage:
+   - simple defects are fixed along the way;
+   - medium ones between rounds;
+   - complex but non-blocking ones are discussed and decided;
+   - blocking ones are isolated and recorded in the problems file, `docs/ops/PROBLEMS.md`.
+6. The work in progress is carried until the current tasks are exhausted and all work is
+   certified.
+
+Reasoning:
+Money and observed quality decide the working models now; routes outside the makers' CLIs have
+failed or run out today (copilot quota, Kilo balance). A model watching a process costs tokens and
+can drift; a script does not.
+
+Alternatives rejected:
+A model-run operator session for supervision; opening new hypotheses before the current work is
+certified.
+
+Consequences:
+- The model ladder of 2026-09-25 is data in `docs/ops/MODEL-ECONOMICS.md`.
+- The runner gains a report of the work done. The Kilo operator is dropped from the dispatch
+  procedure.
+- The backlog lives in `docs/ops/BACKLOG.md` while `.ai/TASK.md` is full.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)

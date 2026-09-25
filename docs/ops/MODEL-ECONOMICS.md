@@ -10,7 +10,40 @@
   a CLI output, or a runner's usage record). Old snapshots stay as history until they are moved to
   an archive file.
 
-## Owner's current ranking (chat, 2026-09-25, verbatim)
+## Owner's working ladder, snapshot 2026-09-25 evening (verbatim; supersedes the ranking below)
+
+> Все вызовы только через CLI кроме Deepseek 4.1 Max - вся работа идет через него, ему после
+> ручного согласования я отправляю длинные долгие задачи!
+> Никакие другие модели сейчас не работают!
+> [...]
+> Opus 5.5 XHigh → Opus 5.5 High → Opus 5.5 Medium → GPT-5.6 Sol Medium → группа DeepSeek V4.1 Max
+> / Gemini 3.8 High / GPT-5.6 Terra High → GPT-5.6 Luna XHigh → Gemini 3.7 High → Gemini 3.6 High
+> → Mistral Medium 3.5.
+>
+> Почему я сейчас так определил. Я считаю деньги и смотрю на качество работы. Это топ!!!
+> Остальные либо глупее чем должны быть за свою цену, либо дороже чем стоит их качество работы.
+
+The ladder as rungs, with routes observed on 2026-09-25 (`agy models`, the codex and claude CLIs):
+
+| Rung | Model / effort | CLI route | Available now |
+|---:|---|---|---|
+| 1 | Opus 5.5 XHigh | claude (`claude-opus-5-5`, `--effort xhigh`) | yes; shares the coordinator's subscription |
+| 2 | Opus 5.5 High | claude | yes |
+| 3 | Opus 5.5 Medium | claude | yes |
+| 4 | GPT-5.6 Sol Medium | codex | after 22:01 local (5-hour limit) |
+| 5 (group) | DeepSeek V4.1 Max | Kilo with the owner's key; long tasks only after the owner's manual approval | on approval |
+| 5 (group) | Gemini 3.8 High | agy (`gemini-3.8-flash-high`) | yes |
+| 5 (group) | GPT-5.6 Terra High | codex | after 22:01 local |
+| 6 | GPT-5.6 Luna XHigh | codex | after 22:01 local |
+| 7 | Gemini 3.7 High | agy (`gemini-3.7-flash-high`) | yes |
+| 8 | Gemini 3.6 High | agy (`gemini-3.6-flash-high`) | yes |
+| 9 | Mistral Medium 3.5 | vibe (needs `PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`; tools include `bash`) | yes |
+
+Not in the ladder, so not used without the owner naming them for a task: copilot models (monthly
+quota exhausted until 1 Oct), Kilo gateway models (balance $0.03), kimi, grok, and agy's Claude
+4.6 and GPT-OSS.
+
+## Owner's earlier ranking (chat, 2026-09-25, verbatim)
 
 > У нас по факту получаются главные лошадки топ-1. Это DeepSeek 4.1 Flash. Номер два. Это Gemini
 > 3.8. 3.8. 3.8. 3.8. Flash. Главный эксперт. Это ты. Модель, которая простаивает и непонятно по

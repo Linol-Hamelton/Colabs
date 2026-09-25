@@ -33,7 +33,8 @@ const CLIENTS = {
   codex: (r, m) => `codex exec -m ${r.model}${r.effort ? ` -c model_reasoning_effort=${r.effort}` : ''} --approve-for-me --skip-git-repo-check -C "${ROOT}" "${m}"`,
   agy: (r, m) => `agy -p "${m}" --model ${r.model} --mode accept-edits`,
   kilo: (r, m, id) => `kilo run -m ${r.model}${r.effort ? ` --variant ${r.effort}` : ''} --auto --dir "${ROOT}" --title ${id} --format json "${m}"`,
-  vibe: (r, m) => `vibe -p "${m}" ${VIBE_TOOLS} --auto-approve --trust --max-turns 400 --output streaming --workdir "${ROOT}"`,
+  claude: (r, m) => `claude -p "${m}" --model ${r.model}${r.effort ? ` --effort ${r.effort}` : ''} --permission-mode acceptEdits --allowedTools Read Grep Glob Write Edit "Bash(node:*)" "Bash(git:*)" "Bash(powershell:*)"`,
+  vibe: (r, m) =>`vibe -p "${m}" ${VIBE_TOOLS} --auto-approve --trust --max-turns 400 --output streaming --workdir "${ROOT}"`,
 };
 // Environment a client needs (its PROTO-DEC-0050 item 3 profile). vibe is Python and fails on a
 // non-ASCII character under the Windows code page (measured again 2026-09-25: 'charmap' codec).
@@ -192,6 +193,8 @@ function tick() {
       if (!needs.every(n => settledOk(st, n))) continue;
       const skippedNeed = needs.find(n => st.skipped[n]);
       if (skippedNeed) { st.skipped[slot] = `input ${skippedNeed} skipped`; save(st); continue; }
+      // A route with a known reset time: the step waits, which spends no retry budget.
+      if (def.notBefore && Date.now() < Date.parse(def.notBefore)) { st.waits[slot] = `not before ${def.notBefore}`; save(st); continue; }
       if (def.when && new RegExp(def.when.notMatch, 'm').test(fs.readFileSync(abs(def.when.file), 'utf8'))) {
         st.skipped[slot] = `${def.when.file} matches ${def.when.notMatch}`; save(st); continue;
       }
@@ -224,6 +227,25 @@ function tick() {
   return st;
 }
 
+// The report of the work done (PROTO-DEC-0076 item 3): the statuses the script accumulated, per step.
+function reportText(st) {
+  const rows = ORDER.map(k => {
+    const j = st.jobs[k] || {};
+    let s = 'NOT_STARTED';
+    if (st.accepted[k]) s = 'ACCEPTED';
+    else if (st.skipped[k]) s = 'SKIPPED';
+    else if (st.blocked[k]) s = 'BLOCKED';
+    else if (j.pid) s = slotStatus(k, j).state;
+    const u = j.usage || {};
+    const usage = [u.kiloCost ? `kilo ${u.kiloCost.toFixed(2)} USD` : '', u.copilotCredits ? `${u.copilotCredits.toFixed(0)} copilot credits` : '',
+      u.codexTokens ? `${u.codexTokens} codex tokens` : ''].filter(Boolean).join(', ');
+    const note = (st.accepted[k] || st.skipped[k] || st.blocked[k] || st.waits[k] || '').split('|').join('/');
+    return `| ${k} | ${s} | ${j.client || '-'} ${j.model || ''} ${j.effort || ''} | ${j.tries || 0} | ${j.journal || '-'} | ${j.outputLines ?? u.outputLines ?? '-'} | ${usage} | ${note} |`;
+  });
+  return `# Report of the work done (${DISPATCH})\n\nWritten by run-chain.cjs at ${now()}. ${st.final ? `FINAL: ${st.final}` : 'Running.'}\n\n` +
+    '| Step | State | Client, model, effort | Tries | Journal | Output lines | Usage | Note |\n|---|---|---|---:|---|---:|---|---|\n' + rows.join('\n') + '\n';
+}
+
 function run() {
   const t0 = Date.now();
   for (;;) {
@@ -235,6 +257,7 @@ function run() {
       st.final = open.length ? `BLOCKED ${open.map(k => `${k} (${st.blocked[k] || st.waits[k] || 'not done'})`).join('; ')}` : 'DONE every slot finished or skipped';
       save(st);
       fs.writeFileSync(path.join(RT, 'STATUS.md'), statusText(st));
+      fs.writeFileSync(path.join(RT, 'REPORT.md'), reportText(st));
       return;
     }
     cp.spawnSync('powershell', ['-NoProfile', '-Command', 'Start-Sleep -Seconds 60']);
@@ -254,6 +277,7 @@ function runner() {
 try {
   if (CMD === 'runner') runner();
   else if (CMD === 'run') run();
+  else if (CMD === 'report') { const t = reportText(load()); fs.mkdirSync(RT, { recursive: true }); fs.writeFileSync(path.join(RT, 'REPORT.md'), t); process.stdout.write(t); }
   else if (CMD === 'status') { const t = statusText(load()); fs.mkdirSync(RT, { recursive: true }); fs.writeFileSync(path.join(RT, 'STATUS.md'), t); process.stdout.write(t); }
   else if (CMD === 'show') { const d = SLOTS[ARG]; console.log(command(ARG, d.route)); if (d.fallback) console.log(command(ARG, d.fallback)); }
   else if (CMD === 'stop') stop(ARG);

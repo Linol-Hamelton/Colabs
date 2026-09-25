@@ -9434,3 +9434,105 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 296s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - Correction: validator failure in the round-3 commit (CRLF in a participant journal)
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The Evidence of the previous entry recorded `validate-protocol.ps1: exit 1`, and I committed
+  a779a54 anyway: my command chain did not stop on the failure.
+- The failure: CRLF in the working copy of `.ai/worklog/mistral-verify-001.md`, the journal Mistral
+  wrote by hand.
+- The committed blob is LF. I restored the working copy from it (`git checkout`); its content is
+  unchanged and identical to the commit. I did not edit that journal.
+
+Result: `validate-protocol.ps1` prints "Protocol OK. 0 warning(s)." Evidence below.
+Signal: procedure-gap. A commit followed a failed `record` in the same command chain -> check the
+validator exit in `record`'s output before committing. The commit step now runs only after a
+separate check.
+
+Next step: as in the previous entry.
+
+Open: none new.
+
+Evidence:
+- anchor: a779a54949f1a9be84ff2c12f033420791230e4d, uncommitted changes present
+- digest: sha256:477c12b6d2292aa8efb9efbbf0c23560274d2bc7fc6d2138e82796ac030908cf over 499 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T16:41:05.597Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:e9eca9ad600f9a67dd1781c781fd3575d681b5a7c69cb1ee1d91c5f619c24c17 of this entry without this block
+- parent-entry: sha256:a3d8d8d83941abb51964a7ce1afad907cd6103cfe8956b0bb46021af4a101a6c
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 314s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - Council round 3 closed; runner defect cost $10.83 and killed a reused pid
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- Ran the round-3 chain to its end:
+  - the final plan: DeepSeek v4-pro after the copilot monthly quota ran out;
+  - verify: Mistral via vibe;
+  - revise: DeepSeek v4-pro, because copilot was exhausted;
+  - reverify: Mistral.
+- Fixed in `run-chain.cjs`:
+  - the vibe environment (PYTHONUTF8, PYTHONIOENCODING), which is in its PROTO-DEC-0050 profile;
+  - the vibe tool list: `bash`, not `powershell`;
+  - the exit code is now captured;
+  - `reset` and `accept` commands;
+  - the pid is matched with its start time (Get-Process StartTime), and DONE is sticky.
+- Repaired verify once by resuming its vibe session with `verify-repair.md`. The first resume used
+  the wrong session id; I relaunched it.
+- Accepted three steps with recorded reasons: critique-a (quota cut), verify (no journal Evidence;
+  my tool-list defect) and r3-b (see Signal).
+- Added the README result row.
+
+Result:
+- `final-plan-2.md` (705 lines, revision log) has `verification-2.md`: Verdict: ACCEPT.
+- Cost: final $0.13 and revise $0.05 on DeepSeek v4-pro, against about 210-250 copilot credits
+  per kimi-k3 step.
+- Checked: a pid plus start-time check in a scratch test (alive while running, not alive after
+  exit); `node --check` passes.
+Signal: fall. The runner judged liveness by pid alone. Windows reused pid 18912 of the finished
+r3-b, so the runner called it STALLED and ran `taskkill /T` on the unrelated process tree holding
+that pid. It then relaunched r3-b on Kilo gpt-6-astra: $10.83, Kilo balance $0.03 afterwards. The
+rerun wrote a separate retry file; synthesis-B.md is intact.
+The same class was fixed in launch.cjs (CB-17) but not carried over. Fixed now: identity by pid
+plus start time, sticky DONE, and no kill without that identity. The killed process is unknown.
+Signal: procedure-gap. A new runner was written without the client profiles already recorded
+(vibe UTF-8, vibe tool names) -> the kernel dispatch script must read one client registry
+(PROTO-DEC-0050 items 3-4), not re-encode profiles.
+Signal: fall. Launch files named agent `kimi`, and a DeepSeek substitute journaled under it
+(kimi-4128de4654dc504d) -> the resolver writes the agent name per resolved model (PROTO-DEC-0075
+item 10).
+
+Next step: The owner reads `final-plan-2.md` and `verification-2.md`. The implementer's
+L correction pass follows, with F-3P-1 per the plan. Kilo needs a top-up before any Kilo route.
+
+Open:
+- codex-fda1eee5684e0097 and mistral-verify-001 have no Evidence.
+- USAGE.md shows only the last try per slot. The verify wall time is wrong (the log predates the
+  try).
+
+Evidence:
+- anchor: 4a85a23fcf597acc80b4cf3af2acf1a26a3a9e07, uncommitted changes present
+- digest: sha256:477c12b6d2292aa8efb9efbbf0c23560274d2bc7fc6d2138e82796ac030908cf over 499 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T16:35:02.338Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:a3d8d8d83941abb51964a7ce1afad907cd6103cfe8956b0bb46021af4a101a6c of this entry without this block
+- parent-entry: sha256:295df42b97d79cb4fb07b266ada9b40f9cd3fbb90dbdc023177b3e3ed9f54457
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 1 in 12s
+- test-protocol.ps1: exit 0 in 303s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
