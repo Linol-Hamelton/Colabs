@@ -1,4 +1,4 @@
-# Round 3 and closing: the owner's addendum (F-3P-1 and Fable)
+# Round 3 and closing: the owner's addendum (F-3P-1 and the drafting model)
 
 Binds every step from round 3 on: the three syntheses, the draft, both critiques, the final plan
 and the verification. Read it after your role file. `OWNER-DECISION-R3.md` in this directory is the
@@ -38,11 +38,12 @@ nothing in Part 2 changes a conclusion of Part 1.
   route, the `index.lock` policy) belong to the implementer's correction pass of package L, not to
   this council. Mention them only if your F-3P-1 answer depends on them.
 
-## 2. Fable measurement and review
+## 2. Measurement and review of the drafting model
 
-- Fable 5.1 runs through Kilo for r3-a, the draft and the final plan (owner section 2). The
-  coordinator's helper records route, tokens, cost, wall time, retries and balance for each run in
-  `round3/FABLE-USAGE.md`; participants do not measure it.
+- The owner authorised Fable 5.1 for r3-a, the draft and the final plan, then replaced it for cost
+  (chat, 2026-09-25): those slots run kimi-k3 / high through copilot. The coordinator's runner records
+  client, model, wall time, credits or cost and retries of every run in `round3/USAGE.md`;
+  participants do not measure it.
 - Each critic ends its critique with one line:
-  `Fable quality (draft-decision.md): <GOOD | ADEQUATE | WEAK> - <one reason with a citation>`.
+  `Drafter quality (draft-decision.md): <GOOD | ADEQUATE | WEAK> - <one reason with a citation>`.
 - The verifier ends with the same line for `final-plan.md`.

@@ -2,13 +2,14 @@
 
 - Frame `task:vmc-verify`, parent-scope `program:validator-migration-council`. Your one role:
   verifier. Read `prompts/COMMON.md` first, then `prompts/R3-ADDENDUM.md`; both bind you.
-- Why this step exists: Fable wrote synthesis A, the draft and the final plan, so it must not be the
-  only reviewer of its own synthesis (`OWNER-DECISION-R3.md`, "INDEPENDENCE REQUIREMENT"). You are
+- Why this step exists: one model wrote synthesis A, the draft and the final plan, so it must not be
+  the only reviewer of its own synthesis (`OWNER-DECISION-R3.md`, "INDEPENDENCE REQUIREMENT"). You are
   of another model family and took no earlier part in this council.
 
 ## Inputs
 
-`final-plan.md`; the frozen corpus of `round3/CORPUS.txt`, whose sha256 values you check at your
+The plan your launch file names (`final-plan.md`, or `final-plan-2.md` on the second pass, with
+`verification.md` whose every condition and defect you then check as addressed); the frozen corpus of `round3/CORPUS.txt`, whose sha256 values you check at your
 start; the three `round3/synthesis-*.md`, `draft-decision.md` and both `critique-*.md`; and the
 F-3P-1 inputs of `R3-ADDENDUM.md` section 1.
 
@@ -29,7 +30,7 @@ Do not rewrite the plan and do not propose a new one. Name each defect with its 
 
 ## Output
 
-`verification.md` (at most 200 lines). Its header is COMMON section 3 step 4. Its first line after
+The file your launch file names: `verification.md`, or `verification-2.md` (at most 200 lines). Its header is COMMON section 3 step 4. Its first line after
 the header is exactly one of `Verdict: ACCEPT`, `Verdict: ACCEPT WITH CONDITIONS` (then list the
-conditions) or `Verdict: REJECT` (then list the blocking defects). It ends with the Fable quality
-line of `R3-ADDENDUM.md` section 2.
+conditions) or `Verdict: REJECT` (then list the blocking defects). It ends with the drafter quality
+line of `R3-ADDENDUM.md` section 2 for the plan you verified.

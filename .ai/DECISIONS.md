@@ -2928,3 +2928,51 @@ Consequences:
   does a task that changes the research launcher, since it is the `enforced_by` of P-L3-004.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)
+
+### PROTO-DEC-0073
+
+Status: Accepted
+Date: 2026-09-25
+Reopen-trigger: owner-directive
+
+Context:
+The round-3 dispatcher of the validator migration council (`tools/r3-dispatch.cjs`, commit
+cd90be1) held its launch messages, model assignments, task file paths and output names inside its
+code, as did the round-2 dispatcher. The owner rejected this in chat, quoted in full:
+
+> И еще есть вопрос, детерминированный скрипт. Это что такое? Скрипт сам содержит промпт. Если это
+> так, то это против логики самого проекта. Все скрипты и все инструкции должны быть на высоком
+> уровне абстракции. Если он ссылается на файл, который вводится в чат, можно подумать. Типа,
+> запусти файл и контролируй выполнение. Это одно дело. Но если он содержит захардкоженный файл
+> внутри скрипта или промпт внутри скрипта, это непорядок, так не должно быть. Если этого нету в
+> правилах репозитория, надо это записать.
+
+No accepted block stated this rule before.
+
+Decision:
+1. Scripts and instructions stay at a high level of abstraction.
+2. A script that dispatches, runs or controls agent work contains no prompt text, no task
+   instruction and no task-specific file path in its code. It takes them from a file named when it
+   is run (on its command line or in the chat that starts it): it runs that file and controls the
+   execution.
+3. A message a script sends to an agent is a pointer to a file ("Read and follow the file
+   <path>"), and nothing more.
+4. Knowledge of a client's command syntax (flags, the way a model or an effort is passed) is
+   tooling, not task content, and may stay in the script.
+
+Reasoning:
+A prompt or a task path inside a script is a second, hidden copy of the task. It cannot be reviewed
+with the task, and it silently drifts when the task files change.
+
+Alternatives rejected:
+Task-specific dispatch scripts with embedded launch messages, as in r2-dispatch.cjs and
+r3-dispatch.cjs.
+
+Consequences:
+- `r3-dispatch.cjs` is replaced by a generic runner that reads a dispatch file. `r2-dispatch.cjs`
+  stays as a record of round 2, which it already ran.
+- Transcriber's reading, not the owner's words: the job table of
+  `docs/research/2026-09-25-improvement-research/prompts/launch.cjs` holds models, routes and
+  output paths in code. It moves to a file in the correction pass of package L.
+
+Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in Context; transcribed by claude-c73232724159e5bd)

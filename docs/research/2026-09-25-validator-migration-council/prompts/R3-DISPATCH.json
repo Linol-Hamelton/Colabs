@@ -1,0 +1,33 @@
+{
+  "stateDir": ".ai/runtime/vmc-r3",
+  "usageFile": "docs/research/2026-09-25-validator-migration-council/round3/USAGE.md",
+  "startLimitMin": 10,
+  "stallMin": 30,
+  "runLimitHours": 12,
+  "slots": [
+    { "id": "r3-a", "frame": "task:vmc-r3-a", "out": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-A.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/r3-a.md",
+      "route": { "client": "copilot", "model": "kimi-k3", "effort": "high" } },
+    { "id": "r3-b", "frame": "task:vmc-r3-b", "out": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-B.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/r3-b.md",
+      "route": { "client": "codex", "model": "gpt-6-astra", "effort": "high" },
+      "fallback": { "client": "kilo", "model": "kilo/openai/gpt-6-astra", "effort": "high", "minBalance": 3 } },
+    { "id": "r3-c", "frame": "task:vmc-r3-c", "out": "docs/research/2026-09-25-validator-migration-council/round3/synthesis-C.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/r3-c.md",
+      "route": { "client": "agy", "model": "gemini-3.8-flash-low" } },
+    { "id": "draft", "frame": "task:vmc-draft", "out": "docs/research/2026-09-25-validator-migration-council/draft-decision.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/draft.md",
+      "needs": ["r3-a", "r3-b", "r3-c"], "route": { "client": "copilot", "model": "kimi-k3", "effort": "high" } },
+    { "id": "critique-a", "frame": "task:vmc-critique-a", "out": "docs/research/2026-09-25-validator-migration-council/critique-A.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/critique-a.md",
+      "needs": ["draft"], "route": { "client": "codex", "model": "gpt-6-astra", "effort": "high" },
+      "fallback": { "client": "kilo", "model": "kilo/openai/gpt-6-astra", "effort": "high", "minBalance": 3 } },
+    { "id": "critique-b", "frame": "task:vmc-critique-b", "out": "docs/research/2026-09-25-validator-migration-council/critique-B.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/critique-b.md",
+      "needs": ["draft"], "route": { "client": "agy", "model": "gemini-3.8-flash-low" },
+      "fallback": { "client": "kilo", "model": "kilo/google/gemini-3.8-flash", "effort": "low", "minBalance": 1 } },
+    { "id": "final", "frame": "task:vmc-final", "out": "docs/research/2026-09-25-validator-migration-council/final-plan.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/final.md",
+      "needs": ["critique-a", "critique-b"], "route": { "client": "copilot", "model": "kimi-k3", "effort": "high" } },
+    { "id": "verify", "frame": "task:vmc-verify", "out": "docs/research/2026-09-25-validator-migration-council/verification.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/verify.md",
+      "needs": ["final"], "route": { "client": "vibe", "model": "mistral-medium-3.5" } },
+    { "id": "revise", "frame": "task:vmc-revise", "out": "docs/research/2026-09-25-validator-migration-council/final-plan-2.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/revise.md",
+      "needs": ["verify"], "when": { "file": "docs/research/2026-09-25-validator-migration-council/verification.md", "notMatch": "^Verdict: ACCEPT[ \t\r]*$" },
+      "route": { "client": "copilot", "model": "kimi-k3", "effort": "high" } },
+    { "id": "reverify", "frame": "task:vmc-reverify", "out": "docs/research/2026-09-25-validator-migration-council/verification-2.md", "launch": "docs/research/2026-09-25-validator-migration-council/prompts/run-r3/reverify.md",
+      "needs": ["revise"], "route": { "client": "vibe", "model": "mistral-medium-3.5" } }
+  ]
+}
