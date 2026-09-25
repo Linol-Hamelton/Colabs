@@ -307,7 +307,8 @@ function run(jobId, routeArg, cfg, ov = {}) {
   const outFiles = j.outputs.map(f => path.resolve(ROOT, f));
   const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8' };
   fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
-  try { fs.unlinkSync(stopFile(jobId)); } catch { /* no stop request */ }
+  // The stop marker is never removed here: `--start` clears an old one before it spawns this
+  // watchdog, so a marker seen now is an owner stop issued after that start (CB-18).
   const state = readJob(jobId) || { job: jobId, attempts: [] };
   state.autoFallbackUsed = false; // a new dispatch by the owner; history stays in attempts
   const stopRequested = () => fs.existsSync(stopFile(jobId));
@@ -419,6 +420,11 @@ function run(jobId, routeArg, cfg, ov = {}) {
     return undefined;
   };
 
+  if (stopRequested()) {
+    state.status = 'NEEDS_OWNER'; state.reason = 'stopped by the owner before launch'; writeJob(jobId, state);
+    try { fs.unlinkSync(lockFile(jobId)); } catch { /* no lock: started directly, as in the self-test */ }
+    return undefined;
+  }
   if (routeArg && routeArg !== 'primary') {
     const n = Number(routeArg.split(':')[1]);
     const r = suitable[n - 1];
@@ -599,6 +605,8 @@ function startJobs(ids, cfg) {
     }
     checkCommand(primaryCommand(id, promptLine(id), ROOT));
     if (!takeStartLock(id)) { process.stdout.write(`${id}: refused, another start or a live watchdog holds ${path.relative(ROOT, lockFile(id))}\n`); refused += 1; continue; }
+    // This start is a new owner act: an earlier stop marker is cleared now, never by the watchdog.
+    try { fs.unlinkSync(stopFile(id)); } catch { /* no earlier stop */ }
     const args = [__filename, '--run', id];
     for (const f of ['--soft-seconds', '--hard-seconds', '--cap-minutes', '--route']) {
       const v = f === '--route' ? cfg.route : f === '--soft-seconds' ? cfg.softSeconds : f === '--hard-seconds' ? cfg.hardSeconds : cfg.capMinutes;
@@ -619,7 +627,11 @@ function stop(ids) {
   for (const id of ids) {
     fs.writeFileSync(stopFile(id), `${new Date().toISOString()}\n`);
     const s = readJob(id);
-    if (!s || !s.pid) { process.stdout.write(`${id}: nothing running; stop request recorded\n`); continue; }
+    if (!s || !s.pid) {
+      const starting = fs.existsSync(lockFile(id));
+      process.stdout.write(`${id}: ${starting ? 'starting; the watchdog obeys the stop before it launches or on its first tick' : 'nothing running; stop request recorded'}\n`);
+      continue;
+    }
     const rows = procTable();
     const watchdogAlive = s.watchdog ? sameProcess(s.watchdog, s.watchdogCreated, rows) : false;
     if (!watchdogAlive && sameProcess(s.pid, s.rootCreated, rows)) {

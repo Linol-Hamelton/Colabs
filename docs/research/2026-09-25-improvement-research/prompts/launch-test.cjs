@@ -30,6 +30,8 @@ const SC = {
   'zz-t8': { primary: 'ratelimit-hang', kilo: 'work', stopAfter: 2500, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'STOPPED' } },
   // CB-19: a client that prints a rate-limit error in a loop is not making progress.
   'zz-t9': { primary: 'ratelimit-loop', kilo: 'work', expect: { status: 'DONE', attempts: 2, first: 'FAILED_EARLY' } },
+  // CB-18: an owner stop issued before the watchdog runs is obeyed, not deleted.
+  'zz-t10': { primary: 'work', kilo: 'work', stopBefore: true, expect: { status: 'NEEDS_OWNER', attempts: 0 } },
 };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
@@ -124,6 +126,7 @@ function scenarios() {
   const ids = Object.keys(SC);
   let left = ids.length;
   for (const id of ids) {
+    if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
     const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
     if (SC[id].stopAfter) setTimeout(() => fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'), SC[id].stopAfter);
     const began = Date.now();
