@@ -250,7 +250,7 @@ function reportText(st) {
     if (st.accepted[k]) s = 'ACCEPTED';
     else if (st.skipped[k]) s = 'SKIPPED';
     else if (st.blocked[k]) s = 'BLOCKED';
-    else if (j.pid) s = slotStatus(k, j).state;
+    else if (j.pid || j.manual) s = slotStatus(k, j).state;
     const u = j.usage || {};
     const usage = [u.kiloCost ? `kilo ${u.kiloCost.toFixed(2)} USD` : '', u.copilotCredits ? `${u.copilotCredits.toFixed(0)} copilot credits` : '',
       u.codexTokens ? `${u.codexTokens} codex tokens` : ''].filter(Boolean).join(', ');

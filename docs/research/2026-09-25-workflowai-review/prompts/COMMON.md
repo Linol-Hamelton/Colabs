@@ -37,6 +37,8 @@ steps of this cycle are read from the working tree.
 5. Write your output with your file-writing tool. Text in a chat reply is not an output. Your output
    is at most 150 lines.
 6. End: a five-label journal entry (Agent, Action, Result, Next step, Open), then
-   `node .ai/bin/protocol-handoff.cjs record --quick --owner <your owner name>`.
+   `node .ai/bin/protocol-handoff.cjs record --quick --owner <your owner name>`. Then your last
+   message: a short report to the owner, in Russian, whatever language the rest of your context is
+   in.
 7. Write only your output and your journal. No commit, tag or push. Nobody answers questions during
    this run: write an OPEN QUESTION and continue.
