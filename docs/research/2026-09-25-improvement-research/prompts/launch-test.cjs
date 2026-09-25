@@ -5,8 +5,11 @@
 // removed at the end). Timers are shortened: tick 1 s, soft 3 s, hard 6 s.
 //
 //   node docs/research/2026-09-25-improvement-research/prompts/launch-test.cjs
+//   node docs/research/2026-09-25-improvement-research/prompts/launch-test.cjs --pure
 //
-// Exit 0 when every scenario ends in its expected state.
+// Exit 0 when every scenario ends in its expected state. `--pure` runs only the checks of pure
+// functions (no process is started, nothing is written), on any operating system; the full run
+// runs them first.
 
 const fs = require('node:fs');
 const os = require('node:os');
@@ -57,8 +60,32 @@ if (process.argv[2] === '--lock') {
   return;
 }
 
+// Pure checks: each entry is [name, ok].
+function pureChecks() {
+  const out = [];
+  const exitOf = argv => { const w = process.stdout.write; process.stdout.write = () => true; try { return L.main(argv); } finally { process.stdout.write = w; } };
+  const code = argv => { try { L.options(argv); return 0; } catch (e) { return e instanceof L.UsageError ? 2 : 99; } };
+  // CB-16: malformed or unknown input exits 2.
+  for (const argv of [['--start', 'a-sol', '--hard-seconds', '-5'], ['--start', 'a-sol', '--cap-minutes', '0'],
+    ['--start', 'a-sol', '--soft-seconds', 'abc'], ['--start', 'a-sol', '--soft-seconds'], ['--start', 'a-sol', '--bogus'],
+    ['--start', 'a-sol', '--route', 'kilo:x'], ['--start', 'a-sol', '--soft-seconds', '500'], ['--start', 'a', '--stop', 'a'],
+    ['--start', 'a-sol', '--takeover', '--takeover'], [], ['--status', 'extra']]) {
+    out.push([`options ${JSON.stringify(argv)} exits 2`, code(argv) === 2 && exitOf(argv) === 2]);
+  }
+  for (const argv of [['--status'], ['--start', 'a-sol', '--soft-seconds', '60', '--hard-seconds', '300', '--cap-minutes', '90'],
+    ['--start', 'b-kimi', '--route', 'kilo:1', '--takeover'], ['--dry']]) out.push([`options ${JSON.stringify(argv)} parses`, code(argv) === 0]);
+  return out;
+}
+
+if (process.argv[2] === '--pure') {
+  const checks = pureChecks();
+  process.stdout.write(`${checks.map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} ${n}`).join('\n')}\n`);
+  process.exitCode = checks.every(([, ok]) => ok) ? 0 : 1;
+  return;
+}
+
 cleanup();
-const results = [];
+const results = pureChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} pure: ${n}`);
 const race = Array.from({ length: 5 }, () => spawn(process.execPath, [__filename, '--lock', 'zz-race'], { stdio: ['ignore', 'pipe', 'ignore'] }));
 let raceOut = '';
 let raceLeft = race.length;

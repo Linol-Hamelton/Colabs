@@ -403,16 +403,40 @@ function expand(list) {
   return [...new Set(ids)];
 }
 
+// PROTO-DEC-0047 item 8: unknown or malformed input exits 2, never a silent default. Every
+// argument is a known flag or the value of the flag before it; numbers are positive whole numbers.
+class UsageError extends Error {}
+const COMMANDS = ['--dry', '--check', '--smoke', '--start', '--stop', '--status', '--run'];
+const JOB_LISTS = ['--dry', '--check', '--smoke', '--start', '--stop'];
+const NUMBERS = { '--soft-seconds': 'softSeconds', '--hard-seconds': 'hardSeconds', '--cap-minutes': 'capMinutes' };
+
 function options(argv) {
-  const cfg = { ...DEFAULTS };
-  const num = flag => { const i = argv.indexOf(flag); return i === -1 ? null : Number(argv[i + 1]); };
-  if (num('--soft-seconds')) cfg.softSeconds = num('--soft-seconds');
-  if (num('--hard-seconds')) cfg.hardSeconds = num('--hard-seconds');
-  if (num('--cap-minutes')) cfg.capMinutes = num('--cap-minutes');
-  else cfg.capMinutes = null;
-  const r = argv.indexOf('--route');
-  cfg.route = r === -1 ? null : argv[r + 1];
-  cfg.takeover = argv.includes('--takeover');
+  const cfg = { ...DEFAULTS, capMinutes: null, route: null, takeover: false };
+  const seen = new Set();
+  for (let i = 0; i < argv.length; i += 1) {
+    const a = argv[i];
+    const next = argv[i + 1];
+    if (seen.has(a)) throw new UsageError(`${a} is given twice`);
+    seen.add(a);
+    if (NUMBERS[a]) {
+      if (next === undefined || !/^[1-9]\d{0,6}$/.test(next)) throw new UsageError(`${a} needs a positive whole number, got ${next === undefined ? 'nothing' : `"${next}"`}`);
+      cfg[NUMBERS[a]] = Number(next); i += 1;
+    } else if (a === '--route') {
+      if (next === undefined || !/^(primary|kilo:[1-9]\d*)$/.test(next)) throw new UsageError(`--route needs primary or kilo:<n>, got ${next === undefined ? 'nothing' : `"${next}"`}`);
+      cfg.route = next; i += 1;
+    } else if (a === '--run') {
+      if (next === undefined || next.startsWith('--')) throw new UsageError('--run needs a job id');
+      i += 1;
+    } else if (JOB_LISTS.includes(a)) {
+      if (next !== undefined && !next.startsWith('--')) i += 1;
+    } else if (a !== '--takeover' && a !== '--status') {
+      throw new UsageError(`unknown argument "${a}"`);
+    }
+    if (a === '--takeover') cfg.takeover = true;
+  }
+  const commands = COMMANDS.filter(c => seen.has(c));
+  if (commands.length !== 1) throw new UsageError(commands.length ? `one command at a time, got ${commands.join(' ')}` : 'no command given');
+  if (cfg.softSeconds >= cfg.hardSeconds) throw new UsageError(`--soft-seconds (${cfg.softSeconds}) must be below --hard-seconds (${cfg.hardSeconds})`);
   return cfg;
 }
 
@@ -575,7 +599,12 @@ function stop(ids) {
 }
 
 function main(argv) {
-  const cfg = options(argv);
+  let cfg;
+  try { cfg = options(argv); } catch (e) {
+    if (!(e instanceof UsageError)) throw e;
+    process.stdout.write(`${e.message}\nusage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route primary|kilo:<n>] [--takeover] [--soft-seconds N] [--hard-seconds N] [--cap-minutes N] | --status | --stop <jobs>\n`);
+    return 2;
+  }
   const pick = flag => {
     const i = argv.indexOf(flag);
     const next = argv[i + 1];
@@ -604,4 +633,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };
