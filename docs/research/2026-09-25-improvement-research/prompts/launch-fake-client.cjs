@@ -31,7 +31,15 @@ const orphan = () => {
     case 'orphan-exit': orphan(); write(1, 'a\n'); write(2, 'b\n'); await sleep(6000); process.exit(0); break;
     case 'orphan-hang': orphan(); write(1, 'a\n'); await sleep(3000); process.exit(0); break;
     case 'orphan-hang-long': orphan(); write(1, 'a\n'); await sleep(9000); process.exit(0); break;
-    // PROTO-DEC-0070: writes its output, then a file outside its scope in the worktree it runs in.
+    // F-L1, F-L2: adds a remote and creates a branch in the copy it runs in, as a push would need.
+    case 'git-escape': {
+      write(1, 'a\n');
+      const { spawnSync } = require('node:child_process');
+      spawnSync('git', ['-C', root, 'remote', 'add', 'evil', path.join(require('node:os').tmpdir(), 'zz-evil.git')]);
+      spawnSync('git', ['-C', root, 'update-ref', 'refs/heads/zz-probe', 'HEAD']);
+      await sleep(8000); process.exit(0); break;
+    }
+    // PROTO-DEC-0070: writes its output, then a file outside its scope in the copy it runs in.
     case 'escape': write(1, 'a\n'); fs.mkdirSync(path.join(root, 'OwnerIdeas'), { recursive: true }); fs.writeFileSync(path.join(root, 'OwnerIdeas', 'zz-escape.md'), 'x\n'); await sleep(8000); process.exit(0); break;
     default: process.exit(9);
   }

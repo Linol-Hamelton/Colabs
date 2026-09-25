@@ -10,7 +10,10 @@
 
 ## 0. Before anything
 
-1. `git rev-parse --show-toplevel` prints the `D:/Colabs` checkout, or you stop and report.
+1. `git rev-parse --show-toplevel` prints your job's working copy: a directory `colabs-research/<job>-...` under the
+   system temp directory, a private clone of the checkout that the launcher made for this job
+   (PROTO-DEC-0070, R-L3-004.9). Your outputs and journal are copied back when you finish. If it
+   prints anything else, stop and report.
 2. `node .ai/bin/protocol-session.cjs start --agent <the agent name of your job file>`; use the owner
    name it prints for your journal.
 3. Journal line 1: `Launch: model=<id> effort=<value|unknown> client=<client>` (the values you run with).

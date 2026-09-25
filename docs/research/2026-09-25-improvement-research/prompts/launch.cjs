@@ -18,7 +18,7 @@
 // --soft-seconds N, --hard-seconds N, --cap-minutes N. State: .ai/runtime/improvement-research/.
 // Exit codes: 0 done, 1 a refusal the owner can resolve, 2 unknown or malformed input.
 //
-// PROTO-DEC-0070: every attempt runs in a disposable git worktree of HEAD under the system temp
+// PROTO-DEC-0070: every attempt runs in a disposable private local clone of HEAD under the system temp
 // directory. Only the job's outputs and its new journals are copied back into the checkout; any
 // other change there, a moved HEAD or a new tag stops the job (SCOPE_STOP) and nothing is copied.
 
@@ -157,9 +157,9 @@ const SAFE = /^[A-Za-z0-9 _.,:=/\\"()-]+$/;
 // PROTO-DEC-0070 item 2: vibe gets the minimal tool set a study-B researcher needs (read, search,
 // write its own files, a shell for the session script and read-only commands); --auto-approve covers
 // only these. Names are vibe 2.25.5's tool classes; study B needs no web tool. `--trust` only skips
-// the trust prompt for the disposable worktree, as for the checkout it copies; it adds no tool.
+// the trust prompt for the disposable copy, as for the checkout it copies; it adds no tool.
 const VIBE_TOOLS = ['read_file', 'grep', 'write_file', 'edit', 'powershell'];
-// PROTO-DEC-0070 items 3-4: copilot runs in the job's worktree (-C), with --no-ask-user (listed by
+// PROTO-DEC-0070 items 3-4: copilot runs in the job's copy (-C), with --no-ask-user (listed by
 // copilot 1.0.88 --help) and with commit, push and tag denied as tools.
 const COPILOT_DENY = ['git commit', 'git push', 'git tag'].map(c => `--deny-tool "shell(${c})"`).join(' ');
 
@@ -333,20 +333,25 @@ function tail(file, bytes) {
   } catch { return ''; }
 }
 
-// ---------- the disposable worktree (PROTO-DEC-0070) ----------
+// ---------- the disposable working copy (PROTO-DEC-0070) ----------
 
-// A journal a session creates: `.ai/worklog/<agent>-<16 hex>.md`, new (untracked) in the worktree.
+// A journal a session creates: `.ai/worklog/<agent>-<16 hex>.md`, new (untracked) in the copy.
 const JOURNAL_RE = /^\.ai\/worklog\/[a-z][a-z0-9]*-[0-9a-f]{16}\.md$/;
 const sleepSync = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+const sha = data => require('node:crypto').createHash('sha256').update(data).digest('hex');
 const git = (args, cwd = ROOT) => spawnSync('git', args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 1 << 26 });
+// The launcher's own git calls inside a job's copy run no hook and no fsmonitor, whatever the job
+// wrote into the copy's config or hooks directory (F-L2).
+const EMPTY_HOOKS = path.join(TMP, 'colabs-research', '.no-hooks');
+const gitIn = (dir, args) => git(['-c', 'core.fsmonitor=false', '-c', `core.hooksPath=${EMPTY_HOOKS}`, ...args], dir);
 
-// No push (item 4): every git the executor runs sees an unusable push URL for each remote.
-function noPushEnv() {
-  const remotes = (git(['remote']).stdout || '').split(/\r?\n/).filter(Boolean);
-  const env = { GIT_CONFIG_COUNT: String(remotes.length) };
-  remotes.forEach((r, i) => { env[`GIT_CONFIG_KEY_${i}`] = `remote.${r}.pushurl`; env[`GIT_CONFIG_VALUE_${i}`] = 'no-push://blocked-by-launcher'; });
-  return remotes.length ? env : {};
-}
+// No push (PROTO-DEC-0070 item 4; F-L1). Every URL git resolves is rewritten to an unusable scheme:
+// existing remotes, remotes a job adds, explicit push URLs and URLs typed on the command line alike
+// (`pushInsteadOf` would miss an explicit push URL). A network fetch fails too; the jobs need none.
+// The rule is in the executor's environment and in each copy's own config; removing it from the
+// config changes the config, which is a scope stop.
+const NO_PUSH = { key: 'url.no-push://blocked.insteadOf', value: '' };
+const NO_PUSH_ENV = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: NO_PUSH.key, GIT_CONFIG_VALUE_0: NO_PUSH.value };
 
 // `git status --porcelain=v1 -z` entries: {code, path}; a rename or copy also yields its source.
 function parsePorcelainZ(text) {
@@ -361,15 +366,22 @@ function parsePorcelainZ(text) {
 }
 
 function fileHash(file) {
-  try { return require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex'); } catch { return 'absent'; }
+  try { return sha(fs.readFileSync(file)); } catch { return 'absent'; }
 }
 
+// What the scope check compares: the working files, HEAD, every ref, the copy's own config and its
+// hooks. Ignored paths (`.gitignore`: `.ai/runtime/` and scratch) are not read; they are never
+// copied back and are deleted with the copy (F-L4).
 function workdirState(dir) {
-  const st = git(['status', '--porcelain=v1', '-z', '--untracked-files=all'], dir);
-  const head = git(['rev-parse', 'HEAD'], dir);
-  const tags = git(['tag', '--list'], dir);
-  if (st.status !== 0 || head.status !== 0 || tags.status !== 0) return null;
-  return { entries: parsePorcelainZ(st.stdout), head: head.stdout.trim(), tags: require('node:crypto').createHash('sha256').update(tags.stdout).digest('hex') };
+  const st = gitIn(dir, ['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+  const head = gitIn(dir, ['rev-parse', 'HEAD']);
+  const refs = gitIn(dir, ['for-each-ref', '--format=%(refname) %(objectname)']);
+  if (st.status !== 0 || head.status !== 0 || refs.status !== 0) return null;
+  const gitDir = path.join(dir, '.git');
+  let hooks = '';
+  try { hooks = fs.readdirSync(path.join(gitDir, 'hooks')).sort().map(f => `${f} ${fileHash(path.join(gitDir, 'hooks', f))}`).join('\n'); } catch { /* none */ }
+  return { entries: parsePorcelainZ(st.stdout), head: head.stdout.trim(), refs: sha(refs.stdout),
+    config: fileHash(path.join(gitDir, 'config')), hooks: sha(hooks) };
 }
 
 // Paths changed outside the job's scope. Allowed: the job's outputs, and new journals. A path that
@@ -380,32 +392,47 @@ function scopeViolations(entries, outputs, baseFiles, hashOf) {
     && !(base.has(e.path) && base.get(e.path) === hashOf(e.path))).map(e => e.path);
 }
 
-// A worktree of HEAD with the research package copied in (earlier outputs, prompt stubs), and the
-// baseline the scope check compares against. Six watchdogs may start at once, so it retries.
+// A private local clone of HEAD, with no remote and the no-push rule in its own config, and the
+// research package copied in (earlier outputs, prompt stubs). Unlike a linked worktree, a clone
+// shares no config, refs or hooks with the checkout (F-L2): what a job does to its repository stays
+// in the copy. `--shared` borrows the checkout's objects instead of copying them. Six watchdogs may
+// start at once, so it retries under a fresh name.
 function prepareWorkdir(jobId, n) {
-  fs.mkdirSync(path.join(TMP, 'colabs-research'), { recursive: true });
+  fs.mkdirSync(EMPTY_HOOKS, { recursive: true });
+  const head = git(['rev-parse', 'HEAD']);
+  if (head.status !== 0) throw new Error('the checkout HEAD cannot be read');
   let r = null; let dir = null;
   for (let i = 0; i < 3; i += 1) {
-    // A fresh name per try: a failed add may leave its directory behind.
     dir = path.join(TMP, 'colabs-research', `${jobId}-${n}-${Date.now().toString(36)}-${i}`);
-    r = git(['worktree', 'add', '--detach', dir, 'HEAD']);
+    r = git(['clone', '--shared', '--no-checkout', '--quiet', ROOT, dir], TMP);
     if (r.status === 0) break;
+    try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 3 }); } catch { /* nothing made */ }
     sleepSync(700);
   }
-  if (r.status !== 0) throw new Error(`git worktree add failed: ${(r.stderr || '').trim().split('\n')[0]}`);
+  if (r.status !== 0) throw new Error(`git clone failed: ${(r.stderr || '').trim().split('\n')[0]}`);
+  const steps = [['checkout', '--quiet', '--detach', head.stdout.trim()]];
+  for (const remote of (gitIn(dir, ['remote']).stdout || '').split(/\r?\n/).filter(Boolean)) steps.push(['remote', 'remove', remote]);
+  steps.push(['config', NO_PUSH.key, NO_PUSH.value]);
+  for (const s of steps) {
+    const x = gitIn(dir, s);
+    if (x.status !== 0) throw new Error(`git ${s[0]} failed in the new copy: ${(x.stderr || '').trim().split('\n')[0]}`);
+  }
   fs.cpSync(path.join(ROOT, REL), path.join(dir, REL), { recursive: true, force: true });
   const st = workdirState(dir);
-  if (!st) throw new Error('git status failed in the new worktree');
-  return { dir, base: { head: st.head, tags: st.tags, files: st.entries.map(e => [e.path, fileHash(path.join(dir, e.path))]) } };
+  if (!st) throw new Error('git state of the new copy cannot be read');
+  return { dir, base: { head: st.head, refs: st.refs, config: st.config, hooks: st.hooks,
+    files: st.entries.map(e => [e.path, fileHash(path.join(dir, e.path))]) } };
 }
 
-// Why the worktree is out of scope now, or null. Unreadable state is a violation, never a pass.
+// Why the copy is out of scope now, or null. Unreadable state is a violation, never a pass.
 function scopeCheck(dir, base, outputs) {
   const st = workdirState(dir);
-  if (!st) return ['git state of the worktree cannot be read'];
+  if (!st) return ['git state of the copy cannot be read'];
   const bad = scopeViolations(st.entries, outputs, base.files, p => fileHash(path.join(dir, p)));
   if (st.head !== base.head) bad.push(`HEAD moved to ${st.head.slice(0, 12)} (a commit or checkout)`);
-  if (st.tags !== base.tags) bad.push('tags changed');
+  if (st.refs !== base.refs) bad.push('refs changed (a branch, tag or ref was created, moved or deleted)');
+  if (st.config !== base.config) bad.push('repository config changed (a remote added, or the no-push rule removed)');
+  if (st.hooks !== base.hooks) bad.push('git hooks changed');
   return bad.length ? bad : null;
 }
 
@@ -424,9 +451,15 @@ function importResults(dir, outputs) {
   return copied;
 }
 
+// Deletes a settled copy. A copy kept by a scope stop, or left by a watchdog that died, stays under
+// `<system temp>/colabs-research/` until the owner removes it (F-L5).
 function dropWorkdir(dir) {
-  const r = git(['worktree', 'remove', '--force', dir]);
-  return r.status === 0;
+  for (let i = 0; i < 3; i += 1) {
+    try { fs.rmSync(dir, { recursive: true, force: true, maxRetries: 3 }); } catch { /* a file still open */ }
+    if (!fs.existsSync(dir)) return true;
+    sleepSync(1000);
+  }
+  return false;
 }
 
 // ---------- the watchdog (runs detached) ----------
@@ -471,7 +504,7 @@ function run(jobId, routeArg, cfg, ov = {}) {
   const { suitable } = kiloCandidates(j, routes);
   // The self-test runs its fake jobs in place (outputs in scratch directories); real jobs are isolated.
   const isolate = ov.isolate !== false;
-  const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8', ...(isolate ? noPushEnv() : {}) };
+  const env = { ...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8', ...(isolate ? NO_PUSH_ENV : {}) };
   fs.mkdirSync(path.join(OUT, 'jobs'), { recursive: true });
   // The stop marker is never removed here: `--start` clears an old one before it spawns this
   // watchdog, so a marker seen now is an owner stop issued after that start (CB-18).
@@ -506,7 +539,7 @@ function run(jobId, routeArg, cfg, ov = {}) {
     let dir = ROOT; let base = null;
     if (isolate) {
       try { ({ dir, base } = prepareWorkdir(jobId, state.attempts.length + 1)); } catch (e) {
-        state.status = 'NEEDS_OWNER'; state.reason = `no disposable worktree, nothing launched: ${e.message}`; writeJob(jobId, state);
+        state.status = 'NEEDS_OWNER'; state.reason = `no disposable copy, nothing launched: ${e.message}`; writeJob(jobId, state);
         try { fs.unlinkSync(lockFile(jobId)); } catch { /* no lock */ }
         return undefined;
       }
@@ -601,8 +634,8 @@ function run(jobId, routeArg, cfg, ov = {}) {
 
   const settle = att => {
     if (att.workdir) {
-      // The tree is gone, so the worktree no longer changes: one last scope check, then the copy
-      // back. A scope stop copies nothing and keeps the worktree for the owner to inspect.
+      // The tree is gone, so the copy no longer changes: one last scope check, then the copy back.
+      // A scope stop copies nothing and keeps the copy for the owner to inspect.
       if (att.status !== 'SCOPE_STOP') {
         const bad = scopeCheck(att.workdir, att.base, j.outputs);
         if (bad) { att.scope = bad; att.status = 'SCOPE_STOP'; }
@@ -622,7 +655,7 @@ function run(jobId, routeArg, cfg, ov = {}) {
     state.status = att.status === 'DONE' ? 'DONE' : 'NEEDS_OWNER';
     const why = att.status === 'STOPPED' ? 'stopped by the owner'
       : att.status === 'HUNG' ? `HUNG on ${att.route}; FALLEN without wakes, the launcher resumes no session (PROTO-DEC-0051 item 4, P-L3-004)`
-        : att.status === 'SCOPE_STOP' ? `SCOPE_STOP on ${att.route}: ${att.scope.slice(0, 5).join('; ')}${att.scope.length > 5 ? ` (+${att.scope.length - 5} more)` : ''}; nothing copied back, worktree kept at ${att.workdir} (PROTO-DEC-0070 item 4)`
+        : att.status === 'SCOPE_STOP' ? `SCOPE_STOP on ${att.route}: ${att.scope.slice(0, 5).join('; ')}${att.scope.length > 5 ? ` (+${att.scope.length - 5} more)` : ''}; nothing copied back, copy kept at ${att.workdir} (PROTO-DEC-0070 item 4)`
           : `${att.status} on ${att.route}`;
     state.reason = att.status === 'DONE' ? null
       : `${why}${att.errorText ? ` (${att.errorText})` : ''}${att.treeGone === false ? '; process tree NOT confirmed gone' : ''}`;
@@ -820,10 +853,10 @@ function status() {
     const s = readJob(id);
     if (!s) { process.stdout.write(`${id}: not started\n`); continue; }
     const a = s.attempts[s.attempts.length - 1] || {};
-    // A running attempt writes into its worktree; a settled one has been copied back.
+    // A running attempt writes into its copy; a settled one has been copied back.
     const where = a.workdir && !a.endedAt ? a.workdir : ROOT;
     const present = JOBS[id].outputs.filter(f => fs.existsSync(path.join(where, f))).length;
-    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${JOBS[id].outputs.length}; attempts ${s.attempts.length}${where !== ROOT ? `; worktree ${where}` : ''}\n`);
+    process.stdout.write(`${id}: ${s.status}${s.reason ? ` - ${s.reason}` : ''}; route ${a.route || '-'}; silent ${a.silentSeconds || 0}s; useful ${Boolean(a.useful)}; outputs ${present}/${JOBS[id].outputs.length}; attempts ${s.attempts.length}${where !== ROOT ? `; copy ${where}` : ''}\n`);
   }
   return 0;
 }
@@ -934,4 +967,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, rolePreflight, parsePorcelainZ, scopeViolations, JOURNAL_RE, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, rolePreflight, NO_PUSH_ENV, parsePorcelainZ, scopeViolations, JOURNAL_RE, JOBS, DEFAULTS, ERROR_TEXT };

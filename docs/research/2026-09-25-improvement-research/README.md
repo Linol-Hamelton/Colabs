@@ -68,9 +68,10 @@ No floor applies: the frames write only under this folder. Cells come from
   through Kilo's `google/gemini-3.7-flash` route; it holds no role in the research frames.
 - The launcher checks every command against its client's own help before anything runs
   (`--check`: 24 of 24 commands parse, no model called, 2026-09-25). It fails over by P-L3-004. Every
-  attempt runs in a disposable git worktree, and only the job's outputs and new journals come back
-  (PROTO-DEC-0070, R-L3-004.9). Its self-test (`prompts/launch-test.cjs`, fake clients) has 15
-  scenarios and 55 pure checks: 73 of 73 in three runs in a row on Windows, 2026-09-25.
+  attempt runs in a disposable private clone of HEAD, and only the job's outputs and new journals come back
+  (PROTO-DEC-0070, R-L3-004.9). Its self-test (`prompts/launch-test.cjs`, fake clients) has 16
+  scenarios, 55 pure checks and 6 push-block checks: 80 of 80 in three runs in a row on Windows,
+  2026-09-25.
   `--preflight` checks, read-only, that every job's agent has a `## Roles` line pointing to its
   job, so that no researcher is told to ask the owner before starting work.
 - One model holds one role in a frame (R-L2-002.2). A synthesiser is never a researcher of its own

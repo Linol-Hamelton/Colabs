@@ -8810,3 +8810,135 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 321s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - Correction: line endings of OWNER-PROMPT.md
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: `git commit` warned about CRLF in the working copy of
+docs/research/2026-09-25-validator-migration-council/OWNER-PROMPT.md. A byte count showed 1314 CR
+bytes in it and in the owner's working copy of OwnerIdeas/MIGRATION.md. My earlier check used
+`grep $'\r'` in Git Bash and matched nothing.
+- The committed blobs are LF-only and identical: 82ac1e0c377193436ffd24610de4a8bd3670449a for both,
+  normalised by `.gitattributes` `eol=lf`.
+- I rewrote my working copy from HEAD's blob and refreshed the index; git status is empty.
+- The owner's working copy of MIGRATION.md is not mine and was left as it is.
+- A byte check of the other 30 files I created or edited today found no CR and no BOM.
+
+Result: The sentence "no CRLF or BOM" in the entry below was wrong for the working copy when I
+wrote it. It is true for the committed content and now for the working copy as well. "Byte-equal"
+holds at the blob level.
+Signal: procedure-gap. On this workstation, `grep $'\r'` in Git Bash is not a reliable CR check;
+count bytes, as done here, or check committed blobs.
+
+Next step: none for this correction.
+
+Open: none.
+
+Evidence:
+- anchor: 51d0ae0aa2b3138ae4338b5bd7c7e61190495511, uncommitted changes present
+- digest: sha256:87010c46c33514526e768d45e68e9c95ca26a99e064cfe4cdba0f808d998d4b5 over 443 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T07:37:46.725Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:5e8fe316ed8e360d73d7bf5fc5be30e703ce1eecc6c7b3b63ba7cec0947c2546 of this entry without this block
+- parent-entry: sha256:902c3744f054f03f37856cfac04c3523a1048f67077a1e9419126b1db384a076
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 10s
+- test-protocol.ps1: exit 0 in 289s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - PROTO-DEC-0072 (В-24 closed) and the validator migration council package
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- The owner answered В-24: the T7 floor follows the frame's own action. It is transcribed under
+  the lock as PROTO-DEC-0072, with its registry row and one TASK sentence.
+- The owner approved the council's model table. I copied the package into
+  docs/research/2026-09-25-validator-migration-council/ (14 files).
+- OWNER-PROMPT.md is byte-equal to OwnerIdeas/MIGRATION.md; no CRLF or BOM.
+
+Result:
+- Package: role files of at most 150 lines, child frames under
+  program:validator-migration-council, the round-2 synthesis statuses, a pre-launch gate and an
+  r1-a canary.
+- The P-L2-002 table computes with the S2-T07 conventions. The three syntheses are at the same
+  tier (T7).
+Signal: procedure-gap. Under PROTO-DEC-0072 item 3, today's edits to P-L3-004 (a candidate kernel
+record) and to its launcher take the T7 floor, but this session runs claude-opus-5-5 (T4-T6 cells).
+The rule is new and I record the gap rather than judge it; DeepSeek's pass and the later
+certification cover the work. Whether to re-review at T7 is the owner's call.
+
+Next step: The owner launches DeepSeek on 87257cc and, after the gate, round 1 of the council,
+with a baseline SHA and r1-a as the canary.
+
+Open: The texts of P-L2-002 step 3 and CORE-ARCH-3 section 12 are aligned with PROTO-DEC-0072 in
+the next stage-2 fix round.
+
+Evidence:
+- anchor: 87257ccea610a7bec29ae6d46b55c50635854650, uncommitted changes present
+- digest: sha256:87010c46c33514526e768d45e68e9c95ca26a99e064cfe4cdba0f808d998d4b5 over 443 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T05:35:43.934Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:902c3744f054f03f37856cfac04c3523a1048f67077a1e9419126b1db384a076 of this entry without this block
+- parent-entry: sha256:369278244acdfb4c9700cd57838b69c093cb9d80101daf02e0ff34942026d4a0
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 299s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - Roles compatibility shim, role preflight, --preflight gate and K-launch canary
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: I checked the packages against what is in the flow. The session start injects each agent
+name's `## Roles` line (`protocol-hooks.cjs:306-315`). Six job agents had no line and would have
+been told "Ask the owner before starting work"; four named ones would have received CORE-ARCH
+roles.
+- The owner approved a temporary shim until В-12, after `git pull --ff-only`, which brought in
+  the owner's commit f3ec586. Under the lock: six Roles lines and a research-frame condition on
+  four; two pairs of lines joined; three closed Open-questions lines moved to ARCHIVE; TASK is at
+  80 lines.
+- Preflight: `protocol-session start` for 10 agent names, then only the 20 files it created were
+  removed; the state afterwards equals the state before.
+- Added the read-only `launch.cjs --preflight` with three pure checks.
+- K-launch: the gate is DeepSeek's non-blocking verdict on package L, then `--preflight`, then a
+  canary of b-grok and b-mistral before the other four.
+- The addendum lists all of this; the Roles change is in package L's scope.
+- The migration council package is revised in the scratchpad: P-L2-002 recomputed with the S2-T07
+  conventions, child frames, the round-2 synthesis statuses, a pre-launch gate and a canary. It is
+  not committed yet.
+
+Result:
+- Preflight: 10/10 PASS. `--preflight`: 9/9.
+- Self-test: 73/73 in three runs; `--pure` 55/55; nothing left behind.
+- `--dry` accepts the canary's comma lists.
+
+Next step: The owner starts DeepSeek on the new candidate and answers В-24, then approves the
+council's model table; the council package moves in after that.
+
+Open: В-24 (whether the T7 floor applies to research that prepares a kernel change) decides five
+council cells. No live launch happens before DeepSeek's verdict on L.
+
+Evidence:
+- anchor: f3ec586a5d5ebb23611e32eabda0a0184aff3da4, uncommitted changes present
+- digest: sha256:90db972fc9b2394100a8f2dd624eac0a70692ec454db26c41f0d6e14cd677d9b over 429 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T05:21:19.348Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:369278244acdfb4c9700cd57838b69c093cb9d80101daf02e0ff34942026d4a0 of this entry without this block
+- parent-entry: sha256:40c05bbba767ef1f18aadaa3e88389bd165d5fe9ed2053c968d25cf67fe7a08f
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 304s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

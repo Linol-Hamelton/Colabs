@@ -6,7 +6,7 @@
   certify nothing, and hold no role in the research frames. Mode: ADVISORY.
 - Directives: PROTO-DEC-0066 (the research), PROTO-DEC-0067 (routes and failover), PROTO-DEC-0068
   (its timers hold in this launcher only), PROTO-DEC-0069 (the research runs beside the stage-2
-  review), PROTO-DEC-0070 (client permissions for this run; every job in a disposable worktree; any
+  review), PROTO-DEC-0070 (client permissions for this run; every job in a disposable private clone; any
   diff outside a job's scope stops it).
 - Author: `claude-opus-5-5` (coordinator), 2026-09-25. Talk to the owner in Russian.
 
@@ -79,14 +79,17 @@
       reason, and do not retry.
 6. `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status`
    Expected: exit 0. Report the state of each job as printed. The six watchdogs keep running after your session ends.
-   Each running job works in its own worktree under the system temp directory; the status line
-   names it. A job in `SCOPE_STOP` changed something outside its scope: nothing was copied back and
-   its worktree was kept; report the paths in its reason and delete nothing.
+   Each running job works in its own private clone under `<system temp>/colabs-research/`; the
+   status line names it. A job in `SCOPE_STOP` changed something outside its scope (a file, a ref,
+   the clone's config or hooks): nothing was copied back and its clone was kept; report the reasons
+   and delete nothing.
 7. Tell the owner the later commands; do not run them now:
    - `--status` at any time;
-   - `git status --short` once every job has settled: anything besides the research outputs and
-     new journals goes to the owner, since a write by absolute path outside a worktree is not seen
-     by the scope check (P-L3-004 risks);
+   - `git status --short` and `git remote -v` once every job has settled: anything besides the
+     research outputs and new journals, or any remote besides `origin`, goes to the owner, since a
+     write by absolute path outside a clone is not seen by the scope check (P-L3-004 risks);
+   - clones kept by a `SCOPE_STOP`, or left by a watchdog that died, stay under
+     `<system temp>/colabs-research/` until the owner removes them after inspection;
    - `--stop <job>` also settles a job whose watchdog died; a refusal that names an unsettled
      attempt clears only after it;
    - `--start a-synth` once the three `a-` jobs are DONE or NEEDS_OWNER;

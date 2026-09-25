@@ -45,6 +45,9 @@ const SC = {
   'zz-t13': { primary: 'work', kilo: 'work', isolate: true, imported: true, expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
   // PROTO-DEC-0070 item 4: a write outside the job's scope stops it, and nothing is copied back.
   'zz-t14': { primary: 'escape', kilo: 'work', isolate: true, imported: false, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'SCOPE_STOP' } },
+  // F-L1, F-L2: a remote added and a branch created in the copy stop the job; the checkout's own
+  // config and refs are untouched, because the copy is a private clone.
+  'zz-t16': { primary: 'git-escape', kilo: 'work', isolate: true, imported: false, gitEscape: true, expect: { status: 'NEEDS_OWNER', attempts: 1, first: 'SCOPE_STOP' } },
 };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
@@ -58,8 +61,15 @@ function cleanup() {
   try { for (const f of fs.readdirSync(JOBS_DIR)) if (f.startsWith('zz-')) fs.unlinkSync(path.join(JOBS_DIR, f)); } catch { /* none */ }
   const logs = path.dirname(JOBS_DIR);
   try { for (const f of fs.readdirSync(logs)) if (f.startsWith('zz-')) fs.unlinkSync(path.join(logs, f)); } catch { /* none */ }
-  // Isolated scenarios: their copied-back outputs and any worktree a scope stop kept.
+  // Isolated scenarios: their copied-back outputs, and any copy a scope stop kept (clones now,
+  // linked worktrees from older runs).
   try { fs.rmSync(path.join(ROOT, REL, 'zz-out'), { recursive: true, force: true }); } catch { /* none */ }
+  const copies = path.join(os.tmpdir(), 'colabs-research');
+  try {
+    for (const d of fs.readdirSync(copies)) {
+      if (d.startsWith('zz-')) fs.rmSync(path.join(copies, d), { recursive: true, force: true, maxRetries: 3 });
+    }
+  } catch { /* none */ }
   const list = spawnSync('git', ['-C', ROOT, 'worktree', 'list', '--porcelain'], { encoding: 'utf8' }).stdout || '';
   for (const m of list.matchAll(/^worktree (.+)$/gm)) {
     if (/colabs-research[\\/]zz-/.test(m[1])) spawnSync('git', ['-C', ROOT, 'worktree', 'remove', '--force', m[1]]);
@@ -161,8 +171,31 @@ if (process.argv[2] === '--pure') {
   return;
 }
 
+// F-L1: with the executor's environment, no push leaves a scratch repository: not to its remote,
+// not to a remote added later, not to an explicit URL, not through an explicit push URL.
+function pushBlockChecks() {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'zz-push-'));
+  const bare = path.join(base, 'remote.git'); const work = path.join(base, 'work');
+  const g = (args, env) => spawnSync('git', args, { encoding: 'utf8', env: env ? { ...process.env, ...env } : process.env });
+  g(['init', '-q', '--bare', bare]); g(['init', '-q', work]);
+  g(['-C', work, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'x']);
+  g(['-C', work, 'remote', 'add', 'origin', bare]);
+  const out = [];
+  out.push(['push to the remote present at launch is refused', g(['-C', work, 'push', '-q', 'origin', 'HEAD:refs/heads/a'], L.NO_PUSH_ENV).status !== 0]);
+  g(['-C', work, 'remote', 'add', 'added', bare]);
+  out.push(['push to a remote added later is refused', g(['-C', work, 'push', '-q', 'added', 'HEAD:refs/heads/b'], L.NO_PUSH_ENV).status !== 0]);
+  out.push(['push to an explicit URL is refused', g(['-C', work, 'push', '-q', bare, 'HEAD:refs/heads/c'], L.NO_PUSH_ENV).status !== 0]);
+  g(['-C', work, 'remote', 'set-url', '--push', 'added', bare]);
+  out.push(['push through an explicit push URL is refused', g(['-C', work, 'push', '-q', 'added', 'HEAD:refs/heads/d'], L.NO_PUSH_ENV).status !== 0]);
+  out.push(['git status still works', g(['-C', work, 'status', '--short'], L.NO_PUSH_ENV).status === 0]);
+  out.push(['the scratch remote received no ref', !(g(['-C', bare, 'for-each-ref']).stdout || '').trim()]);
+  try { fs.rmSync(base, { recursive: true, force: true, maxRetries: 3 }); } catch { /* scratch */ }
+  return out;
+}
+
 cleanup();
-const results = pureChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} pure: ${n}`);
+const results = pureChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} pure: ${n}`)
+  .concat(pushBlockChecks().map(([n, ok]) => `${ok ? 'PASS' : 'FAIL'} push-block: ${n}`));
 const race = Array.from({ length: 5 }, () => spawn(process.execPath, [__filename, '--lock', 'zz-race'], { stdio: ['ignore', 'pipe', 'ignore'] }));
 let raceOut = '';
 let raceLeft = race.length;
@@ -248,7 +281,13 @@ function scenarios() {
       if (SC[id].imported !== undefined) {
         const back = fs.existsSync(path.join(ROOT, REL, 'zz-out', id, 'f1.md'));
         const leaked = fs.existsSync(path.join(ROOT, 'OwnerIdeas', 'zz-escape.md'));
-        report(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}`));
+        let gitLeak = '';
+        if (SC[id].gitEscape) {
+          const remote = spawnSync('git', ['-C', ROOT, 'config', '--get', 'remote.evil.url'], { encoding: 'utf8' }).status === 0;
+          const ref = spawnSync('git', ['-C', ROOT, 'show-ref', '--verify', '--quiet', 'refs/heads/zz-probe']).status === 0;
+          gitLeak = remote || ref ? `; GIT ESCAPE LEAKED into the checkout (remote ${remote}, ref ${ref})` : '; checkout config and refs untouched';
+        }
+        report(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}${gitLeak}`));
         return;
       }
       if (!SC[id].orphanGone) { report(line('')); return; }

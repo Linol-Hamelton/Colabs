@@ -1,6 +1,6 @@
 ---
 id: P-L3-004
-version: 0.3
+version: 0.4
 title: Route failover - the maker's CLI first, Kilo as the fallback router, liveness before any switch
 layer: L3
 type: procedure
@@ -76,13 +76,28 @@ third cost it never accepts is two executors doing one task.
   never scanned (CB-17).
 - R-L3-004.8. The total cap of PROTO-DEC-0050 item 2 stays. Reaching it saves the state and goes
   to the owner; it never starts another route.
-- R-L3-004.9. Isolation and scope (PROTO-DEC-0070). Each attempt runs in a disposable git worktree
-  of HEAD under the system temp directory, with the research package copied in; that worktree is
-  the executor's working directory. When the tree is gone, only the job's outputs and its new
-  journals are copied back into the checkout. Any other change in the worktree, a moved HEAD or a
-  changed tag list stops the job at once (`SCOPE_STOP`): nothing is copied back and the worktree
-  is kept for the owner. Every git the executor runs sees an unusable push URL. The owner named
-  the terms; this mechanism is the implementer's reading of them.
+- R-L3-004.9. Isolation and scope (PROTO-DEC-0070). The owner named the terms; this mechanism is the
+  implementer's reading of them.
+  - The copy. Each attempt runs in a disposable private clone of HEAD (`git clone --shared`)
+    under `<system temp>/colabs-research/`, with the research package copied in, and that clone is
+    the executor's working directory. A clone, unlike a linked worktree, shares no config, refs or
+    hooks with the checkout. It has no remote.
+  - Push. The rule `url.no-push://blocked.insteadOf` with an empty value is set in the executor's
+    environment and in the clone's own config. It rewrites every URL git resolves: existing
+    remotes, added remotes, explicit push URLs and URLs given on the command line. A network fetch
+    fails too.
+  - The scope check. It runs on every tick and again before the copy back. It compares the working
+    files, HEAD, every ref, the clone's config and its hooks with the state at preparation. Any
+    change other than the job's outputs and new journals stops the job at once (`SCOPE_STOP`).
+  - The launcher's own git calls in a clone run with `core.fsmonitor=false` and an empty
+    `core.hooksPath`.
+  - The copy back. When the tree is gone, only the job's outputs and new journals are copied back
+    into the checkout.
+  - What the check does not read. Git-ignored paths (`.ai/runtime/`, scratch) are not read. They
+    are never copied back and are deleted with the clone.
+  - Lifecycle. A settled clone is deleted. A clone kept by `SCOPE_STOP`, or left by a watchdog
+    that died, stays under `<system temp>/colabs-research/` until the owner removes it.
+  - vibe runs with `--trust`, which only skips the trust prompt for the clone. It adds no tool.
 
 ## Steps
 
@@ -151,8 +166,8 @@ launcher makes is a row (CB-15).
 | `FAILED_EARLY` | otherwise | `NEEDS_OWNER` |
 | any running state | cap reached | `OVER_CAP`: stop the tree, snapshot, `NEEDS_OWNER` |
 | any running state | the owner's stop request | `STOPPED`: stop the tree, no fallback, `NEEDS_OWNER` |
-| (not launched) | the worktree cannot be created | `NEEDS_OWNER`, nothing launched |
-| any running state, or any end state before the copy back | a change outside the job's scope in its worktree, a moved HEAD or a changed tag list | `SCOPE_STOP`: stop the tree, copy nothing back, keep the worktree, `NEEDS_OWNER` |
+| (not launched) | the clone cannot be created | `NEEDS_OWNER`, nothing launched |
+| any running state, or any end state before the copy back | a change outside the job's scope in its clone, a moved HEAD, a changed ref, config or hook | `SCOPE_STOP`: stop the tree, copy nothing back, keep the clone, `NEEDS_OWNER` |
 | (dead watchdog) | a start while the last attempt never settled | refused until the owner's `--stop` settles it |
 
 When the hard timer is less than one tick above the soft timer, `WORKING` can reach `HUNG` in one
@@ -200,11 +215,13 @@ implements the wakes and does not inherit this path.
 | An error text appears in normal output before work starts | low | medium | switch only after soft silence as well | one wrong fallback | the owner sees it in the state file |
 | The Kilo fallback spends money | medium | low | one attempt; the cheapest suitable route; the owner's own providers first when prices tie | route price | a costly model on its cheapest route |
 | Two executors on one task | low | high | R-L3-004.7: confirmed-dead check, running record, a start refused while any recorded process lives or while an attempt of a dead watchdog is unsettled, takeover only by the owner | one process-table read per start | a descendant no scan saw before the watchdog died: the owner's stop cannot name it and warns; under load one process-table read took seconds on Windows, so the first three seconds after a spawn can pass without a record |
-| An executor writes outside its scope | medium | high | R-L3-004.9: a disposable worktree per attempt, a scope check on every tick and before the copy back, only outputs and new journals copied, push blocked | one worktree per attempt, three git calls per tick | a shell command writing by absolute path outside the worktree, for example into the checkout itself, is not seen by the check; the owner's `git status` after the run and the certifiers' diff review cover it |
+| An executor writes outside its scope | medium | high | R-L3-004.9: a private clone per attempt (its config, refs and hooks are its own), a scope check on every tick and before the copy back that covers files, HEAD, refs, config and hooks, only outputs and new journals copied | one clone per attempt, three git calls per tick | a shell command writing by absolute path outside the clone, for example into the checkout itself, is not seen by the check; the owner's `git status` and `git remote -v` after the run and the certifiers' diff review cover it |
+| An executor pushes | low | high | the no-push rule in the environment and in the clone's config blocks existing, added and explicit push URLs (F-L1, self-test push-block checks); removing it from the config is a scope stop | a network fetch also fails | an executor that deliberately clears the environment and edits the config in one step, or pushes through a service API with the owner's stored credentials; the scope stop comes after the fact and a push cannot be undone. Local cooperative mode is assumed (agents fallible, not hostile) |
 | A legitimate client file stops a job | low | medium | none: a file the client creates in its working directory (a cache or a config) is outside the scope and stops the job | a relaunch | the reason names the path; the owner decides |
 
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
 - 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row), CB-22 (the HUNG path is recorded as a divergence from PROTO-DEC-0051 item 4) — second pass pending.
+- 0.4 — 2026-09-25 — claude-c73232724159e5bd — second-pass findings of report L: F-L1 (push through an added remote or explicit URL: `insteadOf` rule in the environment and the clone's config), F-L2 (a linked worktree shares config, refs and hooks: a private clone instead, and the scope check reads refs, config and hooks), F-L3 (`--trust` recorded here), F-L4 (ignored paths stated), F-L5 (lifecycle of kept clones stated) — third pass pending.
 - 0.3 — 2026-09-25 — claude-c73232724159e5bd — CB-17 reopened by a Windows self-test failure (zz-t12, 3/3 runs): early scans, and an unsettled attempt of a dead watchdog blocks starts until the owner's stop; R-L3-004.9 isolation and scope under PROTO-DEC-0070 (disposable worktree, SCOPE_STOP, push blocked); three state rows and two risk rows added — second pass pending.
