@@ -23,8 +23,9 @@
 ## Steps
 
 0. `git rev-parse --show-toplevel` must print the `D:/Colabs` checkout; otherwise stop.
-   The owner's launch message names the commit whose launcher passed review. If it names none, ask
-   the owner for it and stop until it is given. The launcher at HEAD must be that launcher, whatever
+   Pre-launch gate: the owner's launch message says that DeepSeek's second pass on package L has a
+   non-blocking verdict, and names the commit whose launcher passed that review. If it says neither,
+   ask the owner and stop until both are given. The launcher at HEAD must be that launcher, whatever
    else has been committed since:
    `git diff --quiet <that commit> HEAD -- docs/research/2026-09-25-improvement-research/prompts docs/core-arch/stage-4/P-L3-004-route-failover.md docs/core-arch/stage-4/kilo-routes.json`
    must exit 0; otherwise stop. The jobs run on HEAD's tree.
@@ -40,6 +41,10 @@
    `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --check researchers`
    Expected: exit 0 and a last line ending in `commands parse; no model was called`, with no
    `FAIL` line.
+   Then the role preflight, read-only:
+   `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --preflight`
+   Expected: exit 0 and the last line `9/9 role lines point to their jobs; nothing was written`.
+   It shows that no researcher will be told to ask the owner before starting work.
 3. Plan, no model is called:
    `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --dry researchers`
    Expected: exit 0. Show the owner, for each of the six jobs, the primary command and its
@@ -53,12 +58,25 @@
    A job whose primary and fallback both fail will stop at NEEDS_OWNER after launch. Ask the
    owner whether to launch anyway.
 5. Launch, only after the owner has confirmed it in this session. First write the journal line
-   `Owner-confirmed: start researchers` with the owner's words. Then run:
-   `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start researchers`
-   Expected: exit 0 with six lines `<job>: started`, or exit 1 with at least one line
-   `<job>: refused, <reason>`; every job without a `refused` line has started and its watchdog runs.
-   Exit 1 is not a stop: report which jobs started and which were refused, with each reason, and
-   do not retry.
+   `Owner-confirmed: start researchers` with the owner's words. The launch has two parts.
+   a. Canary. Start the two jobs whose client flags PROTO-DEC-0070 changed, b-grok (copilot) and
+      b-mistral (vibe):
+      `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start b-grok,b-mistral`
+      Expected: exit 0 with two lines `<job>: started`. Anything else is a stop.
+   b. Watch the canary. Run
+      `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status`
+      and then `node -e "setTimeout(()=>{},60000)"` (a one-minute wait), in turn, for up to 15
+      minutes, until both canary jobs show `WORKING`.
+      - If either shows `NEEDS_OWNER` (a `SCOPE_STOP` included), or neither reaches `WORKING` in 15
+        minutes, stop.
+      - When you stop, report the status lines and start nothing else. A running canary is not
+        stopped unless the owner says so.
+   c. Only when both canary jobs show `WORKING`, start the other four:
+      `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start a-sol,a-gemini,a-deepseek,b-kimi`
+      Expected: exit 0 with four lines `<job>: started`, or exit 1 with at least one line
+      `<job>: refused, <reason>`; every job without a `refused` line has started and its watchdog
+      runs. Exit 1 is not a stop: report which jobs started and which were refused, with each
+      reason, and do not retry.
 6. `node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status`
    Expected: exit 0. Report the state of each job as printed. The six watchdogs keep running after your session ends.
    Each running job works in its own worktree under the system temp directory; the status line

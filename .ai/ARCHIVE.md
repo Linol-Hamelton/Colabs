@@ -8688,3 +8688,125 @@ Evidence:
 - validate-protocol.ps1: exit 0 in 3s
 - test-protocol.ps1: exit 0 in 302s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+## 2026-09-25 - .ai/TASK.md Open questions archived (claude-c73232724159e5bd)
+
+Moved verbatim from `.ai/TASK.md` "Open questions" to keep the file within 80 lines after the
+owner-approved `## Roles` compatibility shim (В-12). All three are closed or recorded as decisions.
+
+- VPN stream implementer: RESOLVED 2026-09-20 - DeepSeek, in its own product session.
+- 2026-09-23: new premise for F-001/F-C01 recorded as PROTO-DEC-0046 - repo-relative ledger paths, protected set from the manifest, certifiers Codex + fresh Claude, DeepSeek coordinates and certifies nothing, budget <=2.
+- 2026-09-23: operating rules recorded as PROTO-DEC-0047 - availability-ordered certifiers with independence filter, verdict asymmetry, shadow certification, batch cap (next certification of the rulebook batch is the last automatic one), executor liveness and narrow grants, script standard, client registry, CodeBurn as cost only, default-deny tool governance.
+
+---
+
+### From .ai/worklog/claude-c73232724159e5bd.md, archived 2026-09-25
+
+## 2026-09-25 - PROTO-DEC-0071 (record --quick for research) and the concurrency measurement
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action:
+- Measured three full suites at once in three temporary worktrees of eb34621: walls 445, 447 and
+  450 s, each 376/376 (a single suite takes 302-322 s). CPU was 100% for about three minutes, then
+  15-30%. Free RAM fell as low as 3.4 GB of 31.7. All three worktrees were removed.
+- The owner chose `--quick` for research frames. Under the lock I wrote PROTO-DEC-0071, its
+  registry row and one TASK sentence. The four researcher and synthesiser prompts now end with
+  `record --quick`, and the addendum has a matching row.
+- The owner asked for a package for the validator migration council (OwnerIdeas/MIGRATION.md). I
+  advised against folding RISK_COUNCIL.md and H-AUTH-02.md into that cycle: RISK_COUNCIL is
+  roughly ten times larger. The overlap on the trusted computing base goes to the risk council
+  as input.
+
+Result: No suite failed under three-way concurrency. Research frames no longer run the full suite.
+
+Next step: I build the council package and show it to the owner before any commit.
+
+Open: The loads at six and eight concurrent suites are extrapolations, not measurements.
+
+Evidence:
+- anchor: eb34621d6f064a1e79600e4d09468b4592db10e4, uncommitted changes present
+- digest: sha256:92395c0c2f64fd0b8d717acdf98737c7bdee084e57b8bfe7f6b3abf8828c6e06 over 429 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T04:27:27.075Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:40c05bbba767ef1f18aadaa3e88389bd165d5fe9ed2053c968d25cf67fe7a08f of this entry without this block
+- parent-entry: sha256:c74c5347b80b4bf2181af39f765f77618dc8c17c3c83e14f3806836a174810c6
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 292s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - K-launch step 0 fixed before hand-off; Node validator proposal
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: Committed and pushed 4c07de4, as the owner authorised. Before handing it to DeepSeek I
+found that K-launch step 0 required HEAD to equal the reviewed commit. The branch will move
+before any launch, so that rule would block it for no reason. Step 0 now requires the launcher
+files at HEAD to equal those of the reviewed commit (`git diff --quiet`). The addendum now names
+its candidate as the last commit that changes it. Added docs/core-arch/PROPOSAL-node-validator.md,
+the measured costs and options A and B for the owner. Nothing is ported.
+
+Result: The check exits 0 on the same launcher and 1 on e44686b's launcher.
+
+Next step: The owner starts DeepSeek with the addendum and the candidate SHA, and picks option A or
+B of the proposal.
+
+Open: as in the entry below.
+
+Evidence:
+- anchor: 4c07de4475bac7694ee4c9b3a1233eba52ccbd57, uncommitted changes present
+- digest: sha256:083a66f2bfdfa315550516ec5a460762c2b9d41002a0341bce44bfcbb72b2af8 over 428 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T03:57:14.430Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:c74c5347b80b4bf2181af39f765f77618dc8c17c3c83e14f3806836a174810c6 of this entry without this block
+- parent-entry: sha256:e8e691bb68c543bd83b54e36825b4e5b060d7d0caff7535dafe40d9e9ec1fe3d
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 322s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-25 - CB-17 attempt 2, PROTO-DEC-0068..0070, launcher isolation, addendum 1
+
+Agent: claude-c73232724159e5bd (Claude Opus 5.5, Claude Code, VS Code, local Windows)
+
+Action: The owner answered in chat. CB-12: option A. CB-13: confirmed. CB-21: new terms. CB-17:
+fix it before DeepSeek, then commit and push. Under the lock I wrote PROTO-DEC-0068..0070, their
+registry rows and one TASK "Next" paragraph.
+- Launcher, CB-17 attempt 2: early tree scans; a start is refused while a dead watchdog's attempt
+  is unsettled; `--stop` settles it.
+- Launcher, PROTO-DEC-0070: a disposable worktree per attempt, `SCOPE_STOP`, push blocked, vibe
+  with the minimal tool set, copilot with `-C`, `--no-ask-user` and `--deny-tool`.
+- Also updated: tests, P-L3-004 0.3, K-launch, the package README. New file:
+  docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-1.md.
+
+Result:
+- Self-test after the last change: 70/70 in three runs, `--pure` 52/52, nothing left behind.
+- `--check`: 24/24. Push block: exit 128.
+- The worktree mechanism is my reading of 0070, since only it met every term; it is marked so.
+
+Next step: The owner launches DeepSeek's second pass with the addendum and the candidate SHA,
+package L first. The research launch waits for the verdict on L.
+
+Open: `--smoke` and `--start` were not run, and no real client has been observed in a worktree. A
+write by absolute path outside the worktree is a named residual. The Node-validator proposal is
+still to be written.
+
+Evidence:
+- anchor: e44686b7e8b4a7da28232b60345967588372f965, uncommitted changes present
+- digest: sha256:e6135322825379f0d69d1721efbd79d23ea46d0d7b89d3fd06707da3f3f6eeec over 427 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T03:50:15.704Z by claude-c73232724159e5bd
+- entry hash format: 2
+- entry: sha256:e8e691bb68c543bd83b54e36825b4e5b060d7d0caff7535dafe40d9e9ec1fe3d of this entry without this block
+- parent-entry: sha256:35b3f20bbf64f5677cfbdbec27d02bbe1eebeca5927add3041b47301617f3648
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 321s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify

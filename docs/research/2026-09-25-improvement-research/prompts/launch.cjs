@@ -10,6 +10,7 @@
 //   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --smoke [jobs]   one-word answer per route
 //   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start <jobs>
 //   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --status
+//   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --preflight      role lines of .ai/TASK.md, read-only
 //   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --stop <job>
 //   node docs/research/2026-09-25-improvement-research/prompts/launch.cjs --start <job> --route kilo:<n> [--takeover]
 //
@@ -654,7 +655,7 @@ function expand(list) {
 // PROTO-DEC-0047 item 8: unknown or malformed input exits 2, never a silent default. Every
 // argument is a known flag or the value of the flag before it; numbers are positive whole numbers.
 class UsageError extends Error {}
-const COMMANDS = ['--dry', '--check', '--smoke', '--start', '--stop', '--status', '--run'];
+const COMMANDS = ['--dry', '--check', '--smoke', '--start', '--stop', '--status', '--preflight', '--run'];
 const JOB_LISTS = ['--dry', '--check', '--smoke', '--start', '--stop'];
 const NUMBERS = { '--soft-seconds': 'softSeconds', '--hard-seconds': 'hardSeconds', '--cap-minutes': 'capMinutes' };
 
@@ -677,7 +678,7 @@ function options(argv) {
       i += 1;
     } else if (JOB_LISTS.includes(a)) {
       if (next !== undefined && !next.startsWith('--')) i += 1;
-    } else if (a !== '--takeover' && a !== '--status') {
+    } else if (a !== '--takeover' && a !== '--status' && a !== '--preflight') {
       throw new UsageError(`unknown argument "${a}"`);
     }
     if (a === '--takeover') cfg.takeover = true;
@@ -784,6 +785,36 @@ function check(ids) {
   return failed ? 1 : 0;
 }
 
+// Pre-launch role check (the owner's gate, 2026-09-25). `protocol-session start` injects each
+// agent's `## Roles` line from `.ai/TASK.md`; a name without a line is told to ask the owner before
+// starting work. Every job's agent must have a line that points to that job; the K-launch operator
+// must have its operator line. Read-only: the session hook's own parser is used and nothing is
+// written.
+function rolePreflight(entries, jobs = JOBS) {
+  const text = agent => entries.filter(e => e.agent === agent).map(e => e.role).join('; ');
+  const rows = [];
+  for (const agent of [...new Set(Object.values(jobs).map(j => j.agent))]) {
+    const ids = Object.keys(jobs).filter(id => jobs[id].agent === agent);
+    const line = text(agent);
+    const missing = ids.filter(id => !line.includes(`job ${id}`));
+    let why = `points to ${ids.map(id => `job ${id}`).join(', ')}`;
+    if (!line) why = 'no ## Roles line: the session start would say "Ask the owner before starting work"';
+    else if (missing.length) why = `the role line names no ${missing.map(id => `job ${id}`).join(', ')}`;
+    rows.push({ agent, ok: Boolean(line) && !missing.length, why });
+  }
+  const operator = text('kilo');
+  rows.push({ agent: 'kilo', ok: /operator of K-launch/.test(operator), why: operator ? 'operator of K-launch' : 'no ## Roles line' });
+  return rows;
+}
+
+function preflight() {
+  const hooks = require(path.join(ROOT, '.ai', 'bin', 'protocol-hooks.cjs'));
+  const rows = rolePreflight(hooks.assignment(ROOT));
+  for (const r of rows) process.stdout.write(`${r.ok ? 'ok  ' : 'FAIL'} ${r.agent}: ${r.why}\n`);
+  process.stdout.write(`${rows.filter(r => r.ok).length}/${rows.length} role lines point to their jobs; nothing was written\n`);
+  return rows.every(r => r.ok) ? 0 : 1;
+}
+
 function status() {
   for (const id of Object.keys(JOBS)) {
     const s = readJob(id);
@@ -871,7 +902,7 @@ function main(argv) {
   let cfg;
   try { cfg = options(argv); } catch (e) {
     if (!(e instanceof UsageError)) throw e;
-    process.stdout.write(`${e.message}\nusage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route primary|kilo:<n>] [--takeover] [--soft-seconds N] [--hard-seconds N] [--cap-minutes N] | --status | --stop <jobs>\n`);
+    process.stdout.write(`${e.message}\nusage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route primary|kilo:<n>] [--takeover] [--soft-seconds N] [--hard-seconds N] [--cap-minutes N] | --status | --preflight | --stop <jobs>\n`);
     return 2;
   }
   const pick = flag => {
@@ -882,6 +913,7 @@ function main(argv) {
   const bad = ids => ids.filter(id => !JOBS[id]);
   if (argv.includes('--run')) { const id = argv[argv.indexOf('--run') + 1]; if (!JOBS[id]) return 2; run(id, cfg.route, cfg); return null; }
   if (argv.includes('--status')) return status();
+  if (argv.includes('--preflight')) return preflight();
   for (const flag of ['--dry', '--check', '--smoke', '--start', '--stop']) {
     if (!argv.includes(flag)) continue;
     const picked = pick(flag);
@@ -893,7 +925,7 @@ function main(argv) {
     if (flag === '--start') return startJobs(ids, cfg);
     return stop(ids);
   }
-  process.stdout.write('usage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route kilo:<n>] [--takeover] | --status | --stop <jobs>\n');
+  process.stdout.write('usage: --dry [jobs] | --check [jobs] | --smoke [jobs] | --start <jobs> [--route kilo:<n>] [--takeover] | --status | --preflight | --stop <jobs>\n');
   return 2;
 }
 
@@ -902,4 +934,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, parsePorcelainZ, scopeViolations, JOURNAL_RE, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, startBlockers, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, rolePreflight, parsePorcelainZ, scopeViolations, JOURNAL_RE, JOBS, DEFAULTS, ERROR_TEXT };

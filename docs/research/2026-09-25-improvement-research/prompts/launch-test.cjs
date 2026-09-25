@@ -138,6 +138,14 @@ function pureChecks() {
   out.push(['scope: an edit to a tracked journal stops', L.scopeViolations([{ code: ' M', path: '.ai/worklog/codex-0123456789abcdef.md' }], [], [], () => 'x').length === 1]);
   const vibe = L.primaryCommand('b-mistral', 'm', 'D:/w');
   out.push(['vibe: minimal tool set under --auto-approve, no web tool', /--enabled-tools read_file .*--enabled-tools powershell --auto-approve/.test(vibe) && !/web_/.test(vibe)]);
+  // The owner's pre-launch role gate: every job agent's `## Roles` line points to its job.
+  const jobs2 = { 'x-one': { agent: 'aa' }, 'x-two': { agent: 'bb' } };
+  const verdict = entries => L.rolePreflight(entries, jobs2).map(r => `${r.agent}:${r.ok}`).join(' ');
+  out.push(['preflight: a missing line, a line without its job, and a missing operator line fail',
+    verdict([{ agent: 'aa', role: 'research frames only: job x-one' }, { agent: 'bb', role: 'research frames only' }]) === 'aa:true bb:false kilo:false']);
+  out.push(['preflight: lines naming each job and the operator pass',
+    verdict([{ agent: 'aa', role: 'job x-one' }, { agent: 'bb', role: 'job x-two' }, { agent: 'kilo', role: 'operator of K-launch only' }]) === 'aa:true bb:true kilo:true']);
+  out.push(['options ["--preflight"] parses', code(['--preflight']) === 0]);
   const copilot = L.primaryCommand('b-grok', 'm', 'D:/w');
   let parses = true;
   try { L.checkCommand(copilot); } catch { parses = false; }

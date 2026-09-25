@@ -70,7 +70,9 @@ No floor applies: the frames write only under this folder. Cells come from
   (`--check`: 24 of 24 commands parse, no model called, 2026-09-25). It fails over by P-L3-004. Every
   attempt runs in a disposable git worktree, and only the job's outputs and new journals come back
   (PROTO-DEC-0070, R-L3-004.9). Its self-test (`prompts/launch-test.cjs`, fake clients) has 15
-  scenarios and 52 pure checks: 70 of 70 in three runs in a row on Windows, 2026-09-25.
+  scenarios and 55 pure checks: 73 of 73 in three runs in a row on Windows, 2026-09-25.
+  `--preflight` checks, read-only, that every job's agent has a `## Roles` line pointing to its
+  job, so that no researcher is told to ask the owner before starting work.
 - One model holds one role in a frame (R-L2-002.2). A synthesiser is never a researcher of its own
   study. Researchers of one study do not read each other before their own files are written
   (R-L1-researcher.2). Swapping a job's model means editing `launch.cjs` and its job file, and is
