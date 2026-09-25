@@ -190,8 +190,42 @@ function alive(pid) {
   catch { return false; }
 }
 
-function kill(pid) {
-  try { execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' }); } catch { /* already gone */ }
+// Stops one process by PID. Callers pass only a PID whose identity (PID plus creation time) they
+// have just confirmed in a process-table snapshot. No /T: taskkill /T selects children by parent
+// linkage, which a reused PID makes unreliable (R-L3-004.7, CB-24).
+function killExact(pid) {
+  try { execFileSync('taskkill', ['/PID', String(pid), '/F'], { stdio: 'ignore' }); } catch { /* already gone */ }
+}
+
+// The live processes of a recorded tree, newest first, so leaves go before their parents. `known`
+// maps pid to creation time; a process counts only while its PID and creation time both match.
+// A live process whose parent is in the set, and which is no older than that parent, joins it, so
+// children started after the last tick are found too.
+function aliveTree(rows, known) {
+  if (!rows) return null;
+  const byPid = new Map(rows.map(r => [r.ProcessId, r]));
+  const set = new Map();
+  const recorded = new Map(Object.entries(known || {}).map(([pid, created]) => [Number(pid), Number(created)]));
+  for (const [pid, created] of recorded) { const r = byPid.get(pid); if (r && Number(r.C) === created) set.set(pid, created); }
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const r of rows) {
+      if (set.has(r.ProcessId)) continue;
+      const parent = set.get(r.ParentProcessId);
+      if (parent !== undefined && Number(r.C) >= parent) { set.set(r.ProcessId, Number(r.C)); grew = true; }
+    }
+  }
+  return [...set.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0]).map(([pid, created]) => ({ pid, created }));
+}
+
+// Everything a job's record says may still run: each attempt's root and recorded descendants.
+function recordedTree(s) {
+  const known = {};
+  for (const a of (s && s.attempts) || []) {
+    Object.assign(known, a.known || {});
+    if (a.pid && a.rootCreated !== null && a.rootCreated !== undefined) known[a.pid] = a.rootCreated;
+  }
+  return known;
 }
 
 // L6-L7: CPU seconds and child set of each running tree, one query per tick.
@@ -316,17 +350,20 @@ function run(jobId, routeArg, cfg, ov = {}) {
   // R-L3-004.7: the previous tree must be gone before anything else starts. Only processes seen as
   // descendants while the root was alive, and still carrying the same creation time, are stopped;
   // nothing is ever stopped by a PID alone.
-  const ensureGone = (att, rootPid, isExited, done) => {
+  // Descendants go first, newest first, each by PID only right after its identity was confirmed;
+  // the root is stopped through Node's own child handle, never by its PID (CB-24).
+  const ensureGone = (att, child, isExited, done) => {
     let rounds = 0;
     const check = setInterval(() => {
       rounds += 1;
-      if (!isExited()) kill(rootPid); // the root is ours until Node reports its exit
       const rows = procTable();
-      const left = rows ? Object.entries(att.known || {})
-        .filter(([pid, created]) => rows.some(r => r.ProcessId === Number(pid) && Number(r.C) === created))
-        .map(([pid]) => Number(pid)) : null;
-      if (isExited() && left && !left.length) { clearInterval(check); done(true); return; }
-      for (const p of left || []) kill(p);
+      const known = { ...att.known };
+      if (!isExited() && att.rootCreated !== null) known[child.pid] = att.rootCreated;
+      const left = aliveTree(rows, known);
+      const descendants = left ? left.filter(p => p.pid !== child.pid || isExited()) : null;
+      for (const p of descendants || []) { att.known[p.pid] = p.created; killExact(p.pid); }
+      if (!isExited() && (!descendants || !descendants.length || rounds > 5)) { try { child.kill(); } catch { /* exited */ } }
+      if (isExited() && descendants && !descendants.length) { clearInterval(check); done(true); return; }
       if (rounds > 30) { clearInterval(check); done(false); }
     }, 1000);
   };
@@ -361,7 +398,7 @@ function run(jobId, routeArg, cfg, ov = {}) {
     child.on('exit', code => { exited = code === null ? -1 : code; });
     const finish = status => {
       att.status = status; att.endedAt = new Date().toISOString();
-      ensureGone(att, child.pid, () => exited !== null, gone => { att.treeGone = gone; settle(att); });
+      ensureGone(att, child, () => exited !== null, gone => { att.treeGone = gone; settle(att); });
     };
     const timer = setInterval(() => {
       const t = Date.now();
@@ -634,10 +671,14 @@ function stop(ids) {
     }
     const rows = procTable();
     const watchdogAlive = s.watchdog ? sameProcess(s.watchdog, s.watchdogCreated, rows) : false;
-    if (!watchdogAlive && sameProcess(s.pid, s.rootCreated, rows)) {
-      kill(s.pid); s.status = 'NEEDS_OWNER'; s.reason = 'stopped by the owner'; s.pid = null; writeJob(id, s);
-      process.stdout.write(`${id}: stopped (no watchdog was running)\n`);
-    } else process.stdout.write(`${id}: stop requested; the watchdog stops it within one tick\n`);
+    if (watchdogAlive) { process.stdout.write(`${id}: stop requested; the watchdog stops it within one tick\n`); continue; }
+    // No watchdog: stop the recorded tree here, leaves first, each process by identity only.
+    const left = aliveTree(rows, recordedTree(s));
+    if (!left) { process.stdout.write(`${id}: the process table cannot be read; nothing was stopped\n`); continue; }
+    for (const p of left) killExact(p.pid);
+    const after = aliveTree(procTable(), recordedTree(s));
+    s.status = 'NEEDS_OWNER'; s.reason = 'stopped by the owner'; s.pid = null; s.watchdog = null; writeJob(id, s);
+    process.stdout.write(`${id}: no watchdog was running; stopped ${left.length} process(es) by identity${after && after.length ? `; still alive: ${after.map(p => p.pid).join(', ')}` : ''}\n`);
   }
   return 0;
 }
@@ -677,4 +718,4 @@ if (require.main === module) {
   if (code !== null) process.exitCode = code;
 }
 
-module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };
+module.exports = { threeLevels, resolveEffort, kiloCandidates, decide, classifyExit, chunkIsProgress, aliveTree, stop, primaryCommand, kiloCommand, checkCommand, run, readJob, check, takeStartLock, lockFile, options, UsageError, main, JOBS, DEFAULTS, ERROR_TEXT };

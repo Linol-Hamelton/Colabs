@@ -32,6 +32,8 @@ const SC = {
   'zz-t9': { primary: 'ratelimit-loop', kilo: 'work', expect: { status: 'DONE', attempts: 2, first: 'FAILED_EARLY' } },
   // CB-18: an owner stop issued before the watchdog runs is obeyed, not deleted.
   'zz-t10': { primary: 'work', kilo: 'work', stopBefore: true, expect: { status: 'NEEDS_OWNER', attempts: 0 } },
+  // CB-24: the root exits while a detached grandchild lives; the watchdog stops it by identity.
+  'zz-t11': { primary: 'orphan-exit', kilo: 'work', orphanGone: true, expect: { status: 'DONE', attempts: 1, first: 'DONE' } },
 };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
@@ -86,6 +88,16 @@ function pureChecks() {
     'You exceeded your current quota', 'RESOURCE_EXHAUSTED', 'Insufficient Balance']) out.push([`error text detected: ${t}`, L.ERROR_TEXT.test(t)]);
   for (const t of ['line 503 of the spec', 'processed 429 tokens', 'Forbidden path: .claude/ is outside the sandbox',
     'the quota section of the report', 'a rate limit policy for providers', 'wrote 500 lines']) out.push([`normal text not flagged: ${t}`, !L.ERROR_TEXT.test(t)]);
+  // CB-17, CB-24: identity-only trees. Rows: root 100; child 101; grandchild 102; 103 claims parent
+  // 100 but is older (a dead namesake's child); 104 reuses a recorded PID with a new creation time.
+  const rows = [{ ProcessId: 100, ParentProcessId: 1, C: 10 }, { ProcessId: 101, ParentProcessId: 100, C: 11 },
+    { ProcessId: 102, ParentProcessId: 101, C: 12 }, { ProcessId: 103, ParentProcessId: 100, C: 5 },
+    { ProcessId: 104, ParentProcessId: 1, C: 50 }, { ProcessId: 301, ParentProcessId: 300, C: 25 }];
+  const pids = list => (list || []).map(x => x.pid).join(',');
+  out.push(['aliveTree: live tree newest first, older namesake child excluded', pids(L.aliveTree(rows, { 100: 10 })) === '102,101,100']);
+  out.push(['aliveTree: a reused PID is not the recorded process', pids(L.aliveTree(rows, { 104: 20 })) === '']);
+  out.push(['aliveTree: a child of a dead recorded process is not stopped', pids(L.aliveTree(rows, { 300: 20 })) === '']);
+  out.push(['aliveTree: unreadable table is unknown, not empty', L.aliveTree(null, { 100: 10 }) === null]);
   // CB-19: a retry loop's log lines are not progress; ordinary output is.
   out.push(['error-only log chunk is not progress', !L.chunkIsProgress('stream error: 429 rate limit exceeded\nstream error: 429 rate limit exceeded; retrying in 1s\n')]);
   out.push(['retry notices alone are not progress', !L.chunkIsProgress('Retrying in 5 seconds (attempt 3/10)\n\n')]);
@@ -122,9 +134,24 @@ for (const c of race) {
   });
 }
 
+// A killed process may linger as a zombie on Linux until it is reaped; it counts as gone.
+const pidAlive = pid => {
+  try { if (/\) Z /.test(fs.readFileSync(`/proc/${pid}/stat`, 'utf8'))) return false; } catch { /* not Linux, or gone */ }
+  try { process.kill(pid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
+};
+const quiet = fn => { const w = process.stdout.write; process.stdout.write = () => true; try { return fn(); } finally { process.stdout.write = w; } };
+
 function scenarios() {
-  const ids = Object.keys(SC);
+  const ids = Object.keys(SC).filter(id => !SC[id].own);
   let left = ids.length;
+  const report = line => {
+    results.push(line);
+    left -= 1;
+    if (left) return;
+    cleanup();
+    process.stdout.write(`${results.sort().join('\n')}\n`);
+    process.exitCode = results.every(r => r.startsWith('PASS')) ? 0 : 1;
+  };
   for (const id of ids) {
     if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
     const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
@@ -139,12 +166,18 @@ function scenarios() {
       const e = SC[id].expect;
       const got = st ? { status: st.status, attempts: st.attempts.length, first: st.attempts[0] && st.attempts[0].status } : null;
       const ok = got && got.status === e.status && got.attempts === e.attempts && got.first === e.first;
-      results.push(`${ok ? 'PASS' : 'FAIL'} ${id}: expected ${JSON.stringify(e)} got ${JSON.stringify(got)}${st && st.reason ? `; reason: ${st.reason}` : ''}`);
-      left -= 1;
-      if (left) return;
-      cleanup();
-      process.stdout.write(`${results.sort().join('\n')}\n`);
-      process.exitCode = results.every(r => r.startsWith('PASS')) ? 0 : 1;
+      const line = note => `${ok && !/ALIVE/.test(note) ? 'PASS' : 'FAIL'} ${id}: expected ${JSON.stringify(e)} got ${JSON.stringify(got)}${st && st.reason ? `; reason: ${st.reason}` : ''}${note}`;
+      if (!SC[id].orphanGone) { report(line('')); return; }
+      const f = st && st.attempts[0] && (st.attempts[0].changed || [])[0];
+      const orphanPid = f ? Number(fs.readFileSync(path.join(path.dirname(f), 'orphan.pid'), 'utf8')) : null;
+      let waited = 0;
+      const wait = setInterval(() => {
+        waited += 250;
+        const gone = orphanPid !== null && !pidAlive(orphanPid);
+        if (!gone && waited < 3000) return;
+        clearInterval(wait);
+        report(line(`; grandchild ${orphanPid} ${gone ? 'gone' : 'STILL ALIVE'}`));
+      }, 250);
     }, 500);
   }
 }

@@ -63,7 +63,10 @@ third cost it never accepts is two executors doing one task.
   process tree is confirmed gone, and a running record blocks a second start. Running the
   primary and the fallback in parallel needs an explicit owner decision. A process is
   identified by its PID together with its creation time, and nothing is stopped by a PID alone:
-  Windows reuses PIDs, and the parent id of a live process can name a long-dead parent.
+  Windows reuses PIDs, and the parent id of a live process can name a long-dead parent. A tree is
+  stopped leaf first: each descendant by its PID only right after its identity was confirmed in a
+  fresh process table, the root through the dispatcher's own child handle, and never by a tree
+  kill that selects children by parent linkage (`taskkill /T`).
 - R-L3-004.8. The total cap of PROTO-DEC-0050 item 2 stays. Reaching it saves the state and goes
   to the owner; it never starts another route.
 
@@ -166,4 +169,4 @@ A hard failure is one of:
 ## Change log
 
 - 0.1 — 2026-09-25 — claude-eb97ac9d13050014 — first draft, trial by owner directive (PROTO-DEC-0067); identity by creation time, retry-loop rule and owner stop added after the launcher's test found the gaps — review pending.
-- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress) — second pass pending.
+- 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill) — second pass pending.
