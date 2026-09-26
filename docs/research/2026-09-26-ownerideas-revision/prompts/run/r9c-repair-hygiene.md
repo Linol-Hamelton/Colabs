@@ -45,6 +45,22 @@ The certifications of PKG-1, PKG-2 and PKG-5 must be re-run on the repaired (cle
 current reports were produced on a polluted one. The operator resets the cert slots after this
 slot closes.
 
+## Review findings (stage-9 DeepSeek, `round8/IMPLEMENTATION-REVIEW-DEEPSEEK.md`, verdict FINDINGS - 5 BLOCKING)
+
+Reproduce each; fix the confirmed ones minimally; refute with evidence if a reproduction fails.
+
+- **F-1 BLOCKING** - the PKG-5 adversarial audit prompt does not exist (the package requires it).
+- **F-2 BLOCKING** - the run-record `class` enum contradicts `run-record.schema.md` and
+  PROTO-DEC-0075 item 4.
+- **F-3 BLOCKING** - `docs/specs/bin-output-schema.md` lists twelve classes, not the fifteen of
+  PROTO-DEC-0075 item 4.
+- **F-4 BLOCKING** - the dispatch tests are not hermetic; they write into the canonical store
+  (same root cause as finding 1 above).
+- **F-5 BLOCKING** - registry freshness / AC-15 not reproducible: `vibe` is pinned to a stale
+  version in the client registry.
+- Related RECOMMENDATION: the registry at `:40` names `protocol-telemetry.cjs` and
+  `protocol-audit.cjs` (check whether they exist or should not be named).
+
 ## Output
 
 - `docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-HYGIENE-GEMINI.md`: one row per
