@@ -5,7 +5,8 @@
 - Role: synthesiser A — the Kimi synthesis over the frozen round-1 corpus. Your own synthesis only;
   the outcome of this frame is the single output file below.
 - Agent name for the protocol: `kimi`. Model and route (frozen, do not change): Kimi K2.7 Code
-  HighSpeed, effort high, through `kilo run -m vercel/moonshotai/kimi-k2.7-code-highspeed`.
+  HighSpeed through the `kimi` CLI, alias `moonshot-ai/kimi-k2.7-code-highspeed`; thinking effort
+  high comes from the client's own config (the CLI exposes no effort flag).
 - Read first: `docs/research/2026-09-26-ownerideas-revision/prompts/COMMON.md`, then
   `docs/research/2026-09-26-ownerideas-revision/prompts/SYNTHESIS.md`. The frozen corpus list is
   `docs/research/2026-09-26-ownerideas-revision/round2/CORPUS.txt`; verify every hash in it.

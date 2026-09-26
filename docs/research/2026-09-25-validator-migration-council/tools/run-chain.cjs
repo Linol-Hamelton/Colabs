@@ -35,6 +35,11 @@ const CLIENTS = {
   kilo: (r, m, id) => `kilo run -m ${r.model}${r.effort ? ` --variant ${r.effort}` : ''} --auto --dir "${ROOT}" --title ${id} --format json "${m}"`,
   claude: (r, m) => `claude -p "${m}" --model ${r.model}${r.effort ? ` --effort ${r.effort}` : ''} --permission-mode acceptEdits --allowedTools Read Grep Glob Write Edit "Bash(node:*)" "Bash(git:*)" "Bash(powershell:*)"`,
   vibe: (r, m) =>`vibe -p "${m}" ${VIBE_TOOLS} --auto-approve --trust --max-turns 400 --output streaming --workdir "${ROOT}"`,
+  // Added 2026-09-26 for the OwnerIdeas revision (owner stated both CLIs are installed and default
+  // to the two models; smoke-tested, see the operator journal). kimi prompt mode is already
+  // non-interactive and refuses --auto; its thinking effort comes from the client config.
+  kimi: (r, m) => `kimi -p "${m}"${r.model ? ` -m ${r.model}` : ''} --output-format stream-json`,
+  mimo: (r, m) => `mimo run "${m}"${r.model ? ` -m ${r.model}` : ''}${r.effort ? ` --variant ${r.effort}` : ''} --yolo --format json`,
 };
 // Environment a client needs (its PROTO-DEC-0050 item 3 profile). vibe is Python and fails on a
 // non-ASCII character under the Windows code page (measured again 2026-09-25: 'charmap' codec).

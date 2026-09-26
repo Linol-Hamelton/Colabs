@@ -5,7 +5,7 @@
 - Role: synthesiser B — the MiMo synthesis over the frozen round-1 corpus. Your own synthesis only;
   the outcome of this frame is the single output file below.
 - Agent name for the protocol: `mimo`. Model and route (frozen, do not change): MiMo-V2.6-Pro,
-  effort high, through `kilo run -m vercel/xiaomi/mimo-v2.6-pro`.
+  effort high (`--variant high`), through the `mimo` CLI with model `xiaomi/mimo-v2.6-pro`.
 - Read first: `docs/research/2026-09-26-ownerideas-revision/prompts/COMMON.md`, then
   `docs/research/2026-09-26-ownerideas-revision/prompts/SYNTHESIS.md`. The frozen corpus list is
   `docs/research/2026-09-26-ownerideas-revision/round2/CORPUS.txt`; verify every hash in it.
