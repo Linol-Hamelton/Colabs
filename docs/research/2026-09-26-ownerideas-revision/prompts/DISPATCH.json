@@ -176,6 +176,29 @@
         "client": "kilo",
         "model": "deepseek/deepseek-flash"
       }
+    },
+    {
+      "id": "r7b-claude-fix",
+      "frame": "task:ownerideas-r7b-claude-fix",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round7/FIX-CLAUDE.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r7b-claude-fix.md",
+      "needs": ["r7-precheck-deepseek"],
+      "route": {
+        "client": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      }
+    },
+    {
+      "id": "r7c-deepseek-recheck",
+      "frame": "task:ownerideas-r7c-deepseek-recheck",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round7/RECHECK-DEEPSEEK.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r7c-deepseek-recheck.md",
+      "needs": ["r7b-claude-fix"],
+      "route": {
+        "client": "kilo",
+        "model": "deepseek/deepseek-flash"
+      }
     }
   ]
 }
