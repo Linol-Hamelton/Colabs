@@ -45,6 +45,30 @@
         "client": "vibe",
         "model": "mistral-medium-3.5"
       }
+    },
+    {
+      "id": "r2-kimi",
+      "frame": "task:ownerideas-r2-kimi",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-KIMI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r2-kimi.md",
+      "needs": ["r1-gemini", "r1-claude", "r1-deepseek", "r1-mistral"],
+      "route": {
+        "client": "kilo",
+        "model": "vercel/moonshotai/kimi-k2.7-code-highspeed",
+        "effort": "high"
+      }
+    },
+    {
+      "id": "r2-mimo",
+      "frame": "task:ownerideas-r2-mimo",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-MIMO.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r2-mimo.md",
+      "needs": ["r1-gemini", "r1-claude", "r1-deepseek", "r1-mistral"],
+      "route": {
+        "client": "kilo",
+        "model": "vercel/xiaomi/mimo-v2.6-pro",
+        "effort": "high"
+      }
     }
   ]
 }
