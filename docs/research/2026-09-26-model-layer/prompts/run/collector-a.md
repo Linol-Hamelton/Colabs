@@ -11,4 +11,5 @@
   - `round1/COVERAGE-A.md` - your per-dimension coverage draft (COVERED / WEAK / MISSING with reasons).
 - Write `round1/COVERAGE-A.md`, not `round1/COVERAGE.md`: collector B writes `COVERAGE-B.md` in parallel; two writers on one path would lose one draft. The merged audit is assembled at round 2 from both files.
 - Do not edit files outside `docs/research/2026-09-26-model-layer/round1/` except `OwnerIdeas/benchmark.md` markers (replace a marker with its verified source or remove the claim it supported) and your journal. No commits, tags, pushes or branches.
-- Close with a five-label journal entry and `record --quick`; frame line: `Orientation: ... @ task:f02-collector-a`.
+- Protocol, mandatory and first: start your session (`node .ai/bin/protocol-session.cjs start --agent gemini`) and make the FIRST journal write contain both lines `Launch: model=... effort=... client=...` and `Orientation: <model> @ task:f02-collector-a ... independent collector A | success=<your output>` before any other work; the runner matches the frame by that Orientation line (an earlier attempt without it was misread as NO_START).
+- Close with a five-label journal entry and `record --quick`; frame line as above.
