@@ -8,6 +8,37 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Stage 7 fix loop closed (PASS); stage 8 launched with review and certifiers
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r7b-claude-fix`: FIX-CLAUDE.md verdict FIX COMPLETE - B1 fixed via `tests/fixtures/dispatch/R3-DISPATCH.json` plus the archive path as provenance; B2 replaced the invented USAGE row; the W1 overlap resolved in the resolution (single owner for `protocol-manifest.json`). Try 2 died on the Claude weekly limit ("resets 2pm" = 2026-09-27 14:00 MSK); the slot was accepted by the operator on the delivered artifacts. `r7c-deepseek-recheck`: PASS (`round7/RECHECK-DEEPSEEK.md`).
+- All pending work committed and pushed to origin/v2.0.0: `74dde71..d346ae9` (68 commits, includes the whole revision program through the fix loop).
+- Stage 8 dispatched: slots `r8-exec-e1` (agy, Gemini 3.8 Flash high; PKG-1 then PKG-3), `r8-exec-e2` (vibe, Mistral Medium 3.5 max; PKG-2, PKG-4, PKG-5), then automatically `r8-review-deepseek` (kilo, DeepSeek 4.1 Flash) and the two high-risk certifiers `r8-cert-kimi` (Kimi K2.7 Code HighSpeed) and `r8-cert-mimo` (MiMo-V2.6-Pro high), both needing the executors. Prompts `IMPLEMENT.md`, `IMPLEMENTATION-REVIEW.md`, `CERTIFY.md` and the five run files committed. Runner pid 22340; E1 STARTING, E2 WORKING.
+- Claude status: no pending work in this cycle; its only remaining task is stage 12 (owner-run in the cloud; operator prepares the manifest and prompt and reports readiness). The local subscription is weekly-limited until 2026-09-27 14:00 MSK.
+
+Result: the plan is frozen and under implementation in two edit streams; review and certification follow automatically; stage 12 stays owner-run.
+
+Next step: watch stage 8; on both executors DONE the review and certifications run; then stage 10 repair (only on findings), stage 11 verification (GPT-5.6 Sol), then the stage-12 readiness report.
+
+Open: stage 8 duration unknown (roughly 1.5-3 h); OQ-1/OQ-2/OQ-3 may surface through STOP conditions.
+
+Evidence:
+- anchor: e4ff6c5bb1de89a34ca02638c337b9b36ffb8130, uncommitted changes present
+- digest: sha256:a523ed13231934094bf7dae3684d6f2c9f7a60b9d89e915df5e341ca972cfbe8 over 628 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T16:42:56.888Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:e7a04a42eb67c43e7a70d355f35c606a5e6219785f6a1c73646f68fed0de14a9 of this entry without this block
+- parent-entry: sha256:161f29e4622805de1ee3813db042f4be203e9ee569372097ef8c3af9f37c3787
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - Stage 12 is owner-run in cloud Claude (operator does not launch it)
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
