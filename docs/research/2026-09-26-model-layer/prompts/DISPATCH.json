@@ -1,0 +1,41 @@
+{
+  "stateDir": ".ai/runtime/model-layer",
+  "usageFile": "docs/research/2026-09-26-model-layer/USAGE.md",
+  "startLimitMin": 15,
+  "stallMin": 60,
+  "runLimitHours": 12,
+  "slots": [
+    {
+      "id": "f02-collector-a",
+      "frame": "task:f02-collector-a",
+      "out": "docs/research/2026-09-26-model-layer/round1/CITATIONS.md",
+      "launch": "docs/research/2026-09-26-model-layer/prompts/run/collector-a.md",
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
+      "id": "f02-collector-b",
+      "frame": "task:f02-collector-b",
+      "out": "docs/research/2026-09-26-model-layer/round1/model-benchmark-evidence.jsonl",
+      "launch": "docs/research/2026-09-26-model-layer/prompts/run/collector-b.md",
+      "route": {
+        "client": "kilo",
+        "model": "deepseek/deepseek-flash",
+        "effort": "max"
+      }
+    },
+    {
+      "id": "f02-verifier",
+      "frame": "task:f02-verifier",
+      "out": "docs/research/2026-09-26-model-layer/round2/VERIFICATION.md",
+      "launch": "docs/research/2026-09-26-model-layer/prompts/run/verifier.md",
+      "needs": ["f02-collector-a", "f02-collector-b"],
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
+      }
+    }
+  ]
+}
