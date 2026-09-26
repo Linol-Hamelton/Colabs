@@ -13,3 +13,4 @@ or deleted artifact. Edited only under the shared-document lock.
 | 2026-09-26 | CR-F15-1 | `docs/research/2026-09-25-workflowai-review` | `docs/research/archive/2026-09-25-workflowai-review` | PROTO-DEC-0078 | ARCHIVE | frame CLOSED; workflowAI.md reference repointed |
 | 2026-09-26 | CR-F08-1 | `docs/research/2026-09-20-cycle-history` | `docs/research/archive/2026-09-20-cycle-history` | input of PROTO-DEC-0041 | ARCHIVE | non-frame measurement set; owner-ordered archive, PLAN.md reference repointed |
 | 2026-09-26 | CR-F12-1 | `docs/research/2026-09-23-r0-decision-dataset` | `docs/research/archive/2026-09-23-r0-decision-dataset` | measurement dataset | ARCHIVE | non-frame measurement set; owner-ordered archive |
+| 2026-09-26 | CR-MANIFEST-1 | `docs/research/CLOSURE-MANIFEST-2026-09-26.md` | `docs/research/archive/CLOSURE-MANIFEST-2026-09-26.md` | receipt ledger CR-F12-1 | ARCHIVE | dry-run manifest of the first closure pass, kept as provenance |
