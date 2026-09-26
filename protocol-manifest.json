@@ -35,12 +35,19 @@
     "LICENSE",
     "CONTRIBUTING.md",
     "SECURITY.md",
-    "templates/reviews/REVIEW.md"
+    "templates/reviews/REVIEW.md",
+    ".ai/bin/protocol-dispatch.cjs",
+    ".ai/docs/clients.json",
+    "docs/specs/bin-output-schema.md",
+    ".ai/bin/protocol-runrecord.cjs",
+    "docs/specs/run-record.schema.md"
   ],
   "tests": [
     "tests/archive.test.cjs",
     "tests/codex.test.cjs",
     "tests/context-policy.test.cjs",
+    "tests/dispatch-fake-client.cjs",
+    "tests/dispatch.test.cjs",
     "tests/gate.test.cjs",
     "tests/handoff-chain.test.cjs",
     "tests/handoff.test.cjs",
@@ -55,6 +62,7 @@
     "tests/registry.test.cjs",
     "tests/review-findings.test.cjs",
     "tests/rulebook.test.cjs",
+    "tests/runrecord.test.cjs",
     "tests/session.test.cjs",
     "tests/upgrade.test.cjs",
     "tests/validator-syntax.test.cjs",

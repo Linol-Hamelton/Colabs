@@ -47,6 +47,8 @@ repository through the section 5.5 transcription fallback in `AGENTS.md`, marked
 and produced its own receipt. Re-test when either a DeepSeek model ships a larger
 context or a smaller harness is available; record the measurement, not an impression.
 
+The verified per-client data is `.ai/docs/clients.json` (section 9); the table above is the 2026-09-22 snapshot.
+
 ---
 
 ## 2. A call is a dispatch, never a transfer of authority
@@ -161,3 +163,19 @@ delivers it to every project and an upgrade refreshes it. A project whose instal
 copy predates this file does not have it until it is upgraded; check
 `protocolVersion` in its `protocol-manifest.json` before assuming these rules are
 present there.
+
+---
+
+## 9. Kernel dispatch (source repository only)
+
+Kernel agent dispatches are governed by `.ai/bin/protocol-dispatch.cjs`:
+
+- Prompts are files. A dispatch never injects prompt prose inline on the command line; the invocation carries the one pointer line: `Read and follow the file <launch>`.
+- Client commands are built only by `.ai/bin/protocol-dispatch.cjs` from `.ai/docs/clients.json`.
+- Flags are accepted only as verified from `--help`, with binary version and verification date recorded.
+- A new failure mode goes into the registry (`.ai/docs/clients.json`), not only into an individual run (PROTO-DEC-0050 item 3).
+- Every attempt runs in a private clone with the Level-1 environment (PROTO-DEC-0070, PROTO-DEC-0077 item 3): detached HEAD, remotes removed, no-push rule enforced, and credential canaries stripped.
+- Liveness is evaluated per PROTO-DEC-0075 item 5 (heartbeat progress, useful output growth, stall and hard limits).
+- The old runners (`run-chain.cjs` and `launch.cjs`) are superseded for new dispatches.
+- Recovery arrives with PKG-3.
+- This dispatch mechanism is not installed into host projects until the owner decides.

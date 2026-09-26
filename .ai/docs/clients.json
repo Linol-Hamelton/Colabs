@@ -1,0 +1,446 @@
+{
+  "schema": "clients/1",
+  "clients": {
+    "claude": {
+      "binary": "claude",
+      "present": true,
+      "version": "2.1.282 (Claude Code)",
+      "verifiedOn": "2026-09-26",
+      "source": "claude --version; claude --help",
+      "command": [
+        "claude",
+        "-p",
+        "{message}",
+        "--model",
+        "{model}",
+        {
+          "if": "effort",
+          "args": [
+            "--effort",
+            "{effort}"
+          ]
+        },
+        "--permission-mode",
+        "acceptEdits",
+        "--allowedTools",
+        "Read",
+        "Grep",
+        "Glob",
+        "Write",
+        "Edit",
+        "Bash(node:*)",
+        "Bash(git:*)",
+        "Bash(powershell:*)"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": null
+      },
+      "effort": {
+        "how": "flag",
+        "values": [
+          "low",
+          "medium",
+          "high",
+          "max"
+        ],
+        "note": null
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "claude",
+          "-r",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports -r/--resume [value]"
+      },
+      "usage": "none",
+      "failureModes": []
+    },
+    "codex": {
+      "binary": "codex",
+      "present": true,
+      "version": "codex-cli 0.154.0",
+      "verifiedOn": "2026-09-26",
+      "source": "codex --version; codex exec --help",
+      "command": [
+        "codex",
+        "exec",
+        "-m",
+        "{model}",
+        {
+          "if": "effort",
+          "args": [
+            "-c",
+            "model_reasoning_effort={effort}"
+          ]
+        },
+        "--approve-for-me",
+        "--skip-git-repo-check",
+        "-C",
+        "{workdir}",
+        "{message}"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": null
+      },
+      "effort": {
+        "how": "config",
+        "values": [
+          "none",
+          "low",
+          "medium",
+          "high",
+          "xhigh"
+        ],
+        "note": "via -c model_reasoning_effort="
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "codex",
+          "exec",
+          "resume",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports codex exec resume <id>"
+      },
+      "usage": "codex-tokens",
+      "failureModes": []
+    },
+    "agy": {
+      "binary": "agy",
+      "present": true,
+      "version": "1.2.11",
+      "verifiedOn": "2026-09-26",
+      "source": "agy --version; agy --help; agy models",
+      "command": [
+        "agy",
+        "-p",
+        "{message}",
+        "--model",
+        "{model}",
+        "--mode",
+        "accept-edits",
+        "--add-dir",
+        "{workdir}"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": [
+          "agy",
+          "models"
+        ]
+      },
+      "effort": {
+        "how": "model-id",
+        "values": null,
+        "note": "encoded in model id"
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "agy",
+          "--conversation",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports --conversation <id>"
+      },
+      "usage": "none",
+      "failureModes": []
+    },
+    "copilot": {
+      "binary": "copilot",
+      "present": true,
+      "version": "GitHub Copilot CLI 1.0.88.",
+      "verifiedOn": "2026-09-26",
+      "source": "copilot --version; copilot --help",
+      "command": [
+        "copilot",
+        "-p",
+        "{message}",
+        "--model",
+        "{model}",
+        {
+          "if": "effort",
+          "args": [
+            "--reasoning-effort",
+            "{effort}"
+          ]
+        },
+        "-C",
+        "{workdir}",
+        "--no-ask-user",
+        "--allow-tool=write",
+        "--allow-tool=shell(git:*)",
+        "--allow-tool=shell(node:*)",
+        "--allow-tool=shell(powershell:*)",
+        "--allow-tool=shell(Get-Content:*)",
+        "--allow-tool=shell(Get-ChildItem:*)",
+        "--allow-tool=shell(Select-String:*)",
+        "--allow-tool=shell(Test-Path:*)",
+        "--allow-tool=shell(Measure-Object:*)",
+        "--deny-tool=shell(git commit)",
+        "--deny-tool=shell(git push)",
+        "--deny-tool=shell(git tag)"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": null
+      },
+      "effort": {
+        "how": "flag",
+        "values": [
+          "none",
+          "minimal",
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "note": null
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "copilot",
+          "--resume={sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports --resume=<id>"
+      },
+      "usage": "copilot-credits",
+      "failureModes": []
+    },
+    "vibe": {
+      "binary": "vibe",
+      "present": true,
+      "version": "vibe 2.25.5",
+      "verifiedOn": "2026-09-26",
+      "source": "vibe --version; vibe --help",
+      "command": [
+        "vibe",
+        "-p",
+        "{message}",
+        "--enabled-tools",
+        "read_file",
+        "--enabled-tools",
+        "grep",
+        "--enabled-tools",
+        "write_file",
+        "--enabled-tools",
+        "edit",
+        "--enabled-tools",
+        "bash",
+        "--auto-approve",
+        "--trust",
+        "--max-turns",
+        "400",
+        "--output",
+        "streaming",
+        "--workdir",
+        "{workdir}"
+      ],
+      "model": {
+        "how": "none",
+        "listing": null
+      },
+      "effort": {
+        "how": "config",
+        "values": null,
+        "note": "configured via agent toml"
+      },
+      "env": {
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8"
+      },
+      "resume": {
+        "command": [
+          "vibe",
+          "--resume",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports --resume [SESSION_ID]"
+      },
+      "usage": "none",
+      "failureModes": [
+        {
+          "pattern": "charmap.*codec",
+          "class": "CONFIG_ERROR",
+          "cause": "Python non-ASCII encoding failure under Windows code page",
+          "countermeasure": "Set PYTHONUTF8=1 and PYTHONIOENCODING=utf-8"
+        }
+      ]
+    },
+    "kilo": {
+      "binary": "kilo",
+      "present": true,
+      "version": "7.7.9",
+      "verifiedOn": "2026-09-26",
+      "source": "kilo --version; kilo run --help; kilo models",
+      "command": [
+        "kilo",
+        "run",
+        "-m",
+        "{model}",
+        {
+          "if": "effort",
+          "args": [
+            "--variant",
+            "{effort}"
+          ]
+        },
+        "--auto",
+        "--dir",
+        "{workdir}",
+        "--title",
+        "{title}",
+        "--format",
+        "json",
+        "{message}"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": [
+          "kilo",
+          "models"
+        ]
+      },
+      "effort": {
+        "how": "flag",
+        "values": [
+          "high",
+          "max",
+          "minimal"
+        ],
+        "note": null
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "kilo",
+          "--session",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports --session <id>"
+      },
+      "usage": "kilo-json",
+      "failureModes": []
+    },
+    "kimi": {
+      "binary": "kimi",
+      "present": true,
+      "version": "2.1.1",
+      "verifiedOn": "2026-09-26",
+      "source": "kimi --version; kimi --help",
+      "command": [
+        "kimi",
+        "-p",
+        "{message}",
+        {
+          "if": "model",
+          "args": [
+            "-m",
+            "{model}"
+          ]
+        },
+        "--output-format",
+        "stream-json"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": null
+      },
+      "effort": {
+        "how": "config",
+        "values": null,
+        "note": "thinking effort from config.toml"
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "kimi",
+          "-S",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports -S/--session [id]"
+      },
+      "usage": "none",
+      "failureModes": [
+        {
+          "pattern": "unrecognized arguments:.*--auto",
+          "class": "CONFIG_ERROR",
+          "cause": "Kimi prompt mode refuses --auto",
+          "countermeasure": "Do not pass --auto in prompt mode"
+        }
+      ]
+    },
+    "mimo": {
+      "binary": "mimo",
+      "present": true,
+      "version": "0.1.15",
+      "verifiedOn": "2026-09-26",
+      "source": "mimo --version; mimo run --help",
+      "command": [
+        "mimo",
+        "run",
+        "{message}",
+        {
+          "if": "model",
+          "args": [
+            "-m",
+            "{model}"
+          ]
+        },
+        {
+          "if": "effort",
+          "args": [
+            "--variant",
+            "{effort}"
+          ]
+        },
+        "--yolo",
+        "--format",
+        "json"
+      ],
+      "model": {
+        "how": "flag",
+        "listing": [
+          "mimo",
+          "models"
+        ]
+      },
+      "effort": {
+        "how": "flag",
+        "values": [
+          "high",
+          "max",
+          "minimal"
+        ],
+        "note": null
+      },
+      "env": {},
+      "resume": {
+        "command": [
+          "mimo",
+          "run",
+          "--session",
+          "{sessionId}"
+        ],
+        "sessionId": "printed in launch output",
+        "note": "supports --session <id>"
+      },
+      "usage": "kilo-json",
+      "failureModes": []
+    }
+  }
+}
