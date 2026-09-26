@@ -146,4 +146,4 @@ All are drafts until stage 1 is approved.
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — passes the invariant key set and headings; verified-without-check ban, challenge rule, R-L0-18 reopening; pending ids marked — reviewer DeepSeek r2: verified.
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — R-L0-19 anchors P-L0-004 (CA-24); P-L0-003..005 no longer pending — reviewer DeepSeek: RECOMMENDATION.
 - 0.4 — 2026-09-24 — claude-eb97ac9d13050014 — class E no longer means disuse; R-L0-20 and R-L0-21 anchor P-L0-006 and P-L0-007 (PROTO-DEC-0060) — review pending (stage-1 re-check).
-- 0.5 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — R-L0-22 anchors P-L0-008 (PROTO-DEC-0083) — reviewer <reviewer>: <verdict>.
+- 0.5 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — R-L0-22 anchors P-L0-008 (PROTO-DEC-0083) — reviewer Mistral Medium 3.5 (`docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md`): RECOMMENDATION.
