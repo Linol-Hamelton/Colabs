@@ -103,3 +103,6 @@ Rules:
 | PROTO-DEC-0076 | accepted | owner-directive | f965cde | none | Item 4 partially lifted for R-3 only by PROTO-DEC-0080 (owner directive 2026-09-26); all other frozen hypotheses stay frozen |
 | PROTO-DEC-0063 | accepted | owner-directive | f965cde | none | Item 1 scoped to rank and price by PROTO-DEC-0080: verified public benchmarks with an address and a date may serve as the prior for a model's capability vector (owner directive 2026-09-26) |
 | PROTO-DEC-0052 | accepted | owner-directive | f965cde | none | Refined by PROTO-DEC-0082: RESEARCH-GOVERNOR trial (P-L0-008) applies to the OwnerIdeas revision program from 2026-09-26 |
+| PROTO-DEC-0083 | accepted | owner-directive | 566debf | none | Research governor P-L0-008 0.2 binds every frame of the source repository (no hosts; trial to the fifth closed frame); functional frame; kernel-completion parameters; DEFERRED_ACCEPTED; kill criterion; FRAMES.md registry; Kernel v1 contract |
+| PROTO-DEC-0082 | accepted | owner-directive | 566debf | none | Refined by PROTO-DEC-0083: scope widened from the OwnerIdeas program to every frame of the source repository; text replaced by P-L0-008 0.2 |
+| PROTO-DEC-0052 | accepted | owner-directive | 566debf | none | Item 1 further refined by PROTO-DEC-0083: P-L0-008 0.2 governs every research frame of the source repository from 2026-09-26 |
