@@ -68,6 +68,18 @@
         "model": "xiaomi/mimo-v2.6-pro",
         "effort": "high"
       }
+    },
+    {
+      "id": "r3-claude",
+      "frame": "task:ownerideas-r3-claude",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r3-claude.md",
+      "needs": ["r2-kimi", "r2-mimo"],
+      "route": {
+        "client": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "xhigh"
+      }
     }
   ]
 }
