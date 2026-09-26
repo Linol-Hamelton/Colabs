@@ -25,6 +25,7 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r8-exec-e1 | agy | gemini-3.8-flash-high | - | 33 | 194 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r8-exec-e2 | vibe | mistral-medium-3.5 | - | 18 | 288 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r8-review-deepseek | kilo | deepseek/deepseek-flash | - | 55 | 171 | 0.19 | 550721/29172 | 0.00 | 0 | 0 | DONE |
+| r8-cert-mimo | mimo | xiaomi/mimo-v2.6-pro | high | 49 | 70 | 0.42 | 732790/35655 | 0.00 | 0 | 0 | DONE |
 | r8b-cont-e1 | agy | gemini-3.8-flash-high | - | 55 | 303 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r8b-cont-e2 | vibe | mistral-medium-3.5 | - | 16 | 551 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r9b-repair-pkg5 | agy | gemini-3.8-flash-high | - | 39 | 143 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
