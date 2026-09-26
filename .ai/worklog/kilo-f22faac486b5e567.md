@@ -6,6 +6,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Cert round 1 on f3ab4b8: Kimi PASS, MiMo FAIL on PKG-2; targeted PKG-2 repair running
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Kimi certification round 1 (CANDIDATE f3ab4b8, actual HEAD 6babdec, empty normative diff, PKG-4 statement yes): **PASS** on PKG-1/2/3/5; worktree `cert-kimi`; full record in journal kimi-ba9a2160051850f3 and the final Receipt-Owner journal kimi-322149376b1a661c (Evidence present). Accepted by the operator because the slot picked a companion journal without Evidence.
+- MiMo certification round 1 (same CANDIDATE; state the owner's 2026-09-26 acceptance of Pro over Flash; PKG-4 statement yes): **FAIL** - PKG-2 only; PKG-1/PKG-3/PKG-5 PASS. Findings: F-PKG2-1 golden pins invented (the `head` is not a git object; `launchSha256` mismatches the real file; tests never check pins against the repository); F-PKG2-2 the AC-1 golden DONE record is missing (only the FAILED two-attempt record present). `git worktree add` was blocked in its environment; it verified against committed blobs and said so.
+- Operator reproduced both items: `git cat-file -t fd789ac0d8e5...` fails; the launch-file hash at `fd789ac` is `8bcb2e8d...` (MiMo measured `f500344c...`) - both differ from the fixture's `c3122761...`; `golden.jsonl` has one line (FAILED, no DONE record).
+- Split rule applied: the FAIL reproduces on CANDIDATE, so a targeted repair runs rather than a withdrawal. Dispatched `r9d-repair-pkg2` (Gemini high) with the two findings; round-2 certification slots `r8d-cert-kimi-pkg2` and `r8d-cert-mimo-pkg2` (PKG-2 only; the other packages keep round-1 verdicts) wait on it; `r9-verify-codex` needs the repair plus both round-2 certs. Commits: prompts `96187fa`; round-1 reports and journals `8131428`; both pushed.
+- r9d repair WORKING (journal gemini-573e1c9757d07529); supervisor bgp_0e0158467 running.
+
+Result: One real PKG-2 defect is under targeted repair; the remaining package verdicts are settled PASS.
+
+Next step: on r9d DONE - stop the supervisor promptly, commit the repair (new CANDIDATE), re-run the local lane (step 4) on it, then restart the supervisor so the two round-2 certs start on the verified CANDIDATE; then the Sol verification and STOPS 7-8.
+
+Open: new CANDIDATE pending; MiMo's `f500344c` measurement differs from the operator's `8bcb2e8d` (method diff; the mismatch with the fixture holds either way - note for the repair).
+
+Evidence:
+- anchor: 81314289aab95c09fb3c98300af6503c6078cab5, uncommitted changes present
+- digest: sha256:5defa757b8f8277f07921df382a15fb174ec007d76c5c94dfb9dd9d48f53c4e1 over 691 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T23:40:11.105Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:71d347d1f1fc7fb9c108bb7a4e698507b3bcdb3f989f74b8629e09452f1c0e77 of this entry without this block
+- parent-entry: sha256:9fbc1df77e8176dad01393581997dcaec004b019aaaa922ee9df92d867e4888a
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - r9c DONE; repair verified, CANDIDATE f3ab4b8, local lane green, certs on CANDIDATE
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
