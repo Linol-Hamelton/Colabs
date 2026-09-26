@@ -8,6 +8,36 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Hygiene repair blocked by the Gemini (agy) quota; retry after 00:42 MSK
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r9c-repair-hygiene` FAILED both attempts: agy returns 429 "Individual quota reached... Resets in 25m27s" (attempt 1 at 00:16) and 22m27s (attempt 2 at 00:19). No report, no tree changes from the repair; the polluted `SIGNALS.md` (144) and `RUNS.jsonl` (307) are unchanged.
+- No substitution: the stage-10 repair actor stays Gemini; a retry is scheduled after the quota reset (~00:42 MSK). The two cert slots and the verifier stay ACCEPT-deferred.
+- The supervisor had settled (`FINAL: BLOCKED r9c`); it will be restarted together with the retry.
+
+Result: the single remaining blocker is a provider quota window, not a defect or a model issue.
+
+Next step: at ~00:45 MSK reset `r9c-repair-hygiene`, restart the supervisor, verify it is WORKING, then continue the chain (repair -> certs -> verify -> readiness).
+
+Open: agy quota resets ~00:42 MSK.
+
+Evidence:
+- anchor: bce797dc2e3630517bdb9b90e905d2d8db8b4b0b, uncommitted changes present
+- digest: sha256:9f94e8b6906f859ad91a71408df7b0684598e333b99b60400988f55bce50d563 over 686 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T21:23:15.419Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:ce37c7ac4b98218c91addd099723c7730891eb783a5254a083fe6dbb0e4b9956 of this entry without this block
+- parent-entry: sha256:93a81cc4a2c4f3de39364f5e31eae54509261da3a9aa4f33069e40e8c4799c1e
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26/27 - Stage-9 review FINDINGS; hygiene repair expanded (cloud + review); runner reset anomaly
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
