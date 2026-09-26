@@ -133,6 +133,16 @@
         "model": "xiaomi/mimo-v2.6-pro",
         "effort": "high"
       }
+    },
+    {
+      "id": "r6-review-p-l0-008-0.3",
+      "frame": "task:review-p-l0-008-0.3",
+      "out": "docs/reviews/2026-09-26-mistral-p-l0-008-0.3-f02-admission-review.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r6-review-p-l0-008-0.3.md",
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
+      }
     }
   ]
 }
