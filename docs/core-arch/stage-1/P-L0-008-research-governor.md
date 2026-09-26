@@ -1,6 +1,6 @@
 ---
 id: P-L0-008
-version: 0.2
+version: 0.3
 title: Research governor - every frame ends in a decision; new research is not an output
 layer: L0
 type: procedure
@@ -14,10 +14,10 @@ back_edges: [3>2/1/owner]
 enforcement: P
 script_candidate: no:1
 evidence_class: [B, D]
-evidence: [PROTO-DEC-0052, PROTO-DEC-0082, PROTO-DEC-0083, docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md]
+evidence: [PROTO-DEC-0052, PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md]
 cost_basis: unknown
 trial: metric=M-010; kill=in two independent cases the governor itself blocks a work stream for more than 24 h with no related technical or external blocker; until=frames-5
-decision: [PROTO-DEC-0082, PROTO-DEC-0083]
+decision: [PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084]
 ---
 
 # P-L0-008 Research governor
@@ -144,6 +144,8 @@ R-L0-22.53. Kernel-completion mode ends only when the Kernel v1 completion contr
 
 R-L0-22.54. The Kernel v1 scope is set by a separate owner decision, and performance blocks completion only where a hot path exceeds its own latency budget.
 
+R-L0-22.55. The candidate list has a cap set by the owner, and at the cap no new candidate is recorded until a candidate is merged, removed or opened.
+
 ## Steps
 
 Actor slots are defined in L1: `author` (frame author), `coordinator` (operator), `owner`, `reviewer`.
@@ -222,3 +224,4 @@ Actor slots are defined in L1: `author` (frame author), `coordinator` (operator)
 
 - 0.1 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — trial for the OwnerIdeas program only (PROTO-DEC-0082) — no review.
 - 0.2 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — general scope in the source repository; functional frame; minor without "small budget"; DEFERRED_ACCEPTED; kill criterion measures harm; FRAMES.md registry; transition gate; Kernel v1 contract; schema compliance (root R-L0-22 with sub-rules, Risks, Change log, ids of schema 2.1, until=frames-5, M-010 defined). Id map 0.1 to 0.2: R-L0-22 → 22.3-22.7; R-L0-23 → 22.8; R-L0-24 → 22.9-22.11; R-L0-25 → 22.13-22.14; R-L0-26 → 22.15-22.20; R-L0-27 → 22.21-22.23; R-L0-28 → 22.24-22.29; R-L0-29 → 22.30-22.33; R-L0-30 → 22.34-22.35; R-L0-31 → 22.36-22.37; R-L0-32 → 22.38-22.40; R-L0-33 → 22.41-22.46; R-L0-34 → 22.47-22.48; R-L0-35 → 22.49-22.53; R-L0-36 → Evidence (Enforcement) — reviewer Mistral Medium 3.5 (vibe; `docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md`): RECOMMENDATION — PROTO-DEC-0083.
+- 0.3 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — candidate cap R-L0-22.55; caps set to 5 and 5 (PROTO-DEC-0084) — reviewer <reviewer>: <verdict>.

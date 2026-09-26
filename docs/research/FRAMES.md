@@ -12,8 +12,8 @@ Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pi
 | DIG | not counted (ledger pending; first count is task one of the OwnerIdeas plan) | 2026-09-26 | R-L0-22.45 |
 | DIG_FLOOR | - | - | R-L0-22.44 |
 | DEFERRED_ACCEPTED | 0 | 2026-09-26 | R-L0-22.42 |
-| DEFER backlog / cap | 3 / 5 (owner directive 2026-09-26; decision text in PROTO-DEC-0084 item 10) | 2026-09-26 | R-L0-22.29 |
-| Candidates / cap | 4 / 5 (owner directive 2026-09-26; decision text in PROTO-DEC-0084 item 10) | 2026-09-26 | R-L0-22.55 (P-L0-008 0.3) |
+| DEFER backlog / cap | 3 / 5 (PROTO-DEC-0084) | 2026-09-26 | R-L0-22.29 |
+| Candidates / cap | 4 / 5 (PROTO-DEC-0084) | 2026-09-26 | R-L0-22.55 (P-L0-008 0.3) |
 | RER at last gate | - | - | R-L0-22.46 |
 | Frames closed under P-L0-008 (trial: 5) | 0 (the transition inventory F-01..F-16 records closures before adoption) | 2026-09-26 | R-L0-22.50 |
 
@@ -22,7 +22,7 @@ Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pi
 | ID | Frame | Path | Stream | Size | Status | Round | Opened | Gate owner | Verdict | Record | Suspension: reason; resume; responsible; review date |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | F-01 | OwnerIdeas revision | `docs/research/2026-09-26-ownerideas-revision/` | S1 | major | CLOSED | 3 | 2026-09-26 | owner | ACCEPT at the stage-3 gate; stages 4-12 continue as implementation preparation and implementation (R-L0-22.7); the stage-4 Kimi/MiMo critique is the plan's single critique | PROTO-DEC-0079..0081 | - |
-| F-02 | R-3 model layer (task characterization inside P-L2-002, model profile, resolver; contract first) | created by the plan | S2 | major | ACTIVE | 0 | admission pending (README with the five admission fields before round 1) | owner | - | PROTO-DEC-0080 | - |
+| F-02 | Model-evidence layer (R-3): evidence base sufficient for Resolver v1 | `docs/research/2026-09-26-model-layer/` | S2 | major | ACTIVE | 0 of 2, admitted; round 1 waits for executor names | 2026-09-26 | owner | - | PROTO-DEC-0080, 0084 | - |
 | F-03 | CORE-ARCH design program | `docs/core-arch/` | S1 | major | ACTIVE (continues) | continues through the approved stage 2 and the running stage-3 design (waits for Study B) | 2026-09-24 | owner | - | PROTO-DEC-0053, 0054; owner confirmation 2026-09-26: continues; every next stage passes admission under P-L0-008 | - |
 | F-04 | Study A (AX, MCP facade, Rust daemon and caches, incremental validation, general core API) | `docs/research/2026-09-25-improvement-research/` | S1 | major | SUSPENDED | - | 2026-09-25 | owner | - | PROTO-DEC-0066; RESOLUTION R-6 | waits for K-launch after M-3; resume "K-launch ready"; responsible owner; review 2026-10-03 |
 | F-05 | Study B (adaptive execution depth) | `docs/research/2026-09-25-improvement-research/` | S2 | major | SUSPENDED | - | 2026-09-25 | owner | - | PROTO-DEC-0066; RESOLUTION R-4 | waits for K-launch after M-3; resume "K-launch ready"; responsible owner; review 2026-10-03 |

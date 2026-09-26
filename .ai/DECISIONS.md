@@ -3586,3 +3586,96 @@ trial review follows the fifth closed frame. PROTO-DEC-0082 stands as refined; t
 supersedes nothing.
 
 Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26: "Согласен по обоим пуектам" - general rule for the source repository without hosts, transcribed by the operator; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0084
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0080 item 1 (F-02 question and dimension set); PROTO-DEC-0083 items 3 and 7 (backlog caps); PROTO-DEC-0079 D1 (executor assignment)
+
+Context:
+F-02 (R-3, model layer) was ACTIVE at round 0 with admission pending. The plan gave it three
+research questions that cannot be answered without run records (A-10 does not exist yet). The
+benchmark classes of benchmark.md cover code work, while most Colabs work is documents, rules,
+adversarial review and synthesis. The DEFER backlog cap was pending; the candidate list had no cap,
+and docs/ops/BACKLOG.md held frozen hypotheses outside the registry.
+
+Decision:
+1. F-02 has one primary question: "What minimal, verifiable and maintainable evidence base on model
+   capabilities is sufficient for Model Resolver v1?" H-WAI-1..6 are not researched in F-02; they
+   stay DEFERred until run records accumulate, and may then open as EXPERIMENT.
+2. The capability dimensions are frozen for F-02:
+   - six benchmark-derived dimensions from benchmark.md sections 2-7:
+     D-IMPL repository implementation and bug fixing; D-ARCH architecture and repository
+     comprehension; D-REV code review; D-TERM terminal, debugging and autonomous execution; D-ALGO
+     algorithmic coding; D-EDIT code editing and patch-instruction following;
+   - three local dimensions:
+     D-DOC document and rule comprehension (long corpus, rules, dependencies, contradictions,
+     exact extraction of requirements); D-CRIT adversarial review and critical analysis (defects,
+     omissions, contradictions, false premises); D-SYN multi-document synthesis (merging sources
+     without losing minority findings, provenance or material conditions).
+   SWE-Lancer Manager (benchmark.md section 8) is proxy evidence for D-CRIT, not a dimension: it
+   measures selection among proposed solutions, not adversarial review of long textual artifacts.
+   No dimension is added inside F-02; a benchmark found for any other capability is recorded as a
+   FUTURE finding (POSSIBLE_FUTURE_DIMENSION) under the candidate cap, and the contract does not
+   grow. Adding a dimension needs an owner decision.
+3. F-02 builds no local evaluations, test suites or harnesses. A local dimension without verified
+   public evidence is recorded MISSING. D-CRIT is at most WEAK, with evidence_type proxy, on
+   SWE-Lancer Manager evidence, and a resolver never reads a proxy WEAK as benchmark coverage.
+   Local evaluations are a later EXPERIMENT that needs run records (A-10).
+4. The working-model set is frozen as an explicit list of models and efforts copied from the
+   owner's working ladder (docs/ops/MODEL-ECONOMICS.md, "Owner's working ladder, snapshot
+   2026-09-25 evening"), recorded with its source commit SHA and blob hash in the F-02 README. Other
+   available models get no benchmark collection in F-02. A model promoted to working later goes
+   through qualification and a separate evidence enrichment by hand after its promotion; it does
+   not reopen F-02. No automatic enrichment job is built.
+5. Canonical location of model evidence after ACCEPT: docs/ops/model-evidence/ (README.md,
+   methodology.md, benchmark-registry.json, model-benchmark-evidence.jsonl,
+   model-capability-profiles.json). Raw evidence is the source of truth; the capability profiles
+   are derived and must be reproducible from it. Task-class capability requirements are not model
+   evidence: F-02 designs their schema and proposes values, and their canonical owner is the task
+   characterization inside P-L2-002 (PROTO-DEC-0079 D3), which receives them through its next
+   revision.
+6. A task relates to capability dimensions, never directly to a benchmark. The benchmark-to-
+   dimension mapping lives in the benchmark registry. Task-to-benchmark relevance is derived, never
+   stored.
+7. Budget: round 1 has two collectors, A (benchmark registry, methodology, citation recovery) and
+   B (model-by-benchmark evidence). Round 2 has one independent verifier plus targeted corrections
+   by the collectors. Then the gate. Deadline 2026-09-29: at the deadline the frame goes to its
+   gate with what exists. There is no third round without R-L0-22.22.
+8. Executors: until automatic executor selection works, the owner names every F-02 executor at
+   launch. The verifier's model family differs from both collectors' families and is neither
+   Claude nor DeepSeek, which drafted and transcribed the contract.
+9. Owner override, standing: at any time, including after automatic executor selection works, the
+   owner's direct decision may switch the selection off and assign models by hand. The resolver
+   never overrides an owner assignment. Every such run is recorded in its run record with
+   selection = owner, and it is never counted as evidence about the resolver.
+10. Backlog caps: the DEFER backlog cap is 5. The candidate list has a cap of 5: at the cap no new
+    candidate is recorded until one is merged, removed or opened. FRAMES.md is the only registry of
+    DEFER entries and candidates; the former "Frozen hypotheses" of docs/ops/BACKLOG.md live there.
+
+Reasoning:
+One question with a coverage-based exit makes F-02 finite. The three hypotheses of the plan need
+run records that do not exist. Coding benchmarks alone would measure the models well on work
+Colabs rarely does and poorly on its main work, so the local dimensions are named now and marked
+MISSING honestly rather than approximated. Tying tasks to dimensions instead of benchmarks keeps the
+unstable benchmark landscape behind a stable resolver contract and removes a third source of
+relevance. Separate owners for model evidence and task requirements keep one authority per
+question. An uncapped candidate list and a second backlog outside the registry were open bypasses of
+the DEFER cap. Recording manual assignments keeps owner overrides from corrupting resolver
+calibration.
+
+Alternatives rejected:
+A new frame MODEL-CAPABILITY-EVIDENCE-v1 (would breach the S2 limit and PROTO-DEC-0080's one-frame
+rule); collecting every benchmark for every model (unbounded); numeric relevance weights in v1
+(unsupported precision); pure rank normalization (loses gaps and shifts when the model set changes);
+building local evaluations inside F-02; a deadline of 2026-10-03.
+
+Consequences:
+F-02 gets its admission README and moves to round 1 once the owner names its executors. P-L0-008
+becomes 0.3 (candidate cap). FRAMES.md records the caps and the F-02 row. PROTO-DEC-0080 item 2,
+PROTO-DEC-0063 item 1 and the P-L2-002 ownership of task characterization stand. This block
+supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26, answers quoted in the directive; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
