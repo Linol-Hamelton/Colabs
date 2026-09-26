@@ -61,10 +61,10 @@ None; P-L2-002 owns the relaunch.
 ## Risks
 
 | Risk | Likelihood | Impact | Coverage | Cost | Residual |
-|---|---|---|---|---|---|
+| - | - | - | - | - | - |
 | A note that is out of date | infrequent | moderate | Covered by the version probe of the client registry | One probe per dispatch | A registry update that changes flags without version change |
 | A config change that leaks into other sessions | possible | substantial | Covered by the backup and the record of R-L3-005.4 | One backup file and worklog record | Concurrent sessions modifying the same client configuration file |
 
 ## Change log
 
-- 0.1 — 2026-09-26 — gemini-ce0485aa5fe54c98 — first draft, A-12 (PROTO-DEC-0065 item 2) — review pending (PKG-5).
+- 0.1 — 2026-09-26 — Gemini — first draft, A-12 (PROTO-DEC-0065 item 2) — review pending (PKG-5).

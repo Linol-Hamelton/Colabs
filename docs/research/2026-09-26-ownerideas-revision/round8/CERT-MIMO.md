@@ -1,131 +1,204 @@
-# CERT-MIMO — high-risk package certification (stage 8)
-
 Mode: ADVISORY
-Baseline: 7b6d17a (corpus freeze); HEAD 93634438fbdaeb30cf733f0aee4c5e8e59d01f59; working tree status: dirty
-Reviewer: MiMo-V2.6-Pro (`xiaomi/mimo-v2.6-pro`), route mimo, effort high (variant), 2026-09-26
-Scope: PKG-1, PKG-2, PKG-3, PKG-5 against the implemented working tree and `round8/IMPLEMENT-E1-GEMINI.md`, `round8/IMPLEMENT-E2-MISTRAL.md`
-Frame: task:ownerideas-r8-cert-mimo (parent program: ownerideas-revision)
+Baseline: 0680b6fc369e10f9ff7926ebda7af56a8fcbc265 (corpus freeze 7b6d17a); working tree status: dirty (stage-8 implementation uncommitted)
+Reviewer: MiMo-V2.6-Pro, route mimo, effort high, 2026-09-26
+Scope: independent certification of high-risk packages PKG-1, PKG-2, PKG-3, PKG-5 (stage 8)
 Verdict: REVIEW COMPLETE
 
-Independence: this report is my own reading. I did not open `round8/CERT-KIMI.md`.
+# CERT-MIMO — high-risk packages (PKG-1, PKG-2, PKG-3, PKG-5)
+
+Independence: I did not read `round8/CERT-KIMI.md`. I executed nothing in these packages and
+control none of them. Every command below was run in this session on the tree named above.
+Labels: **[F]** fact checked here with `path:line` or command output; **[I]** inference;
+**[Q]** open question.
+
+## PKG-1 ROUTES — **FAIL**
+
+| AC | Result | Evidence |
+|---|---|---|
+| AC-1 | MET | T1, T2 pass (`node --test tests/dispatch.test.cjs`) |
+| AC-2 | MET | T3 pass; `probe` loads the committed registry |
+| AC-3 | MET | T4 pass |
+| AC-4 | MET | T5 pass; live: `check DISPATCH.json` exit 0 slots=27; `check R3-DISPATCH.json` exit 1, exactly 10 `ERROR reason=launch-missing`, no grammar row. sha256 `2af348353dbe3d0ff5182d7893f63399ec3d6a1b1dfac6d361d15ee22b245b7f` matches S3 |
+| AC-5 | MET | T6 pass |
+| AC-6 | MET | T7-T10 pass (SCOPE_STOP/POLICY_FAILURE, clone kept) |
+| AC-7 | MET | T11 pass (canaries absent; `GIT_CONFIG_NOSYSTEM=1`) |
+| AC-8 | MET | T12, T13 pass |
+| AC-9 | MET | T14 pass (12 S6 classes in code table as S6 specifies; bare-number guards) |
+| AC-10 | MET | T15 pass |
+| AC-11 | MET | T16 pass |
+| AC-12 | MET | T17 pass; live `probe` exit 1 `VERSION_CHANGED` for vibe (expected re-verify, not a defect) |
+| AC-13 | MET | T18 pass |
+| AC-14 | MET | T19 pass; live source grep: `docs/research/`=0, `Read and follow`=1, `wake.md`=1, `repair.md`=1 |
+| AC-15 | MET | flags checked by executor; registry loads; note: vibe/kimi `effort.note` were set to `null` (see PKG-5 AC-14) |
+| AC-16 | **NOT MET** | `validate-protocol.ps1` exit 0 (1 WARN journals 119>100). Full suite is red: T26 (PKG-5) and T20 flake (PKG-3). Reproduction below |
+
+**F1-P1 (blocking).** `docs/specs/bin-output-schema.md` still says "the twelve canonical classes"
+and lists 12 names, omitting `VALIDATION_FAILURE`, `DEPENDENCY_FAILURE`, `SEMANTIC_FAILURE`
+required by PROTO-DEC-0075 item 4 (15 names). E1 claimed F-1 fixed this; it did not.
+```
+PS> node -e "const t=require('fs').readFileSync('docs/specs/bin-output-schema.md','utf8'); console.log(t.includes('VALIDATION_FAILURE'), t.includes('DEPENDENCY_FAILURE'), t.includes('SEMANTIC_FAILURE'), t.includes('fifteen'), t.includes('twelve'))"
+false false false false true
+```
+
+**F2-P1 (blocking).** Same file names `protocol-telemetry.cjs` and `protocol-audit.cjs` as the
+ten existing scripts; neither exists in `git ls-files`. Real scripts include
+`protocol-scope.cjs` and `protocol-verdict.cjs`, which are not named. E1 claimed F-2 fixed this.
+```
+PS> node -e "const t=require('fs').readFileSync('docs/specs/bin-output-schema.md','utf8'); console.log(t.match(/protocol-\w+\.cjs/g))"
+# ... protocol-telemetry.cjs, protocol-audit.cjs ... (absent from git ls-files)
+```
+
+**F3-P1 (blocking).** S10 requires the section-9 bullet "the old runners are superseded for new
+dispatches". The working-tree diff **removed** it (also removed "Recovery arrives with PKG-3",
+which S10 of PKG-3 correctly replaces).
+```
+PS> node -e "const t=require('fs').readFileSync('.ai/docs/CLI-AGENTS.md','utf8'); console.log(t.includes('old runners') && t.includes('superseded'))"
+false
+```
+
+## PKG-2 RUN-RECORD — **FAIL** (single unmet criterion)
+
+| AC | Result | Evidence |
+|---|---|---|
+| AC-1 | MET | T1 pass; golden validates `SUMMARY records=1 invalid=0`; keys in S1 order |
+| AC-2 | MET | T2-T8 pass (extra/missing key, enum, type, order, schema, empty attempts) |
+| AC-3 | MET | T9 pass |
+| AC-4 | MET | T10a, T10b pass |
+| AC-5 | MET | T11a, T11b pass |
+| AC-6 | MET | T12, T12b pass |
+| AC-7 | MET | T13 pass |
+| AC-8 | MET | T14 pass (`SUMMARY rows=77 sessions=26 ratio=2.96`) |
+| AC-9 | MET | row grammar enforced; S5 exits observed |
+| AC-10 | **NOT MET** | validator exit 0; `test-protocol.ps1` / `dispatch.test.cjs` red on T26 and flaky T20. Reproduction below |
+
+Own suite is green: `node --test tests/runrecord.test.cjs` → `# fail 0` (T1-T14). Live
+`sessions` measurement (not an acceptance number): `SUMMARY rows=281 sessions=46 ratio=6.11`.
+Audit prompt 133 lines (<=150). No second run-record source: `docs/specs/run-record.schema.md`
+is the only schema; golden fixture is `run-record/1` with `state=FAILED` as S1 requires.
+
+```
+PS> powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
+# ... ok 1..38 except: not ok 39 - T26: AC-10: PKG-5 dispatcher fall signal test
+# error: must add exactly 1 signal line on wake exhaustion / 2 !== 1
+# (suite also flaked T20 once: expected /^RUN slot=t20-slot attempt=2/m, got attempt=1 then DONE)
+```
+
+## PKG-3 DISPATCH — **FAIL**
+
+| AC | Result | Evidence |
+|---|---|---|
+| AC-1 | MET | resolver T1 pass; stale `sectionSha256` → `ladder-stale` |
+| AC-2 | MET | resolver T2 pass |
+| AC-3 | MET | resolver T3 pass (7 exclusion reasons) |
+| AC-4 | MET | resolver T4 pass |
+| AC-5 | MET | resolver T5 pass |
+| AC-6 | MET | resolver T6 pass |
+| AC-7 | **NOT MET** | T20 flaked: expected `attempt=2`, observed `attempt=1` then `DONE`. T25 (PROCESS_CRASH resume) passes. Reproduction below |
+| AC-8 | MET | T21 pass (3 wakes, fallen, fresh, substitutes; `fallen=true`) |
+| AC-9 | MET | T22 pass (repair resume + repair file) |
+| AC-10 | MET | T23 pass (`pin-changed`, `--revise` new runId) |
+| AC-11 | MET | T24 pass (missing Evidence line blocks DONE) |
+| AC-12 | MET | T20 covers record/usage when it passes; records validate |
+| AC-13 | MET | T19 + live grep (0 prompt text, 0 `docs/research/`, pointer targets only) |
+| AC-14 | **NOT MET** | suite red (T26) + T20 flake |
+| AC-15 | MET (difference recorded) | live rows below; package allows a recorded difference |
+
+AC-15 live rows (clients probed levels 0-1; vibe `VERSION_CHANGED`):
+```
+RESOLVE slot=floor-t7-kernel primary=agy:gemini-3.8-flash-high rung=5
+EXCLUDED rung=1..3 reason=below-floor ... rung=4 tier-unknown ... rung=5 route-unknown DeepSeek
+EXCLUDED rung=5 tier-unknown Terra ... rung=6..7 below-floor ... rung=8 tier-unknown
+SKIPPED rung=9 reason=unavailable label="Mistral Medium 3.5"
+ASK_OWNER reason=shortfall
+EXIT=1
+RESOLVE slot=floor-t3-other primary=agy:gemini-3.7-flash-high rung=7
+SUBSTITUTE n=1 route=codex:gpt-5.6-luna rung=6
+SUBSTITUTE n=2 route=agy:gemini-3.8-flash-high rung=5
+SKIPPED rung=9 reason=unavailable label="Mistral Medium 3.5"
+EXIT=0
+```
+Difference from the AC-15 table: primary is Gemini 3.8 High (rung 5), not Mistral Medium 3.5
+(rung 9), because rung 9 is unavailable on this workstation (vibe 2.25.8 != registry 2.25.5).
+Substitute count 0 vs expected 1 → `ASK_OWNER`, as specified. [I] Not a code defect; registry
+re-verification is an operator act (0050 item 3). Resolver tests 7/7 pass.
+
+**F1-P3 (blocking, flake).** T20 is not deterministic:
+```
+PS> node --test tests/dispatch.test.cjs
+# run 1: not ok 16 - T20 ... expected /^RUN slot=t20-slot attempt=2/m
+#         actual: 'RUN slot=t20-slot attempt=1 route=fake:test\nDONE slot=t20-slot\n'
+# run 2/3: ok 16 - T20
+```
+AC-7/AC-12 require the transient-retry path; a flaky retry test leaves the criterion unverified.
+
+## PKG-5 SIGNALS — **FAIL**
+
+| AC | Result | Evidence |
+|---|---|---|
+| AC-1 | **NOT MET** | `node .ai/bin/protocol-signals.cjs check` → `INVALID header line 4 mismatch`, exit 2. Header is 4 content lines with a Signal on line 4; S2 requires title, blank, text, blank, then signals. Live file also holds a test-generated `fall` with `participant=fake:test` and `evidence=docs/ops/RUNS.jsonl#R-20260926T201853Z-timed-silent` |
+| AC-2 | UNVERIFIED | fixtures exist under `tests/fixtures/signals/` (10 files) but `tests/signals.test.cjs` is **missing**; no negative-fixture runner |
+| AC-3..AC-9 | UNVERIFIED | same missing test file |
+| AC-10 | **NOT MET** | `T26: must add exactly 1 signal line on wake exhaustion / 2 !== 1` |
+| AC-11 | **NOT MET** | real `.ai/SIGNALS.md` fails `check` (see AC-1) |
+| AC-12 | MET | `P-L3-005-client-model-effort.md` front matter matches S8 exactly; no flag/effort/model strings (search `--`, effort words: only table rules) |
+| AC-13 | MET | CLI-AGENTS diff adds section 10 only (plus PKG-3's section-9 edits) |
+| AC-14 | **NOT MET** | `clients.json` `effort.note` for vibe and kimi were changed to `null` (were `"configured via agent toml"` / `"thinking effort from config.toml"`). S8 requires writing the client's own instruction into `effort.note`, never erasing one |
+| AC-15 | **NOT MET** | suite red (T26); manifest missing SIGnals entries |
+
+```
+PS> node .ai/bin/protocol-signals.cjs check
+INVALID header line 4 mismatch
+SUMMARY lines=INVALID signals=0 invalid=1
+CHECK_EXIT=2
+PS> Get-ChildItem tests -Filter signals*   # fixtures/signals exists; signals.test.cjs MISSING
+PS> node -e "const m=require('./protocol-manifest.json'); ..."
+MISSING .ai/SIGNALS.md / .ai/bin/protocol-signals.cjs / docs/specs/signals-ledger.md / tests/signals.test.cjs
+```
+
+**F1-P5 (blocking).** `.ai/SIGNALS.md` violates S2 byte layout (missing blank line 4).
+**F2-P5 (blocking).** Required outputs 7 (`tests/signals.test.cjs`) and 9 (audit prompt) absent.
+**F3-P5 (blocking).** S9 manifest entries for the three signals artifacts not inserted.
+**F4-P5 (blocking).** Fall hook emits two lines where S6/AC-10 require one.
+**F5-P5 (blocking).** Registry `effort.note` values nulled (AC-14).
+
+Present and in scope: `docs/specs/signals-ledger.md` (53 lines <=120), `.ai/bin/protocol-signals.cjs`,
+`.ai/docs/dispatch/wake.md` (5 lines), `repair.md` (7 lines <=8). P-L3-005 body uses the schema
+headings. CLI-AGENTS section 10 is the single home for the procedure text (R-L0-12).
+
+## Allowed / forbidden paths
+
+Changed-file set is inside the packages' Allowed paths plus PKG-4's medium-risk core-arch files
+(out of my subject). No edits to old runners, hooks, validator, shared documents, FRAMES.md,
+OwnerIdeas/. `protocol-manifest.json` was edited (PKG-3 S9 / operator W1 gate); PKG-5 S9 entries
+are missing. No commit, tag, push or branch by me.
+
+## STOP conditions
+
+No missed STOP found in PKG-1/2/3 executors' reports. PKG-5's partial state was reported as
+blocked/partial by E2; the post-repair tree still fails AC-1, AC-10, AC-11, AC-14, AC-15, so the
+repair is incomplete rather than a missed STOP.
+
+## Second sources of truth
+
+- Ladder: `MODEL-ECONOMICS.md` canonical; `model-ladder.json` derived with `sectionSha256` — OK.
+- Clients: `clients.json` canonical; CLI-AGENTS section 1 keeps a pointer — OK.
+- Run record: one schema; USAGE.md is render-only for new runs — OK.
+- Signals: one ledger grammar (`signals-ledger.md`); interim `Signal:` lines remain history — OK.
+- Failure classes: `bin-output-schema.md` (12 names) **disagrees** with PROTO-DEC-0075 item 4
+  (15 names) and with PKG-2 S3 — recorded as F1-P1, not resolved by me.
 
 ## Verdicts
 
 | Package | Verdict |
 |---|---|
-| PKG-1 ROUTES | **FAIL** |
-| PKG-2 RUN-RECORD | **PASS** |
-| PKG-3 DISPATCH | **FAIL** |
-| PKG-5 SIGNALS | **FAIL** |
+| PKG-1 ROUTES | **FAIL** (F1-P1, F2-P1, F3-P1; AC-16) |
+| PKG-2 RUN-RECORD | **FAIL** (AC-10 only; AC-1..AC-9 all MET) |
+| PKG-3 DISPATCH | **FAIL** (F1-P3 flake; AC-7, AC-14) |
+| PKG-5 SIGNALS | **FAIL** (F1-P5..F5-P5; AC-1, AC-2..9, AC-10, AC-11, AC-14, AC-15) |
 
-## PKG-1 ROUTES — FAIL
+Nothing here is a decision (AGENTS.md section 2). I fix nothing.
 
-### Acceptance criteria (commands run by me)
-
-| # | Result | Evidence |
-|---|---|---|
-| AC-1 | MET | `node .ai/bin/protocol-dispatch.cjs` → `USAGE ...` exit 2; `bogus` → `ERROR reason=unknown-command` exit 2 |
-| AC-2 | MET | `node --test tests/dispatch.test.cjs` T3 ok; committed registry loads |
-| AC-3 | MET | T4 ok |
-| AC-4 | MET | `check .../DISPATCH.json` exit 0 `slots=23`; `check tests/fixtures/dispatch/R3-DISPATCH.json` exit 1, exactly 10 `ERROR reason=launch-missing` rows, no grammar row. Fixture sha256 `2af348353dbe3d0ff5182d7893f63399ec3d6a1b1dfac6d361d15ee22b245b7f` equals S3 and the archived source |
-| AC-5 | MET | T6 ok |
-| AC-6 | MET | T7-T10 ok |
-| AC-7 | MET | T11 ok |
-| AC-8 | MET | T12, T13 ok |
-| AC-9 | MET | T14 ok (12 S6 classes; bare-number guards) |
-| AC-10 | MET | T15 ok |
-| AC-11 | MET | T16 ok |
-| AC-12 | MET | T17 ok. Live `probe`: 7 OK; `vibe state=VERSION_CHANGED expected="vibe 2.25.5" actual="vibe 2.25.8"` exit 1 (workstation drift, not a package defect) |
-| AC-13 | MET | T18 ok |
-| AC-14 | MET | T19 ok; `Read and follow the file` template once at `protocol-dispatch.cjs:697` |
-| AC-15 | MET | Spot-check: `claude --help` shows `--effort`, `--model`, `--permission-mode`, `--allowedTools` as recorded in `clients.json` |
-| AC-16 | MET (pre-gate) | `validate-protocol.ps1` exit 0 (1 WARN: 107 journals). Full suite: only `manifest.test.cjs` 209 fails, naming exactly `dispatch-fake-client.cjs`, `dispatch.test.cjs`, `runrecord.test.cjs` — the S11/S6 expected pre-W1-gate set. No other failure observed in the run window |
-
-`node --test tests/dispatch.test.cjs`: 15/15 pass.
-
-### Paths
-Allowed set covers every PKG-1 artifact present (`protocol-dispatch.cjs`, `clients.json`, `bin-output-schema.md`, CLI-AGENTS section 9 + section-1 pointer, `tests/dispatch*.cjs`, `tests/fixtures/dispatch/R3-DISPATCH.json`, audit prompt). No PKG-1 edit to old runners or `protocol-manifest.json`. `USAGE.md` rows `r8-exec-e1`/`r8-exec-e2` come from the stage launcher, not this package.
-
-### STOP conditions
-None reported by E1. None missed by me: fixture hash matches; DISPATCH.json accepted; suite pre-state only the declared manifest gap; no network/real-model test.
-
-### FAIL findings
-
-**F-1 (second source of truth / S9 false claim on PROTO-DEC-0075 item 4).**
-`docs/specs/bin-output-schema.md:27-31` says `class=` must be one of "the twelve canonical classes established by PROTO-DEC-0075 item 4" and lists 12 names (missing `VALIDATION_FAILURE`, `SEMANTIC_FAILURE`, `DEPENDENCY_FAILURE`).
-FACT: `.ai/DECISIONS.md:3087-3090` (PROTO-DEC-0075 item 4) names **fifteen** classes.
-FACT: `docs/specs/run-record.schema.md:91` correctly says "one of fifteen names from PROTO-DEC-0075 item 4".
-INFERENCE: the two specs the same wave ships disagree on the class enum; S9 required the schema to state that `class=` takes only the decision's names, not a reduced invented set.
-Repro:
-```
-# shows 15 names in the decision, 12 in bin-output-schema.md, 15 claimed in run-record.schema.md
-Select-String -Path .ai/DECISIONS.md -Pattern 'VALIDATION_FAILURE|SEMANTIC_FAILURE|DEPENDENCY_FAILURE'
-Select-String -Path docs/specs/bin-output-schema.md -Pattern 'twelve|VALIDATION_FAILURE|SEMANTIC_FAILURE|DEPENDENCY_FAILURE'
-Select-String -Path docs/specs/run-record.schema.md -Pattern 'fifteen'
-```
-Observed: decision lists all three missing names (`DECISIONS.md:3090`); bin-output-schema has none of them and asserts twelve; run-record.schema asserts fifteen.
-
-**F-2 (S9 inventory of the ten existing `.ai/bin` scripts is wrong).**
-`docs/specs/bin-output-schema.md:40` lists `protocol-telemetry.cjs` and `protocol-audit.cjs` (absent) and omits `protocol-scope.cjs` and `protocol-verdict.cjs` (present).
-Repro:
-```
-git ls-files .ai/bin
-Get-Content docs/specs/bin-output-schema.md | Select-Object -Last 1
-```
-Observed tracked pre-existing set: `protocol.cjs`, `protocol-archive.cjs`, `protocol-handoff.cjs`, `protocol-hooks.cjs`, `protocol-index.cjs`, `protocol-ledger.cjs`, `protocol-lock.cjs`, `protocol-scope.cjs`, `protocol-session.cjs`, `protocol-verdict.cjs`.
-
-Because required output 3 (S9) is not faithful to its sources and the package introduces a conflicting class enum, PKG-1 cannot be PASS.
-
-## PKG-2 RUN-RECORD — PASS
-
-### Acceptance criteria
-
-| # | Result | Evidence |
-|---|---|---|
-| AC-1 | MET | `node --test tests/runrecord.test.cjs` T1 PASS; `validate tests/fixtures/runrecord/golden.jsonl` → `SUMMARY records=1 invalid=0` exit 0 |
-| AC-2 | MET | T2-T8 PASS (extra key, missing key, wrong enum, wrong type, key order, schema, empty attempts) |
-| AC-3 | MET | T9 PASS |
-| AC-4 | MET | T10a (3 primary fresh) and T10b (7 fresh) PASS |
-| AC-5 | MET | T11a, T11b PASS |
-| AC-6 | MET | T12, T12b PASS |
-| AC-7 | MET | T13 PASS |
-| AC-8 | MET | T14 PASS (`ratio=2.96` on 77/26 fixture) |
-| AC-9 | MET | CLI exits 2 on no command (`USAGE ...`); T2-T14 pattern-checked |
-| AC-10 | MET (pre-gate) | Same S11/S6 expected manifest-only suite gap; validator exit 0. Live `sessions` measurement (not acceptance): `SUMMARY rows=281 sessions=46 ratio=6.11` exit 0 |
-
-Library exports match S4 exactly: `appendRecord`, `collapseSessions`, `readRecords`, `renderUsage`, `serializeRecord`, `validateRecord`.
-
-### Paths
-Only allowed creates (`run-record.schema.md`, `protocol-runrecord.cjs`, `tests/runrecord.test.cjs`, `tests/fixtures/runrecord/*`, audit prompt 133 lines ≤ 150). No edit to hooks, `protocol-manifest.json`, or PKG-1 files.
-
-### STOP conditions
-None reported for PKG-2. None missed: golden corpus is a valid record; no extra field invented; suite was green on package tests.
-
-### Second source of truth
-`docs/specs/run-record.schema.md` is the single run-record canon. No competing field list found. Class-enum wording here matches PROTO-DEC-0075 (see F-1 against PKG-1).
-
-## PKG-3 DISPATCH — FAIL
-
-Not implemented. Wave W2 is gated on the operator W1 gate (E1 report: WAITING_W1_GATE). Every required artifact is absent.
-
-Repro:
-```
-Test-Path .ai/bin/protocol-signals.cjs, docs/ops/model-ladder.json, docs/specs/signals-ledger.md, tests/resolver.test.cjs, docs/core-arch/stage-4/P-L3-005-client-model-effort.md, .ai/docs/dispatch/wake.md
-```
-Observed: all `False`. No AC-1..AC-15 can be verified. Unverified criteria cannot be PASS → **FAIL**.
-
-## PKG-5 SIGNALS — FAIL
-
-Not implemented. Depends on W2 (PKG-1 registry, PKG-2 records, PKG-3 supervisor). No `protocol-signals.cjs`, no `.ai/SIGNALS.md`, no `signals-ledger.md`, no P-L3-005, no fall hook. Same repro as PKG-3 (all `False`). All AC-1..AC-15 unverified → **FAIL**.
-
-## Cross-cutting notes (not package FAILs)
-
-- E2 report claims "PKG-1 does not exist in the working tree"; FACT: `protocol-dispatch.cjs` is present now (streams raced; W1 not yet gated).
-- `docs/core-arch/stage-2/P-L2-002-model-selection.md` is dirty (PKG-4 S1 partial). Outside these four packages.
-- Manifest insertion of the eight W1 entries remains the operator's W1-gate act (S11/S6).
-
-## Top blocking findings
-
-1. F-1 — class enum 12 vs 15 (bin-output-schema vs PROTO-DEC-0075 / run-record.schema).
-2. F-2 — wrong "ten existing scripts" inventory in bin-output-schema.
-3. PKG-3 and PKG-5 have no implementation in this tree.
+[Q] PROTO-DEC-0086 item 1 names certifier MiMo-V2.6-**Flash**; this launch freezes
+MiMo-V2.6-**Pro** (`r8-cert-mimo.md`). Confirm the override is intended.
+[Q] Who re-verifies `clients.json` after vibe 2.25.8 (0050 item 3), and should the nulled
+`effort.note` values be restored from the previous registry text?
