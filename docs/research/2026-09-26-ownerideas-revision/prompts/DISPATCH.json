@@ -112,6 +112,27 @@
         "client": "vibe",
         "model": "mistral-medium-3.5"
       }
+    },
+    {
+      "id": "r5-kimi-critique",
+      "frame": "task:ownerideas-r5-kimi-critique",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round5/CRITIQUE-KIMI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r5-kimi-critique.md",
+      "route": {
+        "client": "kimi",
+        "model": "moonshot-ai/kimi-k2.7-code-highspeed"
+      }
+    },
+    {
+      "id": "r5-mimo-critique",
+      "frame": "task:ownerideas-r5-mimo-critique",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round5/CRITIQUE-MIMO.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r5-mimo-critique.md",
+      "route": {
+        "client": "mimo",
+        "model": "xiaomi/mimo-v2.6-pro",
+        "effort": "high"
+      }
     }
   ]
 }
