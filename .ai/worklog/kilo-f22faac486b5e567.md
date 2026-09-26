@@ -8,6 +8,37 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Kimi final cert (PKG-1/2/3 PASS, PKG-5 FAIL); PKG-5 repair and reruns running
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Final-state Kimi certification (`round8/CERT-KIMI.md`, 8.5 KB): PKG-1 **PASS** (dispatch tests 21/21; suite 405/405), PKG-2 **PASS**, PKG-3 **PASS**, PKG-5 **FAIL** with five named gaps - `tests/signals.test.cjs` missing, `P-L3-005` missing, a parse bug in `.ai/bin/protocol-signals.cjs`, CLI-AGENTS section 10 missing, the W3 manifest entries per PKG-5 S9 missing.
+- Dispatched `r9b-repair-pkg5` (Gemini via agy, high): fix only the confirmed five with reproductions, never redesign; out `round9/REPAIR-PKG5-GEMINI.md`.
+- `r8-review-deepseek` and `r8-cert-mimo` were blocked as false NO_START again; `startLimitMin` raised 15 -> 45 in DISPATCH; both reset and STARTING (try 1) alongside the repair. `r9-verify-codex` now also needs `r9b-repair-pkg5`. Commit 119ef1e; runner pid 15124.
+- `r8-cert-kimi` stays DONE with the final verdicts; it will be reset for a PKG-5 re-certification after the repair.
+
+Result: one confirmed blocker (PKG-5) is under targeted repair; the review and the MiMo certification re-run in parallel.
+
+Next step: when the repair plus review and MiMo are DONE - reset the cert slots for the repaired state; on all PASS the runner starts the GPT-5.6 Sol verification; then commits, prune, push and the stage-12 readiness report.
+
+Open: repair/review/mimo running; stage-12 readiness estimate ~00:15-01:00 MSK if no further blockers.
+
+Evidence:
+- anchor: 119ef1e9f20dca5493bbd1106b498b7935534bc9, uncommitted changes present
+- digest: sha256:e0b9ae422a270b3e59e875573a04f3341ad295613082743a63b4d9d27032b9fb over 669 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T20:09:33.322Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:eaeefcb93879473a78e6c497cdc52a54491d2b3099ce16c0d737adc4a38b2db4 of this entry without this block
+- parent-entry: sha256:53bde65e59ab0aa57ac240faa5a53e00b4e76783120519bca015d2461f10be63
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - Continuations: E2 DONE, E1 working
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
