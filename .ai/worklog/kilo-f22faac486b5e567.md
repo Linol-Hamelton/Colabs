@@ -8,6 +8,39 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Owner resume directive executed: PROTO-DEC-0079..0082 recorded; cleanup and plan running
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Transcribed and recorded the owner's resume directive (direct owner confirmation 2026-09-26; text drafted in claude-b00262b88c55444b, which wrote nothing to the repository): PROTO-DEC-0079 (program priority D1; executor rule refining 0075 items 8-10; U-7/D3; U-5/D5; U-1/D6; U-2/D7; A-2/D9; cleanup D10), PROTO-DEC-0080 (D2 partial lift of 0076 item 4 for R-3 only; D4 scoping of 0063 item 1), PROTO-DEC-0081 (D8/U-9), PROTO-DEC-0082 (D11 RESEARCH-GOVERNOR trial). Commit f965cde.
+- Wrote `docs/core-arch/stage-1/P-L0-008-research-governor.md` (status trial, rules R-L0-22..R-L0-36, trial metric M-010).
+- Appended the registry rows for 0079-0082 and the owner-directive trigger rows for 0076 item 4 (partial lift), 0063 item 1 (scoped) and 0052 item 1 (refined). Commit 582349b.
+- Replaced the stale round-2 TASK.md note with the stage-3 line. Preflight-ran the cleanup dry checks: precondition prints nothing, C-1 `OK identical`, C-3 `OK performers f355fc48... dry`, C-4 `OK scripts 8ec2a553... dry`. Authored CLEANUP.md, PLAN-AMENDMENT.md (Appendix B verbatim), the two run files and slots; commit ea20b8a.
+- Housekeeping: committed the MiMo session-1 journal `mimo-0e0610cd95c1e83e.md` (full entry with Evidence, recorded 09:01Z outside the runner). For the record: Synthesis B is the work of two sessions - the first produced the draft and the 17-file hash check, the runner session (mimo-3ab2dc556d959969) verified it and repaired the counts; both are committed.
+- Launched the two frames: r3-clean-gemini (agy, gemini-3.8-flash-high; executes RESOLUTION sections 5 and 9 plus the D10 banners, commits nothing) and r3-plan-deepseek (kilo, deepseek/deepseek-flash; plan per RESOLUTION section 10 and the amendment). Both STARTING; runner pid 43616.
+
+Result: The owner's resume directive is fully transcribed and recorded; the cleanup and the plan run in parallel.
+
+Next step: verify both frames on completion; commit the cleanup result (the operator commits) and the plan; then stage 4 (Kimi and MiMo plan critiques in parallel).
+
+Open: stage 4 starts only after the plan; the cleanup leaves uncommitted deletions and edits for the operator to commit after checking its printed lines.
+
+Evidence:
+- anchor: ea20b8a99117274ef5a7e13883d6a165286ce182, uncommitted changes present
+- digest: sha256:23df329d46d42431703c6c03c1901e5711f2f4dd9da46ef7997239dbd3c92c90 over 559 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T10:28:38.139Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:3a8ed167236e3243732291cc20cdf82777293fc5846c21d40581f4799daa9045 of this entry without this block
+- parent-entry: sha256:a354b1d3c178abeb2fcb8975a09f5153ddcd8fd55cf2e34ff4deee1111f85c61
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - Stage 3 complete; flow held for the owner's decisions
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
