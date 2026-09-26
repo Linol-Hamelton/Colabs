@@ -238,7 +238,7 @@
       "frame": "task:ownerideas-r8-cert-kimi",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-KIMI.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-cert-kimi.md",
-      "needs": ["r8b-cont-e1", "r8b-cont-e2"],
+      "needs": ["r9c-repair-hygiene"],
       "route": {
         "client": "kimi",
         "model": "moonshot-ai/kimi-k2.7-code-highspeed"
@@ -249,7 +249,7 @@
       "frame": "task:ownerideas-r8-cert-mimo",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-MIMO.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-cert-mimo.md",
-      "needs": ["r8b-cont-e1", "r8b-cont-e2"],
+      "needs": ["r9c-repair-hygiene"],
       "route": {
         "client": "mimo",
         "model": "xiaomi/mimo-v2.6-pro",
