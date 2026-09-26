@@ -44,7 +44,7 @@ ranking. F1-F5 is not importance.
 - Evidence on what depth has bought: the findings ledgers `docs/reviews/*findings*.md` (who found
   what, in which round), `docs/reviews/2026-09-20-codex-cycle-history-research.md`,
   `docs/research/2026-09-20-cycle-history/` (`evidence.json`, `analyze.cjs`),
-  `docs/research/2026-09-20-cycle-architecture/claude-final-decision.md`, and the routing study
+  `docs/research/archive/2026-09-20-cycle-architecture/claude-final-decision.md`, and the routing study
   `docs/research/2026-09-23-routing/` (Q01, Q02, Q05, Q08, Q10, Q14 above all).
 - Your inventory starts from `git ls-files`; say in your journal which of these you could not read.
 

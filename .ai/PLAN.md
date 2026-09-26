@@ -143,7 +143,7 @@ Open: arithmetic and outcome-label corrections refute the claimed empirical opti
 Binding rules are in PROTO-DEC-0041: certification independence, two parallel independent reviewers for high-risk,
 closed verdict vocabulary forward of 2026-09-20, objective blocking rule with severity rubric, symmetry of evidence.
 This section holds the parts the owner deliberately left reversible. Full analysis and verified sources:
-`docs/research/2026-09-20-cycle-architecture/claude-final-decision.md`. Dispatch:
+`docs/research/archive/2026-09-20-cycle-architecture/claude-final-decision.md`. Dispatch:
 `docs/reviews/2026-09-20-deepseek-gemini-cycle-architecture-dispatch.md`.
 
 Seven phases, each with an output and a checkable exit gate; a phase is a logical condition, not a file per step:
