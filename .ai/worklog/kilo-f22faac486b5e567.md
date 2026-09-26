@@ -8,6 +8,47 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - RESEARCH-GOVERNOR 0.2 transposed as a general rule (PROTO-DEC-0083)
+
+Intake: owner directive PROTO-DEC-0083 -> change P-L0-008 (class D)
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Transcribed PROTO-DEC-0083 verbatim (next free number confirmed; provenance line per the directive). Rewrote `docs/core-arch/stage-1/P-L0-008-research-governor.md` as 0.2 (Appendix A verbatim; <operator session> = kilo-f22faac486b5e567; <reviewer>/<verdict> left for the review). Edited `L0-ROOT.md` (v0.5: root R-L0-22, where-to-go, evidence, change-log line), `CORE-ARCH-6.md` (M-010 row; M-001..M-009 -> M-001..M-010 at the inventory lines), `S1-SUMMARY.md` (L0-ROOT 0.5 / 22 rules; P-L0-008 row). Commit 566debf; registry rows for 0083 and the trigger rows (0082, 0052) at e68bc58.
+- Created `docs/research/FRAMES.md` from Appendix B with the owner-confirmed transition inventory: F-01 CLOSED/ACCEPT, F-02 ACTIVE, F-03 ACTIVE (continues), F-04/F-05 SUSPENDED, F-06/F-07/F-11/F-14/F-15 CLOSED/ACCEPT, F-08/F-12 not frames, F-09/F-10 CLOSED/REJECT adoption, F-13 CLOSED (ACCEPT only for what entered PROTO-DEC-0047) + DEFER, F-16 CLOSED with DEFER. DEFER backlog D-01 (F-16) and D-02 (F-13 remainder); candidates C-R1, C-R5, C-R7, C-JEV. Owner corrections applied.
+- TASK.md: the round-2/3 note now states the stage-3 closure, decisions 0079..0083, the P-L0-008 rule and the FRAMES.md registry; the cycle-history bullet no longer says "Proposed pending" and points to D-01/F-16.
+- Checks: no live references to old 0.1 root ids outside historical records; rule ids R-L0-22.x defined only in P-L0-008 (LCC-1); all changed files UTF-8 without BOM, LF; headings of P-L0-008 in the schema order; `validate-protocol.ps1`: "Protocol OK. 1 warning(s)." (the warning is pre-existing; see the Evidence block).
+- Owner answers at the transition gate, verbatim (2026-09-26): first "Подтверждаю, кроме отдельных строк - правки впишу текстом"; then "Подтверждаю всё как предложено, кроме трёх строк: F-08: каталог cycle-history - не рамка (измерение). Но исследование Codex docs/reviews/2026-09-20-codex-cycle-history-research.md с предложением одного раунда (TASK.md:78, "Proposed pending owner approval") - это рамка без вердикта. Вердикт: DEFER; причина - касается циклов сертификации, решается после отчёта пилотов; триггер переоткрытия - публикация сравнительного отчёта пилотов; канонический источник - этот review. Внеси в DEFER backlog и убери "Proposed pending" из TASK.md, заменив ссылкой на FRAMES.md. F-09: CLOSED/REJECT принятия Jev (0045 п.3) - подтверждаю. Разрешённый 0045 п.3 офлайн-реплей по историческим решениям не выполнен: внеси его кандидатом C-JEV (S2, minor, ждёт свободного слота S2 и DIG-трещотки). F-13: CLOSED с вердиктом ACCEPT только для того, что вошло в 0047, и DEFER для остального: готовы 8 пар из 13, итогового INDEX.md нет (INDEX-draft.md:3, :12, :221). Перечисли незакрытые вопросы поимённо в DEFER-записи; триггер переоткрытия - запуск резолвера v0 (0079 D1), когда вопросы маршрутизации станут измеримы. F-03: подтверждаю «continues» - через одобрение этапа 2 и уже идущий дизайн этапа 3 (он ждёт Study B); каждый следующий этап CORE-ARCH проходит вход по P-L0-008. Очистка закрыта - установи лимит DEFER backlog: я назову число после того, как ты покажешь, сколько пунктов DEFER получилось после этого перехода." Then a follow-up correction, given twice: "Уточнение к F-13: вопросов 15, а не 13 (Q14, Q15 добавлены позже; INDEX-draft.md:3 устарел). В DEFER-запись внеси все 7 незакрытых: Q01, Q08, Q09 - основной ответ есть, критика Gemini не выполнена; Q03, Q04, Q07, Q13 - основного ответа Gemini нет, критики Mistral (Q03, Q07), Copilot (Q04), DeepSeek (Q13) не выполнены. ACCEPT - только для того, что вошло в 0047, из 8 готовых пар (Q02, Q05, Q06, Q10, Q11, Q12, Q14, Q15)." The FRAMES.md F-13 and D-02 rows carry this version.
+- Dispatched the independent review (directive section 5): slot r4-mistral-review, Mistral Medium 3.5 via vibe, output `docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md`; runner pid 3920; prompt and launch file committed at cf7d42c.
+
+- Review completed: `docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md` (Mistral Medium 3.5 via vibe) - verdict RECOMMENDATION, no BLOCKING defects; two RECOMMENDATION findings (set the DEFER cap explicitly; clarify the transition timing and the cleanup-completeness state). Change logs of P-L0-008 and L0-ROOT filled with `reviewer Mistral Medium 3.5 ... RECOMMENDATION`; committed 1b81d9f. Two deviations from the directive sent to the owner for judgement: the review is 294 lines against the "at most 250 lines" cap, and its header Baseline field names `7b6d17a` (the corpus baseline from COMMON.md) instead of the reviewed commits `566debf`/`e68bc58` (its Scope line names PROTO-DEC-0083 correctly).
+- The OwnerIdeas cleanup and the DeepSeek plan results were committed by the operator (b929ba9): MIGRATION.md deleted, the 2026-09-25 synthesis archived unchanged (INDEX sha `24b0f8c7...` matches), the duplicate blocks cut (performers.md 139 lines and scripts.md 1516 lines with banners), 11 advisory banners added, `round4/CLEANUP-GEMINI.md` and `round4/PLAN-DEEPSEEK.md` (439 lines) recorded.
+- The first full `record` caught a transient validator failure (exit 1) while the review file was being written; the refreshed record after the commits returns `Protocol OK. 1 warning(s).` (the WARN is the 106-journal cap, pre-existing).
+
+Result: P-L0-008 0.2 (RESEARCH-GOVERNOR) binds every frame of the source repository in trial; L0-ROOT v0.5 carries R-L0-22; M-010 is defined; the transition inventory is recorded and reviewed (RECOMMENDATION); DEFER backlog = 2 (D-01, D-02), candidates = 4 (C-R1, C-R5, C-R7, C-JEV).
+
+Next step: the owner sets the DEFER backlog cap (2 backlog records + 4 candidates shown to him); then the OwnerIdeas program continues with stage 4 (Kimi and MiMo plan critiques in parallel) per RESOLUTION section 10 and the plan amendment.
+
+Open: the DEFER cap number waits for the owner; the two review deviations (294 lines; header Baseline field) wait for his accept-or-correct; two empty leftover journals (`claude-b00262b88c55444b.md` drafting session, `mimo-a84dc8ade3516847.md` failed attempt) stay untracked pending prune.
+
+Evidence:
+- anchor: b929ba9be25f4b4a74ec5faa59d34eddb10a8b45, uncommitted changes present
+- digest: sha256:b6d6d3b20d3069729d73cdf4f55db84d15c27a1d5cf1ab06ee1f43cb308f2c41 over 565 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T11:17:02.000Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:01e8d0146d5bb997d8abcde93d7875fb2d67f57e4f68277e53c0047a208fc641 of this entry without this block
+- parent-entry: sha256:3a8ed167236e3243732291cc20cdf82777293fc5846c21d40581f4799daa9045
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 356s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+
 ## 2026-09-26 - Owner resume directive executed: PROTO-DEC-0079..0082 recorded; cleanup and plan running
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
