@@ -32,8 +32,8 @@ Out of scope:
 
 ## Stream and wave
 
-E2, wave W1. It runs concurrently with PKG-1 (E1). The files are disjoint except for
-`protocol-manifest.json`.
+E2, wave W1. It runs concurrently with PKG-1 (E1), and the files are disjoint. No W1 executor
+edits `protocol-manifest.json`: the operator inserts both packages' entries at the W1 gate (S6).
 
 ## Inputs
 
@@ -42,11 +42,12 @@ E2, wave W1. It runs concurrently with PKG-1 (E1). The files are disjoint except
   (script standard) and 9 (logs record the value actually used); 0049 item 2 (exit 2); 0051 item 4
   (FALLEN); 0079 item 1(2).
 - `docs/core-arch/stage-4/workflowAI.md` section 1 step 6 (what a resolution records).
-- `docs/research/2026-09-26-ownerideas-revision/USAGE.md` and
-  `docs/research/2026-09-25-validator-migration-council/round3/USAGE.md`: today's usage tables,
-  which your render replaces for new runs.
+- `docs/research/2026-09-26-ownerideas-revision/USAGE.md`: today's usage table, written by
+  `run-chain.cjs`, which your render replaces for new runs.
 - `.ai/bin/protocol-hooks.cjs:603-641`: the Stop telemetry row and `recordSessionMetric`. Read only.
-- `docs/research/2026-09-23-routing/INDEX-draft.md:21-22`: 77 rows over 26 sessions = 2.96x.
+- The over-count figure, quoted here so you need no archived file: 77 Stop rows over 26 sessions =
+  2.96x (provenance only: `docs/research/archive/2026-09-23-routing/INDEX-draft.md:21-22`;
+  PROTO-DEC-0085 item 5).
 - `docs/ops/BACKLOG.md` S-1 and S-6 (usage defects this schema must make impossible).
 - `tests/helpers.cjs`; `tests/manifest.test.cjs:68-72`; `protocol-manifest.json`.
 
@@ -60,8 +61,9 @@ Create:
 - `docs/reviews/2026-09-2?-<your-agent>-ownerideas-pkg-2-audit-prompt.md` (one file)
 
 Change:
-- `protocol-manifest.json`: insert entries only (S6).
 - your own journal.
+
+`protocol-manifest.json` is not an Allowed path for this package (S6).
 
 ## Forbidden paths
 
@@ -89,7 +91,8 @@ No commit, tag, push or branch.
 1. `docs/specs/run-record.schema.md`, stating S1-S3 exactly.
 2. `.ai/bin/protocol-runrecord.cjs` meeting S4-S5.
 3. `tests/runrecord.test.cjs` covering T1-T14, with fixtures.
-4. The `protocol-manifest.json` entries of S6.
+4. The three `protocol-manifest.json` entries of S6, listed in your journal entry for the operator
+   (you do not edit the manifest).
 5. The audit-prompt file: at most 150 lines, one probe per acceptance criterion.
 6. A five-label journal entry with a full `record` Evidence block.
 
@@ -187,9 +190,15 @@ is `.ai/runtime/metrics/` under the repository root. It never writes.
 
 ### S6 `protocol-manifest.json`
 
-- Insert `.ai/bin/protocol-runrecord.cjs` and `docs/specs/run-record.schema.md` into `source`.
-- Insert `tests/runrecord.test.cjs` into `tests`, keeping alphabetical order.
-- Make it one edit, the last of the package, after re-reading the file.
+One writer (stage-7 fix B3). In W1 the operator is the only writer of this file, at the W1 gate
+(resolution section 6); neither W1 executor edits it. This package's entries, exactly:
+- into `source`: `.ai/bin/protocol-runrecord.cjs`, `docs/specs/run-record.schema.md`;
+- into `tests`, in alphabetical order: `tests/runrecord.test.cjs`.
+
+Until the gate inserts them, `tests/manifest.test.cjs` ("every protocol test file is listed in the
+manifest") fails, naming only the new W1 test files of PKG-1 and PKG-2. That one failure is
+expected before the gate: it is not a STOP 4 red and not a defect of this package. Report it with
+the exit code; any other failure counts.
 
 ## Acceptance criteria
 
@@ -207,11 +216,31 @@ is `.ai/runtime/metrics/` under the repository root. It never writes.
 | AC-10 | The validator and the full suite pass on the integrated tree | C |
 
 The golden corpus holds at least one fixture built from a real past failure: the
-`r6-claude-final` FAILED row of `docs/research/2026-09-26-ownerideas-revision/USAGE.md` (0 wall
-minutes, one retry). Build it by hand as a FAILED record with two fresh primary attempts. Where the
-row gives no value, use null, `UNCLASSIFIED` or `"none"`. It must validate. `pins` come from git: `head` is the commit that
-added the slot to DISPATCH.json, and `launchSha256` is the launch file's hash at that commit. The
-test that loads the fixture carries a comment naming its source row. JSON Lines hold no comments.
+`r6-claude-final` FAILED row as committed at `8fca7ae`, read with
+`git show 8fca7ae:docs/research/2026-09-26-ownerideas-revision/USAGE.md` (line 21:
+`| r6-claude-final | claude | claude-opus-5-5 | high | 0 | 0 | 0.00 | 0/0 | 0.00 | 0 | 1 | FAILED |`).
+The live file now shows that slot DONE: `run-chain.cjs` rewrote the row with the later attempt,
+which is the BACKLOG S-1 defect this schema removes. Cite the row only by that commit, never by the
+live file. Build it by hand as a FAILED record with two fresh primary attempts. Where the row gives
+no value, use null, `UNCLASSIFIED` or `"none"`. The fields the schema requires but the row lacks
+take these values, each from git, from DISPATCH.json at `fd789ac`, or from a stated default:
+- `head` = `fd789ac` in full (the commit that added the slot to DISPATCH.json); `launchSha256` =
+  the sha256 of `launchFile` = `docs/research/2026-09-26-ownerideas-revision/prompts/run/r6-claude-final.md`
+  at that commit; `roleSha256` and `corpusHash`
+  null; `dispatchVersion` = `"git:fd789ac"` (that DISPATCH.json has no `version` key);
+- `frame` and `outputs` from that slot (`task:ownerideas-r6-claude-final`; its `out` path);
+- the `runId` time and both attempts' `start` = the committer time of `fd789ac` in UTC,
+  `2026-09-26T12:39:40Z` (the row records no time); both `end` = null;
+- route from the row (`claude`, `claude-opus-5-5`, `high`); `selection = "owner"`; `modelRan`
+  `{id: "claude-opus-5-5", source: "requested"}`; attempt reasons `first`, then `transient-retry`
+  (the row's one retry); `transitions` = `[]`;
+- `budget` = `{freshUsed: 2, resumes: 0, stallMin: 60, hardMin: 120}` (`stallMin` from that
+  DISPATCH.json; `hardMin` is the PKG-1 S3 default for a file without the key);
+- `completion`: every boolean false, `exitCode` null, `structuralCheck: "none"`,
+  `validator: "n/a"`, `evidence` null.
+
+It must validate. The test that loads the fixture carries a comment naming its source row and
+commit. JSON Lines hold no comments.
 
 ## Validation commands
 
@@ -229,8 +258,10 @@ as a measurement; it is not an acceptance number.
 
 ## Integration conditions
 
-- The W1 gate, as for PKG-1: the operator runs the validator, the suite and each full `record` in
-  turn with both streams at rest, then commits PKG-2 path-scoped.
+- The W1 gate, as for PKG-1: with both streams at rest, the operator first inserts the W1 manifest
+  entries of PKG-1 S11 and PKG-2 S6 in one edit and confirms each of the eight is present exactly
+  once; then runs the validator, the suite and each full `record` in turn, then commits PKG-2
+  path-scoped.
 - PKG-3 may start only after this package is committed.
 
 ## Risk class and certification route
@@ -248,7 +279,7 @@ as a measurement; it is not an acceptance number.
 | `docs/specs/run-record.schema.md` | created | KEEP_ACTIVE (canonical schema) |
 | `.ai/bin/protocol-runrecord.cjs` | created | KEEP_ACTIVE |
 | `tests/runrecord.test.cjs`, `tests/fixtures/runrecord/*` | created | KEEP_ACTIVE |
-| `protocol-manifest.json` | changed (entries) | KEEP_ACTIVE |
+| `protocol-manifest.json` | changed (entries, by the operator at the W1 gate; S6) | KEEP_ACTIVE |
 | audit-prompt file under `docs/reviews/` | created | KEEP_ACTIVE (immutable review record) |
 | usage tables written by `run-chain.cjs` (`USAGE.md` files) | superseded for new runs by `render`; not edited | stay with their frames (their closures decide) |
 

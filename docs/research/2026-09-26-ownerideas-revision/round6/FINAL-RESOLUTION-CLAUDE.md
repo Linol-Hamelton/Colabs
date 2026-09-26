@@ -69,7 +69,8 @@ Checks run in this session [F]:
   `protocol-manifest.json` `tests`.
 - `recordSessionMetric` (`protocol-hooks.cjs:621-641`) appends one row per Stop. Stop runs after
   every response (`:614`), so rows outnumber sessions. That is the 2.96x of
-  `docs/research/2026-09-23-routing/INDEX-draft.md:21-22`. Nothing in `.ai/bin` reads
+  `docs/research/archive/2026-09-23-routing/INDEX-draft.md:21-22` (archived; provenance only,
+  PROTO-DEC-0085 item 5; PKG-2 quotes the figure). Nothing in `.ai/bin` reads
   `sessions.jsonl` (`protocol.cjs telemetry` counts journal entries only, `:212-288`).
 - Interim `Signal:` lines: 35 in 19 active journals and 58 in `.ai/ARCHIVE.md` at 4905f86. The
   count moves; PKG-5 counts at run time.
@@ -217,17 +218,24 @@ The gate owner records the number in FRAMES.md; this file does not edit FRAMES.m
 
 | Wave | E1 (executor Gemini 3.8 Flash high, 0086 item 2) | E2 (executor Mistral Medium 3.5 max) | Start condition | Wave-end gate |
 |---|---|---|---|---|
-| W1 | **PKG-1** ROUTES: launch path, registry, probe, liveness, A-13, A-14 spec | **PKG-2** RUN-RECORD: A-10 schema, library, render, telemetry reader | stage 7 PASS (0086 item 3 conditions) | both packages meet their own acceptance; then the integration check below |
+| W1 | **PKG-1** ROUTES: launch path, registry, probe, liveness, A-13, A-14 spec | **PKG-2** RUN-RECORD: A-10 schema, library, render, telemetry reader | stage 7 PASS (0086 item 3 conditions) | both packages meet their own acceptance; then the operator's one `protocol-manifest.json` edit (PKG-1 S11 + PKG-2 S6 entries); then the integration check below |
 | W2 | **PKG-3** DISPATCH: resolver v0 (M1), then the supervisor (M2) | **PKG-4** RECORDS: A-6 part, A-2, A-1 part a | W1 integrated and committed by the operator | same |
 | W3 | none | **PKG-5** SIGNALS: A-5 and A-12 | W2 integrated and committed | same |
 | after W3 | W4-M7 milestone (not a package): certifier preflight, exclusive phase-0 baseline runs, oracle cohort into G1, L-pass check (`final-plan-2.md:535-543`); then A-4 G0 under 0077 | none | owner | stage 9 onward (DeepSeek review) runs after W3, per the dispatch |
 
-- **One writer per file per wave** [I]. The files each wave touches are disjoint, with one
-  exception: `protocol-manifest.json`, whose arrays both W1 packages extend. That file is edited
-  only by inserting the package's own entries, as the last edit of the package, re-read immediately
-  before the edit. It is never rewritten whole. `.ai/docs/CLI-AGENTS.md` has one writer per wave:
-  PKG-1 (W1), PKG-3 (W2), PKG-5 (W3).
-- **Wave integration check** (the operator runs it at a quiet point, with both streams at rest):
+- **One writer per file per wave** [I]. The files each wave touches are disjoint, with no
+  exception (stage-7 fix B3). `protocol-manifest.json` has one writer per wave:
+  - W1: the operator, at the W1 gate, not an executor. Both W1 packages need entries, and neither
+    can own the edit while the other runs: [F] the validator fails on a listed file that does not
+    exist yet (`validate-protocol.ps1:142-158`), and `tests/manifest.test.cjs:68-72` fails on a
+    test file that is not listed. So the operator inserts the eight entries named exactly in PKG-1
+    S11 and PKG-2 S6 in one edit, with both streams at rest, before the integration check, and
+    confirms each is present once. Each W1 package carries this as an integration condition.
+    Before the gate, the manifest-listing test failing on the new W1 test files only is expected.
+  - W2: PKG-3 (S9); PKG-4 does not touch it. W3: PKG-5 (S9).
+  `.ai/docs/CLI-AGENTS.md` has one writer per wave: PKG-1 (W1), PKG-3 (W2), PKG-5 (W3).
+- **Wave integration check** (the operator runs it at a quiet point, with both streams at rest,
+  after the W1 manifest edit above):
   `powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1`;
   `powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1`; then each executor's full
   `record` in turn, never two at once. The operator commits each package separately, path-scoped to
@@ -246,8 +254,8 @@ The gate owner records the number in FRAMES.md; this file does not edit FRAMES.m
 | PKG-1 ROUTES | one kernel launch path `.ai/bin/protocol-dispatch.cjs`, run in a private clone with the Level-1 environment; the verified registry `.ai/docs/clients.json`; `probe`; liveness per 0075 item 5; `docs/specs/bin-output-schema.md` | E1 / W1 | H; two parallel certifiers (0086 item 1) | T7 | none |
 | PKG-2 RUN-RECORD | `docs/specs/run-record.schema.md`; `.ai/bin/protocol-runrecord.cjs` (validate, append, read, render, sessions) | E2 / W1 | H; two parallel certifiers | T7 | none |
 | PKG-3 DISPATCH | resolver v0 (M1) and supervisor (M2) inside `protocol-dispatch.cjs`; `docs/ops/model-ladder.json`; run records written through PKG-2 | E1 / W2 | H; two parallel certifiers | T7 | PKG-1, PKG-2 |
-| PKG-4 RECORDS | P-L2-002 0.5; P-L3-004 0.6; CORE-ARCH-4 section 3; CORE-ARCH-3 section 12; L0-ROOT 0.6 (R-L0-23); new P-L0-009 (draft); S1-SUMMARY row | E2 / W2 | M; one independent reviewer statement (0038 item 2) | T7 (0072 item 3) | PKG-1 (the path exists); P-L3-004 integration after PKG-3 |
-| PKG-5 SIGNALS | `.ai/SIGNALS.md`; `.ai/bin/protocol-signals.cjs`; `docs/specs/signals-ledger.md`; CLI-AGENTS section 10; one-time import; new P-L3-005 (per-client model and effort) | E2 / W3 | H; two parallel certifiers | T7 | PKG-1 (registry), for P-L3-005 |
+| PKG-4 RECORDS | P-L2-002 0.5; P-L3-004 0.6; CORE-ARCH-4 section 3; CORE-ARCH-3 section 12; L0-ROOT 0.6 (R-L0-37, R-L0-38); new P-L0-009 (draft); S1-SUMMARY row | E2 / W2 | M; one independent reviewer statement (0038 item 2) | T7 (0072 item 3) | PKG-1 (the path exists); P-L3-004 integration after PKG-3 |
+| PKG-5 SIGNALS | `.ai/SIGNALS.md`; `.ai/bin/protocol-signals.cjs`; `docs/specs/signals-ledger.md`; CLI-AGENTS section 10; one-time import; new P-L3-005 (per-client model and effort) | E2 / W3 | H; two parallel certifiers | T7 | PKG-1 (registry), for P-L3-005; PKG-3 (the fall hook in the dispatcher) |
 
 Common to every package (written into each file):
 - The executor implements; it does not design (DISPATCH-OWNER "Этап 6"). A contradiction it cannot
@@ -387,3 +395,30 @@ Common to every package (written into each file):
     conditions;
   - all seven BLOCKING items are ruled in section 3.1.
   PKG-4 has no audit-prompt output, because it is medium risk (one reviewer statement).
+
+## Fix log
+
+Stage-7 fix, session `claude-d990acada995d601` (frame `task:ownerideas-r7b-claude-fix`), against
+`round7/PRE-CHECK-DEEPSEEK.md`; details and reproductions in `round7/FIX-CLAUDE.md`.
+
+- B1 -> `packages/PKG-1.md`: Inputs, S3, AC-4, validation command and STOP 3 now name the fixture
+  `tests/fixtures/dispatch/R3-DISPATCH.json`, a byte-identical copy (sha256 pinned in S3) of the
+  archived file, which is read once as provenance; `check` on it expects ten `launch-missing` rows
+  and exit 1, the row format now fixed in S3.
+- B2 -> `packages/PKG-2.md`: the golden row is cited by commit (`git show 8fca7ae:...USAGE.md`,
+  line 21), because the live row was rewritten to DONE (BACKLOG S-1); the required fields the row
+  lacks now have named sources. The resolution never restated that row (pre-check's `:345`), so
+  nothing changed here for B2.
+- B3 -> section 6 table and "One writer per file per wave"; `packages/PKG-1.md` and `PKG-2.md`
+  (Stream and wave, Allowed paths, Required outputs, S11/S6, Integration conditions, Artifact plan):
+  the operator is the only W1 writer of `protocol-manifest.json`, at the W1 gate; both packages
+  carry the edit as an integration condition.
+- N-1 (RECOMMENDATION, applied) -> section 2 and `packages/PKG-2.md` Inputs: archived paths marked
+  provenance; PKG-2 quotes 77/26/2.96 inline.
+- N-2 (applied) -> section 7 PKG-4 row: R-L0-37, R-L0-38.
+- N-3 (applied) -> `packages/PKG-4.md` S1: the six-to-four factor mapping onto 0075 item 8.
+- N-4 (applied) -> section 7 PKG-5 row: PKG-3 added.
+- N-5 (applied) -> `packages/PKG-4.md` S3: the sentence wrap at `CORE-ARCH-4.md:75-76` is named.
+- N-6 (applied) -> `packages/PKG-1.md` S2 items 2 and 5: kilo/mimo `--variant` flags; codex `-C`
+  kept from run-chain.
+- N-7 (applied) -> `packages/PKG-1.md` AC-15 and `packages/PKG-4.md` AC-5 marked reviewer checks.

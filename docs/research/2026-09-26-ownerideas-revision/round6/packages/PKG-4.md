@@ -108,7 +108,10 @@ General rules for every edit:
    Directly after the table, add this paragraph:
 
    > Volume is not a factor: the tier follows uncertainty and the consequence of an error
-   > (PROTO-DEC-0074 item 4, 0075 item 8). The six factors are the parameters of 0075 item 8. Context
+   > (PROTO-DEC-0074 item 4, 0075 item 8). The six factors operationalize the four parameters of
+   > 0075 item 8: Novelty and Ambiguity (uncertainty and reasoning depth), Reversibility and
+   > Protected paths (the consequence of an error), Coupling (cross-system coupling) and Independent
+   > judgement (the independent judgement required). Context
    > window, modality, tools, route capability and language support are hard constraints, checked
    > when the route is resolved, not scored.
 3. Step 3: replace the sentence "Hard floors: a kernel change or a certification is at least T7; a
@@ -201,7 +204,10 @@ General rules for every edit:
 ### S3 CORE-ARCH-4 section 3 (PROTO-DEC-0075 items 1, 6, 14)
 
 1. Replace the sentence "Узел считается пройденным, когда существует его выходной артефакт (L5)."
-   with:
+   with the text below. In the file the sentence is wrapped across `CORE-ARCH-4.md:75-76`: the line
+   break falls after "когда", so a single-line search does not find it. Replace from "Узел" on
+   line 75 through "(L5)." on line 76, and keep the text before and after it on those lines. The
+   replacement:
 
    > Узел считается пройденным только по контракту завершения PROTO-DEC-0075 п.6: процесс завершён и
    > его код выхода записан; выходной артефакт (L5) существует и не пуст; он проходит минимальную
@@ -343,7 +349,7 @@ between `## Risks` and `## Change log`):
 | AC-2 | P-L2-002 has no `Size` row, has the `Independent judgement` row last, six factor rows, and the step-3 floor text of S1 item 3 verbatim | F |
 | AC-3 | P-L2-002 carries the 0086 item 5 paragraph and the new Evidence line; `version: 0.5` | F |
 | AC-4 | P-L3-004 R-L3-004.4, .5, .6, .8 and .10 read exactly as S2; `enforced_by` names only `.ai/bin/protocol-dispatch.cjs`; the suspension paragraph follows R-L3-004.3; `version: 0.6` | F |
-| AC-5 | No sentence of P-L3-004 0.6 outside the kept launcher tables still says that one automatic Kilo attempt is made, that no executor starts automatically after useful work, or that progress resets the hard timer | F (search for "Kilo", "useful work", "resets") |
+| AC-5 | No sentence of P-L3-004 0.6 outside the kept launcher tables still says that one automatic Kilo attempt is made, that no executor starts automatically after useful work, or that progress resets the hard timer | F (search for "Kilo", "useful work", "resets"; reviewer check, not a mechanical gate) |
 | AC-6 | CORE-ARCH-4 section 3 carries the S3 text; CORE-ARCH-3 В-24 reads "Закрыт: PROTO-DEC-0072" | F |
 | AC-7 | L0-ROOT defines R-L0-37 and R-L0-38 once each, and no other file in `docs/core-arch/` defines them; `version: 0.6` | C (`git grep -n "R-L0-3[78]\." docs/core-arch`) |
 | AC-8 | P-L0-009 front matter is exactly S6's; its `##` headings are Purpose, Rules, Steps, Stop conditions, Back edges, Evidence, Risks, Open, Change log in that order; its rules are R-L0-38.1-38.6 only | F (`git grep -n "^## " <file>`) |

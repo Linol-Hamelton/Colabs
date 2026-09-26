@@ -40,8 +40,9 @@ Out of scope, and never implemented here:
 
 ## Stream and wave
 
-E1, wave W1. It runs concurrently with PKG-2 (E2), whose files are disjoint except for
-`protocol-manifest.json` (see Integration conditions).
+E1, wave W1. It runs concurrently with PKG-2 (E2), and the two packages' files are disjoint. No
+W1 executor edits `protocol-manifest.json`: the operator inserts both packages' entries at the W1
+gate (S11; Integration conditions).
 
 ## Inputs
 
@@ -62,8 +63,11 @@ Read these before writing code. Each is binding where cited.
 - `docs/research/2026-09-25-improvement-research/prompts/launch-test.cjs` and
   `launch-fake-client.cjs`: test patterns to port.
 - `docs/research/2026-09-26-ownerideas-revision/prompts/DISPATCH.json` and
-  `docs/research/2026-09-25-validator-migration-council/prompts/R3-DISPATCH.json`: dispatch files
-  the new loader must accept unchanged.
+  `tests/fixtures/dispatch/R3-DISPATCH.json`: dispatch files the new loader must accept unchanged.
+  The second is a fixture you create first (S3, "Parity fixture"): a byte-identical copy of
+  `docs/research/archive/2026-09-25-validator-migration-council/prompts/R3-DISPATCH.json`. F-06 is
+  CLOSED and that path is provenance only (PROTO-DEC-0085 item 5): read it once to make the copy,
+  and never cite or run it otherwise.
 - `.ai/docs/CLI-AGENTS.md`; `docs/core-arch/stage-4/MODEL-MATRIX.md:11-20,108-120` (client
   versions and effort scales, for comparison only); `protocol-manifest.json`;
   `tests/helpers.cjs`; `tests/manifest.test.cjs:68-72`.
@@ -82,8 +86,9 @@ Create:
 Change:
 - `.ai/docs/CLI-AGENTS.md`: append section 9, and add one pointer line at the end of section 1.
   Nothing else in the file.
-- `protocol-manifest.json`: insert entries only (S11).
 - your own journal.
+
+`protocol-manifest.json` is not an Allowed path for this package (S11).
 
 ## Forbidden paths
 
@@ -114,7 +119,8 @@ No commit, tag, push or branch.
 3. `docs/specs/bin-output-schema.md` meeting S9.
 4. `.ai/docs/CLI-AGENTS.md` section 9 and the section 1 pointer (S10).
 5. `tests/dispatch.test.cjs` and `tests/dispatch-fake-client.cjs` covering T1-T19.
-6. The `protocol-manifest.json` entries of S11.
+6. The five `protocol-manifest.json` entries of S11, listed in your journal entry for the operator
+   (you do not edit the manifest).
 7. The audit-prompt file: at most 150 lines, one adversarial probe per acceptance criterion
    (AGENTS.md section 2).
 8. A five-label journal entry with a full `record` Evidence block.
@@ -174,16 +180,16 @@ The grammar is fixed. Unknown keys exit 2; so do missing required keys and wrong
   1. Run `<binary> --version` and `<binary> --help`, plus the listing command where one exists
      (`agy models`, `kilo models`), on the workstation. Record `version`, `verifiedOn` and `source`.
   2. Take `command` from `run-chain.cjs` `CLIENTS`: the same flags, the same order and the same
-     permission flags. Replace `--dir`/`-C`/`--workdir`/`--add-dir` targets with `{workdir}`. Add
-     the workdir flag from `launch.cjs` `primaryCommand` where run-chain has none (codex `-C`,
-     copilot `-C`, agy `--add-dir`).
+     permission flags. Replace `--dir`/`-C`/`--workdir`/`--add-dir` targets with `{workdir}` (codex
+     `-C`, kilo `--dir` and vibe `--workdir` are kept from run-chain). Add the workdir flag from
+     `launch.cjs` `primaryCommand` where run-chain has none (copilot `-C`, agy `--add-dir`).
   3. Every flag in `command` must appear in the `--help` text you recorded. If it does not, go to
      STOP 1.
   4. `env`: `vibe` gets `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` (`run-chain.cjs:46`).
      Other clients get `{}` unless their `--help` or a failure mode in the old runners requires
      more.
   5. `effort.how`, from what you observe: `flag` (claude `--effort`, copilot
-     `--reasoning-effort`), `config` (codex `-c model_reasoning_effort=`; vibe and kimi thinking
+     `--reasoning-effort`, kilo and mimo `--variant`, `run-chain.cjs:35,42`), `config` (codex `-c model_reasoning_effort=`; vibe and kimi thinking
      from config), `model-id` (agy ids such as `gemini-3.8-flash-high`) or `none`. Take `values`
      from `--help`. Never invent a value.
   6. `resume.command`: only a resume or continue form shown by that client's `--help`. Otherwise
@@ -212,7 +218,16 @@ The grammar is fixed. Unknown keys exit 2; so do missing required keys and wrong
   - `hardMin`: default 120, integer 10-720;
   - `runLimitHours`: the runner's lifetime, as in run-chain.
 - Paths must be relative, with no `..`, no absolute or UNC form and no shell metacharacter
-  (`/["%^&|<>']/`, `run-chain.cjs:49`). A violation exits 2. A missing `launch` file exits 1.
+  (`/["%^&|<>']/`, `run-chain.cjs:49`). A violation exits 2. Grammar is checked for the whole file
+  first; then each slot whose `launch` file is missing prints
+  `ERROR reason=launch-missing slot=<id> path=<launch>`, and the command exits 1.
+- Parity fixture (AC-4). Copy the archived R3 dispatch file named in Inputs to
+  `tests/fixtures/dispatch/R3-DISPATCH.json` without any change. Its sha256 must be
+  `2af348353dbe3d0ff5182d7893f63399ec3d6a1b1dfac6d361d15ee22b245b7f`; record both hashes in your
+  journal. It exercises keys this program's `DISPATCH.json` does not use (`when`, `fallback`,
+  `minBalance`, a route without `effort`). Its ten launch files were archived with F-06, so
+  `check` on it exits 1 with exactly ten `launch-missing` rows, one per slot, and no exit-2 row:
+  that is the parity result. Never edit the copy to make the launch paths resolve.
 - PKG-3 adds resolver keys later. In PKG-1 a slot without `route` exits 1 with
   `ERROR reason=no-route-resolver-not-installed`.
 
@@ -329,11 +344,16 @@ II".
 
 ### S11 `protocol-manifest.json`
 
-- Insert `.ai/bin/protocol-dispatch.cjs`, `.ai/docs/clients.json` and
-  `docs/specs/bin-output-schema.md` into `source`.
-- Insert `tests/dispatch.test.cjs` and `tests/dispatch-fake-client.cjs` into `tests`, keeping
-  alphabetical order.
-- Make it one edit, the last of the package, after re-reading the file. Never rewrite it whole.
+One writer (stage-7 fix B3). In W1 the operator is the only writer of this file, at the W1 gate
+(resolution section 6); neither W1 executor edits it. This package's entries, exactly:
+- into `source`: `.ai/bin/protocol-dispatch.cjs`, `.ai/docs/clients.json`,
+  `docs/specs/bin-output-schema.md`;
+- into `tests`, in alphabetical order: `tests/dispatch-fake-client.cjs`, `tests/dispatch.test.cjs`.
+
+Until the gate inserts them, `tests/manifest.test.cjs` ("every protocol test file is listed in the
+manifest") fails, naming only the new W1 test files of PKG-1 and PKG-2. That one failure is
+expected before the gate: it is not a STOP 4 red and not a defect of this package. Report it with
+the exit code; any other failure counts.
 
 ## Acceptance criteria
 
@@ -344,7 +364,7 @@ Each one maps to a test (T), a command (C) or a file check (F).
 | AC-1 | No arguments, an unknown command, or an unknown flag exits 2 with a USAGE or ERROR row | T1, T2 |
 | AC-2 | The registry loader: an unknown key, a missing key or a wrong type exits 2; the committed registry loads | T3 |
 | AC-3 | The dispatch loader: an unknown key exits 2; an unsafe path exits 2; a missing launch file exits 1; `stallMin` or `hardMin` out of range exits 2 | T4 |
-| AC-4 | `check` exits 0 on this program's `DISPATCH.json` and on `R3-DISPATCH.json` (run-chain parity) | T5, C |
+| AC-4 | `check` exits 0 on this program's `DISPATCH.json`; on `tests/fixtures/dispatch/R3-DISPATCH.json` (sha256 as in S3) it prints exactly ten `ERROR reason=launch-missing` rows, one per slot, no grammar row, and exits 1 (run-chain parity) | T5, C |
 | AC-5 | End to end with the fake client: the declared output and the new journal are copied back, nothing else changes in the checkout, and the clone is removed | T6 |
 | AC-6 | A write outside the outputs, a commit (HEAD moved), a config or remote change, or a push attempt each ends in SCOPE_STOP or POLICY_FAILURE, with nothing copied and the clone kept | T7-T10 |
 | AC-7 | Credential canaries (`GH_TOKEN`, `GITHUB_TOKEN`, `X_GIT_TOKEN`, `SSH_AUTH_SOCK`) are absent from the child environment; `GIT_CONFIG_NOSYSTEM=1` is present | T11 |
@@ -355,7 +375,7 @@ Each one maps to a test (T), a command (C) or a file check (F).
 | AC-12 | `probe`: a present, an absent and a version-changed fake binary give the right rows and exits | T17 |
 | AC-13 | Every stdout line in the tests matches `^[A-Z][A-Z_]*( |$)` | T18 |
 | AC-14 | The script source contains no `docs/research/` path, no prompt text, and the pointer template exactly once | T19 |
-| AC-15 | Every registry `command` flag appears in the `--help` text recorded in `source` (the executor's own check, listed in the journal per client) | F |
+| AC-15 | Every registry `command` flag appears in the `--help` text recorded in `source` (the executor's own check, listed in the journal per client) | F (reviewer check, not a mechanical gate) |
 | AC-16 | The validator and the full suite pass on the integrated tree | C |
 
 ## Validation commands
@@ -363,20 +383,24 @@ Each one maps to a test (T), a command (C) or a file check (F).
 ```
 node --test tests/dispatch.test.cjs
 node .ai/bin/protocol-dispatch.cjs check docs/research/2026-09-26-ownerideas-revision/prompts/DISPATCH.json
-node .ai/bin/protocol-dispatch.cjs check docs/research/2026-09-25-validator-migration-council/prompts/R3-DISPATCH.json
+node .ai/bin/protocol-dispatch.cjs check tests/fixtures/dispatch/R3-DISPATCH.json
 node .ai/bin/protocol-dispatch.cjs probe
 powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1
 powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1
 node .ai/bin/protocol-handoff.cjs record --owner <your owner name>
 ```
 
-Report the exit code each command printed. `probe` may exit 1 when a client is absent or has
-changed: record its rows, do not "fix" the workstation.
+Report the exit code each command printed. The expected exits of the two `check` lines are 0 and
+1 (AC-4). `probe` may exit 1 when a client is absent or has changed: record its rows, do not "fix"
+the workstation.
 
 ## Integration conditions
 
-- The W1 gate: the operator runs the validator and the full suite with both streams at rest, then
-  each executor's full `record` in turn, then commits PKG-1 path-scoped to its artifact plan.
+- The W1 gate: with both streams at rest, the operator first inserts the W1 manifest entries of
+  PKG-1 S11 and PKG-2 S6 in one edit (never rewriting the file whole), re-reads the file and
+  confirms each of the eight entries is present exactly once. Then the operator runs the validator
+  and the full suite, then each executor's full `record` in turn, then commits PKG-1 path-scoped to
+  its artifact plan plus `protocol-manifest.json`.
 - No program stage moves from `run-chain.cjs` to this script before PKG-1 and PKG-3 are certified
   and the owner switches it (resolution section 8).
 - A-13's first real launch is the operator's act after the W1 gate. It is one smoke dispatch on a
@@ -401,7 +425,7 @@ changed: record its rows, do not "fix" the workstation.
 | `docs/specs/bin-output-schema.md` | created | KEEP_ACTIVE |
 | `tests/dispatch.test.cjs`, `tests/dispatch-fake-client.cjs`, `tests/fixtures/dispatch/*` | created | KEEP_ACTIVE |
 | `.ai/docs/CLI-AGENTS.md` | changed (section 9, one pointer line) | KEEP_ACTIVE |
-| `protocol-manifest.json` | changed (entries) | KEEP_ACTIVE |
+| `protocol-manifest.json` | changed (entries, by the operator at the W1 gate; S11) | KEEP_ACTIVE |
 | audit-prompt file under `docs/reviews/` | created | KEEP_ACTIVE (review record, immutable; PROTO-DEC-0037) |
 | `run-chain.cjs`, `launch.cjs`, `launch-test.cjs`, `launch-fake-client.cjs` | superseded for new dispatches, not edited | TRANSFER (the closures of F-06, and of F-04/F-05, which own them) |
 
@@ -431,8 +455,9 @@ and do not decide, when:
    needs a model or effort mechanism that S2 has no value for.
 2. A named `launch.cjs` function cannot be ported without a behaviour change this file does not
    list.
-3. `check` rejects this program's `DISPATCH.json` or `R3-DISPATCH.json` because of a key or
-   meaning S3 does not cover.
+3. `check` rejects this program's `DISPATCH.json` or `tests/fixtures/dispatch/R3-DISPATCH.json`
+   because of a key or meaning S3 does not cover (any row other than the ten `launch-missing` rows
+   on the fixture), or the fixture's sha256 differs from S3.
 4. The suite is red before your first edit. Report the failing tests; do not fix code you do not
    own.
 5. A test would need a network call or a real model.

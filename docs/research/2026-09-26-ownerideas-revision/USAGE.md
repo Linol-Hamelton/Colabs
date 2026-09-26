@@ -20,3 +20,5 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r6-review-p-l0-008-0.3 | vibe | mistral-medium-3.5 | - | 2 | 21 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r6-claude-final | claude | claude-opus-5-5 | high | 13 | 466 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r7-precheck-deepseek | kilo | deepseek/deepseek-flash | - | 5 | 142 | 0.07 | 139151/11499 | 0.00 | 0 | 0 | DONE |
+| r7b-claude-fix | claude | claude-opus-5-5 | high | 0 | 0 | 0.00 | 0/0 | 0.00 | 0 | 1 | FAILED |
+| r7c-deepseek-recheck | kilo | deepseek/deepseek-flash | - | 5 | 84 | 0.05 | 101636/11644 | 0.00 | 0 | 0 | DONE |
