@@ -199,6 +199,62 @@
         "client": "kilo",
         "model": "deepseek/deepseek-flash"
       }
+    },
+    {
+      "id": "r8-exec-e1",
+      "frame": "task:ownerideas-r8-exec-e1",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENT-E1-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-exec-e1.md",
+      "needs": ["r7c-deepseek-recheck"],
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
+      "id": "r8-exec-e2",
+      "frame": "task:ownerideas-r8-exec-e2",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENT-E2-MISTRAL.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-exec-e2.md",
+      "needs": ["r7c-deepseek-recheck"],
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
+      }
+    },
+    {
+      "id": "r8-review-deepseek",
+      "frame": "task:ownerideas-r8-review-deepseek",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENTATION-REVIEW-DEEPSEEK.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-review-deepseek.md",
+      "needs": ["r8-exec-e1", "r8-exec-e2"],
+      "route": {
+        "client": "kilo",
+        "model": "deepseek/deepseek-flash"
+      }
+    },
+    {
+      "id": "r8-cert-kimi",
+      "frame": "task:ownerideas-r8-cert-kimi",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-KIMI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-cert-kimi.md",
+      "needs": ["r8-exec-e1", "r8-exec-e2"],
+      "route": {
+        "client": "kimi",
+        "model": "moonshot-ai/kimi-k2.7-code-highspeed"
+      }
+    },
+    {
+      "id": "r8-cert-mimo",
+      "frame": "task:ownerideas-r8-cert-mimo",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-MIMO.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-cert-mimo.md",
+      "needs": ["r8-exec-e1", "r8-exec-e2"],
+      "route": {
+        "client": "mimo",
+        "model": "xiaomi/mimo-v2.6-pro",
+        "effort": "high"
+      }
     }
   ]
 }
