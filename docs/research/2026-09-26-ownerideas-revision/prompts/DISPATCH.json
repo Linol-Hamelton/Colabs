@@ -143,6 +143,16 @@
         "client": "vibe",
         "model": "mistral-medium-3.5"
       }
+    },
+    {
+      "id": "r7-review-p-l0-008-0.4",
+      "frame": "task:review-p-l0-008-0.4",
+      "out": "docs/reviews/2026-09-26-mistral-p-l0-008-0.4-closure-review.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r7-review-p-l0-008-0.4.md",
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
+      }
     }
   ]
 }
