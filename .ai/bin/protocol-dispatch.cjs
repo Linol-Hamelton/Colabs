@@ -502,13 +502,14 @@ function validateDispatch(obj) {
   const allowedSlotKeys = [
     'id', 'frame', 'out', 'outputs', 'launch', 'copyIn', 'needs', 'when', 'adopted',
     'route', 'fallback', 'git', 'role', 'floor', 'constraints', 'independence',
-    'substitutes', 'stageKind', 'long', 'approval', 'validate', 'budget'
+    'substitutes', 'stageKind', 'long', 'approval', 'validate', 'budget', 'notBefore'
   ];
   for (const s of slotsRaw) {
     if (!s || typeof s !== 'object' || Array.isArray(s)) throw new Error('slot must be an object');
     for (const k of Object.keys(s)) {
       if (!allowedSlotKeys.includes(k)) throw new Error(`unknown slot key "${k}" in slot "${s.id}"`);
     }
+    if (s.notBefore && typeof s.notBefore !== 'string') throw new Error(`slot "${s.id}".notBefore must be a string`);
     if (!s.id || typeof s.id !== 'string') throw new Error('slot.id must be a non-empty string');
     if (!s.launch || typeof s.launch !== 'string') throw new Error(`slot "${s.id}" missing launch path`);
     if (!isSafeRelativePath(s.launch)) throw new Error(`slot "${s.id}" unsafe launch path: "${s.launch}"`);
@@ -996,24 +997,15 @@ function checkCompletion(slot, dir, declaredOutputs, attemptResult, repoRoot = p
 function mapClassForRunRecord(cls, status) {
   if (status === 'DONE') return 'NONE';
   if (!cls) return 'NONE';
-  switch (cls) {
-    case 'AUTH_ERROR': return 'PERMISSION';
-    case 'RATE_LIMIT':
-    case 'QUOTA_EXHAUSTED':
-    case 'NETWORK_ERROR':
-    case 'PROVIDER_ERROR':
-    case 'MODEL_UNAVAILABLE':
-      return 'RESOURCE';
-    case 'PROCESS_CRASH': return 'FATAL';
-    case 'CONFIG_ERROR': return 'CONFIG';
-    case 'INVALID_OUTPUT': return 'OUTPUT';
-    case 'STALL': return 'STALL';
-    case 'TIMEOUT': return 'TIMEOUT';
-    case 'VALIDATION_FAILURE': return 'VALIDATOR';
-    case 'POLICY_FAILURE': return 'SCOPE';
-    case 'DEPENDENCY_FAILURE': return 'DEPENDENCY';
-    default: return 'UNCLASSIFIED';
-  }
+  const CANONICAL_CLASSES = new Set([
+    'AUTH_ERROR', 'CONFIG_ERROR', 'MODEL_UNAVAILABLE', 'QUOTA_EXHAUSTED',
+    'RATE_LIMIT', 'NETWORK_ERROR', 'PROVIDER_ERROR', 'PROCESS_CRASH',
+    'STALL', 'TIMEOUT', 'INVALID_OUTPUT', 'VALIDATION_FAILURE',
+    'SEMANTIC_FAILURE', 'DEPENDENCY_FAILURE', 'POLICY_FAILURE',
+    'NONE', 'UNCLASSIFIED'
+  ]);
+  if (CANONICAL_CLASSES.has(cls)) return cls;
+  return 'UNCLASSIFIED';
 }
 
 function buildClientCommand(clientCfg, route, tokens, attemptKind = 'fresh') {
@@ -1403,7 +1395,9 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
 function updateUsageFile(usageFilePath, repoRoot = process.cwd(), runsFilePath = null) {
   if (!usageFilePath || !runrecordLib) return;
   try {
-    const fullRuns = runsFilePath || path.resolve(repoRoot, 'docs/ops/RUNS.jsonl');
+    const fullRuns = runsFilePath || (process.env.PROTOCOL_RUNS_FILE
+      ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
+      : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
     if (!fs.existsSync(fullRuns)) return;
     const records = runrecordLib.readRecords(fullRuns);
     const rendered = runrecordLib.renderUsage(records);
@@ -1471,11 +1465,15 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
 
   const runsFile = opts.runsFile
     ? path.resolve(repoRoot, opts.runsFile)
-    : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl');
+    : (process.env.PROTOCOL_RUNS_FILE
+        ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
+        : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
 
   const signalsFile = opts.signalsFile
     ? path.resolve(repoRoot, opts.signalsFile)
-    : path.resolve(repoRoot, '.ai/SIGNALS.md');
+    : (process.env.PROTOCOL_SIGNALS_FILE
+        ? path.resolve(repoRoot, process.env.PROTOCOL_SIGNALS_FILE)
+        : path.resolve(repoRoot, '.ai/SIGNALS.md'));
 
   const slotsList = dispatch.slots || dispatch.jobs;
   const targetSlots = slotsToRun.length
@@ -2011,7 +2009,9 @@ function reportDispatch(dispatchFile, opts = {}) {
   const repoRoot = opts.repoRoot || process.cwd();
   const runsFile = opts.runsFile
     ? path.resolve(repoRoot, opts.runsFile)
-    : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl');
+    : (process.env.PROTOCOL_RUNS_FILE
+        ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
+        : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
 
   let records = [];
   if (runrecordLib && fs.existsSync(runsFile)) {

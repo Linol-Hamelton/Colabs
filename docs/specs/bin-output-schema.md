@@ -24,11 +24,12 @@ All conforming scripts strictly adhere to the uniform three-state exit model:
 
 ## 3. Failure Classes
 
-Whenever a line reports a failure classification (`class=<name>`), `<name>` must strictly be one of the twelve canonical classes established by PROTO-DEC-0075 item 4:
+Whenever a line reports a failure classification (`class=<name>`), `<name>` must strictly be one of the fifteen canonical classes established by PROTO-DEC-0075 item 4:
 
     AUTH_ERROR | CONFIG_ERROR | MODEL_UNAVAILABLE | QUOTA_EXHAUSTED |
     RATE_LIMIT | NETWORK_ERROR | PROVIDER_ERROR | PROCESS_CRASH |
-    INVALID_OUTPUT | STALL | TIMEOUT | POLICY_FAILURE
+    STALL | TIMEOUT | INVALID_OUTPUT | VALIDATION_FAILURE |
+    SEMANTIC_FAILURE | DEPENDENCY_FAILURE | POLICY_FAILURE
 
 ## 4. Scope and Applicability
 
@@ -37,4 +38,4 @@ This schema applies to new kernel protocol tooling:
 - `.ai/bin/protocol-runrecord.cjs`
 - `.ai/bin/protocol-signals.cjs`
 
-The ten existing `.ai/bin` scripts (`protocol.cjs`, `protocol-session.cjs`, `protocol-lock.cjs`, `protocol-handoff.cjs`, `protocol-archive.cjs`, `protocol-ledger.cjs`, `protocol-hooks.cjs`, `protocol-index.cjs`, `protocol-telemetry.cjs`, `protocol-audit.cjs`) are not yet conforming; retrofit with CORE-ARCH package II.
+The ten existing `.ai/bin` scripts (`protocol.cjs`, `protocol-session.cjs`, `protocol-lock.cjs`, `protocol-handoff.cjs`, `protocol-archive.cjs`, `protocol-ledger.cjs`, `protocol-hooks.cjs`, `protocol-index.cjs`, `protocol-scope.cjs`, `protocol-verdict.cjs`) are not yet conforming; retrofit with CORE-ARCH package II.

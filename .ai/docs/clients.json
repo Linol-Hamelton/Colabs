@@ -4,8 +4,8 @@
     "claude": {
       "binary": "claude",
       "present": true,
-      "version": "2.1.282 (Claude Code)",
-      "verifiedOn": "2026-09-26",
+      "version": "2.1.283 (Claude Code)",
+      "verifiedOn": "2026-09-27",
       "source": "claude --version; claude --help",
       "command": [
         "claude",
@@ -221,8 +221,8 @@
     "vibe": {
       "binary": "vibe",
       "present": true,
-      "version": "vibe 2.25.5",
-      "verifiedOn": "2026-09-26",
+      "version": "vibe 2.25.8",
+      "verifiedOn": "2026-09-27",
       "source": "vibe --version; vibe --help",
       "command": [
         "vibe",

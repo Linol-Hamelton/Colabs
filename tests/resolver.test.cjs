@@ -153,34 +153,64 @@ test('AC-5: shortfall: kernel or certification exits 1 ASK_OWNER; other starts a
   const resKernel = dispatch.resolveSlot(slotKernel, ladder, {}, { skipProbe: true });
   assert.equal(resKernel.terminal, 'shortfall');
 
-  // CLI execution on kernel shortfall exits 1 with ASK_OWNER
-  const rK = spawnSync(process.execPath, [
-    path.resolve(repoRoot, '.ai/bin/protocol-dispatch.cjs'),
-    'resolve',
-    'tests/fixtures/resolver/fixture-dispatch.json',
-    'slot-ac5-shortfall-kernel',
-    '--ladder',
-    'tests/fixtures/resolver/fixture-ladder.json'
-  ], { cwd: repoRoot, encoding: 'utf8' });
-  assert.equal(rK.status, 1);
-  assert.ok(rK.stdout.includes('ASK_OWNER reason=shortfall'), 'must emit ASK_OWNER reason=shortfall');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'resolver-ac5-'));
+  const testRegPath = path.join(tmp, 'clients.json');
+  fs.writeFileSync(testRegPath, JSON.stringify({
+    schema: 'clients/1',
+    clients: {
+      codex: {
+        binary: 'node',
+        present: true,
+        version: process.version,
+        verifiedOn: '2026-09-26',
+        source: 'node --version',
+        command: ['node', '-e', 'process.exit(0)'],
+        model: { how: 'none', listing: null },
+        effort: { how: 'none', values: null, note: null },
+        env: {},
+        resume: { command: null, sessionId: null, note: 'none' },
+        usage: 'none',
+        failureModes: []
+      }
+    }
+  }), 'utf8');
 
-  // slot-ac5-shortfall-other (stageKind other proceeds with shortfall recorded)
-  const slotOther = disp.slots.find(s => s.id === 'slot-ac5-shortfall-other');
-  const resOther = dispatch.resolveSlot(slotOther, ladder, {}, { skipProbe: true });
-  assert.equal(resOther.terminal, null);
-  assert.ok(resOther.shortfall.includes('shortfall='), 'must record shortfall description');
+  try {
+    // CLI execution on kernel shortfall exits 1 with ASK_OWNER
+    const rK = spawnSync(process.execPath, [
+      path.resolve(repoRoot, '.ai/bin/protocol-dispatch.cjs'),
+      'resolve',
+      'tests/fixtures/resolver/fixture-dispatch.json',
+      'slot-ac5-shortfall-kernel',
+      '--ladder',
+      'tests/fixtures/resolver/fixture-ladder.json',
+      '--registry',
+      testRegPath
+    ], { cwd: repoRoot, encoding: 'utf8' });
+    assert.equal(rK.status, 1);
+    assert.ok(rK.stdout.includes('ASK_OWNER reason=shortfall'), 'must emit ASK_OWNER reason=shortfall');
 
-  const rO = spawnSync(process.execPath, [
-    path.resolve(repoRoot, '.ai/bin/protocol-dispatch.cjs'),
-    'resolve',
-    'tests/fixtures/resolver/fixture-dispatch.json',
-    'slot-ac5-shortfall-other',
-    '--ladder',
-    'tests/fixtures/resolver/fixture-ladder.json'
-  ], { cwd: repoRoot, encoding: 'utf8' });
-  assert.equal(rO.status, 0);
-  assert.ok(rO.stdout.includes('RESOLVE slot=slot-ac5-shortfall-other'), 'must print RESOLVE');
+    // slot-ac5-shortfall-other (stageKind other proceeds with shortfall recorded)
+    const slotOther = disp.slots.find(s => s.id === 'slot-ac5-shortfall-other');
+    const resOther = dispatch.resolveSlot(slotOther, ladder, {}, { skipProbe: true });
+    assert.equal(resOther.terminal, null);
+    assert.ok(resOther.shortfall.includes('shortfall='), 'must record shortfall description');
+
+    const rO = spawnSync(process.execPath, [
+      path.resolve(repoRoot, '.ai/bin/protocol-dispatch.cjs'),
+      'resolve',
+      'tests/fixtures/resolver/fixture-dispatch.json',
+      'slot-ac5-shortfall-other',
+      '--ladder',
+      'tests/fixtures/resolver/fixture-ladder.json',
+      '--registry',
+      testRegPath
+    ], { cwd: repoRoot, encoding: 'utf8' });
+    assert.equal(rO.status, 0);
+    assert.ok(rO.stdout.includes('RESOLVE slot=slot-ac5-shortfall-other'), 'must print RESOLVE');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('AC-6: slot with route never runs the resolver (selection = owner)', () => {

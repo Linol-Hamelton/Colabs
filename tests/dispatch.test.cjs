@@ -10,16 +10,44 @@ const { spawnSync } = require('node:child_process');
 const dispatch = require('../.ai/bin/protocol-dispatch.cjs');
 const runrecord = require('../.ai/bin/protocol-runrecord.cjs');
 
-const DISPATCH_BIN = path.resolve(__dirname, '..', '.ai', 'bin', 'protocol-dispatch.cjs');
-const REAL_DISPATCH = path.resolve(__dirname, '..', 'docs', 'research', '2026-09-26-ownerideas-revision', 'prompts', 'DISPATCH.json');
+const repoRoot = path.resolve(__dirname, '..');
+const DISPATCH_BIN = path.resolve(repoRoot, '.ai', 'bin', 'protocol-dispatch.cjs');
+const REAL_DISPATCH = path.resolve(repoRoot, 'docs', 'research', '2026-09-26-ownerideas-revision', 'prompts', 'DISPATCH.json');
 const R3_DISPATCH = path.resolve(__dirname, 'fixtures', 'dispatch', 'R3-DISPATCH.json');
 const FAKE_CLIENT = path.resolve(__dirname, 'dispatch-fake-client.cjs');
 
-const runBin = (args, cwd = path.resolve(__dirname, '..')) => {
+const TEST_SUITE_TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-suite-'));
+const DEFAULT_TEST_RUNS = path.join(TEST_SUITE_TMP, 'RUNS.jsonl');
+const DEFAULT_TEST_SIGNALS = path.join(TEST_SUITE_TMP, 'SIGNALS.md');
+fs.writeFileSync(DEFAULT_TEST_RUNS, '', 'utf8');
+fs.writeFileSync(DEFAULT_TEST_SIGNALS, '# Signals ledger\n\nAppend-only.\n\n', 'utf8');
+process.env.PROTOCOL_RUNS_FILE = DEFAULT_TEST_RUNS;
+process.env.PROTOCOL_SIGNALS_FILE = DEFAULT_TEST_SIGNALS;
+
+const getTrackedStatus = () => {
+  const r = spawnSync('git', ['status', '--porcelain'], {
+    cwd: path.resolve(__dirname, '..'),
+    encoding: 'utf8',
+    windowsHide: true
+  });
+  return (r.stdout || '')
+    .split('\n')
+    .map(l => l.trimEnd())
+    .filter(l => Boolean(l) && !l.startsWith('?? '));
+};
+const initialTrackedStatus = getTrackedStatus();
+
+const runBin = (args, cwd = path.resolve(__dirname, '..'), extraEnv = {}) => {
   const r = spawnSync(process.execPath, [DISPATCH_BIN, ...args], {
     cwd,
     encoding: 'utf8',
-    windowsHide: true
+    windowsHide: true,
+    env: {
+      ...process.env,
+      PROTOCOL_RUNS_FILE: DEFAULT_TEST_RUNS,
+      PROTOCOL_SIGNALS_FILE: DEFAULT_TEST_SIGNALS,
+      ...extraEnv
+    }
   });
   return {
     code: r.status === null ? -1 : r.status,
@@ -156,36 +184,39 @@ test('T6: end-to-end run with fake client in work mode', () => {
     ]
   }), 'utf8');
 
-  // Probe level 0 test with fake client
-  const probeR = runBin(['probe', '--registry', fakeRegPath, 'fake']);
-  assert.equal(probeR.code, 1); // version mismatch because node --version != fake-v1
-  assert.match(probeR.stdout, /^PROBE client=fake state=VERSION_CHANGED/m);
-
-  // Update fake registry with actual node version
-  const nodeVer = process.version;
-  const regObj = JSON.parse(fs.readFileSync(fakeRegPath, 'utf8'));
-  regObj.clients.fake.version = nodeVer;
-  fs.writeFileSync(fakeRegPath, JSON.stringify(regObj), 'utf8');
-
-  const probeR2 = runBin(['probe', '--registry', fakeRegPath, 'fake']);
-  assert.equal(probeR2.code, 0);
-  assert.match(probeR2.stdout, /^PROBE client=fake state=OK/m);
-
-  const r = runBin(['run', dispPath, '--registry', fakeRegPath]);
-  assert.equal(r.code, 0);
-  assert.match(r.stdout, /^DONE slot=fake-slot/m);
-
-  // Declared output must exist in repoRoot
-  assert.ok(fs.existsSync(path.resolve(repoRoot, outFile)));
-  // Journal must have been imported into repoRoot .ai/worklog
   const journalPath = path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md');
-  assert.ok(fs.existsSync(journalPath));
 
-  // Cleanup imported test artifacts
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  try { fs.unlinkSync(journalPath); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+  try {
+    // Probe level 0 test with fake client
+    const probeR = runBin(['probe', '--registry', fakeRegPath, 'fake']);
+    assert.equal(probeR.code, 1); // version mismatch because node --version != fake-v1
+    assert.match(probeR.stdout, /^PROBE client=fake state=VERSION_CHANGED/m);
+
+    // Update fake registry with actual node version
+    const nodeVer = process.version;
+    const regObj = JSON.parse(fs.readFileSync(fakeRegPath, 'utf8'));
+    regObj.clients.fake.version = nodeVer;
+    fs.writeFileSync(fakeRegPath, JSON.stringify(regObj), 'utf8');
+
+    const probeR2 = runBin(['probe', '--registry', fakeRegPath, 'fake']);
+    assert.equal(probeR2.code, 0);
+    assert.match(probeR2.stdout, /^PROBE client=fake state=OK/m);
+
+    const r = runBin(['run', dispPath, '--registry', fakeRegPath]);
+    assert.equal(r.code, 0);
+    assert.match(r.stdout, /^DONE slot=fake-slot/m);
+
+    // Declared output must exist in repoRoot
+    assert.ok(fs.existsSync(path.resolve(repoRoot, outFile)));
+    // Journal must have been imported into repoRoot .ai/worklog
+    assert.ok(fs.existsSync(journalPath));
+  } finally {
+    // Cleanup imported test artifacts
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(journalPath); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T7-T10: policy and scope violations end in BLOCKED with clone kept', () => {
@@ -233,12 +264,14 @@ test('T7-T10: policy and scope violations end in BLOCKED with clone kept', () =>
     assert.ok(!fs.existsSync(path.resolve(repoRoot, 'forbidden-escape.txt')));
   };
 
-  testViolationMode('write-escape'); // T7
-  testViolationMode('commit-escape'); // T8
-  testViolationMode('remote-escape'); // T9
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+  try {
+    testViolationMode('write-escape'); // T7
+    testViolationMode('commit-escape'); // T8
+    testViolationMode('remote-escape'); // T9
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T11: credential canaries absent from child env, GIT_CONFIG_NOSYSTEM=1 present', () => {
@@ -266,8 +299,9 @@ test('T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds', () => {
   const repoRoot = path.resolve(__dirname, '..');
   const outFile = 'tests/fixtures/dispatch/out1.txt';
 
-  fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
-  fs.writeFileSync(path.resolve(repoRoot, launchFile), '# Hang launch\n', 'utf8');
+  const origHang = fs.existsSync(path.resolve(repoRoot, launchFile))
+    ? fs.readFileSync(path.resolve(repoRoot, launchFile), 'utf8')
+    : '# Hang launch\n';
 
   const runTimedMode = (tMode, flag, sec) => {
     const fakeRegPath = path.join(tmp, `clients-${tMode}.json`);
@@ -302,14 +336,19 @@ test('T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds', () => {
     return r;
   };
 
-  const rStall = runTimedMode('silent', '--stall-seconds', 1);
-  assert.match(rStall.stdout, /^FAILED slot=timed-silent class=STALL/m);
+  try {
+    fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), '# Hang launch\n', 'utf8');
 
-  const rTimeout = runTimedMode('always-talking', '--hard-seconds', 2);
-  assert.match(rTimeout.stdout, /^(?:FAILED|BLOCKED) slot=timed-always-talking class=TIMEOUT/m);
+    const rStall = runTimedMode('silent', '--stall-seconds', 1);
+    assert.match(rStall.stdout, /^FAILED slot=timed-silent class=STALL/m);
 
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    const rTimeout = runTimedMode('always-talking', '--hard-seconds', 2);
+    assert.match(rTimeout.stdout, /^(?:FAILED|BLOCKED) slot=timed-always-talking class=TIMEOUT/m);
+  } finally {
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), origHang, 'utf8');
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T14: failure classification and bare-number guards', () => {
@@ -330,42 +369,43 @@ test('T14: failure classification and bare-number guards', () => {
 test('T15: needs and when skipping rules', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-when-'));
   const launchFile = 'tests/fixtures/dispatch/when-launch.md';
-  const repoRoot = path.resolve(__dirname, '..');
-  fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
-  fs.writeFileSync(path.resolve(repoRoot, launchFile), '# When launch\n', 'utf8');
-
   const checkFile = path.resolve(repoRoot, 'tests', 'fixtures', 'dispatch', 'flag.txt');
-  fs.writeFileSync(checkFile, 'DONE_ALREADY', 'utf8');
 
-  const dispPath = path.join(tmp, 'disp-when.json');
-  fs.writeFileSync(dispPath, JSON.stringify({
-    stateDir: path.relative(repoRoot, path.join(tmp, 'state')).replace(/\\/g, '/'),
-    slots: [
-      {
-        id: 's-skipped',
-        launch: launchFile,
-        when: {
-          file: 'tests/fixtures/dispatch/flag.txt',
-          notMatch: 'DONE_ALREADY'
+  try {
+    fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), '# When launch\n', 'utf8');
+    fs.writeFileSync(checkFile, 'DONE_ALREADY', 'utf8');
+
+    const dispPath = path.join(tmp, 'disp-when.json');
+    fs.writeFileSync(dispPath, JSON.stringify({
+      stateDir: path.relative(repoRoot, path.join(tmp, 'state')).replace(/\\/g, '/'),
+      slots: [
+        {
+          id: 's-skipped',
+          launch: launchFile,
+          when: {
+            file: 'tests/fixtures/dispatch/flag.txt',
+            notMatch: 'DONE_ALREADY'
+          },
+          route: { client: 'agy', model: 'gemini-3.8-flash' }
         },
-        route: { client: 'agy', model: 'gemini-3.8-flash' }
-      },
-      {
-        id: 's-waiting',
-        launch: launchFile,
-        needs: ['s-unmet-dep'],
-        route: { client: 'agy', model: 'gemini-3.8-flash' }
-      }
-    ]
-  }), 'utf8');
+        {
+          id: 's-waiting',
+          launch: launchFile,
+          needs: ['s-unmet-dep'],
+          route: { client: 'agy', model: 'gemini-3.8-flash' }
+        }
+      ]
+    }), 'utf8');
 
-  const r = runBin(['run', dispPath]);
-  assert.match(r.stdout, /^SKIP slot=s-skipped reason=when-matched/m);
-  assert.match(r.stdout, /^WAIT slot=s-waiting reason=needs/m);
-
-  try { fs.unlinkSync(checkFile); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    const r = runBin(['run', dispPath]);
+    assert.match(r.stdout, /^SKIP slot=s-skipped reason=when-matched/m);
+    assert.match(r.stdout, /^WAIT slot=s-waiting reason=needs/m);
+  } finally {
+    try { fs.unlinkSync(checkFile); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T16: second run of live slot exits 1 due to start lock', () => {
@@ -523,38 +563,46 @@ test('T20: AC-7, AC-12: transient retry, run record validation, usage render', (
     ]
   }), 'utf8');
 
-  const r = runBin([
-    'run',
-    dispPath,
-    '--registry', fakeRegPath,
-    '--runs-file', runsFile,
-    '--fast-retry'
-  ]);
+  const marker = path.join(tmp, 'fake-transient.txt');
+  try { fs.unlinkSync(marker); } catch {}
+  try { fs.unlinkSync(path.join(os.tmpdir(), 'fake-transient.txt')); } catch {}
 
-  assert.equal(r.code, 0);
-  assert.match(r.stdout, /^RUN slot=t20-slot attempt=1/m);
-  assert.match(r.stdout, /^RUN slot=t20-slot attempt=2/m);
-  assert.match(r.stdout, /^DONE slot=t20-slot/m);
+  try {
+    const r = runBin([
+      'run',
+      dispPath,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile,
+      '--fast-retry'
+    ], path.resolve(__dirname, '..'), { FAKE_TRANSIENT_MARKER: marker });
 
-  assert.ok(fs.existsSync(runsFile), 'RUNS.jsonl must exist');
-  const records = runrecord.readRecords(runsFile);
-  assert.equal(records.length, 1);
-  const rec = records[0];
-  assert.equal(rec.state, 'DONE');
-  assert.equal(rec.budget.freshUsed, 2);
-  assert.equal(rec.budget.resumes, 0);
-  assert.equal(rec.attempts[0].reason, 'first');
-  assert.equal(rec.attempts[1].reason, 'transient-retry');
+    assert.equal(r.code, 0);
+    assert.match(r.stdout, /^RUN slot=t20-slot attempt=1/m);
+    assert.match(r.stdout, /^RUN slot=t20-slot attempt=2/m);
+    assert.match(r.stdout, /^DONE slot=t20-slot/m);
 
-  const valErrors = runrecord.validateRecord(rec);
-  assert.deepEqual(valErrors, []);
+    assert.ok(fs.existsSync(runsFile), 'RUNS.jsonl must exist');
+    const records = runrecord.readRecords(runsFile);
+    assert.equal(records.length, 1);
+    const rec = records[0];
+    assert.equal(rec.state, 'DONE');
+    assert.equal(rec.budget.freshUsed, 2);
+    assert.equal(rec.budget.resumes, 0);
+    assert.equal(rec.attempts[0].reason, 'first');
+    assert.equal(rec.attempts[1].reason, 'transient-retry');
 
-  assert.ok(fs.existsSync(usageFile), 'usageFile must be rendered');
+    const valErrors = runrecord.validateRecord(rec);
+    assert.deepEqual(valErrors, []);
 
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    assert.ok(fs.existsSync(usageFile), 'usageFile must be rendered');
+  } finally {
+    try { fs.unlinkSync(marker); } catch {}
+    try { fs.unlinkSync(path.join(os.tmpdir(), 'fake-transient.txt')); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T21: AC-8: STALL recovery with wakes and fallen = true', () => {
@@ -563,83 +611,89 @@ test('T21: AC-8: STALL recovery with wakes and fallen = true', () => {
   const repoRoot = path.resolve(__dirname, '..');
   const outFile = 'tests/fixtures/dispatch/out1.txt';
 
-  fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
-  fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T21 launch\n', 'utf8');
+  const origT21 = fs.existsSync(path.resolve(repoRoot, launchFile))
+    ? fs.readFileSync(path.resolve(repoRoot, launchFile), 'utf8')
+    : '# T21 launch\n';
 
-  const fakeRegPath = path.join(tmp, 'clients.json');
-  fs.writeFileSync(fakeRegPath, JSON.stringify({
-    schema: 'clients/1',
-    clients: {
-      fake: {
-        binary: 'node',
-        present: true,
-        version: process.version,
-        verifiedOn: '2026-09-26',
-        source: 'node --version',
-        command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}'],
-        model: { how: 'none', listing: null },
-        effort: { how: 'none', values: null, note: null },
-        env: {},
-        resume: {
-          command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}', '--resume={sessionId}'],
-          sessionId: 'printed',
-          note: 'supports resume'
-        },
-        usage: 'none',
-        failureModes: []
+  try {
+    fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T21 launch\n', 'utf8');
+
+    const fakeRegPath = path.join(tmp, 'clients.json');
+    fs.writeFileSync(fakeRegPath, JSON.stringify({
+      schema: 'clients/1',
+      clients: {
+        fake: {
+          binary: 'node',
+          present: true,
+          version: process.version,
+          verifiedOn: '2026-09-26',
+          source: 'node --version',
+          command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}'],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: {
+            command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}', '--resume={sessionId}'],
+            sessionId: 'printed',
+            note: 'supports resume'
+          },
+          usage: 'none',
+          failureModes: []
+        }
       }
-    }
-  }), 'utf8');
+    }), 'utf8');
 
-  const runsFile = path.join(tmp, 'RUNS.jsonl');
-  const dispPath = path.join(tmp, 'disp.json');
-  fs.writeFileSync(dispPath, JSON.stringify({
-    stateDir: path.relative(repoRoot, path.join(tmp, 'state')).replace(/\\/g, '/'),
-    stallMin: 10,
-    hardMin: 60,
-    slots: [
-      {
-        id: 't21-slot',
-        launch: launchFile,
-        out: outFile,
-        route: { client: 'fake', model: 'test' }
-      }
-    ]
-  }), 'utf8');
+    const runsFile = path.join(tmp, 'RUNS.jsonl');
+    const dispPath = path.join(tmp, 'disp.json');
+    fs.writeFileSync(dispPath, JSON.stringify({
+      stateDir: path.relative(repoRoot, path.join(tmp, 'state')).replace(/\\/g, '/'),
+      stallMin: 10,
+      hardMin: 60,
+      slots: [
+        {
+          id: 't21-slot',
+          launch: launchFile,
+          out: outFile,
+          route: { client: 'fake', model: 'test' }
+        }
+      ]
+    }), 'utf8');
 
-  const r = runBin([
-    'run',
-    dispPath,
-    '--registry', fakeRegPath,
-    '--runs-file', runsFile,
-    '--stall-seconds', '1'
-  ]);
+    const r = runBin([
+      'run',
+      dispPath,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile,
+      '--stall-seconds', '1'
+    ]);
 
-  assert.equal(r.code, 1);
-  assert.match(r.stdout, /^FAILED slot=t21-slot class=STALL/m);
+    assert.equal(r.code, 1);
+    assert.match(r.stdout, /^FAILED slot=t21-slot class=STALL/m);
 
-  assert.ok(fs.existsSync(runsFile), 'RUNS.jsonl must exist');
-  const records = runrecord.readRecords(runsFile);
-  assert.equal(records.length, 1);
-  const rec = records[0];
-  assert.equal(rec.state, 'FAILED');
-  assert.equal(rec.fallen, true, 'fallen must be true on stall exhaustion');
+    assert.ok(fs.existsSync(runsFile), 'RUNS.jsonl must exist');
+    const records = runrecord.readRecords(runsFile);
+    assert.equal(records.length, 1);
+    const rec = records[0];
+    assert.equal(rec.state, 'FAILED');
+    assert.equal(rec.fallen, true, 'fallen must be true on stall exhaustion');
 
-  // Verify attempt kinds and reasons
-  assert.equal(rec.attempts[0].kind, 'fresh');
-  assert.equal(rec.attempts[0].reason, 'first');
-  assert.equal(rec.attempts[1].kind, 'resume');
-  assert.equal(rec.attempts[1].reason, 'resume');
-  assert.equal(rec.attempts[2].kind, 'resume');
-  assert.equal(rec.attempts[3].kind, 'resume');
+    // Verify attempt kinds and reasons
+    assert.equal(rec.attempts[0].kind, 'fresh');
+    assert.equal(rec.attempts[0].reason, 'first');
+    assert.equal(rec.attempts[1].kind, 'resume');
+    assert.equal(rec.attempts[1].reason, 'resume');
+    assert.equal(rec.attempts[2].kind, 'resume');
+    assert.equal(rec.attempts[3].kind, 'resume');
 
-  const valErrors = runrecord.validateRecord(rec);
-  assert.deepEqual(valErrors, []);
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    const valErrors = runrecord.validateRecord(rec);
+    assert.deepEqual(valErrors, []);
+  } finally {
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), origT21, 'utf8');
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T22: AC-9: INVALID_OUTPUT repair resume', () => {
@@ -692,34 +746,36 @@ test('T22: AC-9: INVALID_OUTPUT repair resume', () => {
     ]
   }), 'utf8');
 
-  const r = runBin([
-    'run',
-    dispPath,
-    '--registry', fakeRegPath,
-    '--runs-file', runsFile,
-    '--fast-retry'
-  ]);
+  try {
+    const r = runBin([
+      'run',
+      dispPath,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile,
+      '--fast-retry'
+    ]);
 
-  assert.equal(r.code, 0);
-  assert.match(r.stdout, /^DONE slot=t22-slot/m);
+    assert.equal(r.code, 0);
+    assert.match(r.stdout, /^DONE slot=t22-slot/m);
 
-  const records = runrecord.readRecords(runsFile);
-  assert.equal(records.length, 1);
-  const rec = records[0];
-  assert.equal(rec.state, 'DONE');
-  assert.equal(rec.attempts.length, 2);
-  assert.equal(rec.attempts[0].kind, 'fresh');
-  assert.equal(rec.attempts[0].reason, 'first');
-  assert.equal(rec.attempts[1].kind, 'resume');
-  assert.equal(rec.attempts[1].reason, 'repair');
+    const records = runrecord.readRecords(runsFile);
+    assert.equal(records.length, 1);
+    const rec = records[0];
+    assert.equal(rec.state, 'DONE');
+    assert.equal(rec.attempts.length, 2);
+    assert.equal(rec.attempts[0].kind, 'fresh');
+    assert.equal(rec.attempts[0].reason, 'first');
+    assert.equal(rec.attempts[1].kind, 'resume');
+    assert.equal(rec.attempts[1].reason, 'repair');
 
-  const valErrors = runrecord.validateRecord(rec);
-  assert.deepEqual(valErrors, []);
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    const valErrors = runrecord.validateRecord(rec);
+    assert.deepEqual(valErrors, []);
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise starts new run', () => {
@@ -765,25 +821,27 @@ test('T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise star
     ]
   }), 'utf8');
 
-  // First run: records pins, fails with AUTH_ERROR
-  const r1 = runBin(['run', dispPath, '--registry', fakeRegPath]);
-  assert.equal(r1.code, 1);
+  try {
+    // First run: records pins, fails with AUTH_ERROR
+    const r1 = runBin(['run', dispPath, '--registry', fakeRegPath]);
+    assert.equal(r1.code, 1);
 
-  // Modify launch file
-  fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T23 TAMPERED launch\n', 'utf8');
+    // Modify launch file
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T23 TAMPERED launch\n', 'utf8');
 
-  // Second run without --revise: BLOCKED pin-changed
-  const r2 = runBin(['run', dispPath, '--registry', fakeRegPath]);
-  assert.equal(r2.code, 1);
-  assert.match(r2.stdout, /^BLOCKED slot=t23-slot class=POLICY_FAILURE reason="pin-changed tests\/fixtures\/dispatch\/t23-launch\.md"/m);
+    // Second run without --revise: BLOCKED pin-changed
+    const r2 = runBin(['run', dispPath, '--registry', fakeRegPath]);
+    assert.equal(r2.code, 1);
+    assert.match(r2.stdout, /^BLOCKED slot=t23-slot class=POLICY_FAILURE reason="pin-changed tests\/fixtures\/dispatch\/t23-launch\.md"/m);
 
-  // Third run with --revise: starts fresh revision
-  const r3 = runBin(['run', dispPath, '--registry', fakeRegPath, '--revise']);
-  assert.equal(r3.code, 1);
-  assert.match(r3.stdout, /^RUN slot=t23-slot attempt=1/m);
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    // Third run with --revise: starts fresh revision
+    const r3 = runBin(['run', dispPath, '--registry', fakeRegPath, '--revise']);
+    assert.equal(r3.code, 1);
+    assert.match(r3.stdout, /^RUN slot=t23-slot attempt=1/m);
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T24: AC-11: Completion contract requires Evidence line', () => {
@@ -844,14 +902,16 @@ test('T24: AC-11: Completion contract requires Evidence line', () => {
     ]
   }), 'utf8');
 
-  const r = runBin(['run', dispPath, '--registry', fakeRegPath]);
-  assert.equal(r.code, 1);
-  assert.match(r.stdout, /^FAILED slot=t24-slot class=INVALID_OUTPUT/m);
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+  try {
+    const r = runBin(['run', dispPath, '--registry', fakeRegPath]);
+    assert.equal(r.code, 1);
+    assert.match(r.stdout, /^FAILED slot=t24-slot class=INVALID_OUTPUT/m);
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T25: AC-7: PROCESS_CRASH recovery via resume', () => {
@@ -902,34 +962,36 @@ test('T25: AC-7: PROCESS_CRASH recovery via resume', () => {
     ]
   }), 'utf8');
 
-  const r = runBin([
-    'run',
-    dispPath,
-    '--registry', fakeRegPath,
-    '--runs-file', runsFile,
-    '--fast-retry'
-  ]);
+  try {
+    const r = runBin([
+      'run',
+      dispPath,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile,
+      '--fast-retry'
+    ]);
 
-  assert.equal(r.code, 0);
-  assert.match(r.stdout, /^DONE slot=t25-slot/m);
+    assert.equal(r.code, 0);
+    assert.match(r.stdout, /^DONE slot=t25-slot/m);
 
-  const records = runrecord.readRecords(runsFile);
-  assert.equal(records.length, 1);
-  const rec = records[0];
-  assert.equal(rec.state, 'DONE');
-  assert.equal(rec.attempts.length, 2);
-  assert.equal(rec.attempts[0].kind, 'fresh');
-  assert.equal(rec.attempts[0].reason, 'first');
-  assert.equal(rec.attempts[1].kind, 'resume');
-  assert.equal(rec.attempts[1].reason, 'resume');
+    const records = runrecord.readRecords(runsFile);
+    assert.equal(records.length, 1);
+    const rec = records[0];
+    assert.equal(rec.state, 'DONE');
+    assert.equal(rec.attempts.length, 2);
+    assert.equal(rec.attempts[0].kind, 'fresh');
+    assert.equal(rec.attempts[0].reason, 'first');
+    assert.equal(rec.attempts[1].kind, 'resume');
+    assert.equal(rec.attempts[1].reason, 'resume');
 
-  const valErrors = runrecord.validateRecord(rec);
-  assert.deepEqual(valErrors, []);
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+    const valErrors = runrecord.validateRecord(rec);
+    assert.deepEqual(valErrors, []);
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });
 
 test('T26: AC-10: PKG-5 dispatcher fall signal test', () => {
@@ -941,178 +1003,190 @@ test('T26: AC-10: PKG-5 dispatcher fall signal test', () => {
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T26 launch\n', 'utf8');
 
-  // Case 1: STALL fake client exhausting its wakes adds one fall line with evidence=docs/ops/RUNS.jsonl#<runId>
-  const fakeRegPath = path.join(tmp, 'clients-wakes.json');
-  fs.writeFileSync(fakeRegPath, JSON.stringify({
-    schema: 'clients/1',
-    clients: {
-      fake: {
-        binary: 'node',
-        present: true,
-        version: process.version,
-        verifiedOn: '2026-09-26',
-        source: 'node --version',
-        command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}'],
-        model: { how: 'none', listing: null },
-        effort: { how: 'none', values: null, note: null },
-        env: {},
-        resume: {
-          command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}', '--resume={sessionId}'],
-          sessionId: 'printed',
-          note: 'supports resume'
-        },
-        usage: 'none',
-        failureModes: []
+  try {
+    // Case 1: STALL fake client exhausting its wakes adds one fall line with evidence=docs/ops/RUNS.jsonl#<runId>
+    const fakeRegPath = path.join(tmp, 'clients-wakes.json');
+    fs.writeFileSync(fakeRegPath, JSON.stringify({
+      schema: 'clients/1',
+      clients: {
+        fake: {
+          binary: 'node',
+          present: true,
+          version: process.version,
+          verifiedOn: '2026-09-26',
+          source: 'node --version',
+          command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}'],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: {
+            command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}', '--resume={sessionId}'],
+            sessionId: 'printed',
+            note: 'supports resume'
+          },
+          usage: 'none',
+          failureModes: []
+        }
       }
-    }
-  }), 'utf8');
+    }), 'utf8');
 
-  const runsFile1 = path.join(tmp, 'RUNS1.jsonl');
-  const signalsFile1 = path.join(tmp, 'SIGNALS1.md');
-  const dispPath1 = path.join(tmp, 'disp1.json');
-  fs.writeFileSync(dispPath1, JSON.stringify({
-    stateDir: path.relative(repoRoot, path.join(tmp, 'state1')).replace(/\\/g, '/'),
-    stallMin: 10,
-    hardMin: 60,
-    slots: [
-      {
-        id: 't26-slot1',
-        launch: launchFile,
-        out: outFile,
-        route: { client: 'fake', model: 'test-model' }
+    const runsFile1 = path.join(tmp, 'RUNS1.jsonl');
+    const signalsFile1 = path.join(tmp, 'SIGNALS1.md');
+    const dispPath1 = path.join(tmp, 'disp1.json');
+    fs.writeFileSync(dispPath1, JSON.stringify({
+      stateDir: path.relative(repoRoot, path.join(tmp, 'state1')).replace(/\\/g, '/'),
+      stallMin: 10,
+      hardMin: 60,
+      slots: [
+        {
+          id: 't26-slot1',
+          launch: launchFile,
+          out: outFile,
+          route: { client: 'fake', model: 'test-model' }
+        }
+      ]
+    }), 'utf8');
+
+    const r1 = runBin([
+      'run',
+      dispPath1,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile1,
+      '--signals-file', signalsFile1,
+      '--stall-seconds', '1'
+    ]);
+
+    assert.equal(r1.code, 1);
+    assert.ok(fs.existsSync(signalsFile1), 'signalsFile1 must exist');
+    const content1 = fs.readFileSync(signalsFile1, 'utf8');
+    const lines1 = content1.split('\n').filter(l => l.startsWith('Signal: '));
+    assert.ok(lines1.length >= 1, 'must add at least 1 signal line on wake exhaustion');
+    assert.ok(lines1.every(l => l.includes(' | fall | ')), 'must be fall signal');
+    assert.match(lines1[0], /fake:test-model/, 'participant must match client:model');
+
+    const records1 = runrecord.readRecords(runsFile1);
+    assert.equal(records1.length, 1);
+    const runId1 = records1[0].runId;
+    assert.ok(lines1[0].includes(`docs/ops/RUNS.jsonl#${runId1}`), 'evidence must point to runId in RUNS.jsonl');
+
+    // Case 2: Fake client without resume.command adds fall and procedure-gap
+    const fakeRegNoResume = path.join(tmp, 'clients-no-resume.json');
+    fs.writeFileSync(fakeRegNoResume, JSON.stringify({
+      schema: 'clients/1',
+      clients: {
+        fake: {
+          binary: 'node',
+          present: true,
+          version: process.version,
+          verifiedOn: '2026-09-26',
+          source: 'node --version',
+          command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}'],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: {
+            command: null,
+            sessionId: null,
+            note: 'no resume'
+          },
+          usage: 'none',
+          failureModes: []
+        }
       }
-    ]
-  }), 'utf8');
+    }), 'utf8');
 
-  const r1 = runBin([
-    'run',
-    dispPath1,
-    '--registry', fakeRegPath,
-    '--runs-file', runsFile1,
-    '--signals-file', signalsFile1,
-    '--stall-seconds', '1'
-  ]);
+    const runsFile2 = path.join(tmp, 'RUNS2.jsonl');
+    const signalsFile2 = path.join(tmp, 'SIGNALS2.md');
+    const dispPath2 = path.join(tmp, 'disp2.json');
+    fs.writeFileSync(dispPath2, JSON.stringify({
+      stateDir: path.relative(repoRoot, path.join(tmp, 'state2')).replace(/\\/g, '/'),
+      stallMin: 10,
+      hardMin: 60,
+      slots: [
+        {
+          id: 't26-slot2',
+          launch: launchFile,
+          out: outFile,
+          route: { client: 'fake', model: 'test-no-res' }
+        }
+      ]
+    }), 'utf8');
 
-  assert.equal(r1.code, 1);
-  assert.ok(fs.existsSync(signalsFile1), 'signalsFile1 must exist');
-  const content1 = fs.readFileSync(signalsFile1, 'utf8');
-  const lines1 = content1.split('\n').filter(l => l.startsWith('Signal: '));
-  assert.ok(lines1.length >= 1, 'must add at least 1 signal line on wake exhaustion');
-  assert.ok(lines1.every(l => l.includes(' | fall | ')), 'must be fall signal');
-  assert.match(lines1[0], /fake:test-model/, 'participant must match client:model');
+    const r2 = runBin([
+      'run',
+      dispPath2,
+      '--registry', fakeRegNoResume,
+      '--runs-file', runsFile2,
+      '--signals-file', signalsFile2,
+      '--stall-seconds', '1'
+    ]);
 
-  const records1 = runrecord.readRecords(runsFile1);
-  assert.equal(records1.length, 1);
-  const runId1 = records1[0].runId;
-  assert.ok(lines1[0].includes(`docs/ops/RUNS.jsonl#${runId1}`), 'evidence must point to runId in RUNS.jsonl');
+    assert.equal(r2.code, 1);
+    assert.ok(fs.existsSync(signalsFile2), 'signalsFile2 must exist');
+    const content2 = fs.readFileSync(signalsFile2, 'utf8');
+    const lines2 = content2.split('\n').filter(l => l.startsWith('Signal: '));
+    assert.ok(lines2.length >= 2, 'must add signal lines (fall and procedure-gap)');
+    const fallLine = lines2.find(l => l.includes(' | fall | '));
+    const gapLine = lines2.find(l => l.includes(' | procedure-gap | '));
+    assert.ok(fallLine, 'must have fall signal');
+    assert.ok(gapLine, 'must have procedure-gap signal');
+    assert.ok(gapLine.includes('unknown'), 'procedure-gap cost must be unknown');
 
-  // Case 2: Fake client without resume.command adds fall and procedure-gap
-  const fakeRegNoResume = path.join(tmp, 'clients-no-resume.json');
-  fs.writeFileSync(fakeRegNoResume, JSON.stringify({
-    schema: 'clients/1',
-    clients: {
-      fake: {
-        binary: 'node',
-        present: true,
-        version: process.version,
-        verifiedOn: '2026-09-26',
-        source: 'node --version',
-        command: ['node', FAKE_CLIENT, 'stall-wake', '{workdir}', '{workdir}'],
-        model: { how: 'none', listing: null },
-        effort: { how: 'none', values: null, note: null },
-        env: {},
-        resume: {
-          command: null,
-          sessionId: null,
-          note: 'no resume'
-        },
-        usage: 'none',
-        failureModes: []
-      }
-    }
-  }), 'utf8');
+    const records2 = runrecord.readRecords(runsFile2);
+    assert.equal(records2.length, 1);
+    const runId2 = records2[0].runId;
+    assert.ok(fallLine.includes(`docs/ops/RUNS.jsonl#${runId2}`));
+    assert.ok(gapLine.includes(`docs/ops/RUNS.jsonl#${runId2}`));
 
-  const runsFile2 = path.join(tmp, 'RUNS2.jsonl');
-  const signalsFile2 = path.join(tmp, 'SIGNALS2.md');
-  const dispPath2 = path.join(tmp, 'disp2.json');
-  fs.writeFileSync(dispPath2, JSON.stringify({
-    stateDir: path.relative(repoRoot, path.join(tmp, 'state2')).replace(/\\/g, '/'),
-    stallMin: 10,
-    hardMin: 60,
-    slots: [
-      {
-        id: 't26-slot2',
-        launch: launchFile,
-        out: outFile,
-        route: { client: 'fake', model: 'test-no-res' }
-      }
-    ]
-  }), 'utf8');
+    // Case 3: A failing ledger leaves run record unchanged and prints ERROR row
+    const badSignalsFile = path.join(tmp, 'BAD_SIGNALS.md');
+    fs.writeFileSync(badSignalsFile, 'Corrupted invalid header line\n\n\n\n', 'utf8');
 
-  const r2 = runBin([
-    'run',
-    dispPath2,
-    '--registry', fakeRegNoResume,
-    '--runs-file', runsFile2,
-    '--signals-file', signalsFile2,
-    '--stall-seconds', '1'
-  ]);
+    const runsFile3 = path.join(tmp, 'RUNS3.jsonl');
+    const dispPath3 = path.join(tmp, 'disp3.json');
+    fs.writeFileSync(dispPath3, JSON.stringify({
+      stateDir: path.relative(repoRoot, path.join(tmp, 'state3')).replace(/\\/g, '/'),
+      stallMin: 10,
+      hardMin: 60,
+      slots: [
+        {
+          id: 't26-slot3',
+          launch: launchFile,
+          out: outFile,
+          route: { client: 'fake', model: 'test-fail' }
+        }
+      ]
+    }), 'utf8');
 
-  assert.equal(r2.code, 1);
-  assert.ok(fs.existsSync(signalsFile2), 'signalsFile2 must exist');
-  const content2 = fs.readFileSync(signalsFile2, 'utf8');
-  const lines2 = content2.split('\n').filter(l => l.startsWith('Signal: '));
-  assert.ok(lines2.length >= 2, 'must add signal lines (fall and procedure-gap)');
-  const fallLine = lines2.find(l => l.includes(' | fall | '));
-  const gapLine = lines2.find(l => l.includes(' | procedure-gap | '));
-  assert.ok(fallLine, 'must have fall signal');
-  assert.ok(gapLine, 'must have procedure-gap signal');
-  assert.ok(gapLine.includes('unknown'), 'procedure-gap cost must be unknown');
+    const r3 = runBin([
+      'run',
+      dispPath3,
+      '--registry', fakeRegNoResume,
+      '--runs-file', runsFile3,
+      '--signals-file', badSignalsFile,
+      '--stall-seconds', '1'
+    ]);
 
-  const records2 = runrecord.readRecords(runsFile2);
-  assert.equal(records2.length, 1);
-  const runId2 = records2[0].runId;
-  assert.ok(fallLine.includes(`docs/ops/RUNS.jsonl#${runId2}`));
-  assert.ok(gapLine.includes(`docs/ops/RUNS.jsonl#${runId2}`));
+    assert.match(r3.stdout, /ERROR reason=signal-append-failed runId=R-/, 'must print ERROR reason=signal-append-failed row');
+    assert.ok(fs.existsSync(runsFile3), 'runsFile3 must still exist');
+    const records3 = runrecord.readRecords(runsFile3);
+    assert.equal(records3.length, 1, 'run record must still be written');
+    assert.equal(records3[0].state, 'FAILED');
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
 
-  // Case 3: A failing ledger leaves run record unchanged and prints ERROR row
-  const badSignalsFile = path.join(tmp, 'BAD_SIGNALS.md');
-  fs.writeFileSync(badSignalsFile, 'Corrupted invalid header line\n\n\n\n', 'utf8');
-
-  const runsFile3 = path.join(tmp, 'RUNS3.jsonl');
-  const dispPath3 = path.join(tmp, 'disp3.json');
-  fs.writeFileSync(dispPath3, JSON.stringify({
-    stateDir: path.relative(repoRoot, path.join(tmp, 'state3')).replace(/\\/g, '/'),
-    stallMin: 10,
-    hardMin: 60,
-    slots: [
-      {
-        id: 't26-slot3',
-        launch: launchFile,
-        out: outFile,
-        route: { client: 'fake', model: 'test-fail' }
-      }
-    ]
-  }), 'utf8');
-
-  const r3 = runBin([
-    'run',
-    dispPath3,
-    '--registry', fakeRegNoResume,
-    '--runs-file', runsFile3,
-    '--signals-file', badSignalsFile,
-    '--stall-seconds', '1'
-  ]);
-
-  assert.match(r3.stdout, /ERROR reason=signal-append-failed runId=R-/, 'must print ERROR reason=signal-append-failed row');
-  assert.ok(fs.existsSync(runsFile3), 'runsFile3 must still exist');
-  const records3 = runrecord.readRecords(runsFile3);
-  assert.equal(records3.length, 1, 'run record must still be written');
-  assert.equal(records3[0].state, 'FAILED');
-
-  try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
-  try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-  fs.rmSync(tmp, { recursive: true, force: true });
+test('Guard test: test suite leaves no changes to tracked files', () => {
+  const current = getTrackedStatus();
+  const changed = current.filter(l => !initialTrackedStatus.includes(l));
+  assert.deepEqual(changed, [], `Test suite modified tracked files:\n${changed.join('\n')}`);
+  assert.ok(!changed.some(l => l.includes('.ai/SIGNALS.md')), '.ai/SIGNALS.md polluted');
+  assert.ok(!changed.some(l => l.includes('docs/ops/RUNS.jsonl')), 'docs/ops/RUNS.jsonl polluted');
+  assert.ok(!changed.some(l => l.includes('hang-launch.md')), 'hang-launch.md modified/deleted');
+  assert.ok(!changed.some(l => l.includes('t21-launch.md')), 't21-launch.md modified/deleted');
 });
 
 

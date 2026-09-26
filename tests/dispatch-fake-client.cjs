@@ -181,7 +181,7 @@ const writeOutput = (content = 'result from fake client\n') => {
       break;
     }
     case 'transient-retry': {
-      const marker = path.join(os.tmpdir(), 'fake-transient.txt');
+      const marker = process.env.FAKE_TRANSIENT_MARKER || path.join(os.tmpdir(), 'fake-transient.txt');
       if (!fs.existsSync(marker)) {
         fs.writeFileSync(marker, '1', 'utf8');
         console.log('HTTP 429 Too Many Requests: rate limit exceeded');

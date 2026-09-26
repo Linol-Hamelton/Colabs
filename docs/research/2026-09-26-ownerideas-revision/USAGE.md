@@ -28,3 +28,4 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r8b-cont-e1 | agy | gemini-3.8-flash-high | - | 55 | 303 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r8b-cont-e2 | vibe | mistral-medium-3.5 | - | 16 | 551 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r9b-repair-pkg5 | agy | gemini-3.8-flash-high | - | 39 | 143 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r9c-repair-hygiene | agy | gemini-3.8-flash-high | - | 32 | 209 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
