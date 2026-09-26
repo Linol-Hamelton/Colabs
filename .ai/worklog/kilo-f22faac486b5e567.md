@@ -8,6 +8,24 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26/27 - Stage-9 review FINDINGS; hygiene repair expanded (cloud + review); runner reset anomaly
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Stage-9 review DONE (`round8/IMPLEMENTATION-REVIEW-DEEPSEEK.md`, 00:02): verdict FINDINGS with five BLOCKING items - F-1 the PKG-5 adversarial audit prompt is missing; F-2 the run-record `class` enum contradicts `run-record.schema.md` and PROTO-DEC-0075 item 4; F-3 `bin-output-schema.md` lists twelve classes, not fifteen; F-4 dispatch tests are not hermetic and write into the canonical store (the operator reproduced +12 `SIGNALS.md` lines, +16 `RUNS.jsonl` lines per run); F-5 registry freshness / AC-15: `vibe` pinned to a stale version; suite 415/415 pass.
+- Cloud findings on 1fd27ce integrated into `r9c-repair-hygiene`: `docs/ops/RUNS.jsonl` all-test file - clear it entirely; `.ai/SIGNALS.md` - delete the 8 test signals and keep the other 95 (owner option (a), one commit marked "deletion of test artifacts, not history"); tests write only to a temp dir (path override); a guard test asserting `git status --porcelain` shows no tracked changes after the suite; restore `tests/fixtures/dispatch/hang-launch.md`; AC-5 is a recorded portability defect (Windows 7/7, Linux fails; not a blocker). Review findings F-1..F-5 added to the same slot.
+- Runner anomaly, observed three times: after `reset` of a slot its dependents start on the next tick even though the reset slot is not DONE (certs started while r9c was STARTING; verify started after the certs were accepted). Mitigation: the two cert slots and `r9-verify-codex` are ACCEPT-deferred with recorded reasons; after r9c closes the operator resets the certs (their need is then genuinely DONE), and after the certs close resets the verifier.
+- Expanded `r9c-repair-hygiene` restarted and WORKING (pid 17996, journal gemini-d0ddc332d135ceb6); its launch file now carries the hygiene items, the MiMo disputed claims, the cloud additions and the review's F-1..F-5.
+
+Result: one consolidated repair in flight covers every open claim; the cert and verify slots are deferred until their inputs are genuinely repaired.
+
+Next step: r9c report verification; reset the certs; on their verdicts reset the verifier (GPT-5.6 Sol); on PASS - commits, prune, push, `STAGE12-READY.md`.
+
+Open: r9c in flight; the runner reset/anomaly is worked around by recorded deferrals.
+
+---
+
 ## 2026-09-26 - Kimi final cert (PKG-1/2/3 PASS, PKG-5 FAIL); PKG-5 repair and reruns running
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
@@ -25,18 +43,19 @@ Next step: when the repair plus review and MiMo are DONE - reset the cert slots 
 Open: repair/review/mimo running; stage-12 readiness estimate ~00:15-01:00 MSK if no further blockers.
 
 Evidence:
-- anchor: 119ef1e9f20dca5493bbd1106b498b7935534bc9, uncommitted changes present
-- digest: sha256:e0b9ae422a270b3e59e875573a04f3341ad295613082743a63b4d9d27032b9fb over 669 tracked and untracked files
+- anchor: 36c9fe10b27b3af23a4e1da9ddb6020bdd5a01d6, uncommitted changes present
+- digest: sha256:bc637b2f4dedb2a6ce5a9f0138aa30d3cc421626f8b1fce9dd20a887f80a3232 over 687 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-26T20:09:33.322Z by kilo-f22faac486b5e567
+- recorded: 2026-09-26T21:09:46.727Z by kilo-f22faac486b5e567
 - entry hash format: 2
-- entry: sha256:eaeefcb93879473a78e6c497cdc52a54491d2b3099ce16c0d737adc4a38b2db4 of this entry without this block
+- entry: sha256:93a81cc4a2c4f3de39364f5e31eae54509261da3a9aa4f33069e40e8c4799c1e of this entry without this block
 - parent-entry: sha256:53bde65e59ab0aa57ac240faa5a53e00b4e76783120519bca015d2461f10be63
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 5s
+- validate-protocol.ps1: exit 0 in 4s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 
 ## 2026-09-26 - Continuations: E2 DONE, E1 working
