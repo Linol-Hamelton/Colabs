@@ -8,6 +8,36 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Stage 12 is owner-run in cloud Claude (operator does not launch it)
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Owner instruction: do NOT launch stage 12. When every input is ready, report readiness; the owner runs the final closure in the cloud Claude session (balance), because the Claude subscription limits are near exhaustion.
+- Recorded in the package README (Order, item 8) and here. At stage 11 close the operator prepares the stage-12 input manifest and the paste-ready prompt (final candidate; DeepSeek stage-9 implementation review; stage-10 Gemini repair; stage-11 verification by GPT-5.6 Sol; the approved plan and packages; the closure conditions of the dispatch section 12, including R-L0-22.56-22.71 for the program's own artifacts), reports "ready", creates no r12 slot and launches nothing.
+- Current state: the stage-7 fix loop runs - `r7b-claude-fix` WORKING (fixing B1..B3 and the W1 `protocol-manifest.json` overlap), `r7c-deepseek-recheck` queued behind it.
+
+Result: Stage-12 ownership fixed by the owner; the program continues through stages 7-11.
+
+Next step: fix loop -> stage 8 (E1 Gemini 3.8 Flash high, E2 Mistral Medium 3.5 max); at stage 11 close, prepare the stage-12 manifest and prompt and report readiness.
+
+Open: readiness report for stage 12 pending; r7b/r7c running.
+
+Evidence:
+- anchor: 30ccf4387503d753857eb16fba277b84293d8fce, uncommitted changes present
+- digest: sha256:aa3223ecd1c460667ab49e27541d2332f2569770cd7dd3281fb8ff355488c544 over 617 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T15:42:38.510Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:161f29e4622805de1ee3813db042f4be203e9ee569372097ef8c3af9f37c3787 of this entry without this block
+- parent-entry: sha256:abb208ba3139c9d7e51f628a54d268ddd0483f8f0de13a29515e7a09cf9fc959
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - Stage 5-6 complete (resolution + PKG-1..5); STOP-3 passed; stage 7 launched
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)

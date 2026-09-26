@@ -67,8 +67,10 @@ Later rounds add their own files when their inputs exist.
 6. Gemini executes the approved cleanup; DeepSeek writes the single plan.
 7. Two independent plan critiques (Kimi, MiMo), then Claude's final resolution and five
    implementation packages; DeepSeek pre-checks; five executors run in parallel.
-8. DeepSeek reviews the implementation; Gemini repairs; Mistral verifies; DeepSeek then Claude
-   close (`CLOSED` only by the dispatch's closure conditions).
+8. DeepSeek reviews the implementation; Gemini repairs; verification is by GPT-5.6 Sol (codex;
+   owner change 2026-09-26, PROTO-DEC-0086 item 2). **Stage 12 (final closure) is owner-run in the
+   cloud Claude session** (owner instruction 2026-09-26): the operator prepares the input manifest
+   and the prompt and reports readiness; no r12 slot is created and nothing is launched for it.
 
 ## How to run (operator)
 
