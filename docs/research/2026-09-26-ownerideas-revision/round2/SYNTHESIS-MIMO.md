@@ -1,6 +1,6 @@
 Mode: ADVISORY
 Baseline: 7b6d17a; working tree status: dirty (this output file plus session journals; corpus files unchanged)
-Reviewer: MiMo-V2.6-Pro, route kilo `openrouter/xiaomi/mimo-v2.6-pro`, effort high, 2026-09-26
+Reviewer: MiMo-V2.6-Pro, route mimo CLI `xiaomi/mimo-v2.6-pro` (`--variant high`), effort high, 2026-09-26
 Scope: independent synthesis B over the frozen 17-file OwnerIdeas revision corpus (13 OwnerIdeas sources + 4 round-1 reviews)
 Verdict: REVIEW COMPLETE
 
@@ -350,4 +350,4 @@ Columns `Gemini` / `Claude` / `DeepSeek` / `Mistral` carry that reviewer's own `
 
 ---
 
-*End of Synthesis B. Output: `docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-MIMO.md`. Model: MiMo-V2.6-Pro via OpenRouter (kilo). Baseline: 7b6d17a / tree b63ede4. Independent of Synthesis A.*
+*End of Synthesis B. Output: `docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-MIMO.md`. Model: MiMo-V2.6-Pro via the mimo CLI (`xiaomi/mimo-v2.6-pro`). Baseline: 7b6d17a / tree b63ede4. Independent of Synthesis A.*

@@ -16,4 +16,4 @@ d9b890fd542dc6f1a8cb07915a6839625550b9976e0af626a3c3f740d3e39410  docs/research/
 b2ede6e417e8cba60b032c37ab5f3db334fbeab773df2753b1e7be67daf5f2ad  docs/research/2026-09-26-ownerideas-revision/round1/REVIEW-GEMINI.md
 825afcec27bef408b14a17ab63fbb09b4acc6dcf9406092340cfffa18819d529  docs/research/2026-09-26-ownerideas-revision/round1/REVIEW-MISTRAL.md
 2a2ad5032d2db3f9ba46224c14830623bf003bab84d4786ae3afba67975cff19  docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-KIMI.md
-3005ad510998cbb23a6bddc1924b603a793fce420a2edc0fcb833cbf5a8d3df5  docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-MIMO.md
+c9df5d052a360527d41e4bf119f35a7f02576ce9aa4197ca520af33b7e070649  docs/research/2026-09-26-ownerideas-revision/round2/SYNTHESIS-MIMO.md
