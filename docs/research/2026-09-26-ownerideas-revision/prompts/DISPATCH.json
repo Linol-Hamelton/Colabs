@@ -287,11 +287,22 @@
       }
     },
     {
+      "id": "r9c-repair-hygiene",
+      "frame": "task:ownerideas-r9c-repair-hygiene",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-HYGIENE-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9c-repair-hygiene.md",
+      "needs": ["r9b-repair-pkg5"],
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
       "id": "r9-verify-codex",
       "frame": "task:ownerideas-r9-verify-codex",
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-verify-codex.md",
-      "needs": ["r8-review-deepseek", "r8-cert-kimi", "r8-cert-mimo", "r9b-repair-pkg5"],
+      "needs": ["r8-review-deepseek", "r8-cert-kimi", "r8-cert-mimo", "r9b-repair-pkg5", "r9c-repair-hygiene"],
       "route": {
         "client": "codex",
         "model": "gpt-5.6-sol",
