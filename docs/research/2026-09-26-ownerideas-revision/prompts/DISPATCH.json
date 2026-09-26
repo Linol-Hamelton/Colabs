@@ -227,7 +227,7 @@
       "frame": "task:ownerideas-r8-review-deepseek",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENTATION-REVIEW-DEEPSEEK.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-review-deepseek.md",
-      "needs": ["r8-exec-e1", "r8-exec-e2"],
+      "needs": ["r8b-cont-e1", "r8b-cont-e2"],
       "route": {
         "client": "kilo",
         "model": "deepseek/deepseek-flash"
@@ -238,7 +238,7 @@
       "frame": "task:ownerideas-r8-cert-kimi",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-KIMI.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-cert-kimi.md",
-      "needs": ["r8-exec-e1", "r8-exec-e2"],
+      "needs": ["r8b-cont-e1", "r8b-cont-e2"],
       "route": {
         "client": "kimi",
         "model": "moonshot-ai/kimi-k2.7-code-highspeed"
@@ -249,7 +249,7 @@
       "frame": "task:ownerideas-r8-cert-mimo",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-MIMO.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8-cert-mimo.md",
-      "needs": ["r8-exec-e1", "r8-exec-e2"],
+      "needs": ["r8b-cont-e1", "r8b-cont-e2"],
       "route": {
         "client": "mimo",
         "model": "xiaomi/mimo-v2.6-pro",
@@ -257,14 +257,23 @@
       }
     },
     {
-      "id": "r9-repair-gemini",
-      "frame": "task:ownerideas-r9-repair-gemini",
-      "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-GEMINI.md",
-      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-repair-gemini.md",
-      "needs": ["r8-review-deepseek"],
+      "id": "r8b-cont-e1",
+      "frame": "task:ownerideas-r8b-cont-e1",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENT-E1-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8b-cont-e1.md",
       "route": {
         "client": "agy",
         "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
+      "id": "r8b-cont-e2",
+      "frame": "task:ownerideas-r8b-cont-e2",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENT-E2-MISTRAL.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8b-cont-e2.md",
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
       }
     },
     {
@@ -272,7 +281,7 @@
       "frame": "task:ownerideas-r9-verify-codex",
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-verify-codex.md",
-      "needs": ["r9-repair-gemini", "r8-cert-kimi", "r8-cert-mimo"],
+      "needs": ["r8-review-deepseek", "r8-cert-kimi", "r8-cert-mimo"],
       "route": {
         "client": "codex",
         "model": "gpt-5.6-sol",

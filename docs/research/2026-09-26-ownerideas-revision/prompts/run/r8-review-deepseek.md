@@ -12,4 +12,5 @@
   PROTO-DEC-0079..0086.
 - Output (exactly one file):
   `docs/research/2026-09-26-ownerideas-revision/round8/IMPLEMENTATION-REVIEW-DEEPSEEK.md`.
+- Journal first write MUST contain the `Launch:` and `Orientation:` lines with the frame id; the runner matches the frame by the Orientation line (two earlier attempts without it were misread as NO_START).
 - No commits, tags, pushes or branches; no edits outside that file and your journal.
