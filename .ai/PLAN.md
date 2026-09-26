@@ -133,7 +133,7 @@ Owner-ordered limited fix after the independent re-audit FAIL (docs/reviews/2026
 ## Proposed cycle architecture (owner-requested research, 2026-09-20)
 
 This section is Proposed, not approved by the approval of the earlier pilot/remediation plan. It does not supersede the freeze, Wave C acceptance or frozen product metrics.
-Independent research and critique: `docs/reviews/2026-09-20-codex-cycle-history-research.md`; reproducible inventory and arithmetic: `docs/research/2026-09-20-cycle-history/`.
+Independent research and critique: `docs/reviews/2026-09-20-codex-cycle-history-research.md`; reproducible inventory and arithmetic: `docs/research/archive/2026-09-20-cycle-history/`.
 Candidate final policy: `docs/reviews/2026-09-20-codex-cycle-improvement-plan.md` (P0-P11): seven fixed phases, risk-scaled independent checks, conditional remediation, coherent implementation blocks, no universal three-reviewer/two-round rule.
 One-round discussion dispatch: `docs/reviews/2026-09-20-codex-cycle-final-council-prompt.md`. One disposition pass and targeted fact checks precede the owner's explicit approval; no new general council by default.
 Open: arithmetic and outcome-label corrections refute the claimed empirical optimum in the Claude study; policy choices remain proposals. No implementation of this process or release certification is claimed by the research session.

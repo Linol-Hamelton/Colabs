@@ -11,3 +11,4 @@ or deleted artifact. Edited only under the shared-document lock.
 | 2026-09-26 | CR-F10-1 | `docs/research/2026-09-22-kilo-candidate-tool-evaluation.md` | `docs/research/archive/2026-09-22-kilo-candidate-tool-evaluation.md` | PROTO-DEC-0045 item 1 | ARCHIVE | frame CLOSED (adoption REJECT) |
 | 2026-09-26 | CR-F13-1 | `docs/research/2026-09-23-routing` | `docs/research/archive/2026-09-23-routing` | PROTO-DEC-0047; D-02 repointed | ARCHIVE | frame CLOSED; CORE-ARCH-6, RISK_COUNCIL and the D-02 source repointed |
 | 2026-09-26 | CR-F15-1 | `docs/research/2026-09-25-workflowai-review` | `docs/research/archive/2026-09-25-workflowai-review` | PROTO-DEC-0078 | ARCHIVE | frame CLOSED; workflowAI.md reference repointed |
+| 2026-09-26 | CR-F08-1 | `docs/research/2026-09-20-cycle-history` | `docs/research/archive/2026-09-20-cycle-history` | input of PROTO-DEC-0041 | ARCHIVE | non-frame measurement set; owner-ordered archive, PLAN.md reference repointed |
