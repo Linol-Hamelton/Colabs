@@ -1,0 +1,408 @@
+[
+  {
+    "id": "swe-bench-pro",
+    "name": "Scale SWE-bench Pro",
+    "version": "Public Split (731 tasks)",
+    "maintainer": "Scale AI",
+    "source_url": "https://scale.com/blog/swe-bench-pro",
+    "published": "2025-09-19",
+    "retrieved": "2026-09-26",
+    "locator": "announcement & technical report; HuggingFace ScaleAI/SWE-bench_Pro",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-IMPL",
+        "strength": "HIGH",
+        "reason": "Directly measures end-to-end repository issue resolution, bug fixes, feature requests, and multi-file changes across real software codebases."
+      }
+    ],
+    "methodology": "Agents receive a repository issue and codebase context, produce git patches, and solutions are graded pass/fail against unit and regression test suites.",
+    "harness": "SWE-agent scaffold or vendor agent scaffold in Docker sandbox environments.",
+    "tools": "Terminal shell, file read/write, patch application, python test execution.",
+    "languages": "Python, Go, JavaScript, TypeScript",
+    "context_profile": "Full multi-file repository context (averaging 107.4 LOC modified across 4.1 files per task instance).",
+    "contamination_notes": "Sourced from copyleft (GPL) and private commercial codebases to minimize training data exposure.",
+    "limitations": "Contested validity: OpenAI audit (2026-07-08) indicated 27.4-34.1% broken tasks on public set; version consistency is critical.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "swe-bench-pro-v2",
+    "name": "Scale SWE-bench Pro V2",
+    "version": "V2 Full (642 tasks)",
+    "maintainer": "Scale AI",
+    "source_url": "https://benchlm.ai/benchmarks/scale-swe-bench-pro-public-v2-full",
+    "published": "2026-09-23",
+    "retrieved": "2026-09-26",
+    "locator": "Scale SWE-bench Pro V2 Full leaderboard and evaluation protocol",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-IMPL",
+        "strength": "HIGH",
+        "reason": "Refined SWE-bench Pro dataset with network-locked execution protocol and sanitized task instances."
+      }
+    ],
+    "methodology": "Network-isolated task execution grading multi-file issue resolution against verified test suites on filtered 642-task split.",
+    "harness": "mini-swe-agent / Codex scaffold with network-locked execution container.",
+    "tools": "Isolated container shell, filesystem tools, test runners.",
+    "languages": "Python, Go, JavaScript, TypeScript",
+    "context_profile": "Full repository tree across 41 repositories with strict network cutoff.",
+    "contamination_notes": "Updated sanitization over original public split to filter broken or leaked instances.",
+    "limitations": "Not directly comparable to V1 public split (731 tasks); scores must not be pooled across versions.",
+    "authority": "secondary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "swe-lancer-ic",
+    "name": "SWE-Lancer IC",
+    "version": "Offline verified split (198 tasks)",
+    "maintainer": "OpenAI Preparedness",
+    "source_url": "https://arxiv.org/abs/2502.12115",
+    "published": "2025-02-18",
+    "retrieved": "2026-09-26",
+    "locator": "arXiv:2502.12115; github.com/openai/preparedness/tree/main/project/swelancer",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-IMPL",
+        "strength": "HIGH",
+        "reason": "Evaluates complex freelance software engineering tasks with economic value ($1M prize pool equivalent), verified by end-to-end integration tests."
+      }
+    ],
+    "methodology": "Agents are assigned real-world commercial freelance Upwork tasks (bug fixes, feature additions, full-stack components) in dedicated per-task Docker containers.",
+    "harness": "OpenAI Frontier Evals / preparedness harness with dockerized per-task environments.",
+    "tools": "Bash shell, full filesystem access, language runtime toolchains.",
+    "languages": "Python, JavaScript, TypeScript, Go, Ruby, PHP",
+    "context_profile": "Full commercial freelance repositories, multi-component systems, frontend/backend integration.",
+    "contamination_notes": "Proprietary client repositories sampled directly from Upwork contracts, verified offline.",
+    "limitations": "High resource cost per task evaluation (~14GB Docker image per task); frontier model public results stopped being updated by OpenAI after Nov 2025.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "repoprobe",
+    "name": "RepoProbe",
+    "version": "1.0 (500 questions, 50 repos)",
+    "maintainer": "Tencent Hunyuan",
+    "source_url": "https://arxiv.org/abs/2608.04783",
+    "published": "2026-08-07",
+    "retrieved": "2026-09-26",
+    "locator": "41st IEEE/ACM ASE 2026; github.com/Tencent-Hunyuan/RepoProbe",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-ARCH",
+        "strength": "HIGH",
+        "reason": "Measures repository-level architectural comprehension, business logic understanding, and cross-module reasoning without allowing immediate patch trial-and-error."
+      }
+    ],
+    "methodology": "500 open-ended architectural and implementation questions derived from real GitHub Discussions across 50 repositories, evaluated against human-expert checklist verification protocols.",
+    "harness": "RepoProbe benchmark runner with checklist grading.",
+    "tools": "Repository file tree inspection, code search, document reading.",
+    "languages": "Python, Java, Go, C++, TypeScript",
+    "context_profile": "Complete repository codebase and architecture documentation.",
+    "contamination_notes": "Derived from GitHub Discussions (natural developer questions rather than code commits) to avoid synthetic leakage.",
+    "limitations": "Currently evaluated against older frontier models in the paper (up to GPT-5.4 / Opus 4.6); live evaluations for the 2026-09 frozen working ladder are not yet published.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "archbench",
+    "name": "ArchBench",
+    "version": "1.0",
+    "maintainer": "Bassam Adnan et al. (IEEE ICSA-C)",
+    "source_url": "https://doi.org/10.1109/icsa-c68850.2026.00037",
+    "published": "2026-06-01",
+    "retrieved": "2026-09-26",
+    "locator": "2026 IEEE 23rd International Conference on Software Architecture Companion (ICSA-C)",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-ARCH",
+        "strength": "MEDIUM",
+        "reason": "Evaluates generative AI models on software architecture tasks including architectural design, trade-off reasoning, and system decomposition."
+      }
+    ],
+    "methodology": "Standardized architecture task specifications requiring decomposition, quality attribute trade-off analysis, and component-connector design generation.",
+    "harness": "ArchBench evaluation framework.",
+    "tools": "Prompt-based and structured architectural specification inputs.",
+    "languages": "Architecture description languages, UML/plantUML, structured Markdown, multi-language implementations",
+    "context_profile": "System architecture requirements and structural context.",
+    "contamination_notes": "Curated architectural problems designed specifically for the benchmark.",
+    "limitations": "Academic benchmark with low public model coverage for the latest 2026 frontier ladder rungs.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "aacr-bench",
+    "name": "AACR-Bench",
+    "version": "1.0 (200 PRs)",
+    "maintainer": "Alibaba Aone",
+    "source_url": "https://arxiv.org/abs/2601.19494",
+    "published": "2026-01-28",
+    "retrieved": "2026-09-26",
+    "locator": "arXiv:2601.19494; github.com/alibaba/aacr-bench",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-REV",
+        "strength": "HIGH",
+        "reason": "Directly measures repository-level context-aware automated code review capabilities, defect detection, precision, and recall."
+      }
+    ],
+    "methodology": "200 real pull requests sampled across 50 active open-source projects; models generate review comments scored against expert-verified ground truth reviews.",
+    "harness": "AACR-Bench evaluation pipeline.",
+    "tools": "PR diff viewing, repository context navigation.",
+    "languages": "C++, Go, Java, JavaScript, Python, Rust, C#, Kotlin, PHP, Ruby (10 languages)",
+    "context_profile": "PR diff plus surrounding repository context and dependency graph.",
+    "contamination_notes": "Expert-filtered and verified human review comments from active projects.",
+    "limitations": "Published paper evaluates Claude 4.5 Sonnet, GPT-5.2, DeepSeek V3.2; no public leaderboard rows yet for current frozen rungs (Opus 5.5, GPT-5.6, Gemini 3.8).",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "terminal-bench-4.0",
+    "name": "Terminal-Bench",
+    "version": "4.0 (66 tasks)",
+    "maintainer": "Harbor Framework",
+    "source_url": "https://www.tbench.ai/",
+    "published": "2026-09-24",
+    "retrieved": "2026-09-26",
+    "locator": "Terminal-Bench 4.0 release and BenchLeader aa_terminalbench_40 board",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-TERM",
+        "strength": "HIGH",
+        "reason": "Tests end-to-end agent execution, command-line problem solving, build troubleshooting, server deployment, and debugging in a realistic Linux terminal."
+      }
+    ],
+    "methodology": "Autonomous agents interact with a full sandboxed Linux CLI environment to complete complex system-administration, development, and ML operational tasks.",
+    "harness": "Harbor Terminal-Bench execution harness and Artificial Analysis evaluation setup.",
+    "tools": "Bash shell, CLI utilities, standard Linux tools, process control.",
+    "languages": "Bash, Python, C++, Go, Rust, System configurations",
+    "context_profile": "Interactive terminal environment with persistent filesystem and network isolation.",
+    "contamination_notes": "Continuously updated task sets with regular version bumps (2.1 -> Hard -> 4.0) to avoid memorization.",
+    "limitations": "Significant variance between vendor-reported harnesses and independent (AA) standardized runs (up to 7-10 points difference).",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "terminal-bench-2.1",
+    "name": "Terminal-Bench",
+    "version": "2.1 (89 tasks)",
+    "maintainer": "Harbor Framework",
+    "source_url": "https://www.tbench.ai/leaderboard/terminal-bench/2.1",
+    "published": "2025-06-15",
+    "retrieved": "2026-09-26",
+    "locator": "Terminal-Bench 2.1 leaderboard on tbench.ai and BenchLeader aa_terminalbench_21",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-TERM",
+        "strength": "HIGH",
+        "reason": "Measures autonomous terminal task execution across early standard set."
+      }
+    ],
+    "methodology": "Sandboxed Linux terminal task suite evaluated on resolution pass rate.",
+    "harness": "Harbor framework runner / Docker.",
+    "tools": "Bash terminal.",
+    "languages": "Bash, Python, System utilities",
+    "context_profile": "Interactive container terminal.",
+    "contamination_notes": "Early benchmark iteration with partial saturation at frontier tier.",
+    "limitations": "Saturation near top tier (>85% resolution by top models); superseded by 4.0 for frontier discrimination.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "terminal-bench-hard",
+    "name": "Terminal-Bench Hard",
+    "version": "Hard split (28 tasks)",
+    "maintainer": "Harbor Framework",
+    "source_url": "https://www.benchleader.com/benchmarks/aa_terminalbench_hard",
+    "published": "2026-03-10",
+    "retrieved": "2026-09-26",
+    "locator": "BenchLeader aa_terminalbench_hard board",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-TERM",
+        "strength": "HIGH",
+        "reason": "Measures complex, multi-step debugging and long-horizon troubleshooting under strict terminal execution constraints."
+      }
+    ],
+    "methodology": "Curated hard subset of Terminal-Bench tasks requiring deep system diagnosis and multi-stage repairs.",
+    "harness": "Harbor framework / AA harness.",
+    "tools": "Bash shell, debugging tools, profilers.",
+    "languages": "Bash, C++, Python, Kernel utilities",
+    "context_profile": "Sandboxed Linux system with degraded components.",
+    "contamination_notes": "Carefully selected hard tasks to resist automated heuristic shortcuts.",
+    "limitations": "Small sample size (28 tasks); higher variance per run.",
+    "authority": "secondary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "livecodebench",
+    "name": "LiveCodeBench",
+    "version": "Contamination-free window (2024-2026)",
+    "maintainer": "LiveCodeBench Team (Naman Jain et al.)",
+    "source_url": "https://livecodebench.github.io/",
+    "published": "2024-03-12",
+    "retrieved": "2026-09-26",
+    "locator": "arXiv:2403.07974; livecodebench.github.io leaderboard and Vals AI window",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-ALGO",
+        "strength": "HIGH",
+        "reason": "Evaluates algorithmic problem solving, code generation, execution prediction, self-repair, and test generation on contest problems."
+      }
+    ],
+    "methodology": "Continuously collects new competitive programming problems from LeetCode, AtCoder, and Codeforces; models are evaluated across generation, execution, and repair modes.",
+    "harness": "LiveCodeBench execution harness with automated test-suite verification.",
+    "tools": "Pure code generation and input/output test execution.",
+    "languages": "Python, C++, Java",
+    "context_profile": "Self-contained algorithmic problem statement with input/output format and constraints.",
+    "contamination_notes": "Continuous time-stamped problem ingestion ensures evaluation only on problems released after model training cutoffs.",
+    "limitations": "Does not reflect repository-level multi-file architecture or engineering constraints; algorithmic coding skill does not transfer directly to multi-file codebase maintenance.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "aider-polyglot",
+    "name": "Aider Polyglot Benchmark",
+    "version": "225-task multi-language suite",
+    "maintainer": "Paul Gauthier (Aider)",
+    "source_url": "https://aider.chat/2024/12/21/polyglot.html",
+    "published": "2024-12-21",
+    "retrieved": "2026-09-26",
+    "locator": "aider.chat/2024/12/21/polyglot.html; github.com/paul-gauthier/aider/tree/main/benchmark",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-EDIT",
+        "strength": "HIGH",
+        "reason": "Directly measures the model's ability to take existing code files and specification instructions, output correctly formatted diff/edit blocks, and satisfy unit tests across 6 languages."
+      }
+    ],
+    "methodology": "225 challenging Exercism-based programming exercises across 6 languages; model outputs edit blocks that Aider applies to repository files and verifies with unit test suites.",
+    "harness": "Aider benchmark dockerized harness (Pass@2 test protocol).",
+    "tools": "Diff/edit block formatting, patch application, unit test execution.",
+    "languages": "C++, Go, Java, JavaScript, Python, Rust",
+    "context_profile": "Existing source code files and exercise instructions.",
+    "contamination_notes": "Standard Exercism exercises with complex problem variations.",
+    "limitations": "Third-party runs show large score disparities against original maintainer boards; harness provenance must be carefully tracked.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "swe-lancer-manager",
+    "name": "SWE-Lancer Manager",
+    "version": "Manager split (198 tasks)",
+    "maintainer": "OpenAI Preparedness",
+    "source_url": "https://arxiv.org/abs/2502.12115",
+    "published": "2025-02-18",
+    "retrieved": "2026-09-26",
+    "locator": "arXiv:2502.12115 Section 3.2 'Manager Tasks'",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-CRIT",
+        "strength": "LOW",
+        "reason": "Serves as an indirect proxy for engineering judgment and proposal evaluation; models review competing implementation pitches and select the optimal design against human engineering manager decisions."
+      }
+    ],
+    "methodology": "Models are presented with real freelance engineering job proposals and technical solutions, requiring them to critique, evaluate trade-offs, and select the winning proposal matching manager ground truth.",
+    "harness": "OpenAI preparedness evaluation harness.",
+    "tools": "Text review and decision selection.",
+    "languages": "Natural language technical proposals and architecture descriptions",
+    "context_profile": "Freelance client requirements and competing engineering proposals.",
+    "contamination_notes": "Sourced from proprietary Upwork manager workflows.",
+    "limitations": "Proxy only (cannot exceed WEAK status per PROTO-DEC-0084); does not test adversarial code audit, security vulnerability discovery, or protocol verification.",
+    "authority": "primary",
+    "status": "RETAINED",
+    "exclusion_reason": null,
+    "existence_verified": true
+  },
+  {
+    "id": "rulebench-doc",
+    "name": "RuleBench / Specification Compliance Suite",
+    "version": "Candidate Split",
+    "maintainer": "Open Source Community",
+    "source_url": "https://github.com/epinnock/software-architecture-instructions",
+    "published": "2025-04-10",
+    "retrieved": "2026-09-26",
+    "locator": "Software architecture and rule instruction dataset",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-DOC",
+        "strength": "LOW",
+        "reason": "Evaluates general rule following on text instructions."
+      }
+    ],
+    "methodology": "Instruction and rule following evaluations on synthetic constraints.",
+    "harness": "Synthetic instruction following runner.",
+    "tools": "Prompt reading and response generation.",
+    "languages": "Natural language",
+    "context_profile": "Isolated rule prompts.",
+    "contamination_notes": "Synthetic dataset.",
+    "limitations": "Does not evaluate repository specification adherence, protocol rulebooks, or multi-file architectural constraints.",
+    "authority": "secondary",
+    "status": "EXCLUDED",
+    "exclusion_reason": "Public rule/documentation compliance datasets do not evaluate multi-file software engineering repository rules, architectural invariant compliance, or agent workflow guardrails; local evaluation only per contract.",
+    "existence_verified": false
+  },
+  {
+    "id": "multidoc-syn",
+    "name": "MultiDoc-Synthesis Suite",
+    "version": "Candidate Split",
+    "maintainer": "Open Source Community",
+    "source_url": "https://huggingface.co/datasets/Qasper",
+    "published": "2024-05-15",
+    "retrieved": "2026-09-26",
+    "locator": "Multi-document QA and cross-document synthesis dataset",
+    "snapshot": null,
+    "measures": [
+      {
+        "dimension": "D-SYN",
+        "strength": "LOW",
+        "reason": "Evaluates cross-document synthesis on general NLP texts."
+      }
+    ],
+    "methodology": "Cross-document question answering and information consolidation.",
+    "harness": "Standard NLP QA harness.",
+    "tools": "Document retrieval and text generation.",
+    "languages": "English NLP text",
+    "context_profile": "Multiple research papers or text documents.",
+    "contamination_notes": "Academic text corpus.",
+    "limitations": "Evaluates natural language summarization rather than multi-document repository architecture design or cross-file coordination.",
+    "authority": "secondary",
+    "status": "EXCLUDED",
+    "exclusion_reason": "Public multi-document summarization/QA datasets test generic natural language synthesis rather than multi-document repository architecture design, cross-file change coordination, or protocol ledger consolidation; local evaluation only per contract.",
+    "existence_verified": true
+  }
+]

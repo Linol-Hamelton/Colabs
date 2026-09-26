@@ -19,17 +19,18 @@ Next step: record --quick, then report to owner.
 Open: none
 
 Evidence:
-- anchor: deb9e0cd46f48cc495450fcd4bfb3d8e0279438f, uncommitted changes present
+- anchor: e618fab1db5d1f436a49c155e7c820ad1a970207, uncommitted changes present
 - digest: sha256:0880543a4516ad52f6e23c5e95133223b5673cae43dd6e6515e3aa2e79b0d4fb over 591 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-26T12:29:29.316Z by mistral-e67399c73e9dc26b
+- recorded: 2026-09-26T12:31:04.721Z by mistral-e67399c73e9dc26b
 - entry hash format: 2
-- entry: sha256:fb0ae21dc2d9c41d06f569e80e6d0128358a807dbdb207aa608005a6fc67bd00 of this entry without this block
+- entry: sha256:3904ddfe9413f9ae5ffb0947a8c85ed65971787ffd8ff79c5c5951d28373e67f of this entry without this block
 - parent-entry: root
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 1 in 4s
+- validate-protocol.ps1: exit 0 in 4s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 

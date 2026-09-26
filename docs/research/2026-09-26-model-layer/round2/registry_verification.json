@@ -1,0 +1,86 @@
+[
+  {
+    "id": "swe-bench-pro",
+    "url": "https://scale.com/blog/swe-bench-pro",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "swe-bench-pro-v2",
+    "url": "https://benchlm.ai/benchmarks/scale-swe-bench-pro-public-v2-full",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "swe-lancer-ic",
+    "url": "https://arxiv.org/abs/2502.12115",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "repoprobe",
+    "url": "https://arxiv.org/abs/2608.04783",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "archbench",
+    "url": "https://doi.org/10.1109/icsa-c68850.2026.00037",
+    "status_code": "302",
+    "exists": true
+  },
+  {
+    "id": "aacr-bench",
+    "url": "https://arxiv.org/abs/2601.19494",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "terminal-bench-4.0",
+    "url": "https://www.tbench.ai/",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "terminal-bench-2.1",
+    "url": "https://www.tbench.ai/leaderboard/terminal-bench/2.1",
+    "status_code": "308",
+    "exists": true
+  },
+  {
+    "id": "terminal-bench-hard",
+    "url": "https://www.benchleader.com/benchmarks/aa_terminalbench_hard",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "livecodebench",
+    "url": "https://livecodebench.github.io/",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "aider-polyglot",
+    "url": "https://aider.chat/2024/12/21/polyglot.html",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "swe-lancer-manager",
+    "url": "https://arxiv.org/abs/2502.12115",
+    "status_code": "200",
+    "exists": true
+  },
+  {
+    "id": "rulebench-doc",
+    "url": "https://github.com/epinnock/software-architecture-instructions",
+    "status_code": "404",
+    "exists": false
+  },
+  {
+    "id": "multidoc-syn",
+    "url": "https://huggingface.co/datasets/Qasper",
+    "status_code": "302",
+    "exists": true
+  }
+]

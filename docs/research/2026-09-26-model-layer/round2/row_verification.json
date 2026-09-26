@@ -1,0 +1,236 @@
+[
+  {
+    "row_id": "b-001",
+    "model": "Opus 5.5",
+    "benchmark_id": "swe-bench-pro",
+    "url": "https://www.anthropic.com/claude-opus-5-5",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-003",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "swe-bench-pro",
+    "url": "https://openai.com/index/gpt-5-6/",
+    "source_class": "vendor",
+    "http_code": "403",
+    "exists": false
+  },
+  {
+    "row_id": "b-004",
+    "model": "GPT-5.6 Terra",
+    "benchmark_id": "swe-bench-pro",
+    "url": "https://openai.com/index/gpt-5-6/",
+    "source_class": "vendor",
+    "http_code": "403",
+    "exists": false
+  },
+  {
+    "row_id": "b-005",
+    "model": "GPT-5.6 Luna",
+    "benchmark_id": "swe-bench-pro",
+    "url": "https://openai.com/index/gpt-5-6/",
+    "source_class": "vendor",
+    "http_code": "403",
+    "exists": false
+  },
+  {
+    "row_id": "b-006",
+    "model": "Gemini 3.6 Flash",
+    "benchmark_id": "swe-bench-pro",
+    "url": "https://llm-stats.com/benchmarks/swe-bench-pro",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-008",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "swe-bench-pro-v2",
+    "url": "https://benchlm.ai/benchmarks/scale-swe-bench-pro-public-v2-full",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-010",
+    "model": "Opus 5.5",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://www.benchleader.com/benchmarks/aa_terminalbench_40",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-013",
+    "model": "Opus 5.5",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://www.anthropic.com/claude-opus-5-5",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-014",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://www.benchleader.com/benchmarks/aa_terminalbench_40",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-016",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://www.anthropic.com/claude-opus-5-5",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-019",
+    "model": "GPT-5.6 Terra",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-021",
+    "model": "Gemini 3.8 Flash",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-023",
+    "model": "Gemini 3.7 Flash",
+    "benchmark_id": "terminal-bench-4.0",
+    "url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-028",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://openai.com/index/gpt-5-6/",
+    "source_class": "vendor",
+    "http_code": "403",
+    "exists": false
+  },
+  {
+    "row_id": "b-029",
+    "model": "GPT-5.6 Terra",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://www.benchleader.com/models/gpt-5-6-terra",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-030",
+    "model": "GPT-5.6 Terra",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://openai.com/index/gpt-5-6/",
+    "source_class": "vendor",
+    "http_code": "403",
+    "exists": false
+  },
+  {
+    "row_id": "b-033",
+    "model": "GPT-5.6 Luna",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://openai.com/index/gpt-5-6/",
+    "source_class": "vendor",
+    "http_code": "403",
+    "exists": false
+  },
+  {
+    "row_id": "b-035",
+    "model": "Gemini 3.8 Flash",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-037",
+    "model": "Gemini 3.7 Flash",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/",
+    "source_class": "vendor",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-039",
+    "model": "DeepSeek V4.1",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://deepseekv4guide.org/guides/v4-1-flash-benchmarks",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-040",
+    "model": "Mistral Medium 3.5",
+    "benchmark_id": "terminal-bench-2.1",
+    "url": "https://benchmarklist.com/models/mistralai-mistral-medium-3-5/",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-041",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "terminal-bench-hard",
+    "url": "https://www.benchleader.com/benchmarks/aa_terminalbench_hard",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-044",
+    "model": "Gemini 3.8 Flash",
+    "benchmark_id": "livecodebench",
+    "url": "https://www.benchleader.com/benchmarks/vals_livecodebench",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-049",
+    "model": "GPT-5.6 Sol",
+    "benchmark_id": "aider-polyglot",
+    "url": "https://vibecoderjournal.com/benchmarks/aider-polyglot/",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-050",
+    "model": "GPT-5.6 Terra",
+    "benchmark_id": "aider-polyglot",
+    "url": "https://vibecoderjournal.com/benchmarks/aider-polyglot/",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  },
+  {
+    "row_id": "b-053",
+    "model": "DeepSeek V4.1",
+    "benchmark_id": "aider-polyglot",
+    "url": "https://vibecoderjournal.com/benchmarks/aider-polyglot/",
+    "source_class": "independent",
+    "http_code": "200",
+    "exists": true
+  }
+]

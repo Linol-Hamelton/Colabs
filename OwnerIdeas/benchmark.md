@@ -73,7 +73,7 @@ price                           0.10 × first model
 
 Для вашего случая это один из важнейших benchmarks.
 
-Он специально создавался как более сложный, реалистичный и contamination-resistant наследник SWE-Bench Verified: задачи включают bug fixes, feature requests, optimizations, security и UI/UX, часто требуют long-horizon multi-file изменений. :chatgpt-content-reference{index="0"}
+Он специально создавался как более сложный, реалистичный и contamination-resistant наследник SWE-Bench Verified: задачи включают bug fixes, feature requests, optimizations, security и UI/UX, часто требуют long-horizon multi-file изменений ([Scale AI SWE-bench Pro, 2025-09-19](https://scale.com/blog/swe-bench-pro)).
 
 Вес для:
 
@@ -91,7 +91,7 @@ repository agent
 
 ### SWE-Lancer IC
 
-Особенно ценен тем, что задачи происходят из реальной freelance-разработки и имеют реальную экономическую стоимость. Там есть bug fixes, feature implementation, frontend, performance и другие работы, а решения проверяются end-to-end тестами. :chatgpt-content-reference{index="1"}
+Особенно ценен тем, что задачи происходят из реальной freelance-разработки и имеют реальную экономическую стоимость. Там есть bug fixes, feature implementation, frontend, performance и другие работы, а решения проверяются end-to-end тестами ([OpenAI SWE-Lancer, 2025-02-18](https://arxiv.org/abs/2502.12115)).
 
 Это чрезвычайно близко к вашему вопросу:
 
@@ -115,7 +115,7 @@ RepoProbe 2026 оценивает не способность быстро на�
 - Business Logic;
 - Implementation Details.
 
-Он специально создан для борьбы с `edit bias`, когда модель начинает править код, не поняв систему. :chatgpt-content-reference{index="2"}
+Он специально создан для борьбы с `edit bias`, когда модель начинает править код, не поняв систему ([Tencent Hunyuan RepoProbe, 2026-08-07](https://arxiv.org/abs/2608.04783)).
 
 Поэтому:
 
@@ -141,7 +141,7 @@ trade-off reasoning
 system decomposition
 ```
 
-Но он значительно моложе SWE-Bench/SWE-Lancer, поэтому я бы пока дал ему меньший **confidence coefficient**, пока не накопится больше независимых данных. :chatgpt-content-reference{index="3"}
+Но он значительно моложе SWE-Bench/SWE-Lancer, поэтому я бы пока дал ему меньший **confidence coefficient**, пока не накопится больше независимых данных ([ArchBench (IEEE ICSA-C), 2026-06](https://doi.org/10.1109/icsa-c68850.2026.00037)).
 
 ---
 
@@ -151,7 +151,7 @@ system decomposition
 
 ### AACR-Bench
 
-Очень интересный свежий кандидат: repository-level automatic code review, 200 PR, 10 языков, dataset проверен экспертами. :chatgpt-content-reference{index="4"}
+Очень интересный свежий кандидат: repository-level automatic code review, 200 PR, 10 языков, dataset проверен экспертами ([Alibaba AACR-Bench, 2026-01-28](https://arxiv.org/abs/2601.19494)).
 
 Из него можно получать профиль:
 
@@ -190,7 +190,7 @@ recall 85%
 
 Очень релевантен вашим автономным агентам.
 
-Он измеряет выполнение реальных end-to-end задач в терминальном окружении: компиляция, настройка environment, серверы, ML, command-line work и т. д. :chatgpt-content-reference{index="5"}
+Он измеряет выполнение реальных end-to-end задач в терминальном окружении: компиляция, настройка environment, серверы, ML, command-line work и т. д. ([Harbor Framework Terminal-Bench, 2025-01-15](https://www.tbench.ai/)).
 
 Высокий вес для:
 
@@ -218,7 +218,7 @@ autonomous execution
 - test prediction;
 - self-repair;
 
-и старается регулярно обновляться, чтобы уменьшать contamination. :chatgpt-content-reference{index="6"}
+и старается регулярно обновляться, чтобы уменьшать contamination ([LiveCodeBench, 2024-03-12](https://livecodebench.github.io/)).
 
 Но:
 
@@ -244,7 +244,7 @@ autonomous execution
 
 Хороший практический дополнительный сигнал.
 
-Он проверяет 225 сложных задач на C++, Go, Java, JavaScript, Python и Rust и, что важно, отдельно показывает способность модели **корректно формировать edits**. :chatgpt-content-reference{index="7"}
+Он проверяет 225 сложных задач на C++, Go, Java, JavaScript, Python и Rust и, что важно, отдельно показывает способность модели **корректно формировать edits** ([Aider Polyglot Benchmark, 2024-12-21](https://aider.chat/2024/12/21/polyglot.html)).
 
 Для worker-моделей это полезно:
 
@@ -263,7 +263,7 @@ small/medium implementation
 
 SWE-Lancer содержит ещё и managerial tasks:
 
-модель получает несколько предложенных технических решений и должна выбрать наиболее подходящее; ground truth основан на решении реального engineering manager. :chatgpt-content-reference{index="8"}
+модель получает несколько предложенных технических решений и должна выбрать наиболее подходящее; ground truth основан на решении реального engineering manager ([OpenAI SWE-Lancer Manager Tasks, 2025-02-18](https://arxiv.org/abs/2502.12115)).
 
 Для вашего слоя это потенциально хороший сигнал:
 
@@ -890,7 +890,7 @@ local telemetry
 | **SWE-Lancer Manager**             | engineering decision                  |    средне-высокий |
 | **Aider Polyglot / LiveCodeBench** | coding/editing reasoning              | вспомогательный |
 
-И добавить **ArchBench**, но пока с меньшим confidence из-за новизны. :chatgpt-content-reference{index="9"}
+И добавить **ArchBench**, но пока с меньшим confidence из-за новизны ([ArchBench (IEEE ICSA-C), 2026-06](https://doi.org/10.1109/icsa-c68850.2026.00037)).
 
 ---
 
