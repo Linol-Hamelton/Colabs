@@ -8,6 +8,36 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Stage 5-6 complete (resolution + PKG-1..5); STOP-3 passed; stage 7 launched
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r6-claude-final` reached DONE after the resume: `round6/FINAL-RESOLUTION-CLAUDE.md` (33 KB, with the Resume log) and `PKG-1..5` (25.7/16.6/24.6/28.0/28.3 KB); committed 13c9f16 with the claude journal.
+- STOP-3 checks (PROTO-DEC-0086 item 3), scripted where possible: exactly five packages; every stage-5 amendment item 7 field present in each (missing=none for all five); all seven BLOCKING items of the two critiques explicitly accepted with reasons - Kimi B-1 (M-7/A-4: A-4 taken out of package scope, M-7 scheduled after W3), B-2 (E2 runs PKG-4 in W2 then PKG-5), B-3 (A-9 moved out); MiMo B1 (overtaken by PROTO-DEC-0084 item 1), B2 (DIG 13 with A-11 reported beside it as OQ-1), B3 and B4 accepted with fixes; streams E1 (PKG-1, PKG-3) and E2 (PKG-2, PKG-4, PKG-5); risk classes - PKG-1/2/3/5 high with the two certifiers of 0086 item 1, PKG-4 medium; Resume log present.
+- Stage 7 launched under the pre-approval: `prompts/PRE-CHECK.md`, `prompts/run/r7-precheck-deepseek.md`, slot `r7-precheck-deepseek` (DeepSeek 4.1 Flash via kilo; needs r6; out `round7/PRE-CHECK-DEEPSEEK.md`); commit b946355; runner pid 3900; slot STARTING.
+
+Result: The plan is frozen with five packages, two edit streams and named certification routes; the stage-7 pre-check is running.
+
+Next step: on r7 DONE - a PASS leads to the stage-8 dispatch (E1 Gemini 3.8 Flash high, E2 Mistral Medium 3.5 max; certifiers Kimi K2.7 Code HighSpeed and MiMo-V2.6-Flash); BLOCKING findings go through the DeepSeek -> Claude fix -> re-check loop.
+
+Open: OQ-1 (A-11), OQ-2 (A-1 design block) and OQ-3 (stall threshold) are material owner questions from the resolution; the F-02 gate awaits the owner; r7 running.
+
+Evidence:
+- anchor: b9463554a6c740162fec156428c7e35de1ad172b, uncommitted changes present
+- digest: sha256:2562c4aa615766f873f4322acda6bd7e94c9351fdadfe4f4252a80ff3da8ceff over 613 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T14:54:26.953Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:abb208ba3139c9d7e51f628a54d268ddd0483f8f0de13a29515e7a09cf9fc959 of this entry without this block
+- parent-entry: sha256:050b9255bd5192ced535ba664aa98198913611622fc78266c2704032c5270da2
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - First closure pass applied (CR-F06-1..CR-F12-1); F-02 gate report; stage 5 resumed
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
