@@ -7,3 +7,4 @@ or deleted artifact. Edited only under the shared-document lock.
 |---|---|---|---|---|---|---|
 | 2026-09-26 | CR-F06-1 | `docs/research/2026-09-25-validator-migration-council` | `docs/research/archive/2026-09-25-validator-migration-council` | PROTO-DEC-0077 | ARCHIVE | frame CLOSED; artifacts archived, active references repointed; final-plan-2.md TRANFER(A-4) and tools/ TRANSFER(A-3) stay live |
 | 2026-09-26 | CR-F07-1 | `docs/research/2026-09-20-cycle-architecture` | `docs/research/archive/2026-09-20-cycle-architecture` | PROTO-DEC-0041 | ARCHIVE | frame CLOSED; PLAN.md reference repointed |
+| 2026-09-26 | CR-F09-1 | `docs/research/2026-09-22-jev-decision-fabric-evaluation.md` | `docs/research/archive/2026-09-22-jev-decision-fabric-evaluation.md` | PROTO-DEC-0045 item 3 | ARCHIVE | frame CLOSED (adoption REJECT); the Q06 reference moves with F-13 |
