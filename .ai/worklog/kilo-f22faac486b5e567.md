@@ -8,6 +8,37 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Claude effort capped; STOP-3 arrangements recorded (PROTO-DEC-0086); stage 5 resumed
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- Owner: topped up Claude; new cap - the model must be no higher than Opus 5.5 High. Applied: DISPATCH route `r6-claude-final` effort xhigh -> high; the README assignment table records the cap (commit e40c250). Slot reset and relaunched (runner pid 48848).
+- Owner sent the STOP-3 arrangements in advance; recorded as PROTO-DEC-0086 (commit 20d04e6; registry row bc8a476): (1) certifiers of the high-risk packages are Kimi K2.7 Code HighSpeed and MiMo-V2.6-Flash, and neither may execute stage 8; (2) stage-8 executors are two, one per edit stream - E1 Gemini 3.8 Flash (high), E2 Mistral Medium 3.5 (max) - with the five packages split by the stage-5 resolution; stage-11 repair verification moves from Mistral Medium 3.5 to GPT-5.6 Sol (codex); (3) stage 7 is conditionally auto-approved: it launches only if at STOP-3 every BLOCKING critique item is accepted or rejected with a reason, there are exactly five packages and each carries every stage-5 amendment field, otherwise stop and ask; (4) the F-02 gate brings the downgraded and rejected rows with reasons, grouped by model, and deletes nothing; (5) T1-T9 ranks are relative inside a provider and "T7" is not comparable across providers - input for the next P-L2-002 revision, PROTO-DEC-0059 unchanged. README table updated.
+- Stage-5 status at 16:05 MSK: `r6-claude-final` STARTING; the new claude.exe (started 15:58:51) is alive and accumulating CPU with no session-limit message, unlike the two instant failures; treated as working. The wakeup at 17:33 MSK will reset and relaunch if the limit still gates.
+- Unchanged pending: the closure application (manifest plus the owner's STOP-2 decisions) and the F-02 collector A acceptance ride the same wakeup.
+
+Result: Claude effort capped and stage 5 running; the STOP-3 arrangements are recorded ahead of the event.
+
+Next step: wakeup 17:33 MSK - apply the closure manifest per frame, watch stage 5, accept F-02 collector A if needed, then the STOP-3 verification (per PROTO-DEC-0086 item 3 stage 7 may start automatically on a pass).
+
+Open: `r6-claude-final` unverified (claude buffers output); closure application pending; F-02 verifier waits for collector A.
+
+Evidence:
+- anchor: bc8a476f1a76b90d6ce292ba0ae7e80f8e60d125, uncommitted changes present
+- digest: sha256:dd60860b73debaf49b845b7c57e650e1c393dbad6c3b89d56c5d273691576504 over 604 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T13:04:17.499Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:e378a7cc0b1fce9a05c07169809eb35719083a1c569e77edf0449ec82994fe99 of this entry without this block
+- parent-entry: sha256:c9aaf03f10f3a0b0e06443dfa832d635a29792697f50bc74357555556e79adac
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - Closure disposition executed (PROTO-DEC-0085, P-L0-008 0.4)
 
 Intake: owner directive PROTO-DEC-0085 -> change P-L0-008 (closure disposition), M-011
