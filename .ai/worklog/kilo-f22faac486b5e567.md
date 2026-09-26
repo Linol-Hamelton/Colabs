@@ -8,6 +8,41 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Closure disposition executed (PROTO-DEC-0085, P-L0-008 0.4)
+
+Intake: owner directive PROTO-DEC-0085 -> change P-L0-008 (closure disposition), M-011
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- STOP-2 decisions (owner, 2026-09-26), verbatim in the wakeup record below: F-06 ARCHIVE+REPAIR except `final-plan-2.md` TRANSFER(A-4) and `tools/` (run-chain.cjs, r2-dispatch.cjs, ps-probe.cjs) TRANSFER(A-3) - the live runner (pid 17592 runs F-02 from that path); check non-md references (json, cjs, ps1, DISPATCH) and running-process paths before every move; another dependency found -> do not move, report. F-07 ARCHIVE+REPAIR, PLAN.md edited inside the existing line. F-09, F-10, F-15 ARCHIVE (+REPAIR for F-15). F-13 ARCHIVE+REPAIR with the D-02 repoint; a path-only edit in `OwnerIdeas/RISK_COUNCIL.md` is allowed. F-11, F-14 PROCEDURE-MAP.md and the other 21 files TRANSFER(F-03), archived at F-03's closure. F-16 KEEP_ACTIVE. F-08 ARCHIVE+REPAIR (PLAN.md inside the line). F-12 ARCHIVE. One commit per frame, sequentially, git-delta check in each; final report: active bytes before/after and the leak-candidate remainder.
+- F-02: collector B DONE with evidence (model-benchmark-evidence.jsonl 41.6 KB, COVERAGE-B.md). Collector A attempt 1 actually worked but its journal lacked the Launch/Orientation lines and the runner marked NO_START - a false failure, not a route failure; the launch file now requires those two lines as the first journal write (commit fd789ac). Attempt 2 is working (log shows benchmark work); if it finishes without machine evidence, accept it manually as with r7. No BLOCKED, no model change.
+- Stage 5-6 package committed (fd789ac): `prompts/FINAL-RESOLUTION.md` (stage 5 and 6 requirements plus the binding Appendix A verbatim), `prompts/run/r6-claude-final.md`, slot `r6-claude-final` (claude-opus-5-5, xhigh, needs the two critiques; out `round6/FINAL-RESOLUTION-CLAUDE.md`, packages under `round6/packages/`). Launched, but both tries failed instantly on the Claude CLI session limit: "You've hit your session limit - resets 5:20pm (Europe/Moscow)". No substitution; a wakeup is set for 17:25 MSK to reset the slot and relaunch.
+- Closure transcription (master step 5, sections 0-3) executed and committed: PROTO-DEC-0085 verbatim (0b379ea), P-L0-008 0.4 (R-L0-22.56-22.71 appended after 22.55; front matter version/decision/evidence/outputs/triggers; step 5a; risks row; change log), M-011 in CORE-ARCH-6 with M-001..M-011 inventory, CLOSURES.jsonl and archive/INDEX.md created, FRAMES.md receipt-format note and the "Closed frames without a receipt = 10 (9 in the first pass; F-01 excluded)" counter; REGISTRY rows at 0f47f18. Checks: all 16 rules defined once; validator "Protocol OK. 0 warning(s)." Review r7 (Mistral, vibe): PASS, Baseline 0b379ea, 111 lines - change log filled and committed (e618fab); the slot was accepted by the operator because the session journal lacked the machine-matching Orientation line. Dry-run manifest `docs/research/CLOSURE-MANIFEST-2026-09-26.md` committed with the review (e618fab).
+- The closure application (master step 5, section 4) is not yet executed; the owner's per-frame decisions and the plan are recorded in this entry and in the wakeup prompt; it runs after the limit resets, alongside stage 5.
+
+Result: Stage 5 is queued behind the Claude session limit; the closure application is the next work chunk; F-02 round 1 proceeds (A on try 2, B done).
+
+Next step: wakeup at 17:25 MSK - reset r6-claude-final and restart its runner; apply the closure manifest one frame per commit with the owner's exceptions and REPAIRs; accept F-02 collector A manually if its evidence is missing; at r6 DONE verify STOP-3 (five packages, every BLOCKING item answered) and ask the owner for certifiers, executors and stage-7 permission.
+
+Open: Claude session limit (resets 17:20 MSK); closure application pending; F-02 collector A attempt 2 unverified; DEFER cap confirmed 5/5 in PROTO-DEC-0084.
+
+Evidence:
+- anchor: fd789acdb6558400576644822622544c41296980, uncommitted changes present
+- digest: sha256:430da070145428cf1dbcfb89d4f20103a0cd058212e0fe02c33af316217d9abd over 599 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T12:48:44.862Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:c9aaf03f10f3a0b0e06443dfa832d635a29792697f50bc74357555556e79adac of this entry without this block
+- parent-entry: sha256:43e8db14b9bec0495f42a71580973265cf6cecb7f9dd96bbe0628a11e13f064d
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 372s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - F-02 admission executed (PROTO-DEC-0084, P-L0-008 0.3)
 
 Intake: owner directive PROTO-DEC-0084 -> F-02 admission; change P-L0-008 (minor)
