@@ -18,6 +18,16 @@ AC-7, AC-14), so it is certified in full.
 - Neither certifier reads the other's report (`round8/CERT-KIMI.md` / `CERT-MIMO.md`).
 - MiMo's report header states that the owner accepted MiMo-V2.6-Pro in place of MiMo-V2.6-Flash on
   2026-09-26 (direct owner confirmation, PROTO-DEC-0086 context).
+- **HEAD line (owner amendment, 2026-09-27).** State in your report the actual
+  `git rev-parse HEAD` of this repository and the result of
+  `git diff --stat f3ab4b8 HEAD -- .ai/bin tests docs/specs .ai/docs .ai/SIGNALS.md docs/ops protocol-manifest.json`,
+  which must be empty. **Do NOT run `git checkout` in this shared copy** - it detaches the branch and
+  reverts shared files. For any check that needs the clean CANDIDATE tree, create your own worktree:
+  `git worktree add .ai/runtime/cert-<your name> f3ab4b8` - run there, then `git worktree remove`.
+- **Concurrent-test caveat (owner amendment, 2026-09-27).** Both certifiers may run the suite at the
+  same time in the same copy. Any FAIL that concerns fixtures or the dispatch tests must be
+  re-verified in your own worktree at `f3ab4b8` before you report it; the worktree run is the
+  evidence.
 
 ## What to certify
 
@@ -48,7 +58,7 @@ Reviewed CANDIDATE: f3ab4b8b299c3fc783d9b6e22b61d1cdcfb15dcc (full SHA; confirm 
 Receipt-Owner: <your protocol session owner name>
 Reviewer: <your model>, route <client>, effort <value>, <UTC date>
 Scope: certification of PKG-1, PKG-2, PKG-3, PKG-5 (<PKG-4 statement: yes/no>)
-Verdict: CERTIFICATION COMPLETE
+Verdict: PASS | FAIL   (one overall verdict; the per-package table carries the details)
 ```
 
 - You certify only your own reading; never rely on the other certifier's file.
