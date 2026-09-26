@@ -1,34 +1,57 @@
-# Stage 8 certification — high-risk packages (Kimi / MiMo)
+# Stage 8 certification — high-risk packages (Kimi / MiMo), CERTIFYING mode
 
-Read `COMMON.md` first. Mode ADVISORY. You are an independent certifier
-(PROTO-DEC-0038 item 1, 0041 items 1-2, 0086 item 1). You did not execute and do not control the
-work; you certify. You fix nothing and decide nothing. Output: your report file (the path in your
-launch file).
+Read `COMMON.md` first (protocol steps; talk to the owner in Russian; repository files in English).
+You are an independent certifier (PROTO-DEC-0038 item 1, 0041 items 1-2, 0086 item 1). You did not
+execute and do not control the work; you certify. You fix nothing and decide nothing.
 
-## Inputs
+## Subject
 
-- `round6/packages/PKG-1.md`, `PKG-2.md`, `PKG-3.md`, `PKG-5.md` (the high-risk packages; PKG-4 is
-  medium and is covered by the stage-9 review);
-- `round6/FINAL-RESOLUTION-CLAUDE.md`; `round8/IMPLEMENT-E1-GEMINI.md` and
-  `round8/IMPLEMENT-E2-MISTRAL.md`; the implemented working tree (uncommitted changes).
+The committed CANDIDATE `f3ab4b8` (`f3ab4b8b299c3fc783d9b6e22b61d1cdcfb15dcc`). Verify with `git rev-parse HEAD` and
+`git show`; the tracked working tree must show no changes. Certify all four high-risk packages:
+**PKG-1, PKG-2, PKG-3 and PKG-5** (`round6/packages/PKG-1.md`, `PKG-2.md`, `PKG-3.md`, `PKG-5.md`).
+PKG-3 shares `.ai/bin/protocol-dispatch.cjs` with PKG-1, and the repair touched its items (F1-P3,
+AC-7, AC-14), so it is certified in full.
+
+- One of the two certifiers also gives the independent statement for **PKG-4** (PROTO-DEC-0079 D6
+  medium-risk step). DeepSeek wrote the plan, so its review is not a certification; state clearly in
+  your report if you are the one providing the PKG-4 statement.
+- Neither certifier reads the other's report (`round8/CERT-KIMI.md` / `CERT-MIMO.md`).
+- MiMo's report header states that the owner accepted MiMo-V2.6-Pro in place of MiMo-V2.6-Flash on
+  2026-09-26 (direct owner confirmation, PROTO-DEC-0086 context).
 
 ## What to certify
 
-For each of the four packages independently:
+For each of the four packages, on the committed CANDIDATE:
 
-1. Each acceptance criterion: inspect the implementation, run the package's validation commands
-   yourself, and mark the criterion met or not, with the real command output as evidence.
-2. Allowed/forbidden paths: check the actual changed-file set against the package.
-3. STOP conditions: check that any STOP the executors reported is real; a missed STOP is a FAIL.
+1. Each acceptance criterion: inspect the implementation (the committed blobs, not the dirty tree),
+   run the package's validation commands yourself, and mark the criterion met or not, citing the
+   real command output as evidence.
+2. Allowed/forbidden paths: check the actual changed-file set of the package's commits against the
+   package.
+3. STOP conditions: check any STOP the executors/repair reported; a missed STOP is a FAIL.
 4. No second source of truth for anything the package canonicalizes.
+
+A certification round is this run; at most three rounds per batch (PROTO-DEC-0047 item 5); a fourth
+is a STOP for the owner. If a repair commit follows, it becomes the new CANDIDATE and only the
+touched packages are re-certified.
 
 ## Verdicts and output
 
-- One verdict per package: `PASS` or `FAIL`; every FAIL claim carries a reproduction command and
-  its output. A package with an unverified criterion cannot be PASS.
-- Report at most 150 lines; header `Mode: ADVISORY`, `Baseline: <reviewed commits and tree state>`,
-  `Reviewer: <your model>, route <client>, effort <value>`, date, scope.
-- You certify only your own reading: never rely on the other certifier's file
-  (`round8/CERT-KIMI.md` / `CERT-MIMO.md`); do not read it before writing yours.
-- No commits, tags, pushes or branches; edit nothing outside your report and journal; five-label
-  journal and `record --quick` with the frame line `Orientation: ... @ <your frame>`.
+- One verdict per package: **`PASS` or `FAIL` only** (no other tokens). Every `FAIL` claim carries a
+  reproduction command and its output, run against the CANDIDATE. A package with an unverified
+  criterion cannot be PASS.
+- Report at most 150 lines. Required header:
+
+```
+Mode: CERTIFYING
+Reviewed CANDIDATE: f3ab4b8b299c3fc783d9b6e22b61d1cdcfb15dcc (full SHA; confirm with git rev-parse HEAD)
+Receipt-Owner: <your protocol session owner name>
+Reviewer: <your model>, route <client>, effort <value>, <UTC date>
+Scope: certification of PKG-1, PKG-2, PKG-3, PKG-5 (<PKG-4 statement: yes/no>)
+Verdict: CERTIFICATION COMPLETE
+```
+
+- You certify only your own reading; never rely on the other certifier's file.
+- No commits, tags, pushes or branches; edit nothing outside your report and journal.
+- Five-label journal entry, then **full** `node .ai/bin/protocol-handoff.cjs record --owner <your
+  owner name>` (not `--quick`), with the frame line `Orientation: ... @ <your frame>`.
