@@ -32,7 +32,7 @@ kernel already carries.
 | R1 reviewer — Mistral | Mistral Medium 3.5 (senior reachable through the matrix) | max (client config; not a flag) | vibe | mistral |
 | Synthesis A | Kimi K2.7 Code HighSpeed | high (client thinking config) | `kimi` CLI, `-m moonshot-ai/kimi-k2.7-code-highspeed` (owner-confirmed local CLI, 2026-09-26; the Vercel route was denied that day) | kimi |
 | Synthesis B | MiMo-V2.6-Pro | high | `mimo` CLI, `-m xiaomi/mimo-v2.6-pro --variant high` (owner-confirmed local CLI and Xiaomi credential, 2026-09-26; the Vercel and OpenRouter routes were unavailable that day) | mimo |
-| Resolution, 5 packages, closure | Claude Opus 5.5 | xhigh | claude CLI | claude |
+| Resolution, 5 packages, closure | Claude Opus 5.5 | high (owner cap 2026-09-26: not above Opus 5.5 High; was xhigh) | claude CLI | claude |
 | Plan, pre-check, post-implementation review, final review | DeepSeek 4.1 Flash | unknown | `kilo run -m deepseek/deepseek-flash` | deepseek |
 | Cleanup, repair | Gemini 3.8 Flash | high | agy | gemini |
 | Repair verification | Mistral Medium 3.5 | max | vibe | mistral |
