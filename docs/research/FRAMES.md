@@ -3,7 +3,8 @@
 One row per frame. A frame without a row is not open (R-L0-22.12). Edited only under the
 shared-document lock (AGENTS.md section 6). Statuses: CANDIDATE (not open), ACTIVE, BLOCKED (counts
 as ACTIVE), SUSPENDED, CLOSED, TRANSITION-PENDING (counts as ACTIVE until the owner confirms).
-Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pilots.
+Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pilots. A CLOSED row
+carries `receipt: <CR-id> <sha> K:n C:n A:n D:n R:n T:n` (P-L0-008 R-L0-22.67).
 
 ## Counters (kernel-completion mode)
 
@@ -16,6 +17,7 @@ Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pi
 | Candidates / cap | 4 / 5 (PROTO-DEC-0084) | 2026-09-26 | R-L0-22.55 (P-L0-008 0.3) |
 | RER at last gate | - | - | R-L0-22.46 |
 | Frames closed under P-L0-008 (trial: 5) | 0 (the transition inventory F-01..F-16 records closures before adoption) | 2026-09-26 | R-L0-22.50 |
+| Closed frames without a receipt | 10 (9 in the first closure pass; F-01 excluded while its program implements) | 2026-09-26 | R-L0-22.56 |
 
 ## Frames
 

@@ -3679,3 +3679,86 @@ PROTO-DEC-0063 item 1 and the P-L2-002 ownership of task characterization stand.
 supersedes nothing.
 
 Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26, answers quoted in the directive; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0085
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0083 (P-L0-008 R-L0-22.16, R-L0-22.17: what closing a frame requires)
+
+Context:
+Research, synthesis, plan and critique artifacts stayed active after their work closed, so the
+owner had to notice the noise and order a revision (the OwnerIdeas program). docs/research/ holds
+2.3 MB in 177 files with no budget, most of it from frames FRAMES.md already marks CLOSED. TASK.md
+meets its 80-line limit at 20.5 KB, and TASK plus PLAN (44 KB) exceed the 40 KB packet budget. Line
+and file-count limits therefore measure storage, not the attention agents spend.
+
+Decision:
+1. Closing a frame includes disposing of its own artifacts. A frame is CLOSED only after its
+   closure disposition is applied and its closure receipt is recorded (P-L0-008 R-L0-22.56-22.71).
+   Status: trial, under the P-L0-008 trial.
+2. The artifact set is declared or attributable to the frame: its declared artifacts, its frame
+   directory, files its own sessions created or changed, its declared seeds, and records its
+   accepted outcome supersedes. The git delta between opening and closing commits is only a
+   completeness cross-check, and an unattributable file goes to the gate owner.
+3. Dispositions:
+   - KEEP_ACTIVE;
+   - CANONICALIZED: content in a named canonical source, original archived, at most a
+     redirect-only non-authoritative stub;
+   - ARCHIVE;
+   - DELETE: only a byte-identical copy of text tracked elsewhere, an empty file or a generated
+     file, and only with no open dependency, repaired references and a passing validator;
+   - REPAIR;
+   - TRANSFER(target): an open frame, open task, DEFER entry or candidate. A TRANSFER without a
+     target blocks closure.
+   In doubt: ARCHIVE, never DELETE.
+4. Never changed by a closure: .ai/DECISIONS.md, .ai/ARCHIVE.md, docs/decisions/REGISTRY.md,
+   session journals, and the content of review files. A review file moves only under
+   PROTO-DEC-0037.
+5. Every move is indexed (old path, new path, canonical replacement). References from the active
+   corpus are repointed or replaced by provenance pointers. A citation of a moved path inside an
+   immutable record (DECISIONS, REGISTRY, ARCHIVE.md, session journals, review files) is resolved
+   through the archive index: it is never edited, it is not a dangling reference, and it never
+   blocks a move. One closure is one commit under the lock; closures are applied one after
+   another, never in parallel, because they share the index. Archive paths are provenance only:
+   default-context builders and frame corpus lists exclude them.
+6. The receipt is one line in docs/research/CLOSURES.jsonl, an append-only ledger. A wrong receipt
+   is never rewritten; a correcting line with "supersedes": "<receipt id>" is appended. The
+   FRAMES.md row carries only the receipt id, the commit and the disposition counts. The closer
+   does not certify its own receipt; the deterministic closure check does, plus a certifier where
+   a completion gate applies. A closure never changes a frame's status or verdict. A conflict it
+   finds is reported as FRAME_STATUS_CONFLICT to the gate owner.
+7. A leak detector runs after every fifth closed frame, at a milestone, and when a corpus budget
+   is exceeded. It runs by hand until a scanner exists; its first three runs are dry runs; it
+   reports the leakage rate (M-011).
+8. First application: the frames already CLOSED without a receipt, as a dry-run manifest the owner
+   confirms before anything moves.
+9. Limits are split into an attention budget (default context: TASK, PLAN, injection, active
+   research) and a storage budget (archive, effectively unbounded). New numbers, in bytes rather
+   than lines, are set by a later owner decision from the active-corpus bytes measured after the
+   first closure pass.
+10. Carried by F-03 (CORE-ARCH stage 3, the L2 work cycle, stage id close):
+    - the general closure procedure for every work item, not only frames;
+    - the L0 invariant "one accepted provision has one active canonical source";
+    - the scanner, built with the Node validator (PROTO-DEC-0077, A-4), WARN first.
+    No new frame is opened for them.
+
+Reasoning:
+Cleanup at closure removes the mechanism that accumulates noise, instead of treating its effects in
+periodic revisions. Ownership from declarations plus attribution survives parallel sessions,
+where a raw git delta would sweep in other agents' work. A separate TRANSFER keeps DEFER a
+question-level verdict. Archiving before deleting honours AGENTS.md sections 8 and 12. Keeping the
+receipt out of FRAMES.md stops the registry from becoming a journal.
+
+Alternatives rejected:
+A separate cleanup layer; a periodic garbage collector as the main mechanism; ownership from the
+git delta alone; DELETE as a default; the full receipt inside FRAMES.md; a new research frame for
+cleanup.
+
+Consequences:
+P-L0-008 becomes 0.4. CORE-ARCH-6 defines M-011. docs/research/CLOSURES.jsonl and
+docs/research/archive/INDEX.md are created. A dry-run manifest for the closed frames goes to the
+owner. PROTO-DEC-0037 and AGENTS.md sections 8 and 12 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26: closure disposition as part of Definition of Done, with the five amendments; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)

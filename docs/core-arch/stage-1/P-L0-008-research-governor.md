@@ -1,23 +1,23 @@
 ---
 id: P-L0-008
-version: 0.3
+version: 0.4
 title: Research governor - every frame ends in a decision; new research is not an output
 layer: L0
 type: procedure
 status: trial
 roles: [all]
 stages: [any]
-triggers: [frame-open, frame-round, frame-gate, frame-close, owner-directive]
+triggers: [frame-open, frame-round, frame-gate, frame-close, frame-closure, owner-directive]
 inputs: [journal, decisions-index, docs/research/FRAMES.md, .ai/DECISIONS.md]
-outputs: [docs/research/FRAMES.md, .ai/DECISIONS.md, docs/ops/BACKLOG.md, journal, signals]
+outputs: [docs/research/FRAMES.md, .ai/DECISIONS.md, docs/ops/BACKLOG.md, docs/research/CLOSURES.jsonl, docs/research/archive/INDEX.md, journal, signals]
 back_edges: [3>2/1/owner]
 enforcement: P
 script_candidate: no:1
 evidence_class: [B, D]
-evidence: [PROTO-DEC-0052, PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md]
+evidence: [PROTO-DEC-0052, PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, PROTO-DEC-0085, docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md]
 cost_basis: unknown
 trial: metric=M-010; kill=in two independent cases the governor itself blocks a work stream for more than 24 h with no related technical or external blocker; until=frames-5
-decision: [PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084]
+decision: [PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, PROTO-DEC-0085]
 ---
 
 # P-L0-008 Research governor
@@ -146,6 +146,38 @@ R-L0-22.54. The Kernel v1 scope is set by a separate owner decision, and perform
 
 R-L0-22.55. The candidate list has a cap set by the owner, and at the cap no new candidate is recorded until a candidate is merged, removed or opened.
 
+R-L0-22.56. A frame is CLOSED only after its closure disposition is applied and its closure receipt is recorded, and a frame whose artifact set is empty closes with an empty receipt.
+
+R-L0-22.57. The artifact set of a frame is its declared artifacts, its frame directory, the files its own sessions created or changed, its declared seeds and the records its accepted outcome supersedes; the git delta between its opening and closing commits is only a completeness cross-check, and a file in that delta not attributable to the frame goes to the gate owner.
+
+R-L0-22.58. Each artifact receives exactly one disposition: KEEP_ACTIVE, CANONICALIZED, ARCHIVE, DELETE, REPAIR or TRANSFER.
+
+R-L0-22.59. CANONICALIZED means the normative content now lives in a named canonical source and the original is archived, and a stub left for links is redirect-only, non-authoritative and outside the active corpus.
+
+R-L0-22.60. TRANSFER names the open frame, open task, DEFER entry or candidate that takes the artifact or its open part, and a TRANSFER without a target blocks closure.
+
+R-L0-22.61. DELETE is allowed only for a byte-identical copy of text tracked elsewhere, an empty file or a generated file, and only when no open frame, decision in progress or uncertified candidate depends on it, its references are repaired and the validator passes.
+
+R-L0-22.62. In any doubt the disposition is ARCHIVE, never DELETE, and a semantically unclear artifact goes to the gate owner.
+
+R-L0-22.63. A closure never changes `.ai/DECISIONS.md`, `.ai/ARCHIVE.md`, `docs/decisions/REGISTRY.md`, session journals or the content of review files, and a review file is only moved under PROTO-DEC-0037.
+
+R-L0-22.64. Every move is recorded in the archive index as old path, new path and canonical replacement; every reference from the active corpus is repointed or replaced by a provenance pointer; and a citation inside an immutable record (DECISIONS, REGISTRY, ARCHIVE.md, session journals, review files) is resolved through the archive index, is never edited, is not a dangling reference and never blocks a move.
+
+R-L0-22.65. The disposition of one closure is applied in one commit under the shared-document lock, so that one revert restores it, and closures are applied one after another, never in parallel.
+
+R-L0-22.66. The closure check requires zero dangling references from the active corpus, zero competing active sources for a canonicalized decision, and a recorded change of active-corpus bytes.
+
+R-L0-22.67. The closure receipt is one line in the append-only ledger `docs/research/CLOSURES.jsonl`, a wrong receipt is corrected only by an appended line that names the receipt it supersedes, and the frame row in `docs/research/FRAMES.md` carries only the receipt id, commit and disposition counts.
+
+R-L0-22.68. Archive paths are provenance only: default-context builders and frame corpus lists exclude them, and an active document links into an archive only as a provenance pointer.
+
+R-L0-22.69. A leak detector runs after every fifth closed frame, at a milestone and when a corpus budget is exceeded, by hand until a scanner exists; its first three runs are dry runs, and it reports M-011.
+
+R-L0-22.70. The closer never certifies its own receipt: the deterministic closure check verifies it, and a certifier also does where a completion gate applies.
+
+R-L0-22.71. A closure never changes a frame's status or verdict, and a status or verdict it finds wrong is reported to the gate owner as FRAME_STATUS_CONFLICT.
+
 ## Steps
 
 Actor slots are defined in L1: `author` (frame author), `coordinator` (operator), `owner`, `reviewer`.
@@ -167,6 +199,8 @@ Actor slots are defined in L1: `author` (frame author), `coordinator` (operator)
 5. **Counters** (coordinator, at every gate). Update DIG, DIG_FLOOR, DEFERRED_ACCEPTED, the DEFER
    backlog size, RER and the closed-frame count in FRAMES.md (R-L0-22.41-22.46). Record every
    limit breach as a bypass incident (R-L0-22.51). Output: the counters block.
+5a. **Closure** (coordinator; gate owner for doubts). Build the artifact set, then dispose, apply,
+   check, and write the receipt (R-L0-22.56-22.67).
 6. **Trial review** (reviewer named by the owner). Input: frames-5 reached and M-010. One short
    review file answers the four questions of R-L0-22.50. Output: accept, revise or retire,
    decided by the owner.
@@ -219,9 +253,11 @@ Actor slots are defined in L1: `author` (frame author), `coordinator` (operator)
 | DIG or RER gamed | medium | medium | R-L0-22.41-22.42, R-L0-22.46 | manual counting | counts by hand until the ledger |
 | Bureaucracy for small work | medium | medium | non-frames R-L0-22.4; minor R-L0-22.8 | README fields | the minor line is judged |
 | The governor blocks real work | low | high | kill criterion; trial review R-L0-22.50 | one review | none |
+| Closure moves or deletes something still needed | medium | high | declared ownership R-L0-22.57; ARCHIVE by default R-L0-22.62; one commit per closure R-L0-22.65; dry run first | one manifest per closure | semantic misclassification caught only at the gate |
 
 ## Change log
 
 - 0.1 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — trial for the OwnerIdeas program only (PROTO-DEC-0082) — no review.
 - 0.2 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — general scope in the source repository; functional frame; minor without "small budget"; DEFERRED_ACCEPTED; kill criterion measures harm; FRAMES.md registry; transition gate; Kernel v1 contract; schema compliance (root R-L0-22 with sub-rules, Risks, Change log, ids of schema 2.1, until=frames-5, M-010 defined). Id map 0.1 to 0.2: R-L0-22 → 22.3-22.7; R-L0-23 → 22.8; R-L0-24 → 22.9-22.11; R-L0-25 → 22.13-22.14; R-L0-26 → 22.15-22.20; R-L0-27 → 22.21-22.23; R-L0-28 → 22.24-22.29; R-L0-29 → 22.30-22.33; R-L0-30 → 22.34-22.35; R-L0-31 → 22.36-22.37; R-L0-32 → 22.38-22.40; R-L0-33 → 22.41-22.46; R-L0-34 → 22.47-22.48; R-L0-35 → 22.49-22.53; R-L0-36 → Evidence (Enforcement) — reviewer Mistral Medium 3.5 (vibe; `docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md`): RECOMMENDATION — PROTO-DEC-0083.
 - 0.3 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — candidate cap R-L0-22.55; caps set to 5 and 5 (PROTO-DEC-0084) — reviewer Mistral Medium 3.5 (`docs/reviews/2026-09-26-mistral-p-l0-008-0.3-f02-admission-review.md`): PASS.
+- 0.4 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — closure disposition R-L0-22.56-22.71 (PROTO-DEC-0085) — reviewer <reviewer>: <verdict>.
