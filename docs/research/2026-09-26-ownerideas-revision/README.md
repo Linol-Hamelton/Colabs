@@ -35,7 +35,9 @@ kernel already carries.
 | Resolution, 5 packages, closure | Claude Opus 5.5 | high (owner cap 2026-09-26: not above Opus 5.5 High; was xhigh) | claude CLI | claude |
 | Plan, pre-check, post-implementation review, final review | DeepSeek 4.1 Flash | unknown | `kilo run -m deepseek/deepseek-flash` | deepseek |
 | Cleanup, repair | Gemini 3.8 Flash | high | agy | gemini |
-| Repair verification | Mistral Medium 3.5 | max | vibe | mistral |
+| Repair verification | GPT-5.6 Sol (owner change 2026-09-26, PROTO-DEC-0086 item 2; was Mistral Medium 3.5) | medium | codex | codex |
+| Stage-8 executors | E1 Gemini 3.8 Flash (high); E2 Mistral Medium 3.5 (max), one per edit stream (PROTO-DEC-0086 item 2) | - | agy / vibe | gemini / mistral |
+| High-risk certifiers | Kimi K2.7 Code HighSpeed and MiMo-V2.6-Flash; neither executes stage 8 (PROTO-DEC-0086 item 1) | - | kimi / mimo | kimi / mimo |
 
 A route that fails BLOCKS its slot and goes to the owner; there is no automatic move to another
 model or effort. The stage-8 executor set is named before that stage starts and fixed then.

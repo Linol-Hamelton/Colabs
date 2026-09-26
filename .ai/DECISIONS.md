@@ -3762,3 +3762,43 @@ docs/research/archive/INDEX.md are created. A dry-run manifest for the closed fr
 owner. PROTO-DEC-0037 and AGENTS.md sections 8 and 12 stand; this block supersedes nothing.
 
 Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26: closure disposition as part of Definition of Done, with the five amendments; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0086
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: DISPATCH-OWNER section 20 (roles and assignments); PROTO-DEC-0079 D6 (two edit streams)
+
+Context:
+The owner gave the STOP-3 arrangements in advance: who certifies the high-risk packages, who
+executes stage 8, the condition for stage 7, and the F-02 gate requirements.
+
+Decision:
+1. Certifiers of the high-risk packages (PROTO-DEC-0038 item 1, PROTO-DEC-0041 items 1-2): Kimi
+   K2.7 Code HighSpeed and MiMo-V2.6-Flash. Neither may be a stage-8 executor.
+2. Stage-8 executors: two, one per edit stream - E1 Gemini 3.8 Flash (high), E2 Mistral Medium 3.5
+   (max). The five packages are distributed across the streams by the stage-5 resolution
+   (PROTO-DEC-0079 D6). Stage-11 repair verification moves from Mistral Medium 3.5 to GPT-5.6 Sol
+   (codex). This refines the role assignments of the dispatch section 20.
+3. Stage 7 (DeepSeek pre-check) is conditionally approved for automatic launch: it starts without a
+   further owner answer only if at STOP-3 every BLOCKING item of both critiques has an explicit
+   accept or reject with a reason, there are exactly five packages, and every package carries all
+   fields of the stage-5 amendment item 7. Otherwise the operator stops and asks the owner.
+4. At the F-02 gate the operator brings the list of downgraded and rejected rows with reasons,
+   grouped by model; nothing is deleted.
+5. For the next revision of P-L2-002: the ranks T1-T9 are relative inside a provider, and "T7" does
+   not equal a capability level across providers; record as input. PROTO-DEC-0059 is not changed
+   now.
+
+Reasoning:
+Not stated in the directive; transcribed as given.
+
+Alternatives rejected:
+Not stated in the directive.
+
+Consequences:
+The stage-8 role table and the stage-11 verifier change; STOP-3 checks gate the automatic stage-7
+launch; the F-02 gate report format is fixed; the T-rank note enters the next P-L2-002 revision.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26, STOP-3 arrangements given in advance; text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
