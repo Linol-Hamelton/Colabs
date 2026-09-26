@@ -102,6 +102,16 @@
         "client": "kilo",
         "model": "deepseek/deepseek-flash"
       }
+    },
+    {
+      "id": "r4-mistral-review",
+      "frame": "task:governor-review-mistral",
+      "out": "docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r4-mistral-review.md",
+      "route": {
+        "client": "vibe",
+        "model": "mistral-medium-3.5"
+      }
     }
   ]
 }
