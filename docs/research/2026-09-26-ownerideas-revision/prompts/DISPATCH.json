@@ -292,6 +292,7 @@
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-HYGIENE-GEMINI.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9c-repair-hygiene.md",
       "needs": ["r9b-repair-pkg5"],
+      "notBefore": "2026-09-27T00:42:30+03:00",
       "route": {
         "client": "agy",
         "model": "gemini-3.8-flash-high"

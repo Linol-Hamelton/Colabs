@@ -66,6 +66,13 @@ Reproduce each; fix the confirmed ones minimally; refute with evidence if a repr
 - `docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-HYGIENE-GEMINI.md`: one row per
   finding (reproduction before, change, reproduction after or refutation), validation commands with
   real outputs, and a list of tracked files touched by the fix.
+- **Resume rule (owner instruction 2026-09-27; earlier attempts were killed by the agy 429 quota).**
+  Do NOT redo work that is already done: before changing anything, inspect the working tree and any
+  partial `round9/REPAIR-HYGIENE-GEMINI.md`; treat already-applied fixes and already-clean files as
+  complete, finish only the remaining findings, and append your rows to the existing report instead
+  of rewriting it from scratch.
+- This is the last automatic retry. If the agy quota kills it again, the operator stops and asks the
+  owner about changing the executor; do not switch models yourself.
 - No commits, tags, pushes or branches; no writes outside the packages' allowed paths, the fixtures
   and your report/journal. Journal first write MUST contain the `Launch:` and `Orientation:` lines
   with the frame id.
