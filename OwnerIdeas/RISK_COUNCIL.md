@@ -136,7 +136,7 @@ docs/core-arch/stage-6/** if it exists
 docs/specs/2026-09-23-executable-rulebook-spec.md
 
 docs/research/2026-09-23-kernel-architecture/**
-docs/research/2026-09-23-routing/**
+docs/research/archive/2026-09-23-routing/**
 docs/research/2026-09-24-remediation-mapping/**
 docs/research/2026-09-25-improvement-research/**
 
