@@ -40,7 +40,13 @@
     ".ai/docs/clients.json",
     "docs/specs/bin-output-schema.md",
     ".ai/bin/protocol-runrecord.cjs",
-    "docs/specs/run-record.schema.md"
+    "docs/specs/run-record.schema.md",
+    "docs/ops/model-ladder.json",
+    ".ai/docs/dispatch/wake.md",
+    ".ai/docs/dispatch/repair.md",
+    ".ai/SIGNALS.md",
+    ".ai/bin/protocol-signals.cjs",
+    "docs/specs/signals-ledger.md"
   ],
   "tests": [
     "tests/archive.test.cjs",
@@ -60,10 +66,12 @@
     "tests/manifest.test.cjs",
     "tests/operator.test.cjs",
     "tests/registry.test.cjs",
+    "tests/resolver.test.cjs",
     "tests/review-findings.test.cjs",
     "tests/rulebook.test.cjs",
     "tests/runrecord.test.cjs",
     "tests/session.test.cjs",
+    "tests/signals.test.cjs",
     "tests/upgrade.test.cjs",
     "tests/validator-syntax.test.cjs",
     "tests/validator.test.cjs"

@@ -1,6 +1,6 @@
 ---
 id: P-L0-000
-version: 0.5
+version: 0.6
 title: Kernel root - why the kernel exists, its invariants, and how everything else is found
 layer: L0
 type: invariant
@@ -12,7 +12,7 @@ enforcement: S~
 enforced_by: [validate-protocol.ps1, .ai/bin/protocol-handoff.cjs, .ai/bin/protocol-lock.cjs]
 script_candidate: no:4
 evidence_class: [A, B]
-evidence: [PROTO-DEC-0041, PROTO-DEC-0044, PROTO-DEC-0045, PROTO-DEC-0047, PROTO-DEC-0050, PROTO-DEC-0054, PROTO-DEC-0060, PROTO-DEC-0082, PROTO-DEC-0083]
+evidence: [PROTO-DEC-0041, PROTO-DEC-0044, PROTO-DEC-0045, PROTO-DEC-0047, PROTO-DEC-0050, PROTO-DEC-0054, PROTO-DEC-0060, PROTO-DEC-0070, PROTO-DEC-0079, PROTO-DEC-0081, PROTO-DEC-0082, PROTO-DEC-0083]
 cost_basis: unknown
 ---
 
@@ -20,7 +20,7 @@ cost_basis: unknown
 
 ## Purpose
 
-Draft 0.4, CORE-ARCH stage 1. Not binding until approved. Always loaded; everything else is
+Draft 0.6, CORE-ARCH stage 1. Not binding until approved. Always loaded; everything else is
 loaded by your role and stage. Each rule says why it exists; the full evidence is in
 CORE-ARCH-2 §4 and in the Evidence section below. Scripts enforce the parts they can
 (`enforced_by`); the rest is judgement, so `script_candidate` is `no:4`.
@@ -46,6 +46,11 @@ summary of the rest. Why: one agent loaded ~62k tokens of which its task needed 
 
 R-L0-03. Sources rank: approved decisions > the working tree and git > the task > the plan
 > journals > the archive. When two disagree, the lower one is stale: fix it or report it.
+
+R-L0-37. OwnerIdeas files are advisory seeds, ranked below the plan. A file leaves the active
+corpus when the frame that consumes it closes (P-L0-008). Agents never place their outputs in
+`OwnerIdeas/`. Why: owner seeds were read as sources of truth, and a second active source for
+a decided rule costs review rounds (PROTO-DEC-0079 item 7).
 
 R-L0-08. Chat is not memory; what is not in the repository did not happen.
 
@@ -77,6 +82,11 @@ Why: a rule that forbids reading makes agents walk around problems.
 R-L0-10. If no rule covers your next action, sources conflict, a tool is blocked, a budget
 is exhausted, or the premise is wrong: stop and ask (P-L0-002). Never invent a rule or
 widen a permission.
+
+R-L0-38. An action that a recorded source already allows unambiguously, and that widens no
+scope, authority or permission, is taken without asking the owner again, and its basis is
+recorded; the owner is asked only in the cases P-L0-009 lists. Why: repeated confirmations make
+the owner the bottleneck of every run (PROTO-DEC-0070 items 5-6, made general by 0081).
 
 R-L0-11. Every loop has a budget: two attempts per root cause, three certification rounds
 per batch, three wakes per stalled session. An exhausted budget goes to the owner or to an
@@ -122,8 +132,8 @@ frames multiplied faster than decisions were built (PROTO-DEC-0082, 0083).
 
 ## Where to go next
 
-Your role: L1 `ROLE-<slot>`. Your stage: L2. Missing rule: P-L0-002. New or changed record:
-P-L0-001. Conflicting sources: P-L0-003. Layer consistency: P-L0-004. Decisions and
+Your role: L1 `ROLE-<slot>`. Your stage: L2. Missing rule: P-L0-002. Action already allowed, or whether
+to ask: P-L0-009. New or changed record: P-L0-001. Conflicting sources: P-L0-003. Layer consistency: P-L0-004. Decisions and
 reopening: P-L0-005. Candidates to improve or retire: P-L0-006. Comparative tests: P-L0-007.
 Research frames: P-L0-008.
 All are drafts until stage 1 is approved.
@@ -138,7 +148,7 @@ All are drafts until stage 1 is approved.
 - R-L0-13: PROTO-DEC-0050, 0051. R-L0-14: PROTO-DEC-0049 item 4. R-L0-15: spec section 1,
   PROTO-DEC-0047 item 8. R-L0-17: P-L0-001. R-L0-18: `AGENTS.md:311-321`, PROTO-DEC-0033.
   R-L0-19: PROTO-DEC-0054 item 4. R-L0-20, R-L0-21: PROTO-DEC-0060 item 2.
-  R-L0-22: PROTO-DEC-0082, 0083.
+  R-L0-22: PROTO-DEC-0082, 0083. R-L0-37: PROTO-DEC-0079 item 7. R-L0-38: PROTO-DEC-0070 items 5-6, 0081.
 
 ## Change log
 

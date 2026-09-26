@@ -176,6 +176,22 @@ Kernel agent dispatches are governed by `.ai/bin/protocol-dispatch.cjs`:
 - A new failure mode goes into the registry (`.ai/docs/clients.json`), not only into an individual run (PROTO-DEC-0050 item 3).
 - Every attempt runs in a private clone with the Level-1 environment (PROTO-DEC-0070, PROTO-DEC-0077 item 3): detached HEAD, remotes removed, no-push rule enforced, and credential canaries stripped.
 - Liveness is evaluated per PROTO-DEC-0075 item 5 (heartbeat progress, useful output growth, stall and hard limits).
-- The old runners (`run-chain.cjs` and `launch.cjs`) are superseded for new dispatches.
-- Recovery arrives with PKG-3.
+- Recovery follows PROTO-DEC-0075 as implemented here.
+- Resolver order: For slots without an explicit route, selection evaluates ladder rungs across route data completeness, hard constraints (contextMin per PROTO-DEC-0075 item 8), floor checks (max(tiers) >= floor per PROTO-DEC-0059 item 2; tier-unknown if empty), independence exclusions (PROTO-DEC-0075 item 13), approval gates (needs-approval for owner-long-task when long=true and unapproved per PROTO-DEC-0076 item 1, PROTO-DEC-0078 item 4), and liveness probes (levels 0-1). Admissible rungs are sorted cheaper-first by largest rung number then lowest declared order. Substitutes proceed up the ladder by decreasing rung number then increasing order. Terminal cases (no admissible rung, or shortfall on kernel/certification stages) stop execution before launch per PROTO-DEC-0078 item 3 and workflowAI 1.5; escalation occurs only on verified failure per PROTO-DEC-0079 item 2.
+- Supervisor recovery: Actions per failure class follow the Russian owner text and PROTO-DEC-0075 items 3, 5, 11. The attempt budget allows the primary its initial run plus one retry on retryable classes, two attempts per substitute, at most six fresh invocations in total, and resumes counted separately (up to three wakes per attempt per PROTO-DEC-0051 item 4, and one resume per crash or repair). Hard timeout stops the step as BLOCKED. Resume-first semantics govern STALL (wake pointer to `.ai/docs/dispatch/wake.md`) and PROCESS_CRASH, while INVALID_OUTPUT/VALIDATION_FAILURE triggers one repair resume with pointer to a synthesized repair file holding `.ai/docs/dispatch/repair.md` and failing check rows. Non-retryable classes (AUTH_ERROR, CONFIG_ERROR, MODEL_UNAVAILABLE, QUOTA_EXHAUSTED) fail over immediately to substitutes. RATE_LIMIT (60s wait) and NETWORK_ERROR/PROVIDER_ERROR (30s wait) retry once before failover.
+- Launch pinning, completion contract, and run records: Before the first attempt, the supervisor records launch pins (HEAD commit SHA, launch file path and sha256, copyIn file hashes, dispatch sha256). Pre-attempt hash verification blocks modified inputs as `pin-changed` unless `--revise` initiates a new launch revision. A step achieves DONE only when the process exit code is recorded, all declared outputs exist and are non-empty valid UTF-8, slot validation exits 0, copied-back journal contains an `Evidence:` line, and supervisor certifies `supervisorDone`. Every settled step appends a run record satisfying `docs/specs/run-record.schema.md` to `docs/ops/RUNS.jsonl`, which serves as the source for `renderUsage` and dispatch reporting.
 - This dispatch mechanism is not installed into host projects until the owner decides.
+
+---
+
+## 10. Signals ledger (source repository only)
+
+The signals ledger `.ai/SIGNALS.md` is append-only and written only through `.ai/bin/protocol-signals.cjs`. Its line grammar lives in `docs/specs/signals-ledger.md` (one home; R-L0-12).
+
+- Signal types (`procedure-gap`, `script-candidate`, `fall`) are recorded per PROTO-DEC-0051 items 2-4.
+- Any participant can record a signal with `add`. A `Signal:` journal line is still accepted from a participant that cannot run the script, and the next `import` brings it in once by hash without modifying journals.
+- At batch planning, the coordinator runs `plan --batch <id> --stamp` and records groups and dispositions with `update`; an `ESCALATE` row goes to the owner (PROTO-DEC-0051 item 2).
+- A `script-candidate` is tested against the four conditions of executable rulebooks and recorded as `script:<path>` or `kept-by-assistant:<n>` (PROTO-DEC-0051 item 3).
+- Falls come automatically from the kernel dispatcher upon attempt fall (S6; PROTO-DEC-0051 item 4).
+- Ledger consumers are P-L0-001 and P-L0-006; M-008 counts come from `node .ai/bin/protocol-signals.cjs count`.
+- While `CLI-AGENTS.md` is installed into host projects (`managed`), `.ai/SIGNALS.md` and `protocol-signals.cjs` are registered as `source` and remain in this repository only.

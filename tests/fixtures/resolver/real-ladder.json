@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "stateDir": "tests/fixtures/resolver/state",
+  "slots": [
+    {
+      "id": "floor-t7-kernel",
+      "launch": "tests/fixtures/resolver/launch.md",
+      "role": "test-kernel",
+      "floor": "T7",
+      "stageKind": "kernel"
+    },
+    {
+      "id": "floor-t3-other",
+      "launch": "tests/fixtures/resolver/launch.md",
+      "role": "test-other",
+      "floor": "T3",
+      "stageKind": "other"
+    }
+  ]
+}

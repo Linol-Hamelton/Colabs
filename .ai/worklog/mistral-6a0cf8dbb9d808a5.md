@@ -24,18 +24,20 @@ Next step: Await W1 gate integration by operator; await E1 (Gemini) implementati
 Open: PKG-1 files exist in working tree (untracked, E1); PKG-3 not complete; PKG-4 S2-S7 and PKG-5 blocked pending full PKG-3 availability
 
 Evidence:
-- anchor: 93634438fbdaeb30cf733f0aee4c5e8e59d01f59, uncommitted changes present
-- digest: sha256:c775f5f01976950bfb5d0bb5476e19d34c17ea1a24630a0a39fe580d9ede4a04 over 638 tracked and untracked files
+- anchor: 797b798d3b075f487c3855829fff08dc9c334ac5, uncommitted changes present
+- digest: sha256:8cb8b0745216e3f50ea8b30c1e6b7c32b04d53cb0701d89767dae6c45aadd31d over 653 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-26T16:56:17.980Z by mistral-6a0cf8dbb9d808a5
+- recorded: 2026-09-26T18:23:24.477Z by mistral-6a0cf8dbb9d808a5
 - entry hash format: 2
-- entry: sha256:16faf0c3f7ff8a9b9e1cd82b66902980d2f78a95dd636c051e4d4d16af13e5d5 of this entry without this block
+- entry: sha256:87481793ef605942b830885fe85f7215e6619bf543f214ead3034b40e031bfbe of this entry without this block
 - parent-entry: root
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 3s
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 1 in 410s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
 
 ---
+
 
 
 

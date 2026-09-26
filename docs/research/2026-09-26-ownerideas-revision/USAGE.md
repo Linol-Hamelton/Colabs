@@ -24,6 +24,8 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r7c-deepseek-recheck | kilo | deepseek/deepseek-flash | - | 5 | 84 | 0.05 | 101636/11644 | 0.00 | 0 | 0 | DONE |
 | r8-exec-e1 | agy | gemini-3.8-flash-high | - | 33 | 194 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r8-exec-e2 | vibe | mistral-medium-3.5 | - | 18 | 288 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
-| r8-review-deepseek | kilo | deepseek/deepseek-flash | - | 11 | 0 | 0.03 | 121154/3586 | 0.00 | 0 | 1 | NO_START |
-| r8-cert-kimi | kimi | moonshot-ai/kimi-k2.7-code-highspeed | - | 12 | 107 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
-| r8-cert-mimo | mimo | xiaomi/mimo-v2.6-pro | high | 14 | 132 | 0.10 | 194802/7610 | 0.00 | 0 | 0 | DONE |
+| r8-review-deepseek | kilo | deepseek/deepseek-flash | - | 15 | 0 | 0.05 | 227225/6324 | 0.00 | 0 | 1 | NO_START |
+| r8-cert-kimi | kimi | moonshot-ai/kimi-k2.7-code-highspeed | - | 15 | 119 | 0.00 | 0/0 | 0.00 | 0 | 1 | DONE |
+| r8-cert-mimo | mimo | xiaomi/mimo-v2.6-pro | high | 8 | 0 | 0.05 | 104230/3646 | 0.00 | 0 | 1 | NO_START |
+| r8b-cont-e1 | agy | gemini-3.8-flash-high | - | 55 | 303 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r8b-cont-e2 | vibe | mistral-medium-3.5 | - | 16 | 551 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |

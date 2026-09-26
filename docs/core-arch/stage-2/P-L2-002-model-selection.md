@@ -1,6 +1,6 @@
 ---
 id: P-L2-002
-version: 0.4
+version: 0.5
 title: Choose the executor, model and effort for a task before it is launched
 layer: L2
 type: procedure
@@ -14,14 +14,14 @@ back_edges: [7>5/1/owner]
 enforcement: P
 script_candidate: no:4
 evidence_class: [B, C]
-evidence: [PROTO-DEC-0047, PROTO-DEC-0055, PROTO-DEC-0058, PROTO-DEC-0059, docs/reviews/2026-09-24-deepseek-core-arch-stage1-control.md:7]
+evidence: [PROTO-DEC-0047, PROTO-DEC-0055, PROTO-DEC-0058, PROTO-DEC-0059, PROTO-DEC-0072, PROTO-DEC-0074, PROTO-DEC-0075, PROTO-DEC-0086, docs/reviews/2026-09-24-deepseek-core-arch-stage1-control.md:7]
 cost_basis: unknown
 trial: metric=M-007; kill=two consecutive tasks whose computed tier the executor or the reviewer disputes with a reproduced reason; until=CORE-ARCH package I-a
 ---
 
 # P-L2-002 Choose executor, model and effort
 
-Draft 0.4, CORE-ARCH stage 2 (L1/L2 boundary), written early and put into use as a trial on the
+Draft 0.5, CORE-ARCH stage 2 (L1/L2 boundary), written early and put into use as a trial on the
 owner's instruction of 2026-09-24: "должно решаться согласно процедуре выбора модели (если такой
 процедуры пока нет, надо ее описать и начать использовать)". Not binding until approved.
 
@@ -59,17 +59,29 @@ each other's blind spots (owner, 2026-09-24).
 
 | Factor | 0 | 1 | 2 |
 |---|---|---|---|
-| Size | ≤ 3 files | 4-15 | > 15 or a new module |
 | Protected paths | none | tests or kernel documents | `.ai/`, validator, gates, hooks |
 | Novelty | precedent exists | partial | none |
 | Reversibility | trivial revert | revert with migration | irreversible or external |
 | Ambiguity | no open question | 1-2 | ≥ 3 or conflicting sources |
 | Coupling | one layer | two layers | ≥ 3 layers |
+| Independent judgement | the work follows a precise specification or a fixed procedure | review or critique that another participant checks | a judgement others rely on without re-deriving it: certification, architecture, or a high-responsibility synthesis, specification or audit |
+
+> Volume is not a factor: the tier follows uncertainty and the consequence of an error
+> (PROTO-DEC-0074 item 4, 0075 item 8). The six factors operationalize the four parameters of
+> 0075 item 8: Novelty and Ambiguity (uncertainty and reasoning depth), Reversibility and
+> Protected paths (the consequence of an error), Coupling (cross-system coupling) and Independent
+> judgement (the independent judgement required). Context
+> window, modality, tools, route capability and language support are hard constraints, checked
+> when the route is resolved, not scored.
 
 3. **Tier** (coordinator). Map the sum to a tier (PROTO-DEC-0059): 0 → T1; 1-2 → T2; 3 → T3;
-   4-5 → T4; 6 → T5; 7-8 → T6; 9 → T7; 10-11 → T8; 12 → T9. Hard floors: a kernel change or a
-   certification is at least T7; a protected path is at least T4. Write `tier` and the six scores
-   in the frame.
+   4-5 → T4; 6 → T5; 7-8 → T6; 9 → T7; 10-11 → T8; 12 → T9.
+   > Hard floors: a certification is at least T7, and so is a task that directly creates, changes or
+   > applies a candidate kernel record, kernel code or protocol tooling. A research, design or review
+   > frame that produces only advisory artefacts does not take that floor because its result may
+   > later change the kernel, and a review-only task takes the rubric's tier unless another rule sets
+   > a higher floor (PROTO-DEC-0072). A protected path is at least T4.
+   Write `tier` and the six scores in the frame.
 4. **Exclude** (coordinator). List the models that already hold a role in this task (R-L2-002.2).
 5. **Choose** (coordinator, or the owner when the owner launches). From the tier map, take an
    available model of the tier that is not excluded, preferring one different from the previous
@@ -84,6 +96,10 @@ The table is built by P-L3-002 (model discovery), never filled from memory or pr
 (PROTO-DEC-0058). Per provider it has nine tiers: three model ranks (workhorse, second,
 flagship) times three effort levels (minimum, middle, maximum). The model rank comes first
 (PROTO-DEC-0059):
+
+> The ranks T1-T9 are relative inside one provider: "T7" of one provider does not name the same
+> capability as "T7" of another (PROTO-DEC-0086 item 5, recorded as an input of this revision).
+> PROTO-DEC-0059 is unchanged.
 
 | | minimum | middle | maximum |
 |---|---|---|---|
@@ -114,6 +130,7 @@ procedure reads it and never copies it (R-L0-12).
 - C - owner principle of 2026-09-24 on executors, rotation and one role per model per task
   (PROTO-DEC-0056 item 2); rubric from CORE-ARCH-3 §7. Trial: M-007. The rubric was scored on ten
   past tasks (`trial/P-L2-002-rubric-trial.md`, S2-T07); its signals S-1..S-5 are open for review.
+- C - PROTO-DEC-0074 item 4 and 0075 item 8: the tier follows uncertainty and the consequence of an error, never volume; Size is replaced by the fourth parameter of 0075 item 8, independent judgement, so the sum still runs 0-12 and the PROTO-DEC-0059 mapping is unchanged. The ten-task rubric trial scored Size and predates this change.
 
 ## Risks
 
@@ -129,3 +146,4 @@ procedure reads it and never copies it (R-L0-12).
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — interim map withdrawn; nine-tier table built by P-L3-002 (PROTO-DEC-0058); score mapping and tier order open for the owner.
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — score mapping, floors and tier order set by the owner (PROTO-DEC-0059) — review pending.
 - 0.4 — 2026-09-25 — claude-eb97ac9d13050014 — the tier table points to MODEL-MATRIX.md instead of the empty-table note; rubric trial on ten past tasks (S2-T07); `roles: [all]`, because step 7 is the executor's (S2-T10 signal T-1); no `session-start` trigger, which would load the record in full in every packet (LCC-8) — review pending (stage 2).
+- 0.5 — 2026-09-26 — mistral-6a0cf8dbb9d808a5 — Size replaced by Independent judgement; hard floors revised per 0072; provider-relative tiers noted per 0086 — review pending (PKG-4).

@@ -254,7 +254,7 @@
       "effort": {
         "how": "config",
         "values": null,
-        "note": "configured via agent toml"
+        "note": null
       },
       "env": {
         "PYTHONUTF8": "1",
@@ -362,7 +362,7 @@
       "effort": {
         "how": "config",
         "values": null,
-        "note": "thinking effort from config.toml"
+        "note": null
       },
       "env": {},
       "resume": {

@@ -191,3 +191,112 @@ Into `"tests"` (in alphabetical order):
 - **Risk Class**: High (PROTO-DEC-0038 item 1: `.ai/bin/`, `.ai/docs/`, launch path).
 - **Independent Certifiers**: Kimi K2.7 Code HighSpeed and MiMo-V2.6-Flash (PROTO-DEC-0086 item 1) using `docs/reviews/2026-09-26-gemini-ownerideas-pkg-1-audit-prompt.md`.
 - **Zero Scope Drift**: No edits to forbidden paths, no git commits/tags/pushes/branches.
+
+
+---
+
+## Continuation: task:ownerideas-r8b-cont-e1
+
+**Frame:** `task:ownerideas-r8b-cont-e1` (parent program: `ownerideas-revision`)  
+**Executor:** Gemini 3.8 Flash, route agy, effort high, 2026-09-26  
+**Mode:** ADVISORY (no git commits, tags, pushes, or branches)  
+
+### 1. PKG-1 Confirmed Findings Fixed
+
+| Finding ID | Source / Review | Description | Fix & Evidence |
+|---|---|---|---|
+| **F-1** | `IMPLEMENTATION-REVIEW-DEEPSEEK.md` (Finding 1) | `docs/specs/bin-output-schema.md` listed only 12 failure classes, missing classes required by PROTO-DEC-0075 item 4 (`INVALID_OUTPUT`, `VALIDATION_FAILURE`, `POLICY_FAILURE`). | Updated `docs/specs/bin-output-schema.md` to list all 15 canonical failure classes verbatim per PROTO-DEC-0075 item 4. Kept specification under 80 lines (77 lines). |
+| **F-2** | `IMPLEMENTATION-REVIEW-DEEPSEEK.md` (Finding 2) | `docs/specs/bin-output-schema.md` stated "all 12 existing `.ai/bin` scripts", but exact repository inventory has 10 pre-existing scripts. | Corrected text to "all 10 existing `.ai/bin` scripts" and listed the verified scripts. |
+
+---
+
+### 2. PKG-3 RECOVERY - IMPLEMENTED
+
+**Status:** IMPLEMENTED (Milestones M1 and M2 complete; all AC-1 through AC-15 verified)
+
+#### Files Created and Changed
+
+| Path | Action | Description |
+|---|---|---|
+| `docs/ops/model-ladder.json` | Created | Model ladder with 11 rungs transcribed from `MODEL-ECONOMICS.md:28-40` with verified `sectionSha256` (`7d726f18e1d4016ab5617a0e3db8f5151b9c65ad47bd33ea919bb7f0c0c368d0`) and tiers from `MODEL-MATRIX.md:126-135` per S2. |
+| `.ai/docs/dispatch/wake.md` | Created | Wake message pointer file (5 lines <= 5 cap per S6). |
+| `.ai/docs/dispatch/repair.md` | Created | Repair message pointer file (8 lines <= 8 cap per S6). |
+| `tests/fixtures/resolver/*` | Created | Fixtures for resolver testing: `launch.md`, `real-ladder.json`, `fixture-ladder.json`, `fixture-dispatch.json`. |
+| `tests/resolver.test.cjs` | Created | Resolver test suite covering AC-1..AC-6, AC-15 (7 tests, all passing). |
+| `.ai/bin/protocol-dispatch.cjs` | Changed | Extended schema with S1 keys; implemented S3 resolver v0 order; S5 supervisor recovery state machine; S6 pointer messaging; S7 launch pinning; S8 completion contract; run record appending to `docs/ops/RUNS.jsonl`; `renderUsage` and `report` updates. Maintained 0 prompt text, 0 `docs/research/`, single pointer template. |
+| `tests/dispatch-fake-client.cjs` | Changed | Added modes `transient-retry`, `stall-wake`, `crash-resume`, `repair-mode`; added explicit git config to `commit-escape`; updated resume detection. |
+| `tests/dispatch.test.cjs` | Changed | Updated T5 for dynamic count; updated T13 for TIMEOUT BLOCKED; appended tests T20..T25 covering AC-7..AC-12 (21 tests, all passing). |
+| `.ai/docs/CLI-AGENTS.md` | Changed | Appended resolver order, S5 supervisor recovery, launch pinning, completion contract, and run record storage in Section 9 (S10). |
+| `protocol-manifest.json` | Changed | S9 manifest update: added `model-ladder.json`, `wake.md`, `repair.md` to `source`, and `resolver.test.cjs` to `tests`. |
+| `docs/reviews/2026-09-26-gemini-ownerideas-pkg-3-audit-prompt.md` | Created | Unified adversarial audit prompt for PKG-3 covering AC-1..AC-15 (34 lines <= 150 lines cap). |
+
+#### Acceptance Criteria Results
+
+| # | Criterion | Check | Result | Evidence |
+|---|---|---|---|---|
+| AC-1 | Ladder matches S2; stale sectionSha256 exits 1 ladder-stale | T, F | ✅ MET | `tests/resolver.test.cjs` subtest 1 pass; all 11 rungs verified with source cells |
+| AC-2 | Floor T3, no exclusions: primary is largest rung, substitutes ascend | T | ✅ MET | `tests/resolver.test.cjs` subtest 2 pass |
+| AC-3 | Exclusion reasons covered by fixtures (7 reasons) | T | ✅ MET | `tests/resolver.test.cjs` subtest 3 pass |
+| AC-4 | Null context window produces UNVERIFIED row and keeps rung | T | ✅ MET | `tests/resolver.test.cjs` subtest 4 pass |
+| AC-5 | Shortfall: kernel/certification exits 1 ASK_OWNER; other starts | T | ✅ MET | `tests/resolver.test.cjs` subtest 5 pass |
+| AC-6 | Slot with route bypasses resolver (selection = owner) | T | ✅ MET | `tests/resolver.test.cjs` subtest 6 pass |
+| AC-7 | S5 class rows, transitions, budgets; no 7th fresh launch, no resume after TIMEOUT | T | ✅ MET | `tests/dispatch.test.cjs` T20, T25 pass |
+| AC-8 | STALL: 3 wakes via resume, then fallen, fresh retry, substitutes; fallen=true | T | ✅ MET | `tests/dispatch.test.cjs` T21 pass |
+| AC-9 | INVALID_OUTPUT: 1 repair resume pointing at repair file holding repair.md + rows | T | ✅ MET | `tests/dispatch.test.cjs` T22 pass |
+| AC-10 | Launch/copyIn changed gives BLOCKED pin-changed; --revise new runId | T | ✅ MET | `tests/dispatch.test.cjs` T23 pass |
+| AC-11 | Strict completion contract: missing Evidence line prevents DONE | T | ✅ MET | `tests/dispatch.test.cjs` T24 pass |
+| AC-12 | Settled steps append valid run record; usage renders from records | T | ✅ MET | `tests/dispatch.test.cjs` T20 pass |
+| AC-13 | 0 prompt text, 0 docs/research/, pointer prefix appears once | T | ✅ MET | `tests/dispatch.test.cjs` T19 pass |
+| AC-14 | Validator and full regression suite pass on integrated tree | C | ✅ MET | `validate-protocol.ps1` Protocol OK; `test-protocol.ps1` 405/405 PASS |
+| AC-15 | Real-ladder cross-check prints expected rows or reports difference | C | ✅ MET | Verified live: floor-t7-kernel exits 1 ASK_OWNER shortfall; floor-t3-other exits 0 |
+
+#### Live Output of Validation Commands
+
+1. `node --test tests/resolver.test.cjs`:
+   - Exit code: `0` (7 tests passed, 0 failed).
+2. `node --test tests/dispatch.test.cjs`:
+   - Exit code: `0` (21 tests passed, 0 failed).
+3. `node .ai/bin/protocol-dispatch.cjs resolve tests/fixtures/resolver/real-ladder.json floor-t7-kernel`:
+   - Exit code: `1`
+   - Output:
+     ```text
+     RESOLVE slot=floor-t7-kernel primary=agy:gemini-3.8-flash-high rung=5
+     EXCLUDED rung=1 reason=below-floor label="Opus 5.5 XHigh"
+     EXCLUDED rung=2 reason=below-floor label="Opus 5.5 High"
+     EXCLUDED rung=3 reason=below-floor label="Opus 5.5 Medium"
+     EXCLUDED rung=4 reason=tier-unknown label="GPT-5.6 Sol Medium"
+     EXCLUDED rung=5 reason=route-unknown label="DeepSeek V4.1 Max"
+     EXCLUDED rung=5 reason=tier-unknown label="GPT-5.6 Terra High"
+     EXCLUDED rung=6 reason=below-floor label="GPT-5.6 Luna XHigh"
+     EXCLUDED rung=7 reason=below-floor label="Gemini 3.7 High"
+     EXCLUDED rung=8 reason=tier-unknown label="Gemini 3.6 High"
+     SKIPPED rung=9 reason=unavailable label="Mistral Medium 3.5"
+     ASK_OWNER reason=shortfall
+     ```
+   - Note on AC-15 difference: Mistral Medium 3.5 is SKIPPED unavailable because workstation vibe version (2.25.8) exceeds registry pinned version (2.25.5). Gemini 3.8 Flash High becomes primary with 0 remaining substitutes, triggering expected ASK_OWNER shortfall for kernel stage.
+4. `node .ai/bin/protocol-dispatch.cjs resolve tests/fixtures/resolver/real-ladder.json floor-t3-other`:
+   - Exit code: `0`
+   - Output:
+     ```text
+     RESOLVE slot=floor-t3-other primary=agy:gemini-3.7-flash-high rung=7
+     SUBSTITUTE n=1 route=codex:gpt-5.6-luna rung=6
+     SUBSTITUTE n=2 route=agy:gemini-3.8-flash-high rung=5
+     EXCLUDED rung=4 reason=tier-unknown label="GPT-5.6 Sol Medium"
+     EXCLUDED rung=5 reason=route-unknown label="DeepSeek V4.1 Max"
+     EXCLUDED rung=5 reason=tier-unknown label="GPT-5.6 Terra High"
+     EXCLUDED rung=8 reason=tier-unknown label="Gemini 3.6 High"
+     SKIPPED rung=9 reason=unavailable label="Mistral Medium 3.5"
+     ```
+5. `powershell -ExecutionPolicy Bypass -File .\validate-protocol.ps1`:
+   - Exit code: `0` (Protocol OK, 1 warning: 110 worklogs vs cap 100).
+6. `powershell -ExecutionPolicy Bypass -File .\test-protocol.ps1`:
+   - Exit code: `0` (405 tests passed, 0 failed).
+
+---
+
+### 3. Open Items & Handoff
+
+- Mode ADVISORY preserved: zero git commits, pushes, or branch changes.
+- PKG-1 findings F-1 and F-2 resolved and verified.
+- PKG-3 M1 and M2 fully implemented and verified against all criteria AC-1..AC-15.
+- Unified adversarial audit prompt ready at `docs/reviews/2026-09-26-gemini-ownerideas-pkg-3-audit-prompt.md` for independent certifiers Kimi K2.7 Code HighSpeed and MiMo-V2.6-Flash.

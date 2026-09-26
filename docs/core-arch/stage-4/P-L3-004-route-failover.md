@@ -1,6 +1,6 @@
 ---
 id: P-L3-004
-version: 0.5
+version: 0.6
 title: Route failover - the maker's CLI first, Kilo as the fallback router, liveness before any switch
 layer: L3
 type: procedure
@@ -8,23 +8,24 @@ status: trial
 roles: [coordinator, dispatcher]
 stages: [dispatch, execute]
 triggers: [dispatch, route-failure]
-inputs: [task-frame, docs/core-arch/stage-4/MODEL-MATRIX.md, docs/core-arch/stage-4/kilo-routes.json]
+inputs: [task-frame, docs/core-arch/stage-4/MODEL-MATRIX.md, docs/core-arch/stage-4/kilo-routes.json, .ai/docs/clients.json, docs/ops/model-ladder.json]
 outputs: [journal, signals]
 back_edges: [4>2/1/owner]
 enforcement: S~
-enforced_by: [docs/research/2026-09-25-improvement-research/prompts/launch.cjs]
+enforced_by: [.ai/bin/protocol-dispatch.cjs]
 script_candidate: yes
 evidence_class: [B, C]
-evidence: [PROTO-DEC-0049, PROTO-DEC-0050, PROTO-DEC-0065, PROTO-DEC-0067, PROTO-DEC-0068, PROTO-DEC-0070, docs/research/2026-09-24-remediation-mapping/prompts/launch-round2.cjs:11]
+evidence: [PROTO-DEC-0049, PROTO-DEC-0050, PROTO-DEC-0065, PROTO-DEC-0067, PROTO-DEC-0068, PROTO-DEC-0070, PROTO-DEC-0075, PROTO-DEC-0076, PROTO-DEC-0079, docs/research/2026-09-24-remediation-mapping/prompts/launch-round2.cjs:11]
 cost_basis: unknown
 trial: metric=M-007; kill=a working agent stopped as hung, or two executors live on one task; until=CORE-ARCH package I-a
 ---
 
 # P-L3-004 Route failover
 
-Draft 0.1 of a CORE-ARCH stage-4 record, put into trial use by the owner on 2026-09-25
-(PROTO-DEC-0067). `S~`: the launcher of the improvement research implements it; the kernel
-dispatch script of PROTO-DEC-0050 item 4 takes it over when it is written.
+Draft 0.6 of a CORE-ARCH stage-4 record, in trial use by the owner since 2026-09-25
+(PROTO-DEC-0067). `S~`: the kernel dispatch script `.ai/bin/protocol-dispatch.cjs` implements it
+(`.ai/docs/CLI-AGENTS.md` section 9). The research launcher implemented 0.5 and is superseded
+for new dispatches; its state table is kept below as its record.
 
 ## Purpose
 
@@ -52,13 +53,25 @@ third cost it never accepts is two executors doing one task.
   suitable. Only pinned model ids are used: no `-latest` aliases, no `-fast` or `-pro` serving
   variants. Where the primary cell's effort is unknown, the level is the tier's position (minimum,
   middle, maximum) in the route's own list, by PROTO-DEC-0059 items 3-4.
-- R-L3-004.4. An automatic switch happens only on a hard failure before useful work. There is
-  exactly one automatic Kilo attempt; if it fails as well, the task stops and goes to the owner.
-- R-L3-004.5. Once useful work has started, no other executor is started automatically. Useful
-  work means a file or journal of the task changed, or substantial output appeared. The state is
-  saved, the process is stopped if it is hung, and the owner decides.
-- R-L3-004.6. Silence is judged by the liveness signals, with a soft and a hard timer. Both are
-  configurable, and any progress resets both.
+
+> R-L3-004.2-3 are suspended while PROTO-DEC-0076 item 1 holds: every model call goes through a
+> maker's CLI, the approval-gated DeepSeek rung is the only exception, and Kilo is not a fallback
+> router.
+
+- R-L3-004.4. Recovery after a classified failure follows PROTO-DEC-0075 items 2-4: the action
+  follows the failure class, every new attempt has a stated reason, and a known-failing
+  operation is never repeated. The budget is the first attempt and one retry on the primary,
+  two attempts on each of two substitutes, at most six fresh invocations in all, with resumes
+  counted apart. The substitutes are the resolver's (0075 item 10) or the owner's `fallback`
+  routes. The one automatic Kilo attempt of 0.5 is withdrawn.
+- R-L3-004.5. After useful work has started, a crash or a stall is resumed first (0075 item 2).
+  A fresh executor starts only when the resume path is exhausted and the budget of R-L3-004.4
+  allows it, and only after the previous process tree is confirmed gone (R-L3-004.7).
+- R-L3-004.6. A stall is judged by progress signals: no progress for the step's stall interval
+  (default 10 minutes; a dispatch file may set 5-120). The hard ceiling per step (default 120
+  minutes) runs from the step's first launch and progress does not reset it: a heartbeat never
+  keeps a looping step alive (0075 item 5). A stalled session is woken by resume up to three
+  times before it is recorded as fallen (0051 item 4).
 - R-L3-004.7. A task never has two live executors. A new route starts only after the previous
   process tree is confirmed gone, and a running record blocks a second start. A start is refused
   while the previous watchdog lives, or while any process the job's record names is alive by
@@ -74,14 +87,17 @@ third cost it never accepts is two executors doing one task.
   settled blocks every new start until the owner's stop settles that attempt, because processes it
   never recorded cannot be named later by any process table; the stop warns when the attempt was
   never scanned (CB-17).
-- R-L3-004.8. The total cap of PROTO-DEC-0050 item 2 stays. Reaching it saves the state and goes
-  to the owner; it never starts another route.
+- R-L3-004.8. Reaching the hard ceiling of R-L3-004.6 is TIMEOUT: the step is BLOCKED and the
+  session is never resumed (0075 items 3, 5). The idle and hard caps of PROTO-DEC-0050 item 2
+  stand in this form.
 - R-L3-004.9. Isolation and scope (PROTO-DEC-0070). The owner named the terms; this mechanism is the
   implementer's reading of them.
   - The copy. Each attempt runs in a disposable private clone of HEAD (`git clone --shared`)
     under `<system temp>/colabs-research/`, with the research package copied in, and that clone is
     the executor's working directory. A clone, unlike a linked worktree, shares no config, refs or
-    hooks with the checkout. It has no remote.
+    hooks with the checkout. It has no remote. Under the kernel dispatcher the clone lives under
+    `<system temp>/colabs-dispatch/`, and the git mode is read from the slot's `git` key in the
+    dispatch file.
   - Push. The rule `url.no-push://blocked.insteadOf` with an empty value is set in the executor's
     environment and in the clone's own config. It blocks every direct URL form: existing remotes,
     added remotes, explicit URLs, explicit push URLs and typed URLs. A network fetch fails too.
@@ -126,6 +142,10 @@ third cost it never accepts is two executors doing one task.
   - Lifecycle. A settled clone is deleted. A clone kept by `SCOPE_STOP`, or left by a watchdog
     that died, stays under `<system temp>/colabs-research/` until the owner removes it.
   - vibe runs with `--trust`, which only skips the trust prompt for the clone. It adds no tool.
+- R-L3-004.10. Before the first attempt the dispatcher pins HEAD, the launch file and every
+  copied-in file by sha256, and the dispatch file version. A pinned input that changes blocks
+  the next attempt, or the owner starts a new launch revision; a HEAD change alone does not block
+  (0075 item 7).
 
 ## Steps
 
@@ -136,10 +156,10 @@ third cost it never accepts is two executors doing one task.
    (PROTO-DEC-0050 item 2). Record the route, the level, the process id, and a baseline of the
    task's files and the agent's journals.
 3. **Watch** (dispatcher). Every tick, read the liveness signals and apply the state table below.
-4. **Fail over** (dispatcher). On `FAILED_EARLY` of the primary, confirm the process tree is gone,
-   then start the first suitable Kilo candidate once (back edge `4>2/1/owner`).
-5. **Hand off** (dispatcher). Every other terminal state writes a snapshot and asks the owner:
-   `NEEDS_OWNER`, with the reason, the files changed and the log path.
+4. **Recover** (dispatcher). On a classified failure, act by R-L3-004.4-5 and the class table of
+   `.ai/docs/CLI-AGENTS.md` section 9.
+5. **Hand off** (dispatcher). A BLOCKED or FAILED step writes its run record and the report of
+   the work done (PROTO-DEC-0076 item 3); the owner decides.
 
 ### Liveness signals
 
@@ -162,7 +182,7 @@ A hard failure is one of:
   errors; a rate limit, quota, credit or usage limit reached; a model not found or unavailable;
   network, provider and overload errors (`ERROR_TEXT` in the launcher, probes in its self-test).
 
-### Timers (defaults; the launcher takes other values as options)
+### Timers of the research launcher (0.5; superseded for new dispatches by R-L3-004.6)
 
 | Timer | Default | On expiry | Source of the value |
 |---|---|---|---|
@@ -173,6 +193,9 @@ A hard failure is one of:
 | smoke | 180 s per probe (launcher `--smoke`) | the probe counts as failed | implementer's proposal |
 
 ### State table
+
+This is the research launcher's table. The kernel dispatcher's states are those of PROTO-DEC-0075 item 11
+(`.ai/docs/CLI-AGENTS.md` section 9).
 
 `SUSPECT` is one state with two phases: before useful work and after it. Every transition the
 launcher makes is a row (CB-15).
@@ -213,7 +236,7 @@ before it records FALLEN. This launcher resumes no session by id, so `HUNG` stop
 once. Under that item this is the case of a client that cannot resume by id: `HUNG` counts as
 FALLEN on the first stall, the launcher's reason says so, and the owner records a `Signal:` line
 of type fall until the signals ledger exists. The kernel dispatch script of PROTO-DEC-0050 item 4
-implements the wakes and does not inherit this path.
+implements the wakes and does not inherit this path. The kernel dispatcher implements the wakes; this divergence applies only to the superseded research launcher.
 
 ## Back edges
 
@@ -253,4 +276,5 @@ implements the wakes and does not inherit this path.
 - 0.2 — 2026-09-25 — claude-ad7cc4169e888ea8 — review fixes: CB-14 (values the owner did not name are marked as the implementer's proposal), CB-20 (error texts need an error context; missing phrases added), CB-19 (a retry loop is not progress), CB-24 (leaf-first stop by identity, no tree kill), CB-17 (a dead watchdog does not release the job), CB-15 (every launcher transition is a row), CB-22 (the HUNG path is recorded as a divergence from PROTO-DEC-0051 item 4) — second pass pending.
 - 0.4 — 2026-09-25 — claude-c73232724159e5bd — second-pass findings of report L: F-L1 (push through an added remote or explicit URL: `insteadOf` rule in the environment and the clone's config), F-L2 (a linked worktree shares config, refs and hooks: a private clone instead, and the scope check reads refs, config and hooks), F-L3 (`--trust` recorded here), F-L4 (ignored paths stated), F-L5 (lifecycle of kept clones stated) — third pass pending.
 - 0.5 — 2026-09-26 — claude-c73232724159e5bd — L-CORRECTION-4 (implemented by DeepSeek in 1302554, certified RECOMMENDATION by Gemini and Mistral): R-L3-004.9 gains credentials Level 1, git mode, the `ls-remote` audit, per-call hooks path (F-3P-2), the `index.lock` policy and the job table; the `-c` residual is recorded; push risk row updated. Text from the implementer's response, written by the spec author (L-CORRECTION-4 item 9).
+- 0.6 — 2026-09-26 — mistral-dbafced31ad20a45 — aligned to PROTO-DEC-0075 items 2-3, 5, 7 and 0076 item 1; enforced_by updated; suspension paragraph added; recovery and failover rules revised; timers and state tables marked as superseded for new dispatches; fallback edited per budget; pinning added as R-L3-004.10 — review pending (PKG-4).
 - 0.3 — 2026-09-25 — claude-c73232724159e5bd — CB-17 reopened by a Windows self-test failure (zz-t12, 3/3 runs): early scans, and an unsettled attempt of a dead watchdog blocks starts until the owner's stop; R-L3-004.9 isolation and scope under PROTO-DEC-0070 (disposable worktree, SCOPE_STOP, push blocked); three state rows and two risk rows added — second pass pending.
