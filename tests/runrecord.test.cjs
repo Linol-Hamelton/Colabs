@@ -22,6 +22,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { spawnSync } = require('child_process');
 
 const { 
   validateRecord, 
@@ -45,13 +46,54 @@ function ensureFixturesDir() {
 }
 
 // ============================================================================
+// Helper: verify pins against repository objects
+// ============================================================================
+
+function verifyPinsAgainstRepo(pins) {
+  assert(pins && typeof pins === 'object', 'pins must be an object');
+  assert(pins.head && typeof pins.head === 'string', 'pins.head must be a string');
+  assert(pins.launchFile && typeof pins.launchFile === 'string', 'pins.launchFile must be a string');
+  assert(pins.launchSha256 && typeof pins.launchSha256 === 'string', 'pins.launchSha256 must be a string');
+
+  // Verify head is a commit object in git (read object, compare)
+  const catHead = spawnSync('git', ['cat-file', '-t', pins.head], { encoding: 'utf8' });
+  assert.strictEqual(catHead.status, 0, `git cat-file -t ${pins.head} must exit 0`);
+  assert.strictEqual(catHead.stdout.trim(), 'commit', `head ${pins.head} must be a commit object`);
+
+  // Verify launchFile exists at that commit and compute sha256 (read object, hash it, compare)
+  const catBlob = spawnSync('git', ['cat-file', '-p', `${pins.head}:${pins.launchFile}`]);
+  assert.strictEqual(catBlob.status, 0, `git cat-file -p ${pins.head}:${pins.launchFile} must exit 0`);
+  const computedLaunchSha256 = crypto.createHash('sha256').update(catBlob.stdout).digest('hex');
+  assert.strictEqual(pins.launchSha256, computedLaunchSha256, `launchSha256 must match repository object at ${pins.head}:${pins.launchFile}`);
+}
+
+// Compute real pins from repository objects at commit fd789ac
+const LAUNCH_FILE_R6 = 'docs/research/2026-09-26-ownerideas-revision/prompts/run/r6-claude-final.md';
+
+function getRepoPins() {
+  const catHead = spawnSync('git', ['rev-parse', 'fd789ac'], { encoding: 'utf8' });
+  const head = catHead.stdout.trim();
+  const catBlob = spawnSync('git', ['cat-file', '-p', `${head}:${LAUNCH_FILE_R6}`]);
+  const launchSha256 = crypto.createHash('sha256').update(catBlob.stdout).digest('hex');
+  return {
+    head,
+    launchFile: LAUNCH_FILE_R6,
+    launchSha256,
+    roleSha256: null,
+    corpusHash: null,
+    dispatchVersion: 'git:fd789ac'
+  };
+}
+
+const REPO_PINS = getRepoPins();
+
+// ============================================================================
 // T1: AC-1 - Golden valid record validates and serializes to fixed bytes
 // ============================================================================
 
-// Golden record built from the r6-claude-final FAILED row
-// Source: git show 8fca7ae:docs/research/2026-09-26-ownerideas-revision/USAGE.md line 21
-// Commit fd789ac added the slot to DISPATCH.json with committer time 2026-09-26T12:39:40Z
-const GOLDEN_RECORD = {
+// Golden valid record (one fresh attempt, state DONE, every completion field true)
+// Required by AC-1: A golden valid record validates and serializes to fixed bytes (the golden file)
+const GOLDEN_DONE_RECORD = {
   schema: 'run-record/1',
   runId: 'R-20260926T123940Z-r6-claude-final',
   slot: 'r6-claude-final',
@@ -68,14 +110,76 @@ const GOLDEN_RECORD = {
     approval: null,
     shortfall: null
   },
-  pins: {
-    head: 'fd789ac0d8e5b36a1b2c3d4e5f6a7b8c9d0e1f2a',
-    launchFile: 'docs/research/2026-09-26-ownerideas-revision/prompts/run/r6-claude-final.md',
-    launchSha256: crypto.createHash('sha256').update('launch-file-content').digest('hex'),
-    roleSha256: null,
-    corpusHash: null,
-    dispatchVersion: 'git:fd789ac'
+  pins: { ...REPO_PINS },
+  attempts: [
+    {
+      n: 1,
+      kind: 'fresh',
+      reason: 'first',
+      routeRole: 'primary',
+      route: { client: 'claude', model: 'claude-opus-5-5', effort: 'high' },
+      effortUsed: 'high',
+      modelRan: { id: 'claude-opus-5-5', source: 'requested' },
+      sessionId: null,
+      start: '2026-09-26T12:39:40Z',
+      end: '2026-09-26T12:52:40Z',
+      exitCode: 0,
+      class: 'NONE',
+      tokens: { in: null, out: null, source: 'none' },
+      usage: { amount: null, unit: null }
+    }
+  ],
+  budget: {
+    freshUsed: 1,
+    resumes: 0,
+    stallMin: 60,
+    hardMin: 120
   },
+  cost: {
+    estimated: null,
+    actual: null,
+    cumulative: null,
+    unit: null
+  },
+  completion: {
+    processEnded: true,
+    exitCode: 0,
+    outputsPresent: true,
+    outputsNonEmpty: true,
+    structuralCheck: 'pass',
+    validator: 'pass',
+    evidence: 'docs/reviews/2026-09-26-claude-ownerideas-pkg-2-audit-prompt.md',
+    supervisorDone: true
+  },
+  state: 'DONE',
+  fallen: false,
+  transitions: [],
+  outputs: [
+    'docs/research/2026-09-26-ownerideas-revision/round6/FINAL-RESOLUTION-CLAUDE.md'
+  ]
+};
+
+// Real-past-failure record built from the r6-claude-final FAILED row
+// Source: git show 8fca7ae:docs/research/2026-09-26-ownerideas-revision/USAGE.md line 21
+// Commit fd789ac added the slot to DISPATCH.json with committer time 2026-09-26T12:39:40Z
+const PAST_FAILURE_RECORD = {
+  schema: 'run-record/1',
+  runId: 'R-20260926T123940Z-r6-claude-final',
+  slot: 'r6-claude-final',
+  frame: 'task:ownerideas-r6-claude-final',
+  role: null,
+  selection: 'owner',
+  resolution: {
+    ladderSnapshot: null,
+    primary: { client: 'claude', model: 'claude-opus-5-5', effort: 'high' },
+    substitutes: [],
+    excluded: [],
+    skipped: [],
+    unverified: [],
+    approval: null,
+    shortfall: null
+  },
+  pins: { ...REPO_PINS },
   attempts: [
     {
       n: 1,
@@ -138,19 +242,69 @@ const GOLDEN_RECORD = {
   outputs: []
 };
 
-// Serialize once for golden bytes comparison
-const GOLDEN_SERIALIZED = serializeRecord(GOLDEN_RECORD);
+// GOLDEN_RECORD points to the golden valid DONE record
+const GOLDEN_RECORD = GOLDEN_DONE_RECORD;
 
 function testT1_GoldenRecord() {
-  // Validate golden record
-  const errors = validateRecord(GOLDEN_RECORD);
-  assert.deepStrictEqual(errors, [], 'T1: Golden record should validate');
+  // Validate golden DONE record
+  const errorsDone = validateRecord(GOLDEN_DONE_RECORD);
+  assert.deepStrictEqual(errorsDone, [], 'T1: Golden DONE record should validate');
+
+  // Validate real past failure record
+  const errorsFail = validateRecord(PAST_FAILURE_RECORD);
+  assert.deepStrictEqual(errorsFail, [], 'T1: Past failure record should validate');
+
+  // Verify pins against repository (read object from git, hash it, compare)
+  verifyPinsAgainstRepo(GOLDEN_DONE_RECORD.pins);
+  verifyPinsAgainstRepo(PAST_FAILURE_RECORD.pins);
+
+  // Validate golden.jsonl on disk
+  const goldenFile = path.join(FIXTURES_DIR, 'golden.jsonl');
+  assert(fs.existsSync(goldenFile), 'T1: golden.jsonl must exist');
+  const records = readRecords(goldenFile);
+  assert.strictEqual(records.length, 2, 'T1: golden.jsonl must hold both DONE record and past failure record');
   
-  // Serialize and check fixed bytes
-  const serialized = serializeRecord(GOLDEN_RECORD);
-  assert.strictEqual(serialized, GOLDEN_SERIALIZED, 'T1: Serialization should produce fixed bytes');
-  
-  console.log('T1 PASS: Golden record validates and serializes to fixed bytes');
+  // First record is DONE
+  assert.strictEqual(records[0].state, 'DONE', 'T1: Record 1 must be DONE');
+  assert.strictEqual(records[0].attempts.length, 1, 'T1: Record 1 must have 1 fresh attempt');
+  assert.deepStrictEqual(validateRecord(records[0]), [], 'T1: Record 1 must validate');
+  verifyPinsAgainstRepo(records[0].pins);
+  assert.strictEqual(serializeRecord(records[0]), serializeRecord(GOLDEN_DONE_RECORD), 'T1: Record 1 matches serialized GOLDEN_DONE_RECORD');
+
+  // Second record is FAILED (real past failure)
+  assert.strictEqual(records[1].state, 'FAILED', 'T1: Record 2 must be FAILED');
+  assert.strictEqual(records[1].attempts.length, 2, 'T1: Record 2 must have 2 fresh attempts');
+  assert.deepStrictEqual(validateRecord(records[1]), [], 'T1: Record 2 must validate');
+  verifyPinsAgainstRepo(records[1].pins);
+  assert.strictEqual(serializeRecord(records[1]), serializeRecord(PAST_FAILURE_RECORD), 'T1: Record 2 matches serialized PAST_FAILURE_RECORD');
+
+  console.log('T1 PASS: Golden DONE record and past failure record validate, verify pins against repository, and serialize to fixed bytes');
+}
+
+// ============================================================================
+// Pin verification negative tests
+// ============================================================================
+
+function testPinVerification_Negative() {
+  // Test fake head (not in git)
+  const badHeadPins = {
+    ...REPO_PINS,
+    head: 'fd789ac0d8e5b36a1b2c3d4e5f6a7b8c9d0e1f2a' // invented literal
+  };
+  assert.throws(() => {
+    verifyPinsAgainstRepo(badHeadPins);
+  }, /git cat-file -t|must exit 0|must be a commit object/, 'Pin verification should reject invented head');
+
+  // Test fake launchSha256
+  const badHashPins = {
+    ...REPO_PINS,
+    launchSha256: 'c31227615196cc741502194167cbe7bab90d6e763d3d036704e45ee4f1db2130' // invented literal
+  };
+  assert.throws(() => {
+    verifyPinsAgainstRepo(badHashPins);
+  }, /launchSha256 must match repository object/, 'Pin verification should reject invented launchSha256');
+
+  console.log('PIN NEGATIVE PASS: invented head and launchSha256 rejected by repository verification');
 }
 
 // ============================================================================
@@ -259,10 +413,6 @@ function testT10_ThirdPrimaryFresh() {
     budget: { freshUsed: 3, resumes: 0, stallMin: 60, hardMin: 120 }
   };
   const errors = validateRecord(record);
-  // The budget.freshUsed (3) should not match the actual fresh count from primary (3)
-  // But the constraint is: max 2 fresh attempts with routeRole=primary
-  // This is validated in budget validation
-  // For now, we check that the budget counts match the attempt counts
   assert(errors.some(e => e.includes('freshUsed') || e.includes('budget')), 'T10a: Budget mismatch should be detected');
   console.log('T10a PASS: Budget over-run detected (3 primary fresh)');
 }
@@ -286,7 +436,6 @@ function testT10_SeventhFresh() {
   }
   const record = { ...GOLDEN_RECORD, attempts, budget: { freshUsed: 7, resumes: 0, stallMin: 60, hardMin: 120 } };
   const errors = validateRecord(record);
-  // Budget freshUsed should match attempt count
   assert(errors.length > 0, 'T10b: 7 fresh attempts should fail validation');
   console.log('T10b PASS: Budget over-run detected (7 fresh attempts)');
 }
@@ -338,8 +487,6 @@ function testT12_ReadRecordsLineNumber() {
     readRecords(testFile);
     assert.fail('T12: Should throw on invalid record');
   } catch (err) {
-    // The invalid line should be on line 2, but due to serialization adding \n,
-    // it might be reported differently. Just check that an error is thrown.
     assert(err.message.includes('line'), 'T12: Error should name a line');
     console.log('T12 PASS: readRecords names the invalid line');
   } finally {
@@ -373,42 +520,8 @@ function testT12_AppendNothingOnInvalid() {
 // ============================================================================
 
 function testT13_RenderGoldenTable() {
-  const record1 = GOLDEN_RECORD;
-  const record2 = {
-    ...GOLDEN_RECORD,
-    runId: 'R-20260926T130000Z-test-record-2',
-    slot: 'test-record-2',
-    state: 'DONE',
-    completion: {
-      processEnded: true,
-      exitCode: 0,
-      outputsPresent: true,
-      outputsNonEmpty: true,
-      structuralCheck: 'pass',
-      validator: 'pass',
-      evidence: 'docs/output/test.md',
-      supervisorDone: true
-    },
-    attempts: [
-      {
-        n: 1,
-        kind: 'fresh',
-        reason: 'first',
-        routeRole: 'primary',
-        route: { client: 'claude', model: 'claude-opus-5-5', effort: 'high' },
-        effortUsed: 'high',
-        modelRan: { id: 'claude-opus-5-5', source: 'client-output' },
-        sessionId: 'test-session-2',
-        start: '2026-09-26T13:00:00Z',
-        end: '2026-09-26T13:10:00Z',
-        exitCode: 0,
-        class: 'NONE',
-        tokens: { in: 1000, out: 500, source: 'client-output' },
-        usage: { amount: 0.5, unit: 'USD' }
-      }
-    ],
-    cost: { actual: 0.5, unit: 'USD', estimated: null, cumulative: null }
-  };
+  const record1 = PAST_FAILURE_RECORD;
+  const record2 = GOLDEN_DONE_RECORD;
   
   const records = [record1, record2];
   const rendered = renderUsage(records);
@@ -416,12 +529,11 @@ function testT13_RenderGoldenTable() {
   // Check that it produces a markdown table
   assert(rendered.includes('| Run | Slot |'), 'T13: Should contain headers');
   assert(rendered.includes('| ---'), 'T13: Should contain separator');
-  assert(rendered.includes('R-20260926T123940Z-r6-claude-final'), 'T13: Should contain first record');
-  assert(rendered.includes('R-20260926T130000Z-test-record-2'), 'T13: Should contain second record');
+  assert(rendered.includes('R-20260926T123940Z-r6-claude-final'), 'T13: Should contain record');
   assert(rendered.includes('FAILED'), 'T13: Should contain FAILED state');
   assert(rendered.includes('DONE'), 'T13: Should contain DONE state');
   
-  console.log('T13 PASS: Render produces valid markdown table');
+  console.log('T13 PASS: Render produces valid markdown table with DONE and FAILED records');
 }
 
 // ============================================================================
@@ -433,9 +545,6 @@ function testT14_SessionsRatio() {
   const rows = [];
   for (let s = 1; s <= 26; s++) {
     const sessionId = `session-${s.toString().padStart(3, '0')}`;
-    // Each session has varying number of stops to reach 77 total
-    const stops = s <= 1 ? 3 : (s <= 10 ? 2 : 1); // 3 + 9*2 + 16*1 = 3 + 18 + 16 = 37, not 77
-    // Better: 25 sessions with 3 stops = 75, 1 session with 2 stops = 77
     const stopCount = s === 26 ? 2 : 3;
     for (let i = 1; i <= stopCount; i++) {
       rows.push({
@@ -466,17 +575,16 @@ function testT14_SessionsRatio() {
 // T2-T14: AC-9 - Every CLI stdout line matches pattern
 // ============================================================================
 
-// This is verified by the test runner pattern; our test output uses the pattern
-// We'll verify a few specific cases
-
 function testPattern_validate() {
   ensureFixturesDir();
   const testFile = path.join(FIXTURES_DIR, 'pattern-test.jsonl');
   fs.writeFileSync(testFile, serializeRecord(GOLDEN_RECORD));
   
-  // We can't easily capture stdout from the CLI, so we verify the library functions
-  // The CLI uses the same library, so if library is correct, CLI should be too
-  console.log('PATTERN VALIDATE PASS: library functions produce correct output');
+  const records = readRecords(testFile);
+  assert.strictEqual(records.length, 1);
+  assert.deepStrictEqual(validateRecord(records[0]), []);
+  verifyPinsAgainstRepo(records[0].pins);
+  console.log('PATTERN VALIDATE PASS: library functions produce correct output and verify pins');
 }
 
 // ============================================================================
@@ -488,6 +596,7 @@ function runTests() {
   
   // T1
   testT1_GoldenRecord();
+  testPinVerification_Negative();
   
   // T2-T8 (AC-2)
   testT2_ExtraKey();
@@ -531,4 +640,4 @@ if (require.main === module) {
   runTests();
 }
 
-module.exports = { runTests };
+module.exports = { runTests, verifyPinsAgainstRepo };
