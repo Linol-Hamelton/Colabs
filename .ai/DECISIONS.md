@@ -3357,3 +3357,160 @@ Consequences:
 BACKLOG S-5 (what "Max" names) stays open.
 
 Approved by: RuslanFomenko (direct owner answer in chat, 2026-09-25, quoted in PROTO-DEC-0077; transcribed by claude-c73232724159e5bd; item 5 is the transcriber's answer at the owner's request)
+
+### PROTO-DEC-0079
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0075 items 8-10 (executor economics); PROTO-DEC-0048 item 7 (two-stream limit); PROTO-DEC-0062 item 2 (no separate characterization layer); PROTO-DEC-0038 item 1 and PROTO-DEC-0041 items 1-2 (certification); PROTO-DEC-0059 (floors)
+
+Context:
+The owner answered the open questions of the OwnerIdeas revision resolution
+(`docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md`, commit 7f64d2a,
+sections 5-10) and set the priority of the whole program. The text was drafted in the advisory
+Claude session `claude-b00262b88c55444b`, which wrote nothing to the repository, and is transcribed
+by the operator.
+
+Decision:
+1. Program priority, highest order: (1) stabilize every route to the assistants - one launch path
+   instead of two (`run-chain.cjs` and `improvement-research/prompts/launch.cjs`), a route registry
+   with a liveness probe before dispatch, liveness per PROTO-DEC-0075 item 5, and tests under
+   `tests/*.test.cjs`; (2) the run record (A-10); (3) resolver v0 inside the kernel dispatcher
+   (A-3); (4) then the other A-items.
+2. Executor rule, in the owner's words: "При назначении исполнителя в потоке работы роя агентов,
+   для каждого отдельного подзадания, мы должны выбирать самую дешевую и быструю модель,
+   возможности которой необходимы и достаточны для выполнения поставленного задания." In English:
+   when assigning an executor in the swarm work stream, for each individual subtask choose the
+   cheapest and fastest model whose capabilities are necessary and sufficient for the task. It
+   refines PROTO-DEC-0075 items 8-10 and replaces nothing. Resolver v0 order: hard constraints, then
+   the 0059 floors, then the cheapest live tier, then escalation only on a verified failure.
+   Sufficiency is judged by verification, not predicted.
+3. U-7: task characterization is a component inside P-L2-002, not a separate layer. PROTO-DEC-0062
+   item 2 stands.
+4. U-5: PROTO-DEC-0075 item 8 and the 0059 floors stand. Assurance may be raised in addition.
+   Revisit with R-3 data.
+5. U-1: the five implementation packages are sequenced into at most two edit streams. PROTO-DEC-0048
+   item 7 stands.
+6. U-2: `CLOSED` closes the program and is not a certification. High-risk kernel packages are
+   certified by two parallel independent reviewers outside execution and control (PROTO-DEC-0038
+   item 1, 0041 items 1-2). Claude and DeepSeek certify nothing they wrote, planned, launched or
+   controlled.
+7. A-2: OwnerIdeas files are advisory seeds ranked below PLAN. A file leaves the active corpus when
+   the frame that consumes it closes. Agents never place their outputs in `OwnerIdeas/`.
+8. Cleanup C-1..C-5 is approved exactly as RESOLUTION sections 5 and 9 list it, plus U-12: one
+   status line at the top of each kept OwnerIdeas file, "Advisory seed; consumed by <frame>; status:
+   RESOLUTION-CLAUDE.md section 4.4". Gemini executes, commits nothing, and reports dangling
+   references.
+
+Open, not blocking the plan: U-3, U-4, U-8 (security: waits inside R-1, never DEFER), U-10, U-11,
+U-13, U-14. Also open: the resolver metric (proposed: cost per accepted result, including rework),
+the cost-versus-latency tie-break, the DEFER backlog cap, the Kernel v1 scope and the operating
+threshold.
+
+Reasoning:
+Not stated in the directive; transcribed as given. The programme order places route stability before
+new capability, and the executor rule keeps the cheapest sufficient model as the default.
+
+Alternatives rejected:
+Not stated in the directive.
+
+Consequences:
+The cleanup (RESOLUTION sections 5 and 9) and the plan (section 10 plus the plan amendment) launch
+as one continuing program; R-3 is unblocked by PROTO-DEC-0080; RESEARCH-GOVERNOR applies by
+PROTO-DEC-0082; the open items above are flagged by the plan, not solved.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0080
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0076 item 4 (partial lift for one frame); PROTO-DEC-0063 item 1 (scope narrowed to rank and price)
+
+Context:
+The owner answered U-6 from the OwnerIdeas revision resolution and released exactly one frozen
+hypothesis frame. Draft and transcription provenance as in PROTO-DEC-0079.
+
+Decision:
+1. PROTO-DEC-0076 item 4 is lifted for exactly one frame: R-3, the model-layer frame (`benchmark.md`,
+   `executor.md`, `task_profife.md`, `performers.md:1-137`), run as one major frame. Contract first:
+   - fix the schemas TaskProfile, ModelProfile and the resolver output;
+   - fix one shared set of capability dimensions, taken from the benchmark classes of `benchmark.md`
+     sections 2-8;
+   - research fills values and never changes a schema without an owner decision;
+   - step one recovers or removes the 10 `:chatgpt-content-reference` markers in `benchmark.md`.
+   All other frozen hypotheses stay frozen.
+2. U-6: verified public benchmarks, each with an address and a date, may serve as the prior for a
+   model's capability vector. Provider pages stay the only source for rank and price. This scopes
+   PROTO-DEC-0063 item 1 to rank and price.
+
+Reasoning:
+Not stated in the directive; transcribed as given.
+
+Alternatives rejected:
+Not stated in the directive.
+
+Consequences:
+R-3 opens in stream 2 under the governor (PROTO-DEC-0082); the plan amendment carries its
+contract-first steps; resolver v0 runs on defaults and provider pages until R-3 fills values.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0081
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0070 items 5-6 (no-repeat-confirmation becomes general)
+
+Context:
+The owner answered U-9 from the OwnerIdeas revision resolution. Draft and transcription provenance as
+in PROTO-DEC-0079.
+
+Decision:
+1. The no-repeat-confirmation principle of PROTO-DEC-0070 items 5-6 becomes a general kernel rule
+   and the basis of A-1, the capability envelope: a design block plus an L0 procedure that extends
+   P-L0-002.
+
+Reasoning:
+Not stated in the directive; transcribed as given.
+
+Alternatives rejected:
+Not stated in the directive.
+
+Consequences:
+A-1 is unblocked for design; its enforcement still waits for the dispatcher (A-3).
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0082
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0052 item 1 (governor policy)
+
+Context:
+The owner adopted Appendix A of the OwnerIdeas revision resume directive as a trial policy. Draft
+and transcription provenance as in PROTO-DEC-0079.
+
+Decision:
+1. RESEARCH-GOVERNOR is adopted as a trial policy (Appendix A of the directive) and applies to this
+   program from now on. The law: research exists to close a decision; new research is not a research
+   output. The fifteen clauses (frame, size, streams, admission, verdicts, rounds, limits, findings,
+   gate, stop, complexity, DIG ratchet, external texts, transition and trial, validator checks) are
+   transcribed as procedure P-L0-008, `status: trial`, under `docs/core-arch/stage-1/`.
+
+Reasoning:
+Not stated in the directive; transcribed as given.
+
+Alternatives rejected:
+Not stated in the directive.
+
+Consequences:
+P-L0-008 governs frames of this program; its validator checks (clause 15) are to build; the trial is
+reviewed after 3-5 closed frames.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
