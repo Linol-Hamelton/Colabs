@@ -136,7 +136,7 @@ are tested when data exists:
   breach of 0074 item 2, and it closes when the resolver of section 1.5 is scripted (BACKLOG C-3).
 - The runner implements only part of PROTO-DEC-0075: resume-first, error classes, the hard ceiling
   and launch-input pinning are missing (BACKLOG M-4). Section 2 describes the target.
-- Revision: R1-R8 of `docs/research/2026-09-25-workflowai-review/synthesis.md`, applied
+- Revision: R1-R8 of `docs/research/archive/2026-09-25-workflowai-review/synthesis.md`, applied
   2026-09-25. The owner answered Q1-Q5 (PROTO-DEC-0078).
 
 ## 6. TD-MODEL-QUALIFICATION (technical debt)

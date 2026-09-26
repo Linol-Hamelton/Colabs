@@ -37,7 +37,7 @@ carries `receipt: <CR-id> <sha> K:n C:n A:n D:n R:n T:n` (P-L0-008 R-L0-22.67).
 | F-12 | R0 decision dataset | `docs/research/2026-09-23-r0-decision-dataset/` | - | - | not a frame (measurement; `README.md:13-17`: no model is called, no outcome is evaluated) | - | - | - | - | R-L0-22.4; evidence input to the routing research and the Jev calibration discussion | - |
 | F-13 | Routing research (15 questions) | `docs/research/archive/2026-09-23-routing/` | S2 | major | CLOSED | - | 2026-09-23 | owner | ACCEPT only for what entered PROTO-DEC-0047; DEFER for the remainder (D-02) | PROTO-DEC-0047; `INDEX-draft.md:9-11`, `:221` (its `:3` count is outdated) | - |
 | F-14 | Remediation mapping cycle | `docs/research/2026-09-24-remediation-mapping/` | S1 | major | CLOSED | 3 | 2026-09-24 | owner | ACCEPT | PROTO-DEC-0048 item 4; 0052-0054 | - |
-| F-15 | workflowAI review | `docs/research/2026-09-25-workflowai-review/` | S2 | major | CLOSED | 2 | 2026-09-25 | owner | ACCEPT | PROTO-DEC-0078 | - |
+| F-15 | workflowAI review | `docs/research/archive/2026-09-25-workflowai-review/` | S2 | major | CLOSED | 2 | 2026-09-25 | owner | ACCEPT | PROTO-DEC-0078 | - |
 | F-16 | Cycle-history one-round proposal (Codex research) | `docs/reviews/2026-09-20-codex-cycle-history-research.md` | S1 | major | CLOSED | - | 2026-09-20 | owner | DEFER (D-01) | PROTO-DEC-0083 transition; owner confirmation 2026-09-26 | - |
 
 ## DEFER backlog (cap: pending owner number; R-L0-22.29)
