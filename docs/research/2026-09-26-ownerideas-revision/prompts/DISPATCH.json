@@ -157,7 +157,7 @@
     {
       "id": "r6-claude-final",
       "frame": "task:ownerideas-r6-claude-final",
-      "out": "docs/research/2026-09-26-ownerideas-revision/round6/FINAL-RESOLUTION-CLAUDE.md",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round6/packages/PKG-5.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r6-claude-final.md",
       "needs": ["r5-kimi-critique", "r5-mimo-critique"],
       "route": {

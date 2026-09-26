@@ -14,3 +14,8 @@
   `docs/core-arch/stage-1/P-L0-008-research-governor.md`; `docs/research/FRAMES.md`.
 - Outputs: `round6/FINAL-RESOLUTION-CLAUDE.md` and `round6/packages/PKG-1..PKG-5.md`.
 - No commits, tags, pushes or branches; no edits outside `round6/` and your journal.
+- **Resume rule (2026-09-26; the slot was interrupted by the Claude session limit):** if
+  `round6/FINAL-RESOLUTION-CLAUDE.md` and some packages already exist, do NOT rewrite them; read
+  them first, write only the missing `round6/packages/PKG-<n>.md` files according to the resolution,
+  and append a short `## Resume log` note at the END of `FINAL-RESOLUTION-CLAUDE.md` naming the
+  packages that existed and those you completed (this also refreshes the frame output file).
