@@ -337,3 +337,53 @@ Common to every package (written into each file):
 - It edits nothing outside `round6/` and its journal. It commits nothing.
 - It assigns no model: the executors and certifiers are the owner's (0086), and the packages state
   requirements only.
+
+## Resume log
+
+- **2026-09-26, session `claude-e59d6a50882e9e39`** (route claude CLI, Claude Opus 5.5, effort high
+  per DISPATCH.json). This slot was interrupted by the Claude session limit, and this session
+  resumed it under the launch file's resume rule.
+  - Existing at resume: this file, `packages/PKG-1.md`, `PKG-2.md` and `PKG-3.md`. I read them and
+    did not rewrite them. Sections 1-10 above are unchanged.
+  - Completed now: `packages/PKG-4.md` and `packages/PKG-5.md`.
+- **Refinements made while writing PKG-4 and PKG-5.** They are recorded here because sections 4.1 and
+  7 are not rewritten; the package files are binding for executors.
+  1. **Root rule ids** [F]. A-2 becomes R-L0-37 and the P-L0-009 anchor becomes R-L0-38, not the
+     "R-L0-23" of section 7. P-L0-008 0.1 used R-L0-23..36 as root-level ids, and its change log
+     maps them away (`P-L0-008-research-governor.md:261`). Old citations such as
+     `PLAN-DEEPSEEK.md:317` would otherwise point at new rules.
+  2. **P-L2-002 rubric** [I]. Removing Size alone would shrink the sum to 0-10 and silently change
+     the PROTO-DEC-0059 mapping (T9 would become unreachable). PKG-4 therefore replaces Size with
+     the fourth parameter of 0075 item 8, "independent judgement". Its scale follows the seniority
+     list of 0074 item 4. See OQ-12.
+  3. **P-L3-004 scope** [F]. The R-L3-004.4-5 alignment alone would leave the record contradicting
+     itself. So PKG-4 also aligns:
+     - R-L3-004.6 and .8 (the timers against 0075 item 5);
+     - a suspension note on R-L3-004.2-3 (0076 item 1: Kilo is not a fallback router);
+     - a new R-L3-004.10 (0075 item 7).
+     The launcher's state table stays as that launcher's record.
+  4. **PKG-5 fall hook** [F]. PROTO-DEC-0051 item 4 ("every FALLEN outcome is appended to the
+     signals ledger") is carried by no package, and PKG-3 does not append signals. PKG-5 adds the
+     hook to the dispatcher in W3, so it also depends on PKG-3. The wave order already satisfies
+     that. PKG-5 may also change `effort.note` values in `clients.json` for P-L3-005, and nothing
+     else in that file.
+  5. **Signals grammar** [I]. PKG-5 fixes the CORE-ARCH-6 section 4 proposal as `signals/1`, with
+     one added key `src` (the hash that makes the import idempotent). The grammar lives in
+     `docs/specs/signals-ledger.md`. That is beside, not inside, the rulebook spec that PROTO-DEC-0049
+     item 2 names for the grammars it lists; the signals grammar is not among those.
+- **New owner questions** (Appendix A item 9; nothing decided):
+  - **OQ-12.** Confirm PKG-4's replacement of the Size factor with "independent judgement"
+    (0/1/2 = precise specification / checked review / relied-on judgement), or name another way to
+    keep the 0059 mapping.
+  - **OQ-13** [F]. `.ai/docs/CLI-AGENTS.md` is `managed` (`protocol-manifest.json:14`), so sections 9
+    (PKG-1) and 10 (PKG-5) are installed into host projects as text. The scripts, registry and
+    ledger they describe are `source` only. Both sections say "source repository only". Confirm
+    that, or move the text to a source-only file. This extends OQ-4.
+- **STOP-3 self-check** (PROTO-DEC-0086 item 3) [F]:
+  - there are exactly five package files;
+  - each carries the headings ID, Goal, Scope, Stream and wave, Inputs, Allowed paths, Forbidden
+    paths, Dependencies, Required outputs, Acceptance criteria, Validation commands, Integration
+    conditions, Risk class and certification route, Artifact plan, Executor requirements and STOP
+    conditions;
+  - all seven BLOCKING items are ruled in section 3.1.
+  PKG-4 has no audit-prompt output, because it is medium risk (one reviewer statement).
