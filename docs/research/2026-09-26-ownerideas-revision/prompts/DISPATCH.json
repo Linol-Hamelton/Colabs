@@ -1,7 +1,7 @@
 {
   "stateDir": ".ai/runtime/ownerideas-revision",
   "usageFile": "docs/research/2026-09-26-ownerideas-revision/USAGE.md",
-  "startLimitMin": 15,
+  "startLimitMin": 45,
   "stallMin": 60,
   "runLimitHours": 12,
   "slots": [
@@ -277,11 +277,21 @@
       }
     },
     {
+      "id": "r9b-repair-pkg5",
+      "frame": "task:ownerideas-r9b-repair-pkg5",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-PKG5-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9b-repair-pkg5.md",
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
       "id": "r9-verify-codex",
       "frame": "task:ownerideas-r9-verify-codex",
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-verify-codex.md",
-      "needs": ["r8-review-deepseek", "r8-cert-kimi", "r8-cert-mimo"],
+      "needs": ["r8-review-deepseek", "r8-cert-kimi", "r8-cert-mimo", "r9b-repair-pkg5"],
       "route": {
         "client": "codex",
         "model": "gpt-5.6-sol",
