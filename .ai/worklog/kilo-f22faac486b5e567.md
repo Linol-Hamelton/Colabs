@@ -4,127 +4,35 @@ Session journal. Owned by this session. No other session writes here.
 
 Newest entry first. Limit 150 lines.
 
-<!-- archived-parent: sha256:e378a7cc0b1fce9a05c07169809eb35719083a1c569e77edf0449ec82994fe99 -->
+<!-- archived-parent: sha256:e7a04a42eb67c43e7a70d355f35c606a5e6219785f6a1c73646f68fed0de14a9 -->
 
 ---
 
-## 2026-09-26 - Stage 7 fix loop closed (PASS); stage 8 launched with review and certifiers
+## 2026-09-26 - W1 gate done; W2/W3 stream continuations launched; review and certs requeued
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
 
 Action:
-- `r7b-claude-fix`: FIX-CLAUDE.md verdict FIX COMPLETE - B1 fixed via `tests/fixtures/dispatch/R3-DISPATCH.json` plus the archive path as provenance; B2 replaced the invented USAGE row; the W1 overlap resolved in the resolution (single owner for `protocol-manifest.json`). Try 2 died on the Claude weekly limit ("resets 2pm" = 2026-09-27 14:00 MSK); the slot was accepted by the operator on the delivered artifacts. `r7c-deepseek-recheck`: PASS (`round7/RECHECK-DEEPSEEK.md`).
-- All pending work committed and pushed to origin/v2.0.0: `74dde71..d346ae9` (68 commits, includes the whole revision program through the fix loop).
-- Stage 8 dispatched: slots `r8-exec-e1` (agy, Gemini 3.8 Flash high; PKG-1 then PKG-3), `r8-exec-e2` (vibe, Mistral Medium 3.5 max; PKG-2, PKG-4, PKG-5), then automatically `r8-review-deepseek` (kilo, DeepSeek 4.1 Flash) and the two high-risk certifiers `r8-cert-kimi` (Kimi K2.7 Code HighSpeed) and `r8-cert-mimo` (MiMo-V2.6-Pro high), both needing the executors. Prompts `IMPLEMENT.md`, `IMPLEMENTATION-REVIEW.md`, `CERTIFY.md` and the five run files committed. Runner pid 22340; E1 STARTING, E2 WORKING.
-- Claude status: no pending work in this cycle; its only remaining task is stage 12 (owner-run in the cloud; operator prepares the manifest and prompt and reports readiness). The local subscription is weekly-limited until 2026-09-27 14:00 MSK.
+- Certifications returned: Kimi - PKG-1 PASS, PKG-2 PASS, PKG-3 FAIL, PKG-5 FAIL; MiMo - PKG-1 FAIL, PKG-2 PASS, PKG-3 FAIL, PKG-5 FAIL. PKG-3/PKG-5 stop at the designed operator W1 gate ("WAITING_W1_GATE"), not at implementation defects.
+- W1 gate performed by the operator: the eight `protocol-manifest.json` entries (PKG-1 S11 five, PKG-2 S6 three) inserted in one surgical edit, each confirmed present exactly once; validator `Protocol OK. 1 warning(s)` (108 journals, WARN); full suite run; E1 full record (validate exit 0; suite exit 1 on T5); E2 full record after a `rehash` (its entry had been edited after the quick certification). Commits: 78a22f0 (PKG-1 path-scoped + manifest), 4793cb0 (PKG-2 path-scoped), 797b798 (W1-state certifications preserved as `CERT-*-W1.md`).
+- Red check diagnosed: `tests/dispatch.test.cjs` T5 hardcodes `slots=23`; the live DISPATCH now has 25/26 slots. This is PKG-1 test brittleness owned by E1's continuation (it will fix or repoint the assertion); recorded as a deviation - W2 started with this one known red check.
+- `r8-review-deepseek` was killed twice as NO_START (journal Orientation quirk); its launch file now requires the Launch/Orientation lines as the first journal write; reset and requeued to run after the continuations.
+- Chain running (runner pid 38748): `r8b-cont-e1` (Gemini; PKG-1 findings incl. T5 + PKG-3 W2) and `r8b-cont-e2` (Mistral; PKG-2 findings + PKG-4 W2 + PKG-5 W3) STARTING; then `r8-review-deepseek`, `r8-cert-kimi`, `r8-cert-mimo` re-run on the final state; then `r9-verify-codex` (GPT-5.6 Sol) needing all three.
 
-Result: the plan is frozen and under implementation in two edit streams; review and certification follow automatically; stage 12 stays owner-run.
+Result: W1 integrated and committed; streams continue to W2/W3; review and certifications will judge the final implementation state.
 
-Next step: watch stage 8; on both executors DONE the review and certifications run; then stage 10 repair (only on findings), stage 11 verification (GPT-5.6 Sol), then the stage-12 readiness report.
+Next step: watch the continuations, then the review and certifications, then verification, then the stage-12 readiness report and push.
 
-Open: stage 8 duration unknown (roughly 1.5-3 h); OQ-1/OQ-2/OQ-3 may surface through STOP conditions.
-
-Evidence:
-- anchor: e4ff6c5bb1de89a34ca02638c337b9b36ffb8130, uncommitted changes present
-- digest: sha256:a523ed13231934094bf7dae3684d6f2c9f7a60b9d89e915df5e341ca972cfbe8 over 628 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-26T16:42:56.888Z by kilo-f22faac486b5e567
-- entry hash format: 2
-- entry: sha256:e7a04a42eb67c43e7a70d355f35c606a5e6219785f6a1c73646f68fed0de14a9 of this entry without this block
-- parent-entry: sha256:161f29e4622805de1ee3813db042f4be203e9ee569372097ef8c3af9f37c3787
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 4s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-
----
-
-
-## 2026-09-26 - Stage 12 is owner-run in cloud Claude (operator does not launch it)
-
-Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
-
-Action:
-- Owner instruction: do NOT launch stage 12. When every input is ready, report readiness; the owner runs the final closure in the cloud Claude session (balance), because the Claude subscription limits are near exhaustion.
-- Recorded in the package README (Order, item 8) and here. At stage 11 close the operator prepares the stage-12 input manifest and the paste-ready prompt (final candidate; DeepSeek stage-9 implementation review; stage-10 Gemini repair; stage-11 verification by GPT-5.6 Sol; the approved plan and packages; the closure conditions of the dispatch section 12, including R-L0-22.56-22.71 for the program's own artifacts), reports "ready", creates no r12 slot and launches nothing.
-- Current state: the stage-7 fix loop runs - `r7b-claude-fix` WORKING (fixing B1..B3 and the W1 `protocol-manifest.json` overlap), `r7c-deepseek-recheck` queued behind it.
-
-Result: Stage-12 ownership fixed by the owner; the program continues through stages 7-11.
-
-Next step: fix loop -> stage 8 (E1 Gemini 3.8 Flash high, E2 Mistral Medium 3.5 max); at stage 11 close, prepare the stage-12 manifest and prompt and report readiness.
-
-Open: readiness report for stage 12 pending; r7b/r7c running.
+Open: T5 brittleness (E1 continuation); journal count 108 over the 100 cap (prune after the wave); OQ-1..OQ-3 remain.
 
 Evidence:
-- anchor: 30ccf4387503d753857eb16fba277b84293d8fce, uncommitted changes present
-- digest: sha256:aa3223ecd1c460667ab49e27541d2332f2569770cd7dd3281fb8ff355488c544 over 617 tracked and untracked files
+- anchor: 874d841761ffcd5ffa30e523800735d8d48b7ee1, uncommitted changes present
+- digest: sha256:5a2d3274307b20ef77a9507bb02c1493f2b7330d82afc5f99d546252d83c5c23 over 653 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-26T15:42:38.510Z by kilo-f22faac486b5e567
+- recorded: 2026-09-26T18:27:09.359Z by kilo-f22faac486b5e567
 - entry hash format: 2
-- entry: sha256:161f29e4622805de1ee3813db042f4be203e9ee569372097ef8c3af9f37c3787 of this entry without this block
-- parent-entry: sha256:abb208ba3139c9d7e51f628a54d268ddd0483f8f0de13a29515e7a09cf9fc959
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 4s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-
----
-
-
-## 2026-09-26 - Stage 5-6 complete (resolution + PKG-1..5); STOP-3 passed; stage 7 launched
-
-Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
-
-Action:
-- `r6-claude-final` reached DONE after the resume: `round6/FINAL-RESOLUTION-CLAUDE.md` (33 KB, with the Resume log) and `PKG-1..5` (25.7/16.6/24.6/28.0/28.3 KB); committed 13c9f16 with the claude journal.
-- STOP-3 checks (PROTO-DEC-0086 item 3), scripted where possible: exactly five packages; every stage-5 amendment item 7 field present in each (missing=none for all five); all seven BLOCKING items of the two critiques explicitly accepted with reasons - Kimi B-1 (M-7/A-4: A-4 taken out of package scope, M-7 scheduled after W3), B-2 (E2 runs PKG-4 in W2 then PKG-5), B-3 (A-9 moved out); MiMo B1 (overtaken by PROTO-DEC-0084 item 1), B2 (DIG 13 with A-11 reported beside it as OQ-1), B3 and B4 accepted with fixes; streams E1 (PKG-1, PKG-3) and E2 (PKG-2, PKG-4, PKG-5); risk classes - PKG-1/2/3/5 high with the two certifiers of 0086 item 1, PKG-4 medium; Resume log present.
-- Stage 7 launched under the pre-approval: `prompts/PRE-CHECK.md`, `prompts/run/r7-precheck-deepseek.md`, slot `r7-precheck-deepseek` (DeepSeek 4.1 Flash via kilo; needs r6; out `round7/PRE-CHECK-DEEPSEEK.md`); commit b946355; runner pid 3900; slot STARTING.
-
-Result: The plan is frozen with five packages, two edit streams and named certification routes; the stage-7 pre-check is running.
-
-Next step: on r7 DONE - a PASS leads to the stage-8 dispatch (E1 Gemini 3.8 Flash high, E2 Mistral Medium 3.5 max; certifiers Kimi K2.7 Code HighSpeed and MiMo-V2.6-Flash); BLOCKING findings go through the DeepSeek -> Claude fix -> re-check loop.
-
-Open: OQ-1 (A-11), OQ-2 (A-1 design block) and OQ-3 (stall threshold) are material owner questions from the resolution; the F-02 gate awaits the owner; r7 running.
-
-Evidence:
-- anchor: b9463554a6c740162fec156428c7e35de1ad172b, uncommitted changes present
-- digest: sha256:2562c4aa615766f873f4322acda6bd7e94c9351fdadfe4f4252a80ff3da8ceff over 613 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-26T14:54:26.953Z by kilo-f22faac486b5e567
-- entry hash format: 2
-- entry: sha256:abb208ba3139c9d7e51f628a54d268ddd0483f8f0de13a29515e7a09cf9fc959 of this entry without this block
-- parent-entry: sha256:050b9255bd5192ced535ba664aa98198913611622fc78266c2704032c5270da2
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 4s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-
----
-
-
-## 2026-09-26 - First closure pass applied (CR-F06-1..CR-F12-1); F-02 gate report; stage 5 resumed
-
-Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
-
-Action:
-- Stage 5 resumed after the limit reset: slot reset; runner pid 15528; `r6-claude-final` WORKING (journal claude-e59d6a50882e9e39); the run file carries the resume rule (existing `FINAL-RESOLUTION-CLAUDE.md` and PKG-1..3 preserved; only missing packages written; `out` is now PKG-5).
-- Non-md and live-process pre-check before the moves: one new dependency found - `tools/r2-dispatch.cjs` hardcodes `const DIR = 'docs/research/2026-09-25-validator-migration-council'` (historical dispatcher, not a running process; the live `run-chain.cjs` is argv-driven and unaffected). `tools/` stays in place per the owner's TRANSFER(A-3); the stale DIR is reported to the owner rather than repaired.
-- Closure dispositions, one commit per frame: F-06 `8fca7ae` (58 files ARCHIVE; `final-plan-2.md` TRANSFER(A-4) and `tools/` TRANSFER(A-3) stay; L-CORRECTION-4/AUDIT reference only `final-plan-2.md`, so nothing needed repointing), F-07 `a7d8b0c` (1 file; PLAN.md and improvement-research B-research.md repointed), F-09 `445a02e`, F-10 `8b0952c`, F-13 `3913284` (12 files; CORE-ARCH-6, RISK_COUNCIL.md and the FRAMES D-02 row repointed), F-15 `6507cab` (14 files; workflowAI.md repointed), F-08 `cf4b193` (2 files; PLAN.md), F-12 `d6f9c0c` (5 files).
-- Receipts commit `2bbf8aa`: `CLOSURES.jsonl` with 11 receipts (CR-F06-1..CR-F12-1; F-11 T:2 and F-14 T:22 as TRANSFER(F-03) receipt-only, F-16 K:3 KEEP_ACTIVE); FRAMES.md receipt fields on every CLOSED row and the counter "Closed frames without a receipt" 10 -> 1 (F-01 only, its program still implementing); the dry-run manifest moved to `docs/research/archive/CLOSURE-MANIFEST-2026-09-26.md`. Validator: "Protocol OK. 0 warning(s)."
-- Active corpus bytes: 4,463,598 -> 3,533,923 (-929,675; -20.8%). First leak-detector dry run (M-011, by hand): leak candidates remaining = F-11 and F-14 (TRANSFER(F-03); archive at F-03's closure), F-16 (review files not movable under R-L0-22.63), F-01 (closure window open), `tools/` and `final-plan-2.md` (live by owner decision). No unresolved dangling references found.
-- F-02 gate report for owner item 4: `round2/GATE-REPORT.md` (`de0dba8`) - per-model table (24 model-effort groups, 53 rows) listing rows held out of profiles (GPT-5.6 Terra TB anomaly, Aider Polyglot directional, SWE-Bench Pro no-pooling, comparability none), the coverage downgrades (only D-TERM COVERED; D-IMPL/D-ALGO/D-EDIT WEAK; D-ARCH/D-REV/D-DOC/D-CRIT/D-SYN MISSING), the 404 registry entry; nothing deleted. Owner inputs requested at the gate: DeepSeek identity mapping confirmation and the T-rank note.
-
-Result: First closure pass complete with receipts; F-02 is ready for its gate with the requested list; stage 5 is writing the remaining packages.
-
-Next step: on r6 DONE - STOP-3 checks per PROTO-DEC-0086 item 3 and the conditional stage-7 launch; then the owner's F-02 gate.
-
-Open: `tools/r2-dispatch.cjs` stale DIR reported; PKG-4/PKG-5 pending; M-011 dry run recorded (above).
-
-Evidence:
-- anchor: de0dba82de898390c5dd4114f3b32af8208f6692, uncommitted changes present
-- digest: sha256:923911bbc1bd605a78eb3c3037968ed7ec9ce83bb0b30e93ccea281999eaf6f1 over 609 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-26T14:23:41.085Z by kilo-f22faac486b5e567
-- entry hash format: 2
-- entry: sha256:050b9255bd5192ced535ba664aa98198913611622fc78266c2704032c5270da2 of this entry without this block
-- parent-entry: sha256:e378a7cc0b1fce9a05c07169809eb35719083a1c569e77edf0449ec82994fe99
+- entry: sha256:b80f72835885d28914b62e38eb40a07aef241d1d6ca25ebdedb7b6e8c38acf6a of this entry without this block
+- parent-entry: sha256:e7a04a42eb67c43e7a70d355f35c606a5e6219785f6a1c73646f68fed0de14a9
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 4s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
