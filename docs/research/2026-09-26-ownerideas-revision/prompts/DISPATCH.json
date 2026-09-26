@@ -299,11 +299,44 @@
       }
     },
     {
+      "id": "r9d-repair-pkg2",
+      "frame": "task:ownerideas-r9d-repair-pkg2",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-PKG2-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9d-repair-pkg2.md",
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
+      "id": "r8d-cert-kimi-pkg2",
+      "frame": "task:ownerideas-r8d-cert-kimi-pkg2",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-KIMI-PKG2-R2.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8d-cert-kimi-pkg2.md",
+      "needs": ["r9d-repair-pkg2"],
+      "route": {
+        "client": "kimi",
+        "model": "moonshot-ai/kimi-k2.7-code-highspeed"
+      }
+    },
+    {
+      "id": "r8d-cert-mimo-pkg2",
+      "frame": "task:ownerideas-r8d-cert-mimo-pkg2",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-MIMO-PKG2-R2.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8d-cert-mimo-pkg2.md",
+      "needs": ["r9d-repair-pkg2"],
+      "route": {
+        "client": "mimo",
+        "model": "xiaomi/mimo-v2.6-pro",
+        "effort": "high"
+      }
+    },
+    {
       "id": "r9-verify-codex",
       "frame": "task:ownerideas-r9-verify-codex",
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-verify-codex.md",
-      "needs": ["r8-review-deepseek", "r8-cert-kimi", "r8-cert-mimo", "r9b-repair-pkg5", "r9c-repair-hygiene"],
+      "needs": ["r8-review-deepseek", "r8-cert-mimo", "r9b-repair-pkg5", "r9c-repair-hygiene", "r9d-repair-pkg2", "r8d-cert-kimi-pkg2", "r8d-cert-mimo-pkg2"],
       "route": {
         "client": "codex",
         "model": "gpt-5.6-sol",
