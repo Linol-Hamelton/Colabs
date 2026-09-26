@@ -1,6 +1,6 @@
 ---
 id: P-L0-000
-version: 0.4
+version: 0.5
 title: Kernel root - why the kernel exists, its invariants, and how everything else is found
 layer: L0
 type: invariant
@@ -12,7 +12,7 @@ enforcement: S~
 enforced_by: [validate-protocol.ps1, .ai/bin/protocol-handoff.cjs, .ai/bin/protocol-lock.cjs]
 script_candidate: no:4
 evidence_class: [A, B]
-evidence: [PROTO-DEC-0041, PROTO-DEC-0044, PROTO-DEC-0045, PROTO-DEC-0047, PROTO-DEC-0050, PROTO-DEC-0054, PROTO-DEC-0060]
+evidence: [PROTO-DEC-0041, PROTO-DEC-0044, PROTO-DEC-0045, PROTO-DEC-0047, PROTO-DEC-0050, PROTO-DEC-0054, PROTO-DEC-0060, PROTO-DEC-0082, PROTO-DEC-0083]
 cost_basis: unknown
 ---
 
@@ -116,11 +116,16 @@ a reason, because a layered kernel expects records to wait for their trigger.
 R-L0-21. A retirement, and the kernel as a whole, are judged by a comparative test of variants on
 the same tasks with one model (P-L0-007), not by opinion.
 
+R-L0-22. Research converges: every frame ends in ACCEPT, REJECT, EXPERIMENT or DEFER within bounded
+rounds and per-stream limits, and new research is never a frame's output (P-L0-008). Why: research
+frames multiplied faster than decisions were built (PROTO-DEC-0082, 0083).
+
 ## Where to go next
 
 Your role: L1 `ROLE-<slot>`. Your stage: L2. Missing rule: P-L0-002. New or changed record:
 P-L0-001. Conflicting sources: P-L0-003. Layer consistency: P-L0-004. Decisions and
 reopening: P-L0-005. Candidates to improve or retire: P-L0-006. Comparative tests: P-L0-007.
+Research frames: P-L0-008.
 All are drafts until stage 1 is approved.
 
 ## Evidence
@@ -133,6 +138,7 @@ All are drafts until stage 1 is approved.
 - R-L0-13: PROTO-DEC-0050, 0051. R-L0-14: PROTO-DEC-0049 item 4. R-L0-15: spec section 1,
   PROTO-DEC-0047 item 8. R-L0-17: P-L0-001. R-L0-18: `AGENTS.md:311-321`, PROTO-DEC-0033.
   R-L0-19: PROTO-DEC-0054 item 4. R-L0-20, R-L0-21: PROTO-DEC-0060 item 2.
+  R-L0-22: PROTO-DEC-0082, 0083.
 
 ## Change log
 
@@ -140,3 +146,4 @@ All are drafts until stage 1 is approved.
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — passes the invariant key set and headings; verified-without-check ban, challenge rule, R-L0-18 reopening; pending ids marked — reviewer DeepSeek r2: verified.
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — R-L0-19 anchors P-L0-004 (CA-24); P-L0-003..005 no longer pending — reviewer DeepSeek: RECOMMENDATION.
 - 0.4 — 2026-09-24 — claude-eb97ac9d13050014 — class E no longer means disuse; R-L0-20 and R-L0-21 anchor P-L0-006 and P-L0-007 (PROTO-DEC-0060) — review pending (stage-1 re-check).
+- 0.5 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — R-L0-22 anchors P-L0-008 (PROTO-DEC-0083) — reviewer <reviewer>: <verdict>.

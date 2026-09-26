@@ -3514,3 +3514,75 @@ P-L0-008 governs frames of this program; its validator checks (clause 15) are to
 reviewed after 3-5 closed frames.
 
 Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0083
+
+Status: Accepted
+Date: 2026-09-26
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0082 (scope and text); PROTO-DEC-0052 item 1
+
+Context:
+PROTO-DEC-0082 adopted the research governor as a trial for the OwnerIdeas revision program only,
+as P-L0-008 0.1. Review of 0.1 found a program-only scope, a contradiction on whether it binds, a
+kill criterion that measures a breach instead of harm, rule ids and headings outside
+procedure.schema.md, and an undefined metric M-010. Two external critiques proposed four edits.
+The owner chose a general rule for the source repository.
+
+Decision:
+1. P-L0-008 0.2 (research governor) binds every frame of the Colabs source repository
+   (protocol-manifest role source) from this block. Its status stays trial: the text may change at
+   the trial review, and it is not optional before then. It is not installed into host projects;
+   extending it there needs a later owner decision after the trial.
+2. A frame is defined by function, not by name: bounded work whose main purpose is to reduce
+   uncertainty, compare alternatives, produce a recommendation, or form or change a decision, an
+   architecture or a plan. The stages of one program form one frame. A plan that implements
+   accepted items is preparation, not a frame, unless it reopens architecture. It is critiqued once.
+3. Kernel-completion mode parameters:
+   - streams S1 kernel, runtime and routes; S2 model and task routing; S3 product pilots;
+   - per stream at most 1 major + 1 minor ACTIVE, and at most 1 SUSPENDED major;
+   - SUSPENDED after 24 h BLOCKED or waiting for a gate;
+   - at most two reasoning rounds, a third only by owner decision, no fourth;
+   - the trial ends at the fifth frame closed under P-L0-008.
+   The DEFER backlog cap is set by the owner after the OwnerIdeas cleanup. These parameters stay
+   until the owner records steady-state parameters.
+4. Edits to 0.1:
+   - "within a small budget" is removed from the minor test;
+   - a separate frame threshold parameter is not used;
+   - an ACCEPT item moved to DEFER (owner decision only) leaves DIG and is counted as
+     DEFERRED_ACCEPTED beside DIG until it is implemented or its decision is cancelled;
+   - the trial kill criterion is: in two independent cases the governor itself blocks a work
+     stream for more than 24 h with no related technical or external blocker. A limit breach is a
+     recorded bypass incident, not a kill criterion.
+5. Every frame has one row in docs/research/FRAMES.md, edited under the shared-document lock. A
+   frame without a row is not open. On adoption, every open frame receives at a transition gate
+   either "continues to round X" with its stream and size, or a verdict.
+6. Leaving kernel-completion mode requires the Kernel v1 completion contract in P-L0-008. The
+   Kernel v1 scope is set by a separate owner decision. There is no universal latency threshold:
+   each hot path has its own latency budget, and performance beyond those budgets does not block
+   completion.
+7. Enforcement during the trial is by hand, by the operator at every gate. After the trial is
+   accepted, the mechanisable checks of P-L0-008 go into the Node validator (PROTO-DEC-0077, A-4),
+   WARN first. AGENTS.md, .ai/docs, templates, the installer and .ai/bin are not changed by this
+   block.
+
+Reasoning:
+Research frames multiplied faster than decisions were built: twelve research directories in seven
+days, and the OwnerIdeas revision found the kernel decided far more than it built and proposed
+seven new research candidates. A rule scoped to one program lapses when that program closes, and
+it would leave two research regimes beside PROTO-DEC-0052. A functional frame definition closes
+the renaming loophole. The DEFERRED_ACCEPTED counter keeps DIG honest. A kill criterion must
+measure harm caused by the governor. Manual enforcement during the trial avoids a high-risk kernel
+change while the validator migrates to Node.
+
+Alternatives rejected:
+Scope limited to the OwnerIdeas program; installation into host projects now; a pointer in
+AGENTS.md now; validator checks in PowerShell now; a further research round on the governor itself.
+
+Consequences:
+P-L0-008 is rewritten as 0.2. L0-ROOT gains root rule R-L0-22. CORE-ARCH-6 defines M-010.
+S1-SUMMARY lists P-L0-008. docs/research/FRAMES.md is created with the transition inventory. The
+trial review follows the fifth closed frame. PROTO-DEC-0082 stands as refined; this block
+supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26: "Согласен по обоим пуектам" - general rule for the source repository without hosts, transcribed by the operator; decision text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
