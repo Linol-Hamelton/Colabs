@@ -8,6 +8,36 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-26 - Continuations: E2 DONE, E1 working
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r8b-cont-e2` DONE (551 output lines): its Continuation section appended (`round8/IMPLEMENT-E2-MISTRAL.md`, 26.3 KB); the tree shows PKG-4/PKG-5 work - `docs/core-arch/CORE-ARCH-3.md`, `CORE-ARCH-4.md`, `stage-1/L0-ROOT.md`, `S1-SUMMARY.md`, `stage-2/P-L2-002-model-selection.md`, `stage-4/P-L3-004-route-failover.md`, plus new `.ai/SIGNALS.md` and `.ai/bin/protocol-signals.cjs`; its journal recorded evidence.
+- `r8b-cont-e1` still WORKING (Gemini): `tests/dispatch.test.cjs` and `tests/dispatch-fake-client.cjs` modified (the T5 fix under way) and `.ai/bin/protocol-dispatch.cjs` touched.
+- `r8-review-deepseek`, `r8-cert-kimi`, `r8-cert-mimo` NOT_STARTED (need both continuations); `r9-verify-codex` NOT_STARTED (needs review + certs). Runner pid 38748 alive.
+
+Result: E2 finished its stream; E1 is finishing PKG-3 and the PKG-1 test fix.
+
+Next step: on E1 DONE - review and both certifications run on the final state; then GPT-5.6 Sol verification; then commits, prune, push and the stage-12 readiness report.
+
+Open: E1 in progress; review/certs/verify queued.
+
+Evidence:
+- anchor: 6127977a71abc9a51212f7fc1d2782c2b035a47e, uncommitted changes present
+- digest: sha256:52f6442161fa76dacc5f89f5895fd4064b2e867029a5168eff3d7b98d104a62e over 666 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-26T19:07:34.848Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:53bde65e59ab0aa57ac240faa5a53e00b4e76783120519bca015d2461f10be63 of this entry without this block
+- parent-entry: sha256:b80f72835885d28914b62e38eb40a07aef241d1d6ca25ebdedb7b6e8c38acf6a
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-26 - W1 gate done; W2/W3 stream continuations launched; review and certs requeued
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
