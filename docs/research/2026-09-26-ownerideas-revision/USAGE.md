@@ -12,3 +12,6 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r2-kimi | kimi | moonshot-ai/kimi-k2.7-code-highspeed | - | 5 | 235 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r2-mimo | mimo | xiaomi/mimo-v2.6-pro | high | 11 | 354 | 0.11 | 179099/15993 | 0.00 | 0 | 0 | DONE |
 | r3-claude | claude | claude-opus-5-5 | xhigh | 21 | 600 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r3-clean-gemini | agy | gemini-3.8-flash-high | - | 5 | 72 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r3-plan-deepseek | kilo | deepseek/deepseek-flash | - | 4 | 439 | 0.05 | 134857/14726 | 0.00 | 0 | 0 | DONE |
+| r4-mistral-review | vibe | mistral-medium-3.5 | - | 2 | 294 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |

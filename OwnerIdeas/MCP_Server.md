@@ -1,3 +1,4 @@
+Advisory seed; consumed by R-6; status: RESOLUTION-CLAUDE.md section 4.4
 
 Ты работаешь с проектом **Colabs** — системой координации нескольких AI-агентов, включающей protocol state, task management, handoff, council workflow, review, certification, worklogs, Git state, validation, context preparation и другие механизмы совместной работы AI-моделей.
 

@@ -1,3 +1,4 @@
+Advisory seed; consumed by R-3; status: RESOLUTION-CLAUDE.md section 4.4
 
 
 

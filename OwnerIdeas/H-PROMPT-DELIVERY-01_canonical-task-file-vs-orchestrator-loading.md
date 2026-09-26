@@ -1,3 +1,4 @@
+Advisory seed; consumed by R-7; status: RESOLUTION-CLAUDE.md section 4.4
 # H-PROMPT-DELIVERY-01: a canonical task file vs orchestrator loading
 
 - Status: OPEN, a hypothesis that needs testing. It is not a decision.

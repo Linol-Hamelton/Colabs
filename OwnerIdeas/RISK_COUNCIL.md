@@ -1,3 +1,4 @@
+Advisory seed; consumed by R-1; status: RESOLUTION-CLAUDE.md section 4.4
 
 # COLABS KERNEL ARCHITECTURE RISK COUNCIL
 
