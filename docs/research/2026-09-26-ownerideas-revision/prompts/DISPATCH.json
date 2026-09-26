@@ -255,6 +255,29 @@
         "model": "xiaomi/mimo-v2.6-pro",
         "effort": "high"
       }
+    },
+    {
+      "id": "r9-repair-gemini",
+      "frame": "task:ownerideas-r9-repair-gemini",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-repair-gemini.md",
+      "needs": ["r8-review-deepseek"],
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
+      "id": "r9-verify-codex",
+      "frame": "task:ownerideas-r9-verify-codex",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-verify-codex.md",
+      "needs": ["r9-repair-gemini", "r8-cert-kimi", "r8-cert-mimo"],
+      "route": {
+        "client": "codex",
+        "model": "gpt-5.6-sol",
+        "effort": "medium"
+      }
     }
   ]
 }
