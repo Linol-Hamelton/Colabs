@@ -30,8 +30,8 @@ kernel already carries.
 | R1 reviewer — Claude | Claude Opus 5.5 | xhigh | claude CLI | claude |
 | R1 reviewer — DeepSeek | DeepSeek 4.1 Flash | unknown (route exposes none; frozen as unknown) | `kilo run -m deepseek/deepseek-flash` | deepseek |
 | R1 reviewer — Mistral | Mistral Medium 3.5 (senior reachable through the matrix) | max (client config; not a flag) | vibe | mistral |
-| Synthesis A | Kimi K2.7 Code HighSpeed | high | Kilo, `vercel/moonshotai/kimi-k2.7-code-highspeed` | kimi |
-| Synthesis B | MiMo-V2.6-Pro | high | Kilo, `vercel/xiaomi/mimo-v2.6-pro` | mimo |
+| Synthesis A | Kimi K2.7 Code HighSpeed | high | Kilo, `vercel/moonshotai/kimi-k2.7-code-highspeed` — BLOCKED 2026-09-26 (Vercel free tier denies the model; no alternate route for the HighSpeed variant) | kimi |
+| Synthesis B | MiMo-V2.6-Pro | high | Kilo, `openrouter/xiaomi/mimo-v2.6-pro` (was `vercel/xiaomi/mimo-v2.6-pro`; the same model, moved off the denied Vercel route on 2026-09-26) | mimo |
 | Resolution, 5 packages, closure | Claude Opus 5.5 | xhigh | claude CLI | claude |
 | Plan, pre-check, post-implementation review, final review | DeepSeek 4.1 Flash | unknown | `kilo run -m deepseek/deepseek-flash` | deepseek |
 | Cleanup, repair | Gemini 3.8 Flash | high | agy | gemini |
