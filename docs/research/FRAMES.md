@@ -12,7 +12,8 @@ Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pi
 | DIG | not counted (ledger pending; first count is task one of the OwnerIdeas plan) | 2026-09-26 | R-L0-22.45 |
 | DIG_FLOOR | - | - | R-L0-22.44 |
 | DEFERRED_ACCEPTED | 0 | 2026-09-26 | R-L0-22.42 |
-| DEFER backlog / cap | 2 / pending owner number after the 2026-09-26 transition | 2026-09-26 | R-L0-22.29 |
+| DEFER backlog / cap | 3 / 5 (owner directive 2026-09-26; decision text in PROTO-DEC-0084 item 10) | 2026-09-26 | R-L0-22.29 |
+| Candidates / cap | 4 / 5 (owner directive 2026-09-26; decision text in PROTO-DEC-0084 item 10) | 2026-09-26 | R-L0-22.55 (P-L0-008 0.3) |
 | RER at last gate | - | - | R-L0-22.46 |
 | Frames closed under P-L0-008 (trial: 5) | 0 (the transition inventory F-01..F-16 records closures before adoption) | 2026-09-26 | R-L0-22.50 |
 
@@ -43,6 +44,7 @@ Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pi
 |---|---|---|---|---|---|---|
 | D-01 (F-16) | One-round certification policy proposal | The research challenges the claimed three-reviewer/two-round optimum and proposes a seven-phase sequence with a single primary pass and a repeat on a specific trigger; it has no verdict yet | It concerns certification cycles and is decided after the pilots report | Publication of the comparative pilots report | `docs/reviews/2026-09-20-codex-cycle-history-research.md` (verdict RECOMMENDATION, 2026-09-20) | 2026-09-26 |
 | D-02 (F-13 remainder) | Routing questions not closed by PROTO-DEC-0047 | 15 questions total (Q14 and Q15 were added later; `INDEX-draft.md:3` is outdated on the count). ACCEPT covers only what entered PROTO-DEC-0047, of the 8 completed pairs (`:221`: Q02, Q05, Q06, Q10, Q11, Q12, Q14, Q15). Unclosed, all 7: Q01, Q08, Q09 - primary answer exists, Gemini's critique not done; Q03, Q04, Q07, Q13 - no Gemini primary, and the critiques are not done: Mistral on Q03 and Q07, Copilot on Q04, DeepSeek on Q13. No final `INDEX.md` | The routing questions become measurable only once resolver v0 runs on live tasks | Resolver v0 launch (PROTO-DEC-0079 item 1, D1) | `docs/research/2026-09-23-routing/INDEX-draft.md:9-11`, `:221` (owner correction 2026-09-26) | 2026-09-26 |
+| D-03 | Frozen workflowAI hypotheses H-WAI-1..6 (one entry) | Six hypotheses in `docs/core-arch/stage-4/workflowAI.md` section 3, frozen by PROTO-DEC-0076 item 4; moved here from `docs/ops/BACKLOG.md` | They need run records that do not exist yet; F-02 does not research them (PROTO-DEC-0084 item 1) | Run records accumulated (A-10) | `docs/core-arch/stage-4/workflowAI.md` section 3; `docs/ops/BACKLOG.md` (before migration) | 2026-09-26 |
 
 ## Candidates (not open)
 
@@ -50,8 +52,16 @@ Streams: S1 kernel, runtime and routes; S2 model and task routing; S3 product pi
 |---|---|---|---|---|---|
 | C-R1 | K4 packet-completeness harness, then the RISK council (with R-2 epistemic diversity) | RESOLUTION section 7 (R-1, R-2) | S1 | major | a free S1 slot; owner sequencing U-10, U-11 |
 | C-R5 | Write coordination and scale | RESOLUTION section 7 (R-5) | S1 | major | U-1, U-3; PROTO-DEC-0076 item 4 (lifted for R-3 only) |
-| C-R7 | Delivery B against C; script and hook performance | RESOLUTION section 7 (R-7) | S1 | minor | the Node phase-0 baseline; frozen hypothesis (BACKLOG.md:109) |
+| C-R7 | Delivery B against C; script and hook performance (merged with H-PROMPT-DELIVERY-01, `OwnerIdeas/H-PROMPT-DELIVERY-01_canonical-task-file-vs-orchestrator-loading.md`, per owner directive 2026-09-26) | RESOLUTION section 7 (R-7); `docs/ops/BACKLOG.md` (before migration) | S1 | minor | the Node phase-0 baseline; frozen hypothesis |
 | C-JEV | Offline replay of Jev over historical decisions | PROTO-DEC-0045 item 3 | S2 | minor | a free S2 slot; the DIG ratchet (R-L0-22.43) |
+
+## Migrated from docs/ops/BACKLOG.md (owner directive 2026-09-26)
+
+| Former entry | Disposition now | Record |
+|---|---|---|
+| H-WAI-1..6 | DEFER D-03 (trigger: run records accumulated, A-10) | this file, D-03 |
+| H-PROMPT-DELIVERY-01 | merged into candidate C-R7 | this file, C-R7 |
+| L-GIT-01 | CLOSED - answered by the council (C-1) | `docs/ops/BACKLOG.md`, C-1 |
 
 ## Bypass incidents
 

@@ -104,8 +104,11 @@
 - C-6: the group tie-break of `workflowAI.md` 1.5 step 6 (synthesis D3). The owner decides Q2.
   Source: the workflowAI review.
 
-## Frozen hypotheses (not expanded, PROTO-DEC-0076 item 4)
+## Frozen hypotheses (migrated)
 
-- H-PROMPT-DELIVERY-01 (`OwnerIdeas/`);
-- H-WAI-1..6 (`workflowAI.md` section 3);
-- L-GIT-01 (answered by the council, see C-1).
+`docs/research/FRAMES.md` is the only registry of DEFER entries and candidates (P-L0-008;
+PROTO-DEC-0084 item 10). The former frozen hypotheses live there:
+
+- H-WAI-1..6 (`workflowAI.md` section 3) → DEFER D-03 (trigger: run records accumulated, A-10);
+- H-PROMPT-DELIVERY-01 (`OwnerIdeas/`) → merged into candidate C-R7;
+- L-GIT-01 → CLOSED (answered by the council, see C-1).
