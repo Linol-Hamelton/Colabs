@@ -1600,6 +1600,104 @@ test('T29: AC-usage: report distinct reasons and renderUsage table', () => {
   }
 });
 
+test('T30: Item 4: dispatch attempt without --runs-file appends to dispatch.runsFile or docs/ops/RUNS.jsonl, and report reads canonical store', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-item4-'));
+  const launchFile = path.join(TEST_TMP_DIR, 'item4-launch.md').replace(/\\/g, '/');
+  const outFile = DEFAULT_OUT_FILE;
+
+  fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
+  fs.writeFileSync(path.resolve(repoRoot, launchFile), '# Item 4 Launch\n', 'utf8');
+
+  const customRuns = path.join(TEST_TMP_DIR, 'custom-runs.jsonl').replace(/\\/g, '/');
+  const customRunsRel = customRuns;
+
+  // Verify validateDispatch allows runsFile
+  const testDispObj = {
+    version: 1,
+    stateDir: path.join(TEST_TMP_DIR, 'state-item4').replace(/\\/g, '/'),
+    runsFile: customRunsRel,
+    slots: [
+      {
+        id: 'slot-item4',
+        launch: launchFile,
+        out: outFile,
+        route: { client: 'fake', model: 'test' }
+      }
+    ]
+  };
+  dispatch.validateDispatch(testDispObj);
+
+  const regPath = path.join(tmp, 'clients.json');
+  fs.writeFileSync(regPath, JSON.stringify({
+    schema: 'clients/1',
+    clients: {
+      fake: {
+        binary: 'node',
+        present: true,
+        version: process.version,
+        verifiedOn: '2026-09-27',
+        source: 'node --version',
+        command: ['node', FAKE_CLIENT, 'work', '{workdir}', '{workdir}'],
+        model: { how: 'none', listing: null },
+        effort: { how: 'none', values: null, note: null },
+        env: {},
+        resume: { command: null, sessionId: null, note: 'none' },
+        usage: 'none',
+        failureModes: []
+      }
+    }
+  }), 'utf8');
+
+  const dispPath = path.join(tmp, 'DISPATCH.json');
+  fs.writeFileSync(dispPath, JSON.stringify(testDispObj, null, 2), 'utf8');
+
+  const origRunsEnv = process.env.PROTOCOL_RUNS_FILE;
+  delete process.env.PROTOCOL_RUNS_FILE;
+
+  try {
+    // Run dispatch WITHOUT passing opts.runsFile - should resolve dispatch.runsFile
+    const code = await dispatch.runDispatch(dispPath, [], {
+      registry: regPath,
+      fastRetry: true
+    });
+    assert.equal(code, 0);
+
+    assert.ok(fs.existsSync(customRuns), 'custom runsFile must exist');
+
+    const records = runrecord.readRecords(customRuns);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].slot, 'slot-item4');
+    assert.equal(records[0].state, 'DONE');
+    assert.equal(records[0].attempts.length, 1);
+
+    const errors = runrecord.validateRecord(records[0]);
+    assert.deepEqual(errors, []);
+
+    // Verify reportDispatch reads from dispatch.runsFile when opts.runsFile is omitted
+    let reportLogs = [];
+    const origLog = console.log;
+    console.log = (...args) => reportLogs.push(args.join(' '));
+    try {
+      const repCode = dispatch.reportDispatch(dispPath, { registry: regPath });
+      assert.equal(repCode, 0);
+    } finally {
+      console.log = origLog;
+    }
+    const reportOut = reportLogs.join('\n');
+    assert.match(reportOut, /REPORT slot=slot-item4 route=fake:test state=DONE attempts=1/);
+    assert.ok(!reportOut.includes('(no-run-record)'));
+  } finally {
+    if (origRunsEnv !== undefined) {
+      process.env.PROTOCOL_RUNS_FILE = origRunsEnv;
+    }
+    try { fs.unlinkSync(path.resolve(repoRoot, customRuns)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test('Guard test: test suite leaves no changes to tracked files', () => {
   const current = getTrackedStatus();
   const changed = current.filter(l => !initialTrackedStatus.includes(l));

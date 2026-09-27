@@ -485,9 +485,17 @@ function validateDispatch(obj) {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
     throw new Error('dispatch must be a JSON object');
   }
-  const allowedTopKeys = ['version', 'stateDir', 'usageFile', 'startLimitMin', 'stallMin', 'hardMin', 'runLimitHours', 'slots', 'jobs'];
+  const allowedTopKeys = ['version', 'stateDir', 'usageFile', 'runsFile', 'startLimitMin', 'stallMin', 'hardMin', 'runLimitHours', 'slots', 'jobs'];
   for (const k of Object.keys(obj)) {
     if (!allowedTopKeys.includes(k)) throw new Error(`unknown top-level key "${k}"`);
+  }
+  if (obj.runsFile !== undefined) {
+    if (typeof obj.runsFile !== 'string' || !obj.runsFile) {
+      throw new Error('runsFile must be a non-empty string');
+    }
+    if (!isSafeRelativePath(obj.runsFile)) {
+      throw new Error(`runsFile must be a safe relative path; got "${obj.runsFile}"`);
+    }
   }
   if (obj.stallMin !== undefined) {
     if (typeof obj.stallMin !== 'number' || !Number.isInteger(obj.stallMin) || obj.stallMin < 5 || obj.stallMin > 120) {
@@ -1272,13 +1280,13 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
   const clientName = route.client;
   const clientCfg = registry.clients[clientName];
   if (!clientCfg) {
-    return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `unknown client ${clientName}` });
+    return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `unknown client ${clientName}`, exitCode: null, sessionId: null });
   }
 
   const probeRes = probeClient(clientName, registry, { model: route.model });
   if (!probeRes.ok) {
     const cls = probeRes.state === 'MODEL_UNAVAILABLE' ? 'MODEL_UNAVAILABLE' : 'CONFIG_ERROR';
-    return Promise.resolve({ status: 'FAILED', class: cls, reason: probeRes.state });
+    return Promise.resolve({ status: 'FAILED', class: cls, reason: probeRes.state, exitCode: null, sessionId: null });
   }
 
   const attemptKind = opts.attemptKind || 'fresh';
@@ -1290,7 +1298,7 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
     try {
       prepared = prepareWorkdir(slot, attemptNumber, repoRoot, slot.copyIn, opts.tmpDir);
     } catch (e) {
-      return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `prepareWorkdir failed: ${e.message}` });
+      return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `prepareWorkdir failed: ${e.message}`, exitCode: null, sessionId: null });
     }
     dir = prepared.dir;
     base = prepared.base;
@@ -1627,7 +1635,9 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
     ? path.resolve(repoRoot, opts.runsFile)
     : (process.env.PROTOCOL_RUNS_FILE
         ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
-        : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
+        : (dispatch.runsFile
+            ? path.resolve(repoRoot, dispatch.runsFile)
+            : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl')));
 
   const signalsFile = opts.signalsFile
     ? path.resolve(repoRoot, opts.signalsFile)
@@ -1948,10 +1958,10 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
           id: activeRouteEntry.route.model || null,
           source: 'requested'
         },
-        sessionId: lastSessionId,
+        sessionId: lastSessionId || null,
         start: attemptStartIso,
         end: attemptEndIso,
-        exitCode: res.exitCode !== undefined ? res.exitCode : null,
+        exitCode: (res.exitCode !== undefined && res.exitCode !== null) ? res.exitCode : null,
         class: mappedClass,
         tokens: attemptUsage.tokens,
         usage: attemptUsage.usage,
@@ -2134,7 +2144,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
       cost: { estimated: null, actual: actualCost, cumulative: cumulativeCost, unit: costUnit },
       completion: lastCompletion ? {
         processEnded: lastCompletion.processEnded,
-        exitCode: lastCompletion.exitCode,
+        exitCode: (lastCompletion.exitCode !== undefined && lastCompletion.exitCode !== null) ? lastCompletion.exitCode : null,
         outputsPresent: lastCompletion.outputsPresent,
         outputsNonEmpty: lastCompletion.outputsNonEmpty,
         structuralCheck: lastCompletion.structuralCheck,
@@ -2143,7 +2153,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
         supervisorDone: lastCompletion.supervisorDone
       } : {
         processEnded: true,
-        exitCode: lastAttemptResult ? lastAttemptResult.exitCode : null,
+        exitCode: (lastAttemptResult && lastAttemptResult.exitCode !== undefined && lastAttemptResult.exitCode !== null) ? lastAttemptResult.exitCode : null,
         outputsPresent: false,
         outputsNonEmpty: false,
         structuralCheck: 'none',
@@ -2229,7 +2239,9 @@ function reportDispatch(dispatchFile, opts = {}) {
     ? path.resolve(repoRoot, opts.runsFile)
     : (process.env.PROTOCOL_RUNS_FILE
         ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
-        : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
+        : (dispatch.runsFile
+            ? path.resolve(repoRoot, dispatch.runsFile)
+            : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl')));
 
   let records = [];
   if (runrecordLib && fs.existsSync(runsFile)) {
