@@ -8,6 +8,43 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - M1 verdict: MISSED (median 306.24 s vs the 300 s line); campaign stopped
+
+Agent: kilo-e1b4dd4a82b08b8e (Kilo Code session; model `deepseek/deepseek-flash`; effort unknown;
+usage not exposed by the client; client Kilo)
+
+Action: the M1 campaign finished and its verdict is `M1 MISSED`. Diagnostic run at `e752c0c`
+(`perf1a`): 493.12 s, 420/420 pass. Five runs at `64043a3` (`perf1`, concurrency 16): 305.23,
+315.31, 306.24, 297.63, 308.20 s, all 420/420, wall median 306.24 s and mean 306.52 s; the median
+misses the acceptance line by +6.24 s; the split+seed branch is -37.9% against the diagnostic. Per
+the campaign rule the work stopped and nothing merges. The session left `M1-REPORT.md` and its
+journal uncommitted ("awaits owner commit"); I published both on `perf-wave-1` (`680349c`) and
+pushed the branch. Per the owner's "median <= 300 s, else STOP" I launched nothing further:
+recovery 2 for the remaining 2A items, the Gemini DIG collector, the Sol replacements (GLM-5.3 and
+Mistral Medium 3.5 via vibe) and the models-list update all wait for the owner's direction.
+
+Result: M1 is measured, reported and preserved; `perf-wave-1` stays unmerged; the workstation is
+idle again.
+
+Next step: owner decides on the M1 miss (re-measure the five runs, relax the threshold, or keep
+optimizing) and whether the parallel batch (2A recovery 2 + Gemini collector + the models-list
+update) proceeds meanwhile.
+
+Open: the M1 miss options; the queued launches; the models-list update task ("after the limits
+reset, add the models for auto-selection and assignment") is prepared to be written and dispatched
+on the owner's word.
+
+Evidence:
+- anchor: a13f9b4980cf7489f99580fd5cd02fe5e4b1c143, uncommitted changes present
+- digest: sha256:4452545a963f2497f35b2dd95b8b78468227f2ab0de431f6267a14017e7acb50 over 761 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T19:12:10.790Z by kilo-e1b4dd4a82b08b8e
+- entry hash format: 2
+- entry: sha256:736cc18a082653d3fc2d02195506b423341758e4bab8c7d51f95210a7671f668 of this entry without this block
+- parent-entry: legacy
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-27 - ROADMAP-1: owner M1 directive; 2A partial; the M1 window is open
 
 Agent: kilo-e1b4dd4a82b08b8e (Kilo Code session; model `deepseek/deepseek-flash`; effort unknown;
