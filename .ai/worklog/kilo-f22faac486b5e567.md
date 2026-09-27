@@ -8,6 +8,39 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Freeze complete: CANDIDATE 7f199c5; round-3 certification started
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r9f-repair-usage` DONE (REPAIR-USAGE-GEMINI.md, REPAIR COMPLETE; parsers kilo-json/copilot-credits/codex-tokens, actual/cumulative cost, two `usage=none` reasons, negative strings not matched; T27-T29). `r9e`'s report covers F-PKG2-R2-1..R2-4.
+- Freeze check (owner rules): `git status --short -- .ai/bin tests docs/specs .ai/docs protocol-manifest.json` showed exactly `M .ai/bin/protocol-dispatch.cjs`, `M tests/dispatch.test.cjs`, `?? tests/fixtures/dispatch/usage/`; no stray untracked `*-launch.md` (`t21-launch.md` is a tracked fixture); `hang-launch.md` clean; r9f's process had exited.
+- Local lane, sequential: `validate-protocol.ps1` exit 0; `test-protocol.ps1` exit 0 (419/419); full `record` (validate 0, suite 0) then `verify` - evidence matches the tree.
+- Freeze commit **7f199c50589ce3b5b34680e70be21e9a43aeeac1** with the agreed message (carries only the r9f files; the diff `b8781ca..7f199c5` contains both repairs). Pushed. `r9g` accepted with the SHA and lane results. A journal-only commit followed (`6944958`); nothing normative after the CANDIDATE.
+- Round-3 certification started on the frozen CANDIDATE: `r8e-cert-kimi-pkg2` and `r8e-cert-mimo-pkg2` STARTING (supervisor bgp_0e08d1b2; the previous one had exited).
+- Observed, untouched: a parallel session packaged and launched the cost-routes research (`docs/research/2026-09-27-cost-routes-research/`, collectors running) from the owner prompt; its files stay out of our commits.
+
+Result: The round-3 CANDIDATE is frozen and the final certification round is in flight.
+
+Next step: read both round-3 verdicts; on double PASS release the Sol verifier; then STOP-7/8 and the readiness report.
+
+Open: round-3 certs running (rounds used on PKG-2: 3 of 3; a reproduced FAIL goes to the owner).
+
+Evidence:
+- anchor: 69449589eeb3f31d4acaea20872a309c22e9caa7, uncommitted changes present
+- digest: sha256:4ab866b8251b90ae95b601cd51b7e2e148cae53143c07c7d2a4c89ce465682c5 over 714 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T01:50:58.688Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:baa1f41eefd0c60b3bcd02647c15402f3fb040f542e67ad07d54dfcd0a4ed465 of this entry without this block
+- parent-entry: sha256:b2cd851bf39cec97b5e8bba528e8dfd77143d262efef637b5a6478616964c780
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - Owner correction: transient launch fixtures are not an r9f defect; stage-12 finding logged
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
