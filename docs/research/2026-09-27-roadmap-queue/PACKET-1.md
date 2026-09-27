@@ -33,17 +33,20 @@ the message's Q3-Q7 field is the literal placeholder `<ваши ответы>` a
 4. Wave 2A scope addition: investigate **why dispatcher runs are not written to
    `docs/ops/RUNS.jsonl`** (the file is present and 0 bytes).
 
-## Open in this packet
+## Full packet - answers complete
 
-- **Q1** (F-02 gate verdict; DeepSeek V4.1 Max = V4.1 Flash at max effort; deadline 2026-09-29):
-  not answered.
-- **Q3-Q7**: the owner's message carries the literal placeholder `<ваши ответы>` - not answers.
-  Awaiting the filled values:
-  - Q3 kernel batch 1 scope (W0, W1-retire, W5 pulled from OPS-1 into 2A, yes/no);
-  - Q4 Node validator launch conditions (exclusive phase-0 baseline; Q2 pair as AC item-3
-    preflight);
-  - Q5 cleanup (branch `claude/f01-closure-script`; worktrees `Colabs-cert/*`, `equinox-path`);
-  - Q6 journal archive (126 against the cap of 100);
-  - Q7 cost-routes GAPS section 6 premises.
+Source: Owner in chat, 2026-09-27T07:03Z (transcribed by kilo-e1b4dd4a82b08b8e under the lock).
 
-Nothing is launched on a partial packet; the step-4 stop holds.
+- **Q1: ACCEPT the F-02 gate; DeepSeek V4.1 Max = V4.1 Flash at max effort** (also closes BACKLOG
+  S-5 and OQ-11's S-5 part). Wave 1 item 1 (F-02 close-out) and the `MODEL-ECONOMICS.md` route note
+  are unblocked.
+- **Q3: yes** - pull W0, W1-retire and W5 from OPS-1 into wave 2A (PROTO-DEC-0048 item 6).
+- **Q4: approve** the exclusive phase-0 baseline runs (Bv/Bs/Bn/Bm) and the Q2 pair
+  (MiMo-V2.6-Pro + GPT-5.6 Sol) as the `final-plan-2.md` section AC item-3 preflight.
+- **Q5: delete everything** - the branch `claude/f01-closure-script` and the worktrees
+  `Colabs-cert/*` and `equinox-path` - after showing `git status` of each.
+- **Q6: yes** - archive the oldest journals until at most 100 remain.
+- **Q7: deferred to wave 3** (the GAPS section 6 premises move into the wave-3 owner questions).
+
+The packet is complete; the step-4 stop is lifted. Wave 1 starts; wave 3 runs in parallel after the
+audit frame is registered in FRAMES.md under the lock.
