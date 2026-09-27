@@ -469,7 +469,33 @@ function scenarios() {
     process.exitCode = results.every(r => r.startsWith('PASS')) ? 0 : 1;
   };
   for (const id of own) deadWatchdog(id, report);
-  for (const id of ids) {
+
+  // S-7: Throttle concurrent scenarios to prevent WMI query timeouts
+  const CONCURRENCY = 4;
+  let active = 0;
+  let idx = 0;
+
+  function launchNext() {
+    while (active < CONCURRENCY && idx < ids.length) {
+      const id = ids[idx++];
+      active++;
+      runScenario(id, () => {
+        active--;
+        launchNext();
+      });
+    }
+  }
+
+  function runScenario(id, onDone) {
+    let doneCalled = false;
+    const finishScenario = line => {
+      report(line);
+      if (!doneCalled) {
+        doneCalled = true;
+        onDone();
+      }
+    };
+
     if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
     let childEnv = process.env;
     if (SC[id].envCanary) { fs.writeFileSync(CANARY_HOST, '[credential]\n\thelper = canary-helper\n'); childEnv = { ...process.env, ...CANARY_ENV }; }
@@ -538,10 +564,10 @@ function scenarios() {
             : !lock && a0.workdirRemoved === true;
           indexLock = `; ${okLock ? '' : 'LOCK MISMATCH '}lock ${lock ? 'present' : 'gone'}, copy kept: ${kept}, workdirRemoved: ${a0.workdirRemoved}`;
         }
-        report(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}${gitLeak}${canary}${audit}${indexLock}`));
+        finishScenario(line(`; output copied back: ${back}${back === SC[id].imported ? '' : ' MISMATCH'}${leaked ? '; ESCAPE LEAKED into the checkout' : ''}${gitLeak}${canary}${audit}${indexLock}`));
         return;
       }
-      if (!SC[id].orphanGone) { report(line('')); return; }
+      if (!SC[id].orphanGone) { finishScenario(line('')); return; }
       const f = st && st.attempts[0] && (st.attempts[0].changed || [])[0];
       const orphanPid = f ? Number(fs.readFileSync(path.join(path.dirname(f), 'orphan.pid'), 'utf8')) : null;
       let waited = 0;
@@ -550,8 +576,10 @@ function scenarios() {
         const gone = orphanPid !== null && !pidAlive(orphanPid);
         if (!gone && waited < 3000) return;
         clearInterval(wait);
-        report(line(`; grandchild ${orphanPid} ${gone ? 'gone' : 'STILL ALIVE'}`));
+        finishScenario(line(`; grandchild ${orphanPid} ${gone ? 'gone' : 'STILL ALIVE'}`));
       }, 250);
     }, 500);
   }
+
+  launchNext();
 }
