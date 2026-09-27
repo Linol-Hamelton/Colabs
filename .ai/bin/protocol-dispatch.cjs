@@ -74,6 +74,10 @@ const CRED_ENV_KEYS = ['GH_TOKEN', 'GITHUB_TOKEN', 'GIT_ASKPASS', 'SSH_ASKPASS',
 const CRED_ENV_SUFFIX = /_(TOKEN|PAT)$/;
 const CRED_ENV_NAME = /(^|_)(GH|GITHUB|GIT)(_|$)/;
 
+function getRepoRoot(opts = {}) {
+  return opts.repoRoot || process.env.PROTOCOL_REPO_ROOT || process.cwd();
+}
+
 let HOOKS_ROOT = null;
 function hooksRoot() {
   if (!HOOKS_ROOT) HOOKS_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'colabs-hooks-'));
@@ -229,7 +233,7 @@ function workdirState(dir) {
   return { entries };
 }
 
-function prepareWorkdir(slot, attemptNumber, repoRoot = process.cwd(), copyIn = [], tmpDir = null) {
+function prepareWorkdir(slot, attemptNumber, repoRoot = getRepoRoot(), copyIn = [], tmpDir = null) {
   const baseDir = tmpDir || os.tmpdir();
   const dir = fs.mkdtempSync(path.join(baseDir, `disp-${slot.id}-${attemptNumber}-`));
   const rClone = gitIn(repoRoot, ['clone', '--shared', '--no-checkout', repoRoot, dir]);
@@ -311,7 +315,7 @@ function scopeCheck(dir, baseHead, declaredOutputs, knownProcs = {}) {
   return { bad: bad.length ? bad : null };
 }
 
-function importResults(dir, declaredOutputs, repoRoot = process.cwd()) {
+function importResults(dir, declaredOutputs, repoRoot = getRepoRoot()) {
   const imported = [];
   const declaredNorm = (declaredOutputs || []).map(p => p.replace(/\\/g, '/'));
 
@@ -342,7 +346,7 @@ function importResults(dir, declaredOutputs, repoRoot = process.cwd()) {
   return imported;
 }
 
-function lsRemoteSnapshot(repoRoot = process.cwd()) {
+function lsRemoteSnapshot(repoRoot = getRepoRoot()) {
   const r = gitIn(repoRoot, ['ls-remote']);
   if (r.status !== 0) return null;
   return (r.stdout || '').trim();
@@ -596,7 +600,7 @@ function loadDispatch(filePath) {
   return validateDispatch(parsed);
 }
 
-function loadLadder(ladderPath, repoRoot = process.cwd()) {
+function loadLadder(ladderPath, repoRoot = getRepoRoot()) {
   const fullPath = path.resolve(repoRoot, ladderPath);
   let raw = '';
   try {
@@ -613,7 +617,7 @@ function loadLadder(ladderPath, repoRoot = process.cwd()) {
   return parsed;
 }
 
-function verifyLadderSectionSha256(ladder, repoRoot = process.cwd()) {
+function verifyLadderSectionSha256(ladder, repoRoot = getRepoRoot()) {
   if (!ladder || !ladder.source || !ladder.source.path || !ladder.source.heading) {
     return { ok: false, reason: 'missing-source-metadata' };
   }
@@ -637,7 +641,7 @@ function verifyLadderSectionSha256(ladder, repoRoot = process.cwd()) {
   return { ok: true, sha256: hash };
 }
 
-function computePins(slot, dispatchPath, repoRoot = process.cwd()) {
+function computePins(slot, dispatchPath, repoRoot = getRepoRoot()) {
   let head = '';
   try {
     const r = gitIn(repoRoot, ['rev-parse', 'HEAD']);
@@ -680,7 +684,7 @@ function computePins(slot, dispatchPath, repoRoot = process.cwd()) {
   };
 }
 
-function verifyPins(pins, slot, dispatchPath, repoRoot = process.cwd()) {
+function verifyPins(pins, slot, dispatchPath, repoRoot = getRepoRoot()) {
   if (!pins) return { ok: false, reason: 'pins-missing' };
   const current = computePins(slot, dispatchPath, repoRoot);
   if (current.launchSha256 !== pins.launchSha256) {
@@ -832,7 +836,7 @@ function resolveSlot(slot, ladder, registry = {}, opts = {}) {
 }
 
 function resolveCommand(dispatchFile, slotId, opts = {}) {
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const ladderPath = opts.ladder || path.resolve(repoRoot, 'docs/ops/model-ladder.json');
   const ladder = loadLadder(ladderPath, repoRoot);
 
@@ -883,7 +887,7 @@ function resolveCommand(dispatchFile, slotId, opts = {}) {
   return 0;
 }
 
-function writeRepairFile(dir, attemptNum, failingRows, repoRoot = process.cwd()) {
+function writeRepairFile(dir, attemptNum, failingRows, repoRoot = getRepoRoot()) {
   const templatePath = path.resolve(repoRoot, '.ai', 'docs', 'dispatch', 'repair.md');
   let header = '';
   try {
@@ -900,7 +904,7 @@ function writeRepairFile(dir, attemptNum, failingRows, repoRoot = process.cwd())
   return relPath;
 }
 
-function checkCompletion(slot, dir, declaredOutputs, attemptResult, repoRoot = process.cwd()) {
+function checkCompletion(slot, dir, declaredOutputs, attemptResult, repoRoot = getRepoRoot()) {
   const result = {
     processEnded: attemptResult.exitCode !== null,
     exitCode: attemptResult.exitCode,
@@ -1255,7 +1259,7 @@ function parseUsageFromLog(logPath, usageParser) {
 }
 
 function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   fs.mkdirSync(stateDir, { recursive: true });
   const logsDir = path.join(stateDir, 'logs');
@@ -1548,7 +1552,7 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
   });
 }
 
-function updateUsageFile(usageFilePath, repoRoot = process.cwd(), runsFilePath = null) {
+function updateUsageFile(usageFilePath, repoRoot = getRepoRoot(), runsFilePath = null) {
   if (!usageFilePath || !runrecordLib) return;
   try {
     const fullRuns = runsFilePath || (process.env.PROTOCOL_RUNS_FILE
@@ -1597,7 +1601,7 @@ function emitFallSignal(signalsFile, runId, client, model, startIso, endIso, isN
 const sleepAsync = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const dispatch = loadDispatch(dispatchFile);
   const registry = loadRegistry(opts.registry);
   const ladderPath = opts.ladder || path.resolve(repoRoot, 'docs/ops/model-ladder.json');
@@ -2171,7 +2175,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
 
 function checkDispatch(dispatchFile, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const slots = dispatch.slots || dispatch.jobs;
 
   console.log(`CHECK dispatch=${dispatchFile} slots=${slots.length}`);
@@ -2201,7 +2205,7 @@ function checkDispatch(dispatchFile, opts = {}) {
 
 function statusDispatch(dispatchFile, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   const stateFile = path.join(stateDir, 'state.json');
   let state = { slots: {} };
@@ -2220,7 +2224,7 @@ function statusDispatch(dispatchFile, opts = {}) {
 
 function reportDispatch(dispatchFile, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const runsFile = opts.runsFile
     ? path.resolve(repoRoot, opts.runsFile)
     : (process.env.PROTOCOL_RUNS_FILE
@@ -2274,7 +2278,7 @@ function reportDispatch(dispatchFile, opts = {}) {
 
 function stopSlot(dispatchFile, slotId, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   const stateFile = path.join(stateDir, 'state.json');
   let state = { slots: {} };
@@ -2293,7 +2297,7 @@ function stopSlot(dispatchFile, slotId, opts = {}) {
 
 function acceptSlot(dispatchFile, slotId, reason = 'accepted', opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   const stateFile = path.join(stateDir, 'state.json');
   let state = { slots: {} };
@@ -2557,5 +2561,6 @@ module.exports = {
   ERROR_PATTERNS,
   ERROR_TEXT,
   RETRY_TEXT,
-  NO_PUSH
+  NO_PUSH,
+  getRepoRoot
 };

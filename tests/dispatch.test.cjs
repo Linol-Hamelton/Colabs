@@ -12,9 +12,15 @@ const runrecord = require('../.ai/bin/protocol-runrecord.cjs');
 
 const repoRoot = path.resolve(__dirname, '..');
 const DISPATCH_BIN = path.resolve(repoRoot, '.ai', 'bin', 'protocol-dispatch.cjs');
-const REAL_DISPATCH = path.resolve(repoRoot, 'docs', 'research', '2026-09-26-ownerideas-revision', 'prompts', 'DISPATCH.json');
+const REAL_DISPATCH = path.resolve(repoRoot, 'tests', 'fixtures', 'prompts', 'DISPATCH.json');
 const R3_DISPATCH = path.resolve(__dirname, 'fixtures', 'dispatch', 'R3-DISPATCH.json');
 const FAKE_CLIENT = path.resolve(__dirname, 'dispatch-fake-client.cjs');
+
+const TEST_TMP_DIR = path.join('.ai', 'runtime', 'dispatch-test');
+const testTmpAbs = path.resolve(repoRoot, TEST_TMP_DIR);
+fs.mkdirSync(testTmpAbs, { recursive: true });
+const DEFAULT_OUT_FILE = path.join(TEST_TMP_DIR, 'out1.txt').replace(/\\/g, '/');
+process.env.TEST_DISPATCH_OUT_FILE = DEFAULT_OUT_FILE;
 
 const TEST_SUITE_TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-suite-'));
 const DEFAULT_TEST_RUNS = path.join(TEST_SUITE_TMP, 'RUNS.jsonl');
@@ -37,6 +43,19 @@ const getTrackedStatus = () => {
 };
 const initialTrackedStatus = getTrackedStatus();
 
+const getFixturesStatus = () => {
+  const r = spawnSync('git', ['status', '--porcelain', 'tests/fixtures'], {
+    cwd: path.resolve(__dirname, '..'),
+    encoding: 'utf8',
+    windowsHide: true
+  });
+  return (r.stdout || '')
+    .split('\n')
+    .map(l => l.trimEnd())
+    .filter(Boolean);
+};
+const initialFixturesStatus = getFixturesStatus();
+
 const runBin = (args, cwd = path.resolve(__dirname, '..'), extraEnv = {}) => {
   const r = spawnSync(process.execPath, [DISPATCH_BIN, ...args], {
     cwd,
@@ -46,6 +65,7 @@ const runBin = (args, cwd = path.resolve(__dirname, '..'), extraEnv = {}) => {
       ...process.env,
       PROTOCOL_RUNS_FILE: DEFAULT_TEST_RUNS,
       PROTOCOL_SIGNALS_FILE: DEFAULT_TEST_SIGNALS,
+      TEST_DISPATCH_OUT_FILE: DEFAULT_OUT_FILE,
       ...extraEnv
     }
   });
@@ -125,24 +145,34 @@ test('T4: dispatch loader validation', () => {
 });
 
 test('T5: check parity: DISPATCH.json exits 0, R3-DISPATCH.json exits 1 with 10 launch-missing rows', () => {
-  const r1 = runBin(['check', REAL_DISPATCH]);
-  assert.equal(r1.code, 0);
-  const expectedSlots = JSON.parse(fs.readFileSync(REAL_DISPATCH, 'utf8')).slots.length;
-  assert.match(r1.stdout, new RegExp(`^CHECK dispatch=.* slots=${expectedSlots}`, 'm'));
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t5-'));
+  try {
+    const targetDir = path.join(tmpRoot, 'docs', 'research', '2026-09-26-ownerideas-revision', 'prompts');
+    fs.mkdirSync(path.dirname(targetDir), { recursive: true });
+    fs.cpSync(path.resolve(repoRoot, 'tests', 'fixtures', 'prompts'), targetDir, { recursive: true });
 
-  const r2 = runBin(['check', R3_DISPATCH]);
-  assert.equal(r2.code, 1);
-  assert.match(r2.stdout, /^CHECK dispatch=.* slots=10/m);
-  const missingRows = r2.stdout.trim().split(/\r?\n/).filter(l => l.startsWith('ERROR reason=launch-missing'));
-  assert.equal(missingRows.length, 10);
-  assert.ok(!r2.stdout.includes('ERROR reason=unknown-'));
+    const copiedDispatch = path.join(targetDir, 'DISPATCH.json');
+    const r1 = runBin(['check', copiedDispatch], tmpRoot);
+    assert.equal(r1.code, 0);
+    const expectedSlots = JSON.parse(fs.readFileSync(REAL_DISPATCH, 'utf8')).slots.length;
+    assert.match(r1.stdout, new RegExp(`^CHECK dispatch=.* slots=${expectedSlots}`, 'm'));
+
+    const r2 = runBin(['check', R3_DISPATCH], tmpRoot);
+    assert.equal(r2.code, 1);
+    assert.match(r2.stdout, /^CHECK dispatch=.* slots=10/m);
+    const missingRows = r2.stdout.trim().split(/\r?\n/).filter(l => l.startsWith('ERROR reason=launch-missing'));
+    assert.equal(missingRows.length, 10);
+    assert.ok(!r2.stdout.includes('ERROR reason=unknown-'));
+  } finally {
+    try { fs.rmSync(tmpRoot, { recursive: true, force: true }); } catch {}
+  }
 });
 
 test('T6: end-to-end run with fake client in work mode', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-e2e-'));
-  const launchFile = 'tests/fixtures/dispatch/fake-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 'fake-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# Fake launch prompt\n', 'utf8');
@@ -221,9 +251,9 @@ test('T6: end-to-end run with fake client in work mode', () => {
 
 test('T7-T10: policy and scope violations end in BLOCKED with clone kept', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-viol-'));
-  const launchFile = 'tests/fixtures/dispatch/viol-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 'viol-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# Viol launch prompt\n', 'utf8');
@@ -295,13 +325,9 @@ test('T11: credential canaries absent from child env, GIT_CONFIG_NOSYSTEM=1 pres
 
 test('T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-timeout-'));
-  const launchFile = 'tests/fixtures/dispatch/hang-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 'hang-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
-
-  const origHang = fs.existsSync(path.resolve(repoRoot, launchFile))
-    ? fs.readFileSync(path.resolve(repoRoot, launchFile), 'utf8')
-    : '# Hang launch\n';
+  const outFile = DEFAULT_OUT_FILE;
 
   const runTimedMode = (tMode, flag, sec) => {
     const fakeRegPath = path.join(tmp, `clients-${tMode}.json`);
@@ -346,7 +372,7 @@ test('T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds', () => {
     const rTimeout = runTimedMode('always-talking', '--hard-seconds', 2);
     assert.match(rTimeout.stdout, /^(?:FAILED|BLOCKED) slot=timed-always-talking class=TIMEOUT/m);
   } finally {
-    fs.writeFileSync(path.resolve(repoRoot, launchFile), origHang, 'utf8');
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -368,8 +394,9 @@ test('T14: failure classification and bare-number guards', () => {
 
 test('T15: needs and when skipping rules', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-when-'));
-  const launchFile = 'tests/fixtures/dispatch/when-launch.md';
-  const checkFile = path.resolve(repoRoot, 'tests', 'fixtures', 'dispatch', 'flag.txt');
+  const launchFile = path.join(TEST_TMP_DIR, 'when-launch.md').replace(/\\/g, '/');
+  const checkRel = path.join(TEST_TMP_DIR, 'flag.txt').replace(/\\/g, '/');
+  const checkFile = path.resolve(repoRoot, checkRel);
 
   try {
     fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
@@ -384,7 +411,7 @@ test('T15: needs and when skipping rules', () => {
           id: 's-skipped',
           launch: launchFile,
           when: {
-            file: 'tests/fixtures/dispatch/flag.txt',
+            file: checkRel,
             notMatch: 'DONE_ALREADY'
           },
           route: { client: 'agy', model: 'gemini-3.8-flash' }
@@ -517,9 +544,9 @@ test('T19: script source contains no docs/research/ path, no prompt text, and po
 
 test('T20: AC-7, AC-12: transient retry, run record validation, usage render', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t20-'));
-  const launchFile = 'tests/fixtures/dispatch/t20-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't20-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T20 launch\n', 'utf8');
@@ -607,13 +634,9 @@ test('T20: AC-7, AC-12: transient retry, run record validation, usage render', (
 
 test('T21: AC-8: STALL recovery with wakes and fallen = true', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t21-'));
-  const launchFile = 'tests/fixtures/dispatch/t21-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't21-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
-
-  const origT21 = fs.existsSync(path.resolve(repoRoot, launchFile))
-    ? fs.readFileSync(path.resolve(repoRoot, launchFile), 'utf8')
-    : '# T21 launch\n';
+  const outFile = DEFAULT_OUT_FILE;
 
   try {
     fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
@@ -689,7 +712,7 @@ test('T21: AC-8: STALL recovery with wakes and fallen = true', () => {
     const valErrors = runrecord.validateRecord(rec);
     assert.deepEqual(valErrors, []);
   } finally {
-    fs.writeFileSync(path.resolve(repoRoot, launchFile), origT21, 'utf8');
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
@@ -698,9 +721,9 @@ test('T21: AC-8: STALL recovery with wakes and fallen = true', () => {
 
 test('T22: AC-9: INVALID_OUTPUT repair resume', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t22-'));
-  const launchFile = 'tests/fixtures/dispatch/t22-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't22-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T22 launch\n', 'utf8');
@@ -780,9 +803,9 @@ test('T22: AC-9: INVALID_OUTPUT repair resume', () => {
 
 test('T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise starts new run', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t23-'));
-  const launchFile = 'tests/fixtures/dispatch/t23-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't23-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T23 initial launch\n', 'utf8');
@@ -832,7 +855,7 @@ test('T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise star
     // Second run without --revise: BLOCKED pin-changed
     const r2 = runBin(['run', dispPath, '--registry', fakeRegPath]);
     assert.equal(r2.code, 1);
-    assert.match(r2.stdout, /^BLOCKED slot=t23-slot class=POLICY_FAILURE reason="pin-changed tests\/fixtures\/dispatch\/t23-launch\.md"/m);
+    assert.match(r2.stdout, new RegExp(`^BLOCKED slot=t23-slot class=POLICY_FAILURE reason="pin-changed ${launchFile}"`, 'm'));
 
     // Third run with --revise: starts fresh revision
     const r3 = runBin(['run', dispPath, '--registry', fakeRegPath, '--revise']);
@@ -846,9 +869,9 @@ test('T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise star
 
 test('T24: AC-11: Completion contract requires Evidence line', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t24-'));
-  const launchFile = 'tests/fixtures/dispatch/t24-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't24-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T24 launch\n', 'utf8');
@@ -859,7 +882,7 @@ test('T24: AC-11: Completion contract requires Evidence line', () => {
     const fs = require('fs');
     const path = require('path');
     const root = process.argv[2] || '.';
-    const out = path.join(root, 'tests/fixtures/dispatch/out1.txt');
+    const out = path.join(root, ${JSON.stringify(outFile)});
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, 'valid output without evidence\\n', 'utf8');
     const j = path.join(root, '.ai/worklog/gemini-0123456789abcdef.md');
@@ -916,9 +939,9 @@ test('T24: AC-11: Completion contract requires Evidence line', () => {
 
 test('T25: AC-7: PROCESS_CRASH recovery via resume', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t25-'));
-  const launchFile = 'tests/fixtures/dispatch/t25-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't25-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T25 launch\n', 'utf8');
@@ -996,9 +1019,9 @@ test('T25: AC-7: PROCESS_CRASH recovery via resume', () => {
 
 test('T26: AC-10: PKG-5 dispatcher fall signal test', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t26-'));
-  const launchFile = 'tests/fixtures/dispatch/t26-launch.md';
+  const launchFile = path.join(TEST_TMP_DIR, 't26-launch.md').replace(/\\/g, '/');
   const repoRoot = path.resolve(__dirname, '..');
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const outFile = DEFAULT_OUT_FILE;
 
   fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
   fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T26 launch\n', 'utf8');
@@ -1298,8 +1321,8 @@ test('W0: codex usage parser with grouping, colon, K/M suffixes, and raw line', 
 test('T28: AC-usage: two-attempt sum, mixed units giving actual=null, and cost recording', async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t28-'));
   const repoRoot = path.resolve(__dirname, '..');
-  const launchFile = 'tests/fixtures/dispatch/t28-launch.md';
-  const outFile = 'tests/fixtures/dispatch/out1.txt';
+  const launchFile = path.join(TEST_TMP_DIR, 't28-launch.md').replace(/\\/g, '/');
+  const outFile = DEFAULT_OUT_FILE;
 
   try {
     fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
@@ -1313,7 +1336,7 @@ const mode = process.argv[2];
 const tmpDir = process.argv[3];
 const workdir = process.cwd();
 
-const outPath = path.join(workdir, 'tests', 'fixtures', 'dispatch', 'out1.txt');
+const outPath = path.join(workdir, ${JSON.stringify(outFile)});
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, 'output\\n', 'utf8');
 
@@ -1585,6 +1608,15 @@ test('Guard test: test suite leaves no changes to tracked files', () => {
   assert.ok(!changed.some(l => l.includes('docs/ops/RUNS.jsonl')), 'docs/ops/RUNS.jsonl polluted');
   assert.ok(!changed.some(l => l.includes('hang-launch.md')), 'hang-launch.md modified/deleted');
   assert.ok(!changed.some(l => l.includes('t21-launch.md')), 't21-launch.md modified/deleted');
+
+  const currentFixtures = getFixturesStatus();
+  const changedFixtures = currentFixtures.filter(l => !initialFixturesStatus.includes(l));
+  assert.deepEqual(changedFixtures, [], `Test suite modified or created files under tests/fixtures:\n${changedFixtures.join('\n')}`);
+});
+
+test.after(() => {
+  try { fs.rmSync(testTmpAbs, { recursive: true, force: true }); } catch {}
+  try { fs.rmSync(TEST_SUITE_TMP, { recursive: true, force: true }); } catch {}
 });
 
 

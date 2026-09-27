@@ -61,9 +61,9 @@ carries a one-line pointer to this file.
 
 TRANSFER targets named by the stage-12 closure of F-01 (R-L0-22.60):
 
-- **W5.** The dispatch test fixture left in `docs/research/2026-09-26-ownerideas-revision/` (`prompts/DISPATCH.json` and
-  `prompts/run/*`, 40 files). Re-home it under `tests/fixtures/`, point `tests/dispatch.test.cjs`
-  at it, then archive the leftover directory and add an INDEX row.
+- **W5.** The dispatch test fixture re-homed from `docs/research/2026-09-26-ownerideas-revision/` (`prompts/DISPATCH.json` and
+  `prompts/run/*`, 40 files) to `tests/fixtures/prompts/`. Pointed `tests/dispatch.test.cjs`
+  at it, archived the leftover directory with archive INDEX row CR-W5-1.
 - **W1.** Retire `docs/research/2026-09-25-validator-migration-council/tools/run-chain.cjs`
   (F-06 had TRANSFER(A-3); A-3 is now implemented as `.ai/bin/protocol-dispatch.cjs`).
 - **W0.** The codex usage-parser exception (owner decision A, 2026-09-27).
