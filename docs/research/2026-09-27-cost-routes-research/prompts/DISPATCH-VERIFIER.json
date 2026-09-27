@@ -1,0 +1,20 @@
+{
+  "stateDir": ".ai/runtime/cost-routes-verifier",
+  "usageFile": "docs/research/2026-09-27-cost-routes-research/USAGE-VERIFIER.md",
+  "startLimitMin": 15,
+  "stallMin": 60,
+  "runLimitHours": 6,
+  "slots": [
+    {
+      "id": "cr-verifier",
+      "frame": "task:cr-verifier",
+      "out": "docs/research/2026-09-27-cost-routes-research/round2/VERIFICATION.md",
+      "launch": "docs/research/2026-09-27-cost-routes-research/prompts/run/verifier.md",
+      "route": {
+        "client": "codex",
+        "model": "gpt-5.6-luna",
+        "effort": "medium"
+      }
+    }
+  ]
+}

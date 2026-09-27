@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "stateDir": ".ai/runtime/cost-routes",
+  "usageFile": "docs/research/2026-09-27-cost-routes-research/USAGE.md",
+  "startLimitMin": 15,
+  "stallMin": 30,
+  "hardMin": 120,
+  "runLimitHours": 12,
+  "slots": [
+    {
+      "id": "cr-collector-a",
+      "frame": "task:cr-collector-a",
+      "out": "docs/research/2026-09-27-cost-routes-research/round1/COLLECTOR-A.md",
+      "outputs": [
+        "docs/research/2026-09-27-cost-routes-research/round1/COLLECTOR-A.md"
+      ],
+      "launch": "docs/research/2026-09-27-cost-routes-research/prompts/run/collector-a.md",
+      "copyIn": [
+        "docs/research/2026-09-27-cost-routes-research/prompts/run/collector-a.md",
+        "docs/research/2026-09-27-cost-routes-research/OWNER-PROMPT.md",
+        "docs/research/2026-09-27-cost-routes-research/README.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false },
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.7-flash-high"
+      }
+    },
+    {
+      "id": "cr-collector-b",
+      "frame": "task:cr-collector-b",
+      "out": "docs/research/2026-09-27-cost-routes-research/round1/COLLECTOR-B.md",
+      "outputs": [
+        "docs/research/2026-09-27-cost-routes-research/round1/COLLECTOR-B.md"
+      ],
+      "launch": "docs/research/2026-09-27-cost-routes-research/prompts/run/collector-b.md",
+      "copyIn": [
+        "docs/research/2026-09-27-cost-routes-research/prompts/run/collector-b.md",
+        "docs/research/2026-09-27-cost-routes-research/OWNER-PROMPT.md",
+        "docs/research/2026-09-27-cost-routes-research/README.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false },
+      "route": {
+        "client": "kilo",
+        "model": "deepseek/deepseek-flash",
+        "effort": "max"
+      }
+    },
+    {
+      "id": "cr-verifier",
+      "frame": "task:cr-verifier",
+      "out": "docs/research/2026-09-27-cost-routes-research/round2/VERIFICATION.md",
+      "outputs": [
+        "docs/research/2026-09-27-cost-routes-research/round2/VERIFICATION.md"
+      ],
+      "launch": "docs/research/2026-09-27-cost-routes-research/prompts/run/verifier.md",
+      "needs": ["cr-collector-a", "cr-collector-b"],
+      "copyIn": [
+        "docs/research/2026-09-27-cost-routes-research/prompts/run/verifier.md",
+        "docs/research/2026-09-27-cost-routes-research/OWNER-PROMPT.md",
+        "docs/research/2026-09-27-cost-routes-research/README.md",
+        "docs/research/2026-09-27-cost-routes-research/round1/COLLECTOR-A.md",
+        "docs/research/2026-09-27-cost-routes-research/round1/COLLECTOR-B.md"
+      ],
+      "git": { "mode": "READ_ONLY", "publishRequired": false },
+      "route": {
+        "client": "codex",
+        "model": "gpt-5.6-luna",
+        "effort": "medium"
+      }
+    }
+  ]
+}
