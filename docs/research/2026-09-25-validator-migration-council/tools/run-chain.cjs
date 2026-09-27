@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 'use strict';
+// RETIRED: New programs use .ai/bin/protocol-dispatch.cjs only (OPS-1 W1). Kept because reviews cite it.
 // Generic chain runner (PROTO-DEC-0073). Holds no prompt, no task instruction and no task path:
 // every slot, route, output and launch file comes from the dispatch file named on the command
 // line. The message to an agent is only "Read and follow the file <launch file>". What stays here
