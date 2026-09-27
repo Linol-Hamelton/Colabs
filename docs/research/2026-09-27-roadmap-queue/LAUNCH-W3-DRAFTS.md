@@ -29,7 +29,8 @@ dispatches; the drafts cite the DIG registry). Output only into
    - `BASELINE.md` wall times as the frozen baseline (the full suite `Bs = 591 s`; cite the file);
    - the certification rounds of 2A (high-risk flow: review, fix, freeze, owner lane, audit
      prompt, two certifiers, merge);
-   - usage coverage in run records (`docs/ops/RUNS.jsonl`, the A-10 chain; state the target);
+   - usage coverage in run records (`docs/ops/RUNS.jsonl`, the A-10 chain); the criterion is
+     **"usage or an explicit not-exposed marker"**, not "usage for every client";
    - a disposition for **every** "not built" DIG row (cite the registry files in `drafts/`).
 4. Give a recommendation with the reasoning, and the risks that would falsify it.
 
