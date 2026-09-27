@@ -4,9 +4,47 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { repoRoot, makeProtocolFixture, runPowerShell, run, write } = require('./helpers.cjs');
+const { repoRoot, makeProtocolFixture, runPowerShell, run, write, seedProtocol } = require('./helpers.cjs');
 
 const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'protocol-manifest.json'), 'utf8'));
+
+// seedProtocol writes the file set instead of copying it (performance wave 1). The fixture must
+// be the one the recursive copy produced: same paths, same bytes.
+test('seeded fixtures hold exactly the files and bytes of a recursive copy of their sources', t => {
+  const os = require('node:os');
+  const temp = prefix => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+    t.after(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
+    return dir;
+  };
+  const written = seedProtocol(temp('colabs-test-seed-'), { realValidator: true });
+  const copied = temp('colabs-test-copy-');
+  const entries = [...manifest.managed, ...manifest.source, ...manifest.tests,
+    ...manifest.integration, '.editorconfig', '.codex/config.toml', 'templates'];
+  for (const relative of entries) {
+    const source = path.join(repoRoot, relative);
+    if (!fs.existsSync(source)) continue;
+    fs.mkdirSync(path.dirname(path.join(copied, relative)), { recursive: true });
+    fs.cpSync(source, path.join(copied, relative), { recursive: true });
+  }
+  fs.cpSync(path.join(repoRoot, 'templates', 'ai'), path.join(copied, '.ai'), { recursive: true });
+  const listing = root => {
+    const out = [];
+    (function walk(dir) {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full); else out.push(path.relative(root, full).split(path.sep).join('/'));
+      }
+    })(root);
+    return out.sort();
+  };
+  const files = listing(written);
+  assert.deepEqual(files, listing(copied));
+  assert.ok(files.length > 50, `unexpectedly small fixture: ${files.length} files`);
+  for (const relative of files) {
+    assert.ok(fs.readFileSync(path.join(written, relative)).equals(fs.readFileSync(path.join(copied, relative))), relative);
+  }
+});
 
 // Three separate outages came from a manifest and a required-file list that had
 // to agree with nothing checking: an entry naming a file that did not exist, a
