@@ -126,8 +126,11 @@ No website, no localhost server, no open ports.
   - Where independence matters, the second opinion comes from another family (GPT-5.6 Sol).
   - When the consultant's route is exhausted (the Claude weekly limit was hit on 2026-09-27),
     escalate to the owner or to Sol. Never silently downgrade.
-- **Reviewer independence.** DeepSeek as operator shapes the work, so DeepSeek is not the
-  reviewer of work it operated. Pick another family.
+- **Reviewer independence.**
+  - The operator dispatches and relays; it authors and executes nothing.
+  - A DeepSeek reviewer is allowed, but only in its own session, never the operator session.
+    Review is not certification (PROTO-DEC-0041 item 1).
+  - Certifiers come from families other than the executor's and the operator's.
 
 ### W4. Cost-aware routing
 
@@ -174,6 +177,19 @@ No website, no localhost server, no open ports.
 - No test writes into the tracked tree.
 - `git status` stays clean after a killed run.
 
+### W8. Faster test lanes (after W5)
+
+- **Why.** The full suite (419 tests) takes about 9 minutes on Windows and runs inside every
+  `record`: about ten times on 2026-09-27.
+- **Parallel suite.** Run the test files in parallel. This needs W5 first: shared state made
+  MiMo's first round-3 `record` fail under a concurrent run.
+- **Fast lane.** A working `record` runs the tests of the changed packages only. The full lane
+  stays mandatory at a CANDIDATE freeze and for certification.
+- **Measure.** Record the wall time before and after in the program report.
+
+W6 and W7 (programmatic launch safety; session liveness) are added after the owner reviews the
+local incident audit of the VPN report.
+
 ## Decision drafts for the owner
 
 These go into `DECISION-DRAFTS.md` in this folder. Never write them into `.ai/DECISIONS.md`.
@@ -182,11 +198,17 @@ These go into `DECISION-DRAFTS.md` in this folder. Never write them into `.ai/DE
 - **D2.** The consultant role (Opus 5.5) and its independence rule.
 - **D3.** The L0-L3 ladder and its triggers.
 - **D4.** The resolver cost metric and the zero-cost policy. This closes the PKG-3 open question.
-- **D5.** The Kimi certifier route. The Kimi Code subscription returned 403, so only the API route
-  remains. The choice is between two variants:
-  - `kimi-k2.7-code-highspeed` at $1.90/$8.00;
-  - `kimi-k2.7-code` at $0.95/$4.00.
-  The second is a variant change and needs an owner record.
+- **D5.** The certifier pair. Proposed: MiMo-V2.6-Pro and GPT-5.6 Sol, replacing Kimi K2.7 Code
+  HighSpeed.
+  - Why:
+    - in the OwnerIdeas program MiMo reproduced the PKG-2 defects that Kimi passed in rounds 1
+      and 2;
+    - Sol verified at stage 11;
+    - Kimi is API-only (the Kimi Code subscription returned 403) and the most expensive route.
+  - A certifier substitution needs the owner's record, as with MiMo-V2.6-Pro in place of Flash.
+  - If the owner keeps Kimi, the API variant must be chosen: `kimi-k2.7-code-highspeed` at
+    $1.90/$8.00, or `kimi-k2.7-code` at $0.95/$4.00. The second is a variant change and needs an
+    owner record.
 
 ## Phases
 
@@ -194,9 +216,10 @@ These go into `DECISION-DRAFTS.md` in this folder. Never write them into `.ai/DE
   stop and send them to the owner (by chat, or by Telegram once W2 exists).
 - **Phase B.** Implementation after approval, on branch `ops-1`, one workstream per commit.
   - Executor: Gemini 3.8 Flash high.
-  - Reviewer: a family different from both the executor and the operator.
+  - Reviewer: DeepSeek Flash, in its own session (not the operator session).
 - **Phase C.** `.ai/bin` changes are high-risk (PROTO-DEC-0038).
-  - Two independent CERTIFYING certifiers on one frozen CANDIDATE.
+  - Two independent CERTIFYING certifiers on one frozen CANDIDATE. The pair is the one the owner
+    confirms in D5; proposed MiMo-V2.6-Pro and GPT-5.6 Sol.
   - At most three rounds (PROTO-DEC-0047 item 5).
   - The consultant does not certify.
 
@@ -214,4 +237,6 @@ These go into `DECISION-DRAFTS.md` in this folder. Never write them into `.ai/DE
 - Usage is recorded for kilo, mimo, copilot, codex, kimi and claude. The other clients are marked
   not-exposed.
 - The dispatch suite leaves `git status` clean after a killed run.
+- A working `record` uses the fast lane, and the program report shows the full-lane wall time
+  before and after the parallel run.
 - No secret appears in the repository, journals or logs.
