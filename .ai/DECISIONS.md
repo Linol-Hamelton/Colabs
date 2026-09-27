@@ -3932,3 +3932,64 @@ Decision:
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-27, round-2 consensus with
 the owner's choices; transcribed by kilo-e1b4dd4a82b08b8e)
+
+### PROTO-DEC-0089
+
+Status: Accepted
+Date: 2026-09-27
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0088 item 7(c), as to commits A (`e752c0c`, `64043a3`) only.
+Refines: PROTO-DEC-0088 items 3-4 (the profile metric and the outcome wording); PROTO-DEC-0087
+items 1-2 (the M1 outcome and the perf gate).
+
+Context:
+Owner round 4 on PROFILE-1, the queue and the discussion items (2026-09-27). Both round syntheses
+were produced by a model from the Gemini family in advisory mode; the round records are
+`docs/reviews/2026-09-27-m1-consensus-discussion.md`,
+`docs/reviews/2026-09-27-profile1-consensus-discussion.md` and
+`docs/reviews/2026-09-27-round4-consensus-discussion.md` (commit `5fd5f76`). Verified at
+transcription: `v2.0.0` = `7064661` (clean), `perf-wave-1` = `d715d66`, `kernel-batch-1` =
+`ed458ae`. The owner's round rule stands (100% and the significant tier become decisions;
+40-79% go to the discussion file; below 40% are dropped).
+
+Decision:
+1. Items R1-R10 of the round are confirmed:
+   - serial time is not counted as `wall_f` (R1);
+   - an Addendum on the depth=1 worker `lifeMs` is released, and V3(a)/(b) are PASS per that
+     Addendum: `dispatch.test.cjs` = 276.8 s, `hooks.test.cjs` = 252.48 s, W = 299.2 s, so
+     L/W = 0.925 > 0.90 and L - L2 = 24.32 s > 20 s (R2, R3);
+   - the form of V3 is a bounded test-only structural split of `dispatch.test.cjs`: all 420 tests
+     kept; no changes to assertions, timeouts, mocks, dispatcher code or the protocol (R4);
+   - a categorical moratorium on any change to `tests/dispatch.test.cjs` until `kernel-batch-1`
+     fully completes and merges (R5);
+   - the A-1 certifiers are GPT-5.6 Sol and GLM-5.3 (after a CLI probe); the A-1 executor is
+     outside the GPT and GLM families; the GLM advisor is recused from A-1 for the audit (R7);
+   - models change only through `MODEL-ECONOMICS.md` -> CLI probe -> JSON regeneration -> resolver
+     tests; operator-side free mappings are forbidden (R8);
+   - the queue proceeds as launched: recovery 2 (`agy`, kb1) and the DeepSeek review (`kilo`,
+     perf1) in parallel; the Gemini DIG collector starts strictly after `agy` frees (R9);
+   - the V3 acceptance requires a new pre-registered campaign of 5 x c16 with the median <= 300 s
+     on the merged code base (R10).
+2. O1: the Addendum is released now; `PROFILE-1.md` is not edited and stays INCONCLUSIVE.
+   Every figure in the Addendum cites a raw file and key, the extraction command is recorded, and
+   the status is marked "pending script confirmation". The acceptance test of the improved
+   `report.cjs` reproduces the same figures on the same raw. Any mismatch is a finding, and
+   V3(a)/(b) are revisited.
+3. O2: after `kernel-batch-1` merges, exactly one control run of the bench on the merged head
+   (c16, quiet window). It is not an acceptance: only V3(a) L/W >= 0.90 and V3(b) L - L2 >= 20 s
+   are checked under the same rule, with `wall_f` = `lifeMs` from the improved `report.cjs`. If not
+   confirmed, the split is cancelled, the condition is not adjusted, and the owner is informed.
+4. O3: the reserve certifier for A-1 instead of GLM-5.3 is MiMo-V2.6-Pro. It is activated only on a
+   negative GLM-5.3 probe or genuine route unavailability. MiMo must not be an author, executor or
+   controller of A-1. Same certification package, its own attack angle; PROTO-DEC-0041 stands.
+5. O4: commits A (`e752c0c`, `64043a3`) merge after three conditions: the DeepSeek review with a
+   PASS or RECOMMENDATION verdict without blockers, a clean R3 overlap check, and the owner's
+   word. Reason: the V3 candidate is built on a separate branch `perf-wave-2` from `v2.0.0` after
+   `kernel-batch-1` merges, and `perf-wave-1` does not carry it. The 5 x c16 campaign applies only
+   to `perf-wave-2`.
+6. M1 stays MISSED for campaign 1. If the V3 campaign delivers a median <= 300 s, the record reads
+   "M1 reached by campaign 2 (V3)"; if not, M1 is finally MISSED, test-only optimisation stops, and
+   the next step is wave 2B in its queue.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-27, round-4 consensus with
+the owner's choices; transcribed by kilo-e1b4dd4a82b08b8e)
