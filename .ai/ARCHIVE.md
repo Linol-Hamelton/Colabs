@@ -12397,3 +12397,775 @@ Evidence:
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 8s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/claude-cf505493500f999e.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: claude-cf505493500f999e
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-21 - Round-3 independent certification of the cycle architecture (PASS)
+
+Agent: claude-cf505493500f999e
+
+Action: Acting as the standing default certifier (PROTO-DEC-0041 item 2, first of two slots), angle = literal
+conformance of the documentation to PROTO-DEC-0041 and the PLAN cycle architecture policy. Re-verified my
+round-2 findings and regression-checked F-001..F-003 against d38d2f2 with a dirty tree. Reviewed and persisted
+`docs/reviews/2026-09-21-claude-cycle-architecture-certification-round3.md` (69 lines / 4,093 B, within the
+90-line / 4 KB cap). Read `.ai/TASK.md`, `.ai/PLAN.md`, PROTO-DEC-0041 in `.ai/DECISIONS.md`,
+`.ai/docs/PROTOCOL.md`, `.ai/docs/PAIRED-CYCLE.md`, `AGENTS.md` and the cycle-architecture dispatch. Per
+PROTO-DEC-0041 item 2 I did not open the parallel certifier's round-5 report before fixing my verdict; it was
+written 13 seconds before mine and remains unread by me.
+
+Result: Verdict PASS; zero mandatory defects. R-001 resolved - `.ai/docs/PROTOCOL.md:113` condition 2 is now
+frame-bound ("No path declared forbidden in the Phase 0 frame of this task is touched; where the frame is
+silent, the standing default list is ...") and agrees with `.ai/PLAN.md:150`/`:181` and
+`.ai/docs/PAIRED-CYCLE.md:43`/`:68`; this task's frame is not silent, so its own `AGENTS.md` edit is
+legitimate. R-002 resolved - dispatch line 43 restates PROTO-DEC-0041 item 2 character-for-character with a
+dated note superseding the round-1 "fifth voice" paraphrase. R-003 measured: corpus 58 files / 598,244 B
+before the certifier reports and 60 / 606,290 B with both, against 60 files / 614,400 B (exactly at the file
+cap, inside the byte cap); 27 journals against <= 30; validator exit 0 with `Protocol OK. 0 warning(s).`
+Closure steps 6-8 are controller actions sequenced after both certifiers and are pending by design, not
+defects. No regression: F-001 verbatim at `PROTOCOL.md:280` and `PAIRED-CYCLE.md:23`; F-002 dispatch criterion
+4 (line 109) reproduces its UTC mtimes exactly (`validate-protocol.ps1` 2026-09-20T17:47:43Z,
+`protocol-handoff.cjs` 17:47:24Z); F-003 two-certifier rule at `AGENTS.md:95`, `PROTOCOL.md:295` and
+`PAIRED-CYCLE.md:317`.
+
+Next step: The controller closes R-003 steps 6-8 - restate the normalized budget figures in `.ai/TASK.md:55`,
+take the final-tree receipts for each owner, and run `verify --deep`. Completion also needs the second
+certifier's verdict; one reviewer cannot close a high-risk task.
+
+Open: Whether the corpus sitting exactly at the 60-file cap leaves the controller room for closure artifacts
+without another archival pass. `.ai/TASK.md:55` still carries the pre-normalization figures. The second
+certifier's round-5 verdict is unknown to me by design. I ran the validator only; `test-protocol.ps1` was not
+run in this session, and I made no behavioural probe of gate code.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:8c81dff70251da85b52252e253957551d5995ca96af7b6cc6b4ae76f4d4b4382 over 262 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-21T08:10:57.574Z by claude-cf505493500f999e
+- entry hash format: 2
+- entry: sha256:45503f2fe10e44e76b3530cefa32f087b7f99d49ceb5cb4c8129c16c15e45c8e of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+### From .ai/worklog/gemini-927b6b871251a111.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: gemini-927b6b871251a111
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+<!-- archived-parent: sha256:6c8f20977a90c681008a5d2e5694e441b56177e580e192399ff1f5c1cd2dda34 -->
+
+---
+
+## 2026-09-21 - Remediate Claude round-2 certification findings (R-001, R-002)
+
+Agent: gemini-927b6b871251a111
+
+Action: Remediated documentation findings R-001 and R-002 from docs/reviews/2026-09-21-claude-cycle-architecture-certification-round2.md:
+(1) R-001: Rewrote legitimization condition 2 in .ai/docs/PROTOCOL.md line 113 to bind to the Phase 0 task frame ("No path declared forbidden in the Phase 0 frame of this task is touched; where the frame is silent, the standing default list is `AGENTS.md`, `QUICKSTART.md`, kernel, hooks, gates, manifest, tests, decisions and registry."), resolving contradiction with PLAN policy Phase 0 and permitting task-authorized edits.
+(2) R-002: In docs/reviews/2026-09-20-deepseek-gemini-cycle-architecture-dispatch.md line 43, restated the third-reviewer rule exactly as worded in PROTO-DEC-0041 item 2 ("a third reviewer is added only for an uncovered risk, contradicting reproductions, or an explicit owner directive") with a dated note superseding the historical round-1 paraphrase. Cites unified prompt docs/reviews/2026-09-20-gemini-cycle-architecture-adversarial-prompt.md.
+
+Result: Documentation aligned with PROTO-DEC-0041 and PLAN policy; validate-protocol.ps1 exit 0, 0 warnings.
+
+Next step: Controller handles R-003 budgets/closure; external certification by Claude and Codex.
+
+Open: External certification verdicts; R-003 budget closure by controller.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:2241e32e9e2adebc3b587c1aaef49b4e51154482bed850ab29bd91bd40b6c75c over 262 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-21T08:30:04.767Z by gemini-927b6b871251a111
+- entry hash format: 2
+- entry: sha256:c6b1e046c91ebb57aa31aaee923fa1ccc1e013444eea915c1e2ea7f6a2b9f65f of this entry without this block
+- parent-entry: sha256:ac0978e4e6284dbcc9b82096c680395849ef5ea00d5c2ed0a4fd9e1424d29ee9
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 238s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+
+## 2026-09-21 - Remediate Claude certification findings (F-001..F-004)
+
+Agent: gemini-927b6b871251a111
+
+Action: Remediated mandatory documentation findings from docs/reviews/2026-09-21-claude-cycle-architecture-certification.md:
+(1) F-001: Aligned the third-reviewer rule literally with PROTO-DEC-0041 item 2 in .ai/docs/PROTOCOL.md and .ai/docs/PAIRED-CYCLE.md (added only for an uncovered risk, contradicting reproductions, or an explicit owner directive; removed "fifth participant" framing and missing capability trigger).
+(2) F-003: Added binding high-risk minimum-two rule to AGENTS.md section 2 and both completion-gate sections (.ai/docs/PROTOCOL.md and .ai/docs/PAIRED-CYCLE.md): final check of a high-risk candidate requires >= 2 parallel independent certifiers, single reviewer cannot close high-risk Completed task, and certifiers must be outside execution and control.
+(3) F-004: Removed self-authorizing forbidden-path caveat in .ai/docs/PROTOCOL.md line 113, aligning with PLAN policy.
+(4) F-002: In docs/reviews/2026-09-20-deepseek-gemini-cycle-architecture-dispatch.md, replaced unattainable git diff baseline criterion 4 with measured check verified by Codex (UTC mtimes and 40 protected files zero-change comparison).
+(5) F-005: Verified cycle architecture probe (X1-X4 = 1/0/0/1); updated unified adversarial prompt docs/reviews/2026-09-20-gemini-cycle-architecture-adversarial-prompt.md; updated TASK state under lock to measured counts (corpus 59 files / 608,292 B, journals 30, 0 warnings).
+
+Result: All mandatory findings closed cleanly in documentation; cycle-arch-probe passed (X1-X4 = 1/0/0/1); validate-protocol.ps1 exit 0, 0 warnings.
+
+Next step: External independent certification by Claude and Codex.
+
+Open: External certification verdicts.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:6986db6578ab5e5e738c18ced7c0db04a30a621ea097312e3b547b34d6e0f26f over 256 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-21T01:48:13.143Z by gemini-927b6b871251a111
+- entry hash format: 2
+- entry: sha256:ac0978e4e6284dbcc9b82096c680395849ef5ea00d5c2ed0a4fd9e1424d29ee9 of this entry without this block
+- parent-entry: sha256:ae0cdb8add522f438e9c7dad257ed7cce344f90b41360ef4ce7df643e4a832e8
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+## 2026-09-21 - Remediate F1 review template instructional comments
+
+Agent: gemini-927b6b871251a111
+
+Action: Remediated defect F1 in templates/reviews/REVIEW.md by rewording the instructional comments so that retaining comments in an emitted review artifact cannot trip the gate's transcription detector. Removed the literal phrase "transcription fallback" and the chat-transcription example line; preserved the guidance meaning in plain words that chat-supplied content cannot satisfy an independent review gate and the review must be produced by the named reviewer with repository access. Cites unified prompt docs/reviews/2026-09-20-gemini-cycle-architecture-adversarial-prompt.md.
+
+Result: Template verified in TEMP source fixture with realValidator: filled review retaining instructional comments passes record --owner session-audit --quick and gate-check (completion gate verified); validate-protocol.ps1 passes with 0 warnings.
+
+Next step: External independent certification and sign-off.
+
+Open: External certification verdicts.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:25ebfa376082ba729f59ff3bb17a6d0a820ad5404b618e0a482ee378008da4ae over 254 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-21T01:06:36.455Z by gemini-927b6b871251a111
+- entry hash format: 2
+- entry: sha256:ae0cdb8add522f438e9c7dad257ed7cce344f90b41360ef4ce7df643e4a832e8 of this entry without this block
+- parent-entry: sha256:6ab125f32798b3aa245a1653aa2397d2e1db9f06080d73985af5b51f5fd9ece7
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-20 - Correct B4 verdict grandfathering documentation
+
+Agent: gemini-927b6b871251a111
+
+Action: Corrected B4 verdict grandfathering caveat in .ai/docs/PROTOCOL.md per independent review finding:
+(1) Clarified that while historical review artifacts remain valid historical records and are never edited in place, completion gates enforce the exact verdict token (PASS or RECOMMENDATION) for any review cited by a gate regardless of the artifact date. A historical review with a non-standard verdict token must be reissued as a new dated artifact if cited by a new completion gate.
+(2) Refined the historical census statement to identify it as a point-in-time census at PROTO-DEC-0041 adoption, noting its counting rule (exact trimmed token equality after stripping bold markers) and that about half of existing reviews matched the closed set.
+(3) Retained the forward-only rule for new review artifacts and kept all gate code unchanged. Cites unified prompt docs/reviews/2026-09-20-gemini-cycle-architecture-adversarial-prompt.md.
+
+Result: .ai/docs/PROTOCOL.md accurately describes gate enforcement behavior; validate-protocol.ps1 reports 0 warnings.
+
+Next step: DeepSeek independent review and parallel external certification by Claude and Codex.
+
+Open: Independent review verdicts and final external certification.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:572dc599891579f4d270ef8f14348d7fa953127d5870fcd2c78f2b463cd0520d over 252 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T21:19:31.368Z by gemini-927b6b871251a111
+- entry hash format: 2
+- entry: sha256:6ab125f32798b3aa245a1653aa2397d2e1db9f06080d73985af5b51f5fd9ece7 of this entry without this block
+- parent-entry: sha256:6c8f20977a90c681008a5d2e5694e441b56177e580e192399ff1f5c1cd2dda34
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/deepseek-59c81998639a4feb.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: deepseek-59c81998639a4feb
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-21 - Cycle-architecture fixation closed: two independent PASS
+
+Agent: deepseek-59c81998639a4feb (controller; independent reviewer of the implementation)
+
+Action: Closed the cycle-architecture fixation cycle (PROTO-DEC-0041 / PLAN policy / B1-B8 dispatch). After the earlier rounds, the final candidate carried the R-001 fix (PROTOCOL.md condition 2 bound to the Phase 0 frame with the standing default list) and the R-002 fix (dispatch clause restated per PROTO-DEC-0041 item 2 with a dated superseded note); budgets were reserved at 58 files / 598,244 B / 25 journals before the final certifier sessions. Two parallel independent certifiers ran on the same package without reading each other's verdicts: Claude round-3 PASS (receipt claude-cf505493500f999e) and Codex round-5 PASS (receipt codex-eb8786999ebfc7c2); both deep verifications matched the tree before this closure. I updated the `.ai/TASK.md` cycle-architecture state line under the shared lock with the measured closed-state numbers (60 files / 606,295 B, 27 journals, 0 warnings) as the last tree change.
+
+Result: Cycle-architecture task closed; no mandatory defect remains; LOW backlog F-006..F-009 stays open as optional; history preserved in `.ai/ARCHIVE.md` and the archive INDEX; no commits.
+
+Next step: product pilots unblocked - Block-Puzzle first task (triage commit 5ada2b9 done) and the VPN pilot with DeepSeek as the owner-named implementer in its own product session; produce the comparative pilot report on the five frozen metrics.
+
+Open: LOW backlog items; the strategy's PLAN-level policy remains reversible until the pilot report.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:2241e32e9e2adebc3b587c1aaef49b4e51154482bed850ab29bd91bd40b6c75c over 262 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-21T08:34:03.547Z by deepseek-59c81998639a4feb
+- entry hash format: 2
+- entry: sha256:bdb6ad5e440c3d91978d6dcb5dbe2d21efdb475bdb492c7a605e7ab98cdefedc of this entry without this block
+- parent-entry: sha256:84f433cf4336e6403567020d6b31e190f36292c92497a6aa293e52655af23f22
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 236s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+## 2026-09-20 - Wave C spot triage: S-1..S-4 closed; review binding restored
+
+Agent: deepseek-59c81998639a4feb (controller, independent reviewer)
+
+Action: The external final spot (`docs/reviews/2026-09-20-claude-paired-cycle-wave-c-final-spot.md`, Verdict FAIL) found state items, not code defects. I closed the deterministic ones: staged the phantom journal deletion (validator 0 warnings, 30 journals); prepended this entry citing `docs/reviews/2026-09-20-deepseek-paired-cycle-wave-c-review-round2.md` so the gate's binding check finds the review path again (S-2); corrected `.ai/TASK.md` and `.ai/PLAN.md` to the measured `57 files / 607,450 B`, `30 journals`, `0 warnings` (S-1); and published `docs/reviews/2026-09-20-deepseek-paired-cycle-wave-c-review-addendum.md` closing S-4 (PowerShell headerEnd bounds at `validate-protocol.ps1:715-730`, `:807-836`; both engines require Reviewer/Verdict in the header region). The spot's S-6/S-8 triggers were caused by a concurrent 53,447 B artifact (`2026-09-20-claude-final-cycle-architecture-decision.md`) written during closure and no longer present in the tree; the tree is quiet and within budget now.
+
+Result: validator 0 warnings; corpus 57 / 607,450 B; journals 30; addendum certified PASS; TASK/PLAN reconciled.
+
+Next step: S-5 (the Wave C implementer receipt for `gemini-927b6b871251a111`) needs a Gemini recording pass, and a final spot re-run when a reviewer quota returns; the cycle-architecture strategy and its last-round prompt are already Proposed and await the owner's D-A..D-E and the council round.
+
+Open: implementer receipt; spot re-run; owner decisions on the strategy; VPN implementer naming.
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:f18edee224e16bba8c44d508cb904d0fd9c35dd654d1cd89656a4860065d34f5 over 251 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T19:58:07.340Z by deepseek-59c81998639a4feb
+- entry hash format: 2
+- entry: sha256:84f433cf4336e6403567020d6b31e190f36292c92497a6aa293e52655af23f22 of this entry without this block
+- parent-entry: sha256:7a5ecbb7a5eca4b863d6824d494410c07af5a02ae76a74073d43b6529b78d3cf
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
+## 2026-09-20 - Cycle-architecture strategy: independent analysis, fact-check, final document and last-round prompt
+
+Agent: deepseek-59c81998639a4feb (controller, independent reviewer)
+
+Action: Analyzed all cycle-architecture materials (Claude statistical audit, Gemini adversarial review, Codex research and P0-P11 plan, the owner's 12-stage list, the Codex council prompt), re-derived the decisive numbers from the tree with my own census (176 artifacts, 114 Verdicts, 107 Reviewer, 63 Mode; bare tokens 23/15/10/3) and recomputed the cohort arithmetic: k=3 over all six cohorts 7.86% is an exhausted-sample artifact; on the same three cohorts with n>=4, k=3 = 15.71% and k=4 = 7.14% (8.57 pp gap), confirming Codex's correction. Confirmed that 13/27 = 48.15% is the blocking-verdict share, not detection probability, and that Wave B (two items) had its parity claim overturned, falsifying the "1-2 items" rule. Wrote `docs/reviews/2026-09-20-final-cycle-architecture-strategy.md` (Proposed: seven phases with trigger-based repeats, risk-scaled participant composition, certification independence as policy, contract/blast-radius blocks, finding/refutation symmetry, closed verdict vocabulary for new artifacts, and the new access-authorization/change-legitimization rule with anti-idle-loop guards) and `docs/reviews/2026-09-20-final-cycle-architecture-adversarial-prompt.md` for the last council round. Added the Proposed reference to `.ai/TASK.md` under the lock. Normalized budgets: one journal fully archived and pruned (29 journals), one closed report archived (corpus 57 files / 604,675 B), validator 0 warnings.
+
+Result: final strategy and adversarial prompt persisted as Proposed; no history rewritten; no decision or registry change; Wave C and the freeze untouched.
+
+Next step: the owner appoints one synthesizer and up to three reviewers for the last round using the adversarial prompt; after targeted fact-checks and explicit owner approval the strategy is recorded under the lock, then the product pilots resume.
+
+Open: owner decisions D-A..D-E; VPN implementer naming; one more external Wave C spot remains unrecorded because Codex and Claude both hit limits (disclosed, not blocking the strategy work).
+
+Evidence:
+- anchor: d38d2f2ae4b4c17fe6c2c18f11215cedb2f10eb1, uncommitted changes present
+- digest: sha256:71c67b3ada268350423a95dc2341d3d24e6d35a3674353a542bd337051ca76c4 over 247 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-20T19:35:38.805Z by deepseek-59c81998639a4feb
+- entry hash format: 2
+- entry: sha256:7a5ecbb7a5eca4b863d6824d494410c07af5a02ae76a74073d43b6529b78d3cf of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/gemini-bc8f87d66fd614fa.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: gemini-bc8f87d66fd614fa
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-23 - Remediation round for candidate b232a9e
+
+Agent: gemini-bc8f87d66fd614fa
+
+Action:
+Completed ONE remediation round addressing the union findings of Codex slot 1 (C01-C10) and Claude slot 2 (F-S2-01..F-S2-05) across all owner-assigned root-cause classes:
+1. Created docs/reviews/2026-09-23-batch-findings.md capturing C01-C10 union findings. Initial protocol-verdict run reported FAIL (exit 1).
+2. validate-protocol.ps1 (RC-immutability-boundary C07/F-S2-02): Anchored regex at end of string (\z) without m flag, preserved heading-only termination, stripped only single trailing separator, added heading comparison to catch tampering.
+3. .ai/bin/protocol-index.cjs (RC-path-alphabet C09): Updated PATH_LIKE regex to include Unicode and + tokens.
+4. docs/specs/2026-09-23-executable-rulebook-spec.md: Updated lines 110-113 to require recorded invariant violation (RC-text-as-judgement C08) and lines 167-169 to exclude author, executor, controller, or executing pair under PROTO-DEC-0041 item 1 (RC-spec-controller-omission C06).
+5. .ai/bin/protocol-scope.cjs: Removed scope/forbidden file touched set exemption (RC-touched-input-exemption C04); changed error diagnostics to repo-relative paths (RC-absolute-diagnostics C10); restricted producer derivation to declared inputs, removed basename fallback, rejected SHA as producer owner, and excluded controller/coordinator/author/executor roles from certifying (RC-owner-source-guessing C05, RC-spec-controller-omission C06).
+6. .ai/bin/protocol-verdict.cjs: Constrained manifest lookup to candidate repo root without ancestor traversal or nested shadowing (RC-manifest-root-discovery C03); enforced non-empty arrays of strings for managed/source keys (RC-manifest-schema C02); hardened ledger parsing against unframed rows, blank/prose splits, second tables, hidden fenced rows, duplicate headers, extra/short cells, and invalid exits (RC-ledger-parse C01, F-S2-01, F-S2-03); stripped bare unrunnable word/filename matching (RC-text-as-judgement C08).
+7. tests/validator.test.cjs & tests/rulebook.test.cjs: Added negative tests for all fixed root causes and classes.
+8. Updated docs/reviews/2026-09-23-batch-findings.md dispositions to fixed-and-verified and verified protocol-verdict yields PASS (exit 0).
+
+Result:
+- validate-protocol.ps1: 0 warnings, 0 failures.
+- test-protocol.ps1: 371/371 tests passed (exit 0).
+- tests/rulebook.test.cjs: 49/49 tests passed (exit 0).
+- tests/validator.test.cjs: 34/34 tests passed (exit 0).
+- protocol-verdict on open ledger: FAIL (exit 1).
+- protocol-verdict on closed ledger: PASS (exit 0).
+
+Next step:
+Opposing certifiers re-audit the remediated tree; await owner direction.
+
+Open:
+None. All 10 root-cause findings closed and verified by automated regression tests.
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:30bf95e88ba49260030c95dff6e0af50231383392dad561b52c773bebff1199a over 337 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T09:47:59.462Z by gemini-bc8f87d66fd614fa
+- entry hash format: 2
+- entry: sha256:9a678b98643008e82ac41c9b41887dbf772f66511c5a02ab23db59321779ba02 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 323s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/deepseek-face2b2e94e03a81.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: deepseek-face2b2e94e03a81
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-23 - Non-certifying adversarial pass on 4ded1be (coordinator issues no PASS)
+
+Agent: deepseek-face2b2e94e03a81 (coordinator; non-certifying pass only)
+
+Action:
+Ran the owner-requested non-certifying adversarial pass on the frozen candidate (the nine
+candidate files in the main tree verified identical to 4ded1bee1c2acf2392fdeededf50935f59138302
+via `git diff`). Reproduced F-R3-01/R3-C04 independently: with only a target ledger
+(RC-adv-probe attempt 2) under .ai/runtime/adv-pass/, `node .ai/bin/protocol-verdict.cjs
+.ai/runtime/adv-pass/target-findings.md --stop-rule` exits 2 ("non-contiguous attempts
+[2]"); adding an undeclared sibling `sibling-findings.md` in the same directory - outside
+docs/reviews, which spec section 4 does not include in discovery - turns the run into
+"PASS ... 14 group(s)" exit 0: an out-of-contract file supplied the missing attempt 1.
+Baseline check before the fixture: the repository's own ledgers PASS over 13 groups
+(exit 0). Confirmed F-R3-03: no implementer journal or Evidence for the remediation round
+exists in the frozen tree (checked the claude3 worktree: no gemini-85e970/8d3747 journal),
+so the candidate cannot satisfy its own Check 4 from repository state. Did not
+independently reproduce F-R3-05 (it predates the candidate; the certifiers' reproductions
+stand). Also found and corrected a dispatch error of mine: agy's `--print` takes the prompt
+as its value, so `--print --mode accept-edits ...` consumed `--mode` as the prompt and
+exited 2; relaunched the Gemini research run with `--mode accept-edits --print-timeout 45m
+--log-file` and the prompt attached to `-p` at the end. Fixtures kept under
+.ai/runtime/adv-pass/ (disposable, gitignored). The pass issues no PASS; the reproduced
+protected-path defect blocks under PROTO-DEC-0041 item 4 and is part of the list already
+returned to the owner.
+
+Result:
+F-R3-01 reproduced by the coordinator with a minimal fixture (exit 2 -> exit 0 via an
+undeclared sibling); F-R3-03 confirmed; one coordinator dispatch error corrected; no
+verdict issued; batch remains closed and returned to the owner.
+
+Next step:
+Research programme continues (Gemini Q03/Q04/Q07/Q13 plus challenges, Codex Q14, Mistral
+Q15 challenge); the batch waits for the owner's direction on the returned list.
+
+Open:
+F-R3-01's fix direction belongs to the owner's decision (narrow discovery to
+docs/reviews plus the named target, or record the wider scope in the spec); F-R3-03 needs
+the freeze policy to carry the implementer's journal and Evidence inside the candidate.
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:44ac80893051ec8e10a0ab9201c0c5f64a8838180c6ff4673b3d18bc3359c885 over 346 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T19:07:43.506Z by deepseek-face2b2e94e03a81
+- entry hash format: 2
+- entry: sha256:b0fd3d12d7bc76691973fcf83617f10ca0e425ab652e6a60f4f217d21188e9ed of this entry without this block
+- parent-entry: sha256:2509fb4dcde69a8113a238b0c9e389306d94854d5d1d9813678a82cebcbcd0f7
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 402s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+## 2026-09-23 - Round-3 certification closed: two FAILs, one shadow PASS, batch returned to the owner
+
+Agent: deepseek-face2b2e94e03a81 (coordinator; certifies nothing)
+
+Action:
+Second remediation round (Gemini, fresh session after two recovery attempts) fixed the
+round-2 union; receipt gemini-85e970514eeb8782 recorded 13:04:06Z (validator exit 0, suite
+exit 0 in 395s). Freeze: path-scoped commit 4ded1bee1c2acf2392fdeededf50935f59138302 per
+PROTO-DEC-0047 item 12 (candidate files only); my own freeze checks: validator 0 warnings,
+suite 376/376. Corpus freed by three classify-first archival moves (a5-b-audit,
+a5-b-audit-addendum, c1a-audit; INDEX rows appended), then refilled to 60 by the three
+round-3 reports. Worktrees claude3, codex3, mistral-shadow created at the SHA. Dispatched
+three certifiers in parallel: fresh Claude slot 1 (narrow: --permission-mode acceptEdits
+--allowedTools), Codex slot 2 (-s danger-full-access; recorded reason: the workspace-write
+sandbox blocks node->git on this host), Mistral shadow (vibe --trust --auto-approve,
+disposable worktree). Verdicts: Claude FAIL (187 lines, receipt claude-5650b3506c953480),
+Codex FAIL (142 lines, receipt codex-115d0cc78bdb41eb recorded 18:48:28Z), Mistral shadow
+PASS (receipt mistral-9e701289df63c1a0 recorded 18:41:03Z; not counted). All three reports
+copied into the shared tree. Round-2 findings: all closed by execution (RC-ledger-parse
+closes at attempt 2). New blocking root causes: RC-cross-file-scope (--stop-rule discovery
+reaches the target's own directory; an undeclared sibling can supply a missing attempt 1
+and turn a required exit 2 into exit 0), RC-role-prose-substring residuals, R3-C02
+role-section parse, R3-C03 owner-source-guessing, RC-immutability blank-line (predates the
+candidate), F-R3-03 (frozen tree lacks the implementer journal and Evidence - a
+freeze-scoping defect of mine), F-R3-04 (reproduction commands naming absent scripts). Per
+DEC-0047 item 5 this was the last automatic certification round: no new round opened, the
+list returned to the owner. Research resumed in parallel: Gemini Q03/Q04/Q07/Q13 plus
+challenges (narrow grant, --print-timeout 45m, --log-file) and Codex Q14 primary.
+
+Result:
+Round 3 = FAIL from both binding certifiers; candidate NOT CERTIFIED; no new round per the
+batch cap; corpus 60/60; journals within cap; all receipts recorded in their worktrees and
+their reports in the shared tree.
+
+Next step:
+Await owner direction on the returned list (narrow the premise, accept with recorded
+exceptions, or continue). Research programme continues: Gemini's four primaries and three
+challenges, Codex Q14, then Mistral's Q03/Q07/Q15 challenges, Copilot's Q04 challenge, my
+Q13 challenge, and the final INDEX by directory verification.
+
+Open:
+F-R3-03 needs a freeze-policy fix (implementer journal/Evidence inside the frozen candidate);
+F-R3-05 predates the candidate; shadow divergence (Claude/Codex FAIL vs Mistral PASS) is
+Q14 data; lost wakeups during the machine's suspend window cost about five hours of
+monitoring and were reconstructed manually.
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:0a0c76aafbe181b5de06cd36f4f6edbcf85aee7541620c404fcdec65d5f60a2f over 343 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T18:59:21.930Z by deepseek-face2b2e94e03a81
+- entry hash format: 2
+- entry: sha256:2509fb4dcde69a8113a238b0c9e389306d94854d5d1d9813678a82cebcbcd0f7 of this entry without this block
+- parent-entry: sha256:86c4fab2a9033166035ca48ba421473f6c871c35d6d77d461455be0a8b7a71a5
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 313s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+## 2026-09-23 - PROTO-DEC-0046 coordination: journals unloaded, candidate frozen, Claude slot-2 FAIL
+
+Agent: deepseek-face2b2e94e03a81 (coordinator; certifies nothing in this batch, PROTO-DEC-0041 item 1)
+
+Action: Coordinated the PROTO-DEC-0046 batch; dispatched, monitored and collected; wrote no verdict.
+Step 1a: archived the 10 oldest completed journals with `protocol-archive.cjs worklog <path> --keep 0`, removed the emptied files, staged `.ai/worklog`; journals 34 -> 22, validator 0 warnings.
+Step 1b: dispatched Mistral (`vibe -p --workdir D:\Colabs --add-dir <source> --trust --auto-approve --max-turns 30 --max-price 1`) to persist the Jev evaluation; it copied the source unchanged to `docs/research/2026-09-22-jev-decision-fabric-evaluation.md` (body sha256 08393fe8e2d85935, 97,822 B, header `model: deepseek/deepseek-flash`); its receipt: validator exit 0, suite exit 0 in 276s.
+Step 2: dispatched Gemini (`agy --model gemini-3.8-flash-high --add-dir D:\Colabs --dangerously-skip-permissions`) to implement items 2/3/5 and align the spec; it reported 40/40 rulebook tests; receipt: validator exit 0, suite exit 0 in 288s.
+Step 3: ran the validator and full suite myself (0 warnings; 362/362 pass) and committed the uncertified candidate `b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed` with an explicit NOT CERTIFIED message; created detached worktrees `D:\Colabs-cert\codex` and `D:\Colabs-cert\claude` at that SHA.
+Step 4: dispatched Codex (slot 1) and a fresh Claude (slot 2) in parallel. Codex is doubly blocked: the workspace-write sandbox denies node->git (`spawnSync git EPERM`, `protocol-session start` fails), and the OpenAI account is out of quota until 11:34 local; a retry with `-s danger-full-access --color never` (recorded here per AGENTS section 6) still hit the quota gate and exited. No Codex journal or verdict exists. Claude completed: FAIL, two reproduced defects on protected paths - `protocol-verdict.cjs` silently discards any ledger line not both leading- and trailing-pipe delimited and stops at the first blank line after a row, so a confirmed finding on `.ai/bin/` can yield PASS exit 0 and `--stop-rule` PASS; `validate-protocol.ps1` strips every `---` line from a block body, so an internal `---` inserted into a written committed block is undetected - plus three minor findings. Its report `docs/reviews/2026-09-23-claude-batch-certification.md` (250 lines, Mode: CERTIFYING, Receipt-Owner claude-b2f03ba7c2ab2bb6) was copied into the shared tree; its corpus reservation (archive of `2026-09-19-deepseek-flash-a4-audit.md` plus the INDEX row, verified no live references here) was mirrored; active reviews stay at 60. Claude also ran `protocol-session.cjs prune` by mistake, quarantine-and-restored four tracked journals, disclosed it and flagged the prune behaviour for the owner.
+
+Result: Step 5 stop condition reached - one certifier verdict is FAIL, so attempt 2 is the owner's call and no new round is opened. At close: validator 0 warnings; corpus 60/60; journals 22 + this session's; no commit after the freeze; the coordinator wrote no verdict for anyone.
+
+Next step: owner decision - (a) wait for the Codex quota (11:34 local) and run slot 1 on `b232a9e` for a second verdict, (b) open attempt 2 on Claude's two blocking findings, or (c) both. Copilot is reported available again after an auth fix (owner's note 2026-09-23) and is a candidate route under PROTO-DEC-0041 item 1 if a slot is re-decided.
+
+Open: Codex slot 1 unrun (quota; sandbox needs full access on Windows); whether the `---` weakening is a third attempt on F-001's root cause or a first attempt on a new one is the owner's classification call (Claude's journal records it); `protocol-session.cjs prune` can quarantine tracked journals without confirmation (Claude's observation, not reproduced as a contract violation here).
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:fb0df502d1febb0f2b0fa33f84e624ef3c11eb59d8ef02a1f5310f52c81bcbab over 320 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T05:34:03.781Z by deepseek-face2b2e94e03a81
+- entry hash format: 2
+- entry: sha256:86c4fab2a9033166035ca48ba421473f6c871c35d6d77d461455be0a8b7a71a5 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 359s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/copilot-2db59a7f7eba7f43.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: copilot-2db59a7f7eba7f43
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+## 2026-09-24 - Z3 diff-certification research
+
+Agent: copilot-2db59a7f7eba7f43
+
+Action: Started the required Copilot protocol session. Read AGENTS.md, TASK.md, BRIEF.md,
+PROTO-DEC-0048/0049, the review template, completion gate paths, handoff record/verify,
+spec section 2 and Round-3 F-R3-03/F-R3-04. Ran required repository inventory/status
+commands and `protocol-handoff.cjs state`; attempted both cited probes, which failed because
+the cited script is absent. Wrote only the Z3 report.
+Checkpoint Z3-01: Header and repository facts recorded.
+Checkpoint Z3-02: Edit map and exact diff package proposed.
+Checkpoint Z3-03: Two options compared and structured package recommended.
+Checkpoint Z3-04: Repository/external reproduction grammar proposed.
+Checkpoint Z3-05: Risk coverage and residuals recorded.
+Checkpoint Z3-06: Net gain assessed after coverage.
+Checkpoint Z3-07: Unverified boundaries stated.
+
+Result: Created docs/research/2026-09-24-remediation-mapping/copilot-z3-diff-cert.md
+(under 250 lines). No code, tests, shared .ai documents, locks, or commits changed.
+
+Next step: Round 2 may challenge each FACT/CLAIM/HYPOTHESIS independently.
+
+Open: The original Round-3 probe path is absent from this checkout; its historical
+findings therefore remain source-cited rather than reproduced in this research session.
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:275fbd3332fc8e269b6395d9c3d0dbb688570ba787c902a87247a1a33b3e618c over 350 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T22:41:02.080Z by copilot-2db59a7f7eba7f43
+- entry hash format: 2
+- entry: sha256:90706233fb19e986d5ed13e69a8b425aa978ba8f761fb35c0240eca7ae20a323 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 315s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/copilot-cff1b8e66362c82f.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: copilot-cff1b8e66362c82f
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-24 - Round-2 challenge of Z2 (Mistral) and Z4 (Qwen)
+
+Agent: copilot-cff1b8e66362c82f
+
+Action: Started the required Copilot protocol session (this task's injected Roles list
+does not name Copilot; proceeded on the explicit owner-provided dispatch file
+`docs/research/2026-09-24-remediation-mapping/prompts/r2-copilot.md`, assumption recorded
+in the report header). Read ROUND2.md, BRIEF.md, PROTO-DEC-0046/0047/0048/0049,
+`mistral-z2-budget-scope.md`, `qwen-z4-idle-exit.md`. Verified cited FACTs by opening
+`protocol-verdict.cjs:628-790`, `validate-protocol.ps1:995-1050`, spec section 4 lines
+134-135, `protocol-hooks.cjs:594-636`, `protocol-session.cjs:6-8`. Measured (read-only,
+name/size/mtime only) `.ai/runtime`, `.ai/runtime/metrics/sessions.jsonl`,
+`.ai/worklog`; attempted read-only listing of paths outside `D:\Colabs`, which the shell
+tool refused with a permission error while identical commands worked inside the repo.
+Wrote only the round-2 report and this journal entry.
+Checkpoint R2-Z2: challenged Mistral's Z2-1..Z2-5 and risk register; answered the required
+question on whether `checkStopRule` can self-close an exhausted budget (partially today,
+fully with a `disposition === 'deferred-by-owner'` branch, since exhaustion is recorded at
+attempt 2, not 3).
+Checkpoint R2-Z4: challenged Qwen's Z4-1..Z4-5; measured that only Claude/Codex get an
+automatic per-turn Stop signal today, and that external client transcript paths are
+unreachable from inside this sandboxed session.
+
+Result: Created
+`docs/research/2026-09-24-remediation-mapping/r2-copilot-z2-z4.md` (242 lines, under the
+250-line cap). No code, tests, shared `.ai/` documents, locks, or commits changed; did not
+open the other round-2 reports before writing my own.
+
+Next step: Round 3 (Claude, Codex, DeepSeek) synthesizes this and the other round-2
+challenges into a decision.
+
+Open: whether the budget-exhaustion proposal can live in `.ai/PLAN.md` as PROTO-DEC-0048
+item 4 names, given PLAN.md is at its 200-line cap; whether a per-turn heartbeat write is
+added to agy/Kilo/Copilot CLI/vibe's wrappers in this round or a later one; whether the
+watchdog must run as an unsandboxed supervisor process outside this kind of agent session.
+
+### From .ai/worklog/claude-ebd3e8a8eb29a6d7.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: claude-ebd3e8a8eb29a6d7
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-24 - Kernel-change closing procedure (PROTO-DEC-0053) and round-3 prompt
+
+Agent: claude-ebd3e8a8eb29a6d7
+
+Action: The owner refined the closing step of research cycles and made it the procedure
+for kernel changes: three syntheses, then a draft decision from them, then critiques by the
+other two synthesisers, then a final plan fixed by whichever of the three the owner names.
+Under the lock I appended PROTO-DEC-0053, which supersedes PROTO-DEC-0052 items 2 and 5 as
+to the final-plan step only, with its registry row and a TASK update. Wrote the shared
+round-3 prompt `docs/research/2026-09-24-remediation-mapping/prompts/r3-synthesis.md`.
+
+Result: All round-2 files are present. `r2-copilot-z2-z4.md` is 268 lines, over the
+250-line cap. The round-3 prompt:
+- requires independence, stated in the journal;
+- requires the fixed agreement form;
+- scopes the synthesis to Z1-Z4, dispatch (D), signals (S), the scenario (C) and the
+  K2-K5 conflicts plus canonical homes (K);
+- asks for order and batching across the two edit streams, what is out of scope, and
+  owner-only questions.
+0053 item 3 records that the Claude synthesis is written by a fresh session. Validator
+exit 0, with 2 warnings: journals 33/30 and the reviews corpus 613.9 KB.
+
+Next step: the owner starts the three syntheses in new chats. Then the owner names the
+drafter and the fixer.
+
+Open: this session wrote the cycle's briefs, leads and map, and it takes no synthesis
+role.
+- Signal: procedure-gap | 2026-09-24 | copilot | r2-copilot-z2-z4.md | 18 lines over cap | open: report caps are stated in prompts but not checked by any script
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:7e79e424c2e7ee8e2327c0993f86cf2a2b4895211ae10cdc5f6ff0e257d8b3da over 363 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T23:36:35.899Z by claude-ebd3e8a8eb29a6d7
+- entry hash format: 2
+- entry: sha256:0531ca2e54867e2e8bb22a47c822a83ac139960c26618f992d9b63889cec7b30 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 291s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/claude-7b78af2bb24149a9.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: claude-7b78af2bb24149a9
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-24 - Round-3 independent synthesis, remediation mapping (PROTO-DEC-0052/0053)
+
+Agent: claude-7b78af2bb24149a9
+
+Action: I followed `docs/research/2026-09-24-remediation-mapping/prompts/r3-synthesis.md` as the fresh Claude synthesiser
+(PROTO-DEC-0053 item 3). This session wrote none of the cycle's briefs, leads or map.
+Toplevel verified as `D:/Colabs`.
+- Read: PROTO-DEC-0048 to 0053, BRIEF, ROUND2 and PROCEDURE-MAP.
+- Read: the four round-1 and four round-2 reports.
+- Opened each cited path:line I relied on in scope/verdict/handoff/hooks/ledger.cjs, the validator, spec §2-§6, TASK,
+  PLAN, PAIRED-CYCLE, PROTOCOL.md, CLI-AGENTS.md and launch-round2.cjs.
+- Reproduced one disputed FACT in a scratch `git clone --shared` in my scratchpad, which I then deleted. The repository's
+  `.git` was untouched.
+Independence statement (PROTO-DEC-0052 item 2): I did not open any other round-3 synthesis (`r3-*-synthesis.md`). None
+existed when I listed the directory at the start.
+
+Checkpoints:
+- Checkpoint: frame and inputs read (0048-0053, BRIEF, ROUND2, MAP, round-1 and round-2 reports).
+- Checkpoint Z1: roles scope and merge rule, constraint homes, fences, agreement grammar (S-claude-01..04).
+- Checkpoint Z2: collection fix; EXHAUSTED state with no exit 3; R3-C05 kept as audit input (S-claude-05..07).
+- Checkpoint Z3: "clean tree" replaced by digest equality to the Candidate, reproduced; package; locator (S-08..10).
+- Checkpoint Z4: four activity signals, wake/FALLEN, stop-state interaction (S-11..12).
+- Checkpoint D: dispatch script, registry, K5 detection and prevention (S-13..14).
+- Checkpoint S: signals ledger (S-15).
+- Checkpoint C: research-cycle scenario (S-16).
+- Checkpoint K: K2 not live, K3 live, canonical homes (S-17..18).
+- Checkpoint order, scope, conflicts, owner questions: S-19..22.
+
+Result: I wrote `docs/research/2026-09-24-remediation-mapping/r3-claude-synthesis.md`, 250 lines against a cap of 250,
+with points S-claude-01..22. Main findings:
+- "Clean tree" producer Evidence cannot be reached even in an isolated checkout.
+  - Reproduced: the dirty flag counts journal writes (`protocol-hooks.cjs:117-120,156`), while the digest excludes them
+    (`:125`).
+  - The snapshot equals `git ls-tree -r 4ded1be` minus the session paths: 301/301 entries, 0 mismatches.
+  - Proposed instead: `record --candidate <sha>`, with a digest computed from git objects.
+- No `*findings*.md` exists outside the `docs/reviews/` root, so the collection fix drops nothing live.
+- K2 is already closed: PROTO-DEC-0022 closes DEC-0014, and the validator whitelists it.
+No code, tests, `.ai/` shared documents, other reports, lock or commit were touched.
+Validator run: see the Evidence below.
+
+Next step: the owner names the PROTO-DEC-0053 step (b) drafter. The other two synthesisers critique the draft, and the
+owner names the fixer.
+
+Open: owner questions Q1-Q8 are in S-claude-22. They cover:
+- the PLAN cap;
+- which coordinator 0048 item 7 means, and whether TASK:48 excludes Codex from slot 2;
+- the slot-2 certifier;
+- Roles scope ids;
+- a pre-commit guard;
+- a sanction registry;
+- automating the matcher;
+- how the spec is certified.
+- Signal: procedure-gap | 2026-09-24 | claude | docs/research/2026-09-24-remediation-mapping/r3-claude-synthesis.md | 5
+  rewrites to fit the cap | open: no tool measures a report against its cap before the author finishes (see S-claude-16)
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:50126ad78f23a71b173a0f9ba173aa609d48a9a4b58ebe297b11d3a725e80ac1 over 364 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T23:54:30.130Z by claude-7b78af2bb24149a9
+- entry hash format: 2
+- entry: sha256:342cd0c9c39a9e6c49754352b46119b0f366cf2518a156a7ced26ba9f4f56e50 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 290s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+### From .ai/worklog/codex-2568015b58c2f596.md, archived 2026-09-27 (whole journal, wave-3 headroom)
+
+# Worklog: codex-2568015b58c2f596
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+## 2026-09-24 - Independent round-3 remediation synthesis
+
+Agent: codex-2568015b58c2f596 (GPT-6, Codex)
+
+Action: Followed docs/research/2026-09-24-remediation-mapping/prompts/r3-synthesis.md.
+Checked D:/Colabs, TASK, status, ten commits and tracked inventory; compared the named
+inputs with inventory and filesystem. The current mapping inputs are untracked; the
+large tracked historical research is not the current remediation contract. Read the
+four round-1 and four round-2 reports, brief, map, decisions and cited implementation.
+I did not open any other round-3 synthesis. This is advisory research, not certification.
+
+Checkpoint sources: binding 0048-0053 read; older sources checked for K2/K3 and freshness.
+Checkpoint Z1: in-memory calls reproduce global role exclusion in either line order.
+Checkpoint Z2: actual checkStopRule returns exit 0 for contiguous attempts 1/2 with
+confirmed, unresolved, deferred-by-owner or fixed-and-verified dispositions.
+Checkpoint Z3: actual snapshot function with mocked Git journal-only input returns
+dirty=true with zero digest files; isolation alone does not guarantee a clean label.
+
+Checkpoint S-codex-01: authorization and advisory boundary recorded.
+Checkpoint S-codex-02: scoped role union, constraint preservation and matching proposed.
+Checkpoint S-codex-03: explicit attempt result and audit handoff; R3-C05 unchanged.
+Checkpoint S-codex-04: candidate-content binding and safe reproduction contract proposed.
+Checkpoint S-codex-05: per-session adapters, three wakes and durable FALLEN specified.
+Checkpoint S-codex-06: dispatch profiles, retry counters and safe invocation specified.
+Checkpoint S-codex-07: append-only signals and two-batch escalation specified.
+Checkpoint S-codex-08: research/design closing distinguished from certification.
+Checkpoint S-codex-09: K2 already superseded; K3 retains digest by 0036 item 2;
+seven canonical operational homes proposed without rewriting historical decisions.
+Checkpoint S-codex-10: disputed facts re-run in memory; no live client actions taken.
+Checkpoint S-codex-11: two-stream dependencies, batching, deferrals and owner choices done.
+
+Result: Wrote advisory synthesis
+docs/research/2026-09-24-remediation-mapping/r3-codex-synthesis.md.
+Reviewed own new-file diff with git diff --no-index (exit 1 denotes the added file).
+git diff --check passed; the unrelated INDEX-draft.md emitted a CRLF conversion warning.
+Node artifact checks confirmed under 250 lines, UTF-8 without BOM and LF; citations
+were checked for file existence/range (function shorthand corrected to a full path).
+The following generated Evidence records the actual validator and full-suite exits.
+
+Next step: Owner names the drafter after all three independent syntheses exist;
+two independent critiques and an owner-named final fixer follow under PROTO-DEC-0053.
+
+Open: No implementation, lock, decision edit or commit is authorized by this dispatch.
+PLAN has stale completed-wave status and is at 200 lines; no alteration made here.
+Signal: script-candidate | 2026-09-24 | codex | docs/research/2026-09-24-remediation-mapping/r3-codex-synthesis.md | minutes unknown | open: repeat citation-location checks should use a script; semantic support still needs review
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:166d3596f73d25c8d3b1f79483405797b813fd04bbfceb43cd7955f12e677e16 over 365 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-24T00:24:47.863Z by codex-2568015b58c2f596
+- entry hash format: 2
+- entry: sha256:ba4d0484f215547f138453b21e782ca91bea9378931d75b5c534fd8c2a0a883f of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 312s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
