@@ -8,6 +8,39 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Overnight runbook: Sol PASS committed; r12 DeepSeek verdict running
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action (owner overnight runbook, followed literally):
+- A: `r9-verify-codex` DONE by the runner; process exited, no children; `round9/VERIFY-SOL.md` (86
+  lines): Mode CERTIFYING, full CANDIDATE 7f199c5..., Receipt-Owner codex-8459a69abda6f8ba,
+  exactly one verdict **PASS**; its journal carries full-record Evidence (validate 0 / test 0) and
+  names the report path. Nuance for the morning message: the header has no separate "Actual HEAD"
+  or "normative diff" lines; instead a FACT line states `git rev-parse HEAD` in the detached
+  verification worktree was 7f199c5 with a clean status, and it notes the stale f3ab4b8 literal in
+  `prompts/VERIFY.md` while applying the later frozen candidate.
+- B: committed the pending artifacts by explicit paths (CERT-KIMI-PKG2-R3.md, CERT-MIMO-PKG2-R3.md,
+  VERIFY-SOL.md, the kimi/mimo/codex journals, USAGE.md) = **82c8296**; `git show --stat` lists only
+  those; the runbook's extended normative diff `7f199c5..HEAD` is empty; pushed.
+- C: no test-running process on the machine; opened the gate `r12-gate-commit` (ACCEPTED with the
+  verdict, commit and diff evidence); restarted the supervisor (the previous one had exited).
+- D: `r12-final-deepseek` is WORKING (kilo, deepseek-flash, journal deepseek-4f70203222c3ae0b).
+  No tests, validators or records are run by the operator while it runs; its worktree is untouched.
+- Held per F: STOP-7/STOP-8 not sent; the STAGE12-READY record not started; TASK/PLAN/DECISIONS/
+  REGISTRY untouched; no normative file changed.
+
+Result: Stage 11 closed with PASS; the restored stage-12 DeepSeek verdict is in flight.
+
+Next step: on r12 completion, apply rule E (report shape, evidence in the main checkout, worktree
+removed, no normative paths dirty), commit its report and journal by explicit paths, push, then the
+morning message with verdicts, commits, worktree list, the empty normative diff and the four owner
+decisions.
+
+Open: r12 running; VERIFY.md carries the stale f3ab4b8 literal (documentation nit).
+
+---
+
 ## 2026-09-27 - Stage-12 DeepSeek step restored (r12 slot + operator commit gate)
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
