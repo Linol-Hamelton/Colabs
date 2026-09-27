@@ -11065,3 +11065,904 @@ PROTO-DEC-0040 remediation certified (matrix 10/10; F-1..F-9 closed; Wave C impl
 
 **2026-09-25, stage-2 fix round 1:** CB-01..CB-26 answered by the cloud session in `docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response.md` (e44686b, pulled after a pre-pull safety review). PROTO-DEC-0068..0070 answer CB-12, CB-13 and CB-21. Before DeepSeek's second pass: CB-17 fixed (its Windows self-test zz-t12 failed 3/3), 0070 applied in the launcher (a disposable worktree per job, STOP on any diff outside scope), K-launch extended; all listed in `docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-1.md`. Second pass on 87257cc (DeepSeek): stage 2 (S) RECOMMENDATION with no mandatory defect, so it goes to the owner for approval, and its four notes go to the next stage-2 round; package L FAIL (F-L1 push bypass, F-L2 shared worktree config and refs, F-L3..F-L5 low), answered by a private clone per job and an `insteadOf` push block in `docs/reviews/2026-09-25-claude-core-arch-stage2-fix-response-addendum-2.md`; the research launch waits for a third pass on L. The owner lifted the council's L gate once the second pass had ended. The owner asked for a proposal to move the Node validator port (PROTO-DEC-0039 item 3) earlier (`docs/core-arch/PROPOSAL-node-validator.md`). PROTO-DEC-0071: research frames record Evidence with `record --quick`. The owner's validator migration council is packaged in `docs/research/2026-09-25-validator-migration-council/` (model table approved by the owner; round 1 may start, r1-a first, with a baseline SHA). PROTO-DEC-0072 closes В-24: the T7 floor follows the frame's own action. `OwnerIdeas/RISK_COUNCIL.md` and `H-AUTH-02.md` await sequencing. **OwnerIdeas revision F-01: CLOSED at stage 12 on 2026-09-27 (receipt CR-F01-1; report `docs/reviews/2026-09-27-claude-f01-stage12-closure.md`; program archived under `docs/research/archive/`). Research frames follow P-L0-008 0.2 (PROTO-DEC-0083); registry `docs/research/FRAMES.md`.** **Queued next, on the owner's go: program OPS-1 (operations layer: Telegram owner channel, L0-L3 escalation, cost-aware routing), `docs/research/2026-09-27-ops-layer/README.md`.**
 
+
+---
+
+### From .ai/worklog/codex-752016c00210e2f8.md, archived 2026-09-27
+
+## 2026-09-23 - Q14 certification model research
+
+Agent: codex-752016c00210e2f8 (Q14 primary researcher only)
+
+Action: Started own protocol session; read AGENTS, TASK, git status/log and tracked inventory. Owner's Q14 dispatch overrides stale general TASK role text. Compared named sources against git ls-files (325 tracked files); inspected untracked current reports separately. Research output: docs/research/2026-09-23-routing/Q14-certification-model.md.
+
+Result: Research in progress; binding rules read before raw history, prior research and opinions. No certification role or candidate changes.
+
+Next step: Examine raw certification incidents and all three read-only product repositories; write Q14, verify citations, record handoff.
+
+Open: Challenger DeepSeek pending; cost and outcome denominators to assess.
+
+Checkpoint 1: Session, inventory and binding-rule review completed; next raw incidents and secondary-repository inventory; blocker none.
+Checkpoint 2: Raw F-C01, F-003, layers A/B/C and same-SHA shadow reports examined; inventoried Block-Puzzle (593), VPN (866), Moon (45) read-only; read prior research then routing opinion last; next draft and grep-verified citations; blocker none.
+
+---
+
+### From .ai/worklog/copilot-40f560a1b42e1601.md, archived 2026-09-27
+
+## 2026-09-23 - Q15 tool governance research
+
+Agent: copilot
+
+Action: Read AGENTS.md, TASK, decisions, routing research, council template, four-repository inventory, and local Claude/Codex/Kilo/agy/vibe surfaces without printing secrets. Wrote `docs/research/2026-09-23-routing/Q15-tool-governance.md` with line-level FACT/MEASURED/CLAIM/HYPOTHESIS evidence.
+
+Result: Document is 92 lines and covers all required headings. Inventory measured Codex's 11-server/5-enabled and 8,627-token whole-user-config anchor, agy no-MCP, Kilo no parsed MCP entries, vibe no MCP keys, and missing project/Claude `.mcp.json`; isolated schema costs remain explicitly UNKNOWN where no tools/list capture exists. `validate-protocol.ps1` passed with 0 warnings.
+
+Next step: `node .ai/bin/protocol-handoff.cjs record --owner copilot-40f560a1b42e1601` to attach evidence.
+
+Open: Mistral challenge is pending; raw tools/list, host-visible schema injection, invocation/fallback/duplicate-read denominators and plugin/connector inheritance remain missing.
+
+Evidence:
+- anchor: 89ce192bf6923d00b0328378be8c4b73fd47234b, uncommitted changes present
+- digest: sha256:addd26e246e471fa4ec1c19d990030a0ad56adc2eb07057cf6e10c540c792601 over 340 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T12:49:21.040Z by copilot-40f560a1b42e1601
+- entry hash format: 2
+- entry: sha256:e8cc17b8cf3e28f4f2b3dec636a6af18747dd9781df33353790ac20ff3d04c5d of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 353s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/copilot-65aaa10c0bca4aad.md, archived 2026-09-27
+
+## 2026-09-23 - Challenge Q05 and Q11 routing research
+
+Agent: copilot
+
+Action: Started protocol session, verified the assigned challenger scope in `.ai/TASK.md`, and inventory context. Before reading either primary, appended independent blind-spot lists to Q05 and Q11 using temporary UTF-8 files and `fs.appendFileSync`. Then read both primaries, verified citation line numbers with `Select-String`, and appended bounded attacks under each `## 11. Challenge` section.
+
+Result: Both challenge additions are present and the primary text was not rewritten. Q05 attacks the unsupported immediate cap recommendation, disputed attempt identity, missing immutable ledger, and undefined senior qualification. Q11 attacks the unmeasured top-3 label, omitted inherited attempt budget, missing competence denominator, and absent fail-closed rule for fewer than three candidates.
+
+Next step: Record protocol handoff evidence for this final tree.
+
+Open: The primary recommendations remain owner decisions; no routing policy or source code was changed.
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:345867b07d8372e0374515009243c12c642b7c813362e8ce803312dc19d4606e over 334 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T06:09:06.024Z by copilot-65aaa10c0bca4aad
+- entry hash format: 2
+- entry: sha256:6ce761a3bceae82ca298257e15479ba00c41f9e553abf61f39a2177557def4d8 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 356s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/copilot-8c37b1b5958ec9ce.md, archived 2026-09-27
+
+## 2026-09-23 - Connection check
+
+Agent: copilot
+
+Action: Initialized the protocol session and checked the active task.
+
+Result: CLI session is connected and active; no policy-block event is visible in this session.
+
+Next step: Continue only with the active task and repository protocol constraints.
+
+Open: The reported earlier policy block is not identifiable without its exact CLI message or log context.
+
+---
+
+### From .ai/worklog/copilot-b516462b0e6f9a59.md, archived 2026-09-27
+
+## 2026-09-23 - Assemble R0 offline decision dataset
+
+Agent: copilot
+
+Action: Inspected AGENTS.md, .ai/TASK.md, the tracked-file inventory, docs/reviews/archive/INDEX.md, existing review artifacts, and docs/research/2026-09-20-cycle-history/evidence.json. Wrote only docs/research/2026-09-23-r0-decision-dataset/ with README.md, archive_classification.csv, review_depth.csv, findings.csv, and round_outcomes.csv.
+
+Result: Dataset contains 180 archive-index mapping rows, 3 explicit review-depth rows, 17 explicit finding/disposition rows, and 5 explicit round/wave outcome rows. Sources are named in every row; README records that this is not a complete task census, causal comparison, reviewer-recall estimate, or complete round count.
+
+Next step: Run protocol validation and record handoff evidence for this journal/tree.
+
+Open: Review history does not support unsourced task-level depth labels or hidden-round totals; those claims were omitted or marked as policy-only.
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:86af032b26f2ded0078b3f70e57184d0e3cb49d7cf9c0d3e369af1eac48e1891 over 325 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T05:51:16.640Z by copilot-b516462b0e6f9a59
+- entry hash format: 2
+- entry: sha256:95e32e48404bd97455c97ea8c75274a50e2365fda0e2fbef6f2dfdee868c0077 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 282s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/copilot-e66b80a441d5749c.md, archived 2026-09-27
+
+## 2026-09-23 - Write Q02 Q06 Q08 routing research
+
+Agent: copilot
+
+Action: Read AGENTS.md, .ai/TASK.md, binding decisions and protocol docs, Colabs history/research, R0 dataset, and the Codex routing opinion last. Ran `git status`, `git log`, and `git ls-files` in D:\Colabs; attempted secondary-repository inventories but the execution environment denied access before those commands ran. Verified cited anchors with grep -n. Wrote `docs/research/2026-09-23-routing/Q02-domain-role-specialisation.md`, `Q06-jev-offline-decision-forecast.md`, and `Q08-cost-saving-limits.md`.
+
+Result: Three bounded research documents are present, each under 250 lines with the requested headers and eleven sections. Recommendations are shadow/offline only: build a provenance-aware role matrix before live leads (Q02), replay Jev offline without operational effect (Q06), and measure a deterministic cost/quota ledger before active cost-aware routing (Q08). Secondary repositories were not directly inspected; this limitation is stated in each document.
+
+Next step: Owner/challengers review the three documents; no decision or routing change is made here.
+
+Open: Cross-repository raw-history inventory and comparable task/cost/quota denominators remain missing. Challenger slots remain pending by design.
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:f992dd981e5de8931e9a97b5dcb5f48225f23a106b7a0bdc9bbb907c2fb0fa2e over 334 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T06:00:53.158Z by copilot-e66b80a441d5749c
+- entry hash format: 2
+- entry: sha256:0a87886918e79025dde7bba54f05e53cffe542adde2cdc6ed4c774d188864ca0 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 377s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/gemini-85e970514eeb8782.md, archived 2026-09-27
+
+## 2026-09-23 - Second remediation verification for candidate 89ce192
+
+Agent: gemini-85e970514eeb8782
+
+Action:
+Verified and completed the second remediation round for candidate 89ce192bf6923d00b0328378be8c4b73fd47234b covering all round-2 certification findings across the allowed surface:
+1. F-R2-01 (RC-ledger-parse, attempt 2 of 2): Verified on disk in .ai/bin/protocol-verdict.cjs that framed rows, list items, inline code, fenced blocks outside the table, and non-preamble prose before the header fail closed with exit 2 (BLOCKED). No silent-drop direction survives.
+2. F-R2-02 (RC-role-prose-substring, attempt 1): Verified that role exclusion in .ai/bin/protocol-scope.cjs operates on exact tokens from structured ## Roles list entries with negation guard, eliminating the standing default certifier false exclusion regression.
+3. F-R2-03 (RC-attempt-contiguity, attempt 1): Verified cross-file attempt counting across docs/reviews/*findings*.md under --stop-rule, merging identical duplicates and enforcing contiguous unions starting at 1. Both repository findings ledgers pass --stop-rule.
+4. F-R2-04 (RC-arg-parsing, attempt 1): Verified that unrecognised CLI flags exit 2 on both protocol-verdict.cjs and protocol-scope.cjs.
+5. Executed test suite and protocol validations: protocol-verdict (standard and --stop-rule), node --test tests/rulebook.test.cjs (54/54 passed), node --test tests/validator.test.cjs (34/34 passed), test-protocol.ps1 (376/376 passed), and validate-protocol.ps1 (0 warnings).
+
+Result:
+- protocol-verdict on round-3 findings ledger: PASS (exit 0)
+- protocol-verdict --stop-rule on round-3 findings ledger: PASS (exit 0)
+- tests/rulebook.test.cjs: 54/54 tests passed (exit 0)
+- tests/validator.test.cjs: 34/34 tests passed (exit 0)
+- test-protocol.ps1: 376/376 tests passed (exit 0)
+- validate-protocol.ps1: 0 warnings, 0 failures (exit 0)
+- All round-2 findings verified closed; all 7 ledger items fixed-and-verified.
+
+Next step:
+Independent certifiers conduct final certification audit on the remediated tree; await owner review.
+
+Open:
+None. All findings verified closed; no silent drop survives.
+
+Evidence:
+- anchor: 89ce192bf6923d00b0328378be8c4b73fd47234b, uncommitted changes present
+- digest: sha256:f589d4c44a90657e2001b4f4943720f577d1ec07e03ceaf1933e3e3cb9431252 over 340 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T13:18:29.239Z by gemini-85e970514eeb8782
+- entry hash format: 2
+- entry: sha256:44eb361308048b5b357c0489dd35b146a014fd7f07f387c26033e6a34d03f6ee of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- test-protocol.ps1: exit 0 in 332s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/mistral-1c5f4245590b93f9.md, archived 2026-09-27
+
+## 2026-09-23 - Routing research: Q06 and Q12 challenge
+
+Agent: mistral
+
+Action: Started protocol session (owner: mistral-1c5f4245590b93f9). For Q06 (copilot primary) and Q12 (deepseek primary), saved independent blind-spot lists to temp files and appended them WITHOUT reading the primaries, using Node.js fs.appendFileSync. Then read both documents, verified citation line numbers, and appended bounded attacks under each ## 11. Challenge section. Q06 attack: R0's 3 review-depth rows make per-position calibration impossible (line 31), incomplete census invalidates success probability claims (line 32), denominator missing (line 41). Q12 attack: Stop-only telemetry misses crashes (line 22-26), 3x row overcount unaddressed (line 53-55), missing fields in Stop rows cannot capture pre-Stop failures (line 76-77).
+
+Result: Both challenge additions written. Q06: 6 blind-spot items, 7 attack claims with line citations. Q12: 7 blind-spot items, 7 attack claims with line citations. Primary text untouched. All additions <= 40 lines each.
+
+Next step: Record protocol handoff evidence for this tree.
+
+Open: None. Primary recommendations remain owner decisions; no routing policy or source code changed.
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:345867b07d8372e0374515009243c12c642b7c813362e8ce803312dc19d4606e over 334 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T06:11:28.067Z by mistral-1c5f4245590b93f9
+- entry hash format: 2
+- entry: sha256:a9d3e93fc138cffb7773e5ddb90232da34314a4924f024b4c500afefd3be9434 of this entry without this block
+- parent-entry: root
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- test-protocol.ps1: exit 0 in 288s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+---
+
+### From .ai/worklog/mistral-6b8c4128fc68a0a7.md, archived 2026-09-27
+
+## 2026-09-23 - Routing research: Q09, Q10, Q11 primary
+
+Agent: mistral
+
+Action: Started protocol session (owner: mistral-6b8c4128fc68a0a7). Read binding sources in order: .ai/DECISIONS.md (PROTO-DEC-0034, 0038, 0041, 0042, 0043, 0045, 0046), docs/decisions/REGISTRY.md, .ai/docs/CLI-AGENTS.md, .ai/docs/PAIRED-CYCLE.md. Took inventory of all four repositories with `git ls-files`. Read prior research: docs/research/2026-09-20-cycle-history/evidence.json, docs/research/2026-09-22-jev-decision-fabric-evaluation.md. Read opinions last: docs/reviews/2026-09-23-codex-routing-architecture.md (and referenced claude-final-decision.md). Wrote three research documents: docs/research/2026-09-23-routing/Q09-predictable-leave.md, Q10-time-saving.md, Q11-deputies.md. Recorded evidence with protocol-handoff.cjs --quick.
+
+Result: All three documents written with required structure (11 sections each), within 250-line limit. Documents cite evidence with FACT/MEASURED/CLAIM/HYPOTHESIS labels and 1-based line numbers verified against grep -n. Binding rules interaction analyzed for each question. Options and recommendations provided with explicit forks for owner decision. Missing data sections identify what would need measurement. Evidence recorded: validator exit 0 in 4s, digest over 334 files.
+
+Next step: Task complete. Documents: Q09 (recommendation: reserve-based scheduling), Q10 (recommendation: codify lexicographic ordering), Q11 (recommendation: static top-3 succession table). Key missing data: quota-domain independence matrix, handoff success rate, quality baseline, time/cost trade-off curves.
+
+Open: None.
+
+Evidence:
+- anchor: b232a9e5e99b51fccf8a1ce2ccfa009c3a204bed, uncommitted changes present
+- digest: sha256:2b697873e1712085f7f67b77b8031eec3394dbc341b5d0d23449b42c4e7cbd77 over 334 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T06:03:06.453Z by mistral-6b8c4128fc68a0a7
+- entry hash format: 2
+- entry: sha256:67b29dfc571ea7e2db32426cc1fe36483a1f1cf3861ade2607a7074d9f3ab4b4 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- sanitized: 2026-09-23T06:03:41.504Z reason: Updated Next step and Result fields after evidence recording
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+---
+
+### From .ai/worklog/mistral-6cd9e50830e69e6a.md, archived 2026-09-27
+
+## 2026-09-23 - Q15 tool governance challenge
+
+Agent: mistral-6cd9e50830e69e6a
+
+Action: Started protocol session; wrote independent blind-spot list to temp file and appended under docs/research/2026-09-23-routing/Q15-tool-governance.md:95-102 before reading the primary; read primary; prepared and appended attack under same section:104-112 with exact file:line citations; verified all line numbers match current document state.
+
+Result: Challenge delivered. Blind-spot list: 6 items on zero-cost completeness, measured vs UNKNOWN schema tokens, default-deny enforcement ambiguity, forced-use boundary, A/B metrics and unsourced claims. Attack: 8 counter-claims with citations — line 20 FACT unsourced (PROTO-DEC-0034 does not mandate project allowlist), line 22 CLAIM self-contradictory, line 42 MEASURED cites draft not primary source, line 66 CLAIM violates its own section-5 template (missing raw tools/list), line 82 recommendation unbounded, metrics not tied to PROTO-DEC-0034 item 2 thresholds, zero-cost misnomer contradicted by UNKNOWNs, line 88 missing data blocks template compliance.
+
+Next step: Run handoff record to stamp evidence; session then complete.
+
+Open: None.
+
+Evidence:
+- anchor: 4ded1bee1c2acf2392fdeededf50935f59138302, uncommitted changes present
+- digest: sha256:44ac80893051ec8e10a0ab9201c0c5f64a8838180c6ff4673b3d18bc3359c885 over 346 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-23T19:07:48.095Z by mistral-6cd9e50830e69e6a
+- entry hash format: 2
+- entry: sha256:9cee2dba0586f11a9bf5f6b381b253d6cc2e9f845a0b81c68d5d993afdd8b4ce of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+---
+
+### From .ai/worklog/copilot-aeeec92ccfc403c8.md, archived 2026-09-27
+
+## 2026-09-24 - Copilot model lookup
+
+Agent: copilot-aeeec92ccfc403c8 (GPT-5.6 Terra, Copilot CLI)
+
+Action: Consulted the Copilot CLI help for the user's model-selection question.
+
+Result: Confirmed `/model` selects the session model, `auto` delegates selection to Copilot, and `/config model` sets defaults.
+
+Next step: None.
+
+Open: Provider-specific model availability is account and entitlement dependent.
+
+---
+
+### From .ai/worklog/deepseek-00047ecda6778bfa.md, archived 2026-09-27
+
+## 2026-09-24 - Round-2 synthesis: dispatch, stall handling, four-zone synthesis
+
+Agent: deepseek-00047ecda6778bfa
+
+Action: Ran the round-2 launcher (mistral, copilot, gemini). Mistral failed twice in 10s on a
+Python charmap error (U+2192 to the ANSI code page with stdout redirected); read its log, reported
+the cause, restarted it once under the old launcher per PROTO-DEC-0050 item 2, and again after the
+owner fixed the launcher (UTF-8 env for children; `--only` restarts keep other agents' state) and
+authorised the retry; the second run exited 0 with its report. Copilot (exit 0) and Gemini (exit 0)
+finished on their own. Checked status only at >=5-minute intervals. Verified all three reports
+exist: r2-mistral-z1-z3.md 246 lines, r2-copilot-z2-z4.md 268 lines (over the 250 cap),
+r2-gemini-z4-z2.md 167 lines. Read the full corpus (ROUND2, BRIEF, four round-1 reports, three
+round-2 reports, DEC-0041/0046/0047/0048/0049/0051), re-ran the disputed FACTs read-only, and wrote
+`docs/research/2026-09-24-remediation-mapping/r2-deepseek-synthesis.md` (226 lines, under the cap).
+
+Checkpoint Z1: grammar closure claims reproduced in protocol-scope.cjs; decisive finding is the
+multi-line Roles merge defect (last-non-null wins, global exclusion) that neither round-2 report
+checked; codex stays coordinator-excluded while TASK.md:51 names it a certifier.
+
+Checkpoint Z2: Option 3 in the validator is a forbidden third attempt (DEC-0048 item 4); the code
+supports Copilot on checkStopRule (attempt-driven, disposition not terminal); PLAN.md measured at
+200/200 lines, ARCHIVE is not a proposal home; certifier naming corrections stand.
+
+Checkpoint Z3: shared checkout permanently dirty reproduced (handoff.cjs:77-79, :121); clean-tree
+Evidence is attainable in an isolated checkout, not in the shared one; no repro-locator resolver
+exists (verdict.cjs:271-490 is parseFindingsLedger); the Z3-01 challenge is misattributed.
+
+Checkpoint Z4: uniform-signal claim refuted by sessions.jsonl (115 rows: claude 97, codex 12,
+gemini 3, copilot 2, deepseek 1; none for mistral/kilo/vibe); the suite measured 315s, not 270s;
+Windows needs a process-tree kill; DEC-0051 item 4 already fixes the wake policy; the launcher is
+a working partial prototype of the artifact watchdog.
+
+Result: synthesis written with per-zone agreement/disagreement/unchecked leads, five cross-zone
+conflicts, and the round-3 lists in three parts. All reproductions were read-only; no code, tests,
+shared documents, locks or commits touched; only this journal and the synthesis were written. No
+Evidence block: the dispatch forbids `.ai/` edits beyond this journal and no repository check ran
+beyond the listed read-only reproductions.
+
+Next step: round 3 (Claude, Codex, DeepSeek) turns rounds 1 and 2 into a decision; the owner
+answers the six owner-only questions in the synthesis before the PLAN-capacity and worktree
+questions can be scheduled.
+
+Open: copilot's report is 18 lines over the round cap (report only, no re-run needed); the Z3
+package cost side and Option 1 probe re-run are unmeasured; the Z4 watchdog must watch the
+session's actual checkout root or worktree-isolated reviews will false-stall.
+
+---
+
+### From .ai/worklog/deepseek-d89106f0bf1ab888.md, archived 2026-09-27
+
+## 2026-09-24 - CORE-ARCH stage 1 control: launch and inputs
+
+Launch: model=deepseek/deepseek-flash effort=unknown client=Kilo
+
+Agent: deepseek-d89106f0bf1ab888 (DeepSeek, Kilo CLI, VS Code)
+
+Action: Followed docs/reviews/2026-09-24-claude-core-arch-stage1-control-prompt.md from Step 0.
+`git rev-parse --show-toplevel` printed D:/Colabs. Started the session with
+`node .ai/bin/protocol-session.cjs start --agent deepseek`; owner name deepseek-d89106f0bf1ab888,
+session id b94a51a3c0ea2356, lock/session PID 48976. Independence: I did not open
+docs/research/2026-09-24-remediation-mapping/r3c-gemini-critique.md before my own critique is
+written; recorded and held (checkpoint after Part 1 confirms).
+
+Result: Model as actually launched: deepseek/deepseek-flash (the ID reported by the client);
+reasoning effort setting: unknown (Kilo did not expose it). The control prompt requested T3
+(strongest DeepSeek reasoning model at highest effort); the actual setting is recorded as launched,
+per PROTO-DEC-0055 item 5, and is flagged for the owner.
+
+Next step: read the inputs: .ai/DECISIONS.md 0053-0055 (done), CORE-ARCH-1..7, stage-1 drafts,
+syntheses, PROCEDURE-MAP.md, DISCUSSION.md, the spec.
+
+Open: launch model/effort differs from the T3 request; noted for the owner, not a defect of the drafts.
+
+---
+
+### From .ai/worklog/gemini-3ee87bb46909ffaf.md, archived 2026-09-27
+
+## 2026-09-24 - Round 2 remediation mapping challenge (Z4 & Z2)
+
+Agent: gemini-3ee87bb46909ffaf
+
+Action: Started protocol session under AGENTS.md. Verified repo root (`D:\Colabs`). Read ROUND2.md, BRIEF.md, PROTO-DEC-0048, PROTO-DEC-0049, spec section 4, agy lifecycle hooks documentation (`hooks.md`), and examined round-1 reports `qwen-z4-idle-exit.md` (Z4) and `mistral-z2-budget-scope.md` (Z2). Evaluated all numbered items, verified repository facts with `path:line` citations, and performed first-hand agy verification of transcript paths, hook events, and out-of-repo execution.
+Checkpoint Z4: Completed challenge of Zone Z4 (five-minute idle exit watchdog), verifying transcript and hook heartbeat capabilities while rejecting static file monitoring and Windows signal assumptions.
+Checkpoint Z2: Completed challenge of Zone Z2 (budget exhaustion, immutability, collection scope), confirming collection narrowing (Option 1) while rejecting Option 3 code edits under PROTO-DEC-0048 item 4 and clarifying certifier roles and proposal hosting.
+
+Result: Produced `docs/research/2026-09-24-remediation-mapping/r2-gemini-z4-z2.md` (167 lines, within the 250-line limit). Did not edit code, tests, `.ai/` shared documents, take locks, or commit.
+
+Next step: DeepSeek synthesizes round-2 challenge reports across all zones into `r2-deepseek-synthesis.md`.
+
+Open: Owner ruling on watchdog supervision architecture (process wrapper vs background service) and budget exhaustion audit dispatch mechanics.
+
+---
+
+### From .ai/worklog/gemini-d651295f446105b5.md, archived 2026-09-27
+
+## 2026-09-24 - Z1 fixed grammar research report
+
+Agent: gemini-d651295f446105b5
+
+Action: Started protocol session under AGENTS.md. Read BRIEF.md (Zone Z1, risk treatment), PROTO-DEC-0048 item 3, PROTO-DEC-0049 item 2, spec section 6, .ai/TASK.md Roles, and findings R3-C01..R3-C03, F-R3-02. Verified baseline commit 4ded1be. Executed read-only reproductions of R3-C01 (negation bypass), R3-C02 (fenced section hijacking), R3-C03 (mismatched fence toggle), and F-R3-02 (role token vocabulary creep). Formulated EBNF grammar for Roles lines and agreement lines with exact 6-degree scale, developed quotation detection rules, mapped migration of all 6 active Roles lines in .ai/TASK.md, and generated docs/research/2026-09-24-remediation-mapping/gemini-z1-grammar.md.
+Checkpoint Z1-01: Header and baseline context established (SHA 4ded1be, dirty tree).
+Checkpoint Z1-02: Edit map drafted for protocol-scope.cjs, spec section 6, tests, and TASK.md.
+Checkpoint Z1-03: EBNF grammars for Roles, 6-degree agreement, and quotation-detection rules defined.
+Checkpoint Z1-04: Analyzed 6 current TASK.md roles lines (lines 46-51) breaking under grammar; mapped migrations.
+Checkpoint Z1-05: Closed and reproduced R3-C01, R3-C02, R3-C03, F-R3-02 with inline probes.
+Checkpoint Z1-06: Evaluated two options; recommended Option 1 (strict fail-closed exit 2).
+Checkpoint Z1-07: Risk register completed with 4 entries under PROTO-DEC-0049 item 4.
+Checkpoint Z1-08: Net gain calculated as strongly positive.
+Checkpoint Z1-09: Unverified bounds documented.
+
+Result: Delivered research report docs/research/2026-09-24-remediation-mapping/gemini-z1-grammar.md (145 lines, <= 250 limit). Fixed grammar eliminates heuristic prose parsing in protocol-scope.cjs. All 6 current TASK.md Roles lines (46-51) break and have direct migrations. All 4 round-3 findings are reproduced and demonstrated closed under the grammar.
+
+Next step: Round 2 adversarial challenge by assigned agents; no implementation edits or lock acquisition in this session.
+
+Open: None.
+
+---
+
+### From .ai/worklog/mistral-188f1c5c86316fe9.md, archived 2026-09-27
+
+## 2026-09-24 - Round-2 challenge of Z1 and Z3
+
+Agent: mistral-188f1c5c86316fe9
+
+Action: Executed round-2 challenge per `docs/research/2026-09-24-remediation-mapping/prompts/r2-mistral.md`. Read ROUND2.md, BRIEF.md, PROTO-DEC-0048 and PROTO-DEC-0049. Challenged gemini-z1-grammar.md (Z1) and copilot-z3-diff-cert.md (Z3). Verified all cited FACTs by opening path:line. Identified: Z1 migration loses governance constraints; Z1 grammar lacks candidate-scope binding per PROTO-DEC-0041 item 1; Z3 clean tree producer Evidence unattainable in shared checkout; Z3 edit map cites wrong line range for reproduction parsing; Z3 certifier list inaccurate regarding DeepSeek and Copilot status.
+Checkpoint R2-Z1: completed challenge of Zone Z1.
+Checkpoint R2-Z3: completed challenge of Zone Z3.
+
+Result: Created `docs/research/2026-09-24-remediation-mapping/r2-mistral-z1-z3.md` (234 lines, under 250-line cap). No code, tests, .ai/ shared documents, locks, or commits changed. Did not open other round-2 reports before writing.
+
+Next step: Round 3 (DeepSeek) synthesizes round-2 challenge reports.
+
+Open: Owner ruling on (1) whether role constraints migrate to separate section or extended grammar, (2) candidate-scope binding enforcement, (3) producer worktree architecture for clean tree Evidence, (4) reproduction locator assignment to protocol-verdict.cjs or protocol-ledger.cjs.
+
+---
+
+---
+
+### From .ai/worklog/agy-1d46b18e1c9cc12c.md, archived 2026-09-27
+
+## 2026-09-25 - Produced Researcher C reports
+
+Agent: Gemini 3.1 Pro (High) (started as agent agy)
+
+Action: Expanded round1/C-adversarial-simplifier.md to answer every Researcher C question of OWNER-PROMPT.md section 22 with evidence. Wrote NOT-IN-SCOPE.md.
+
+Result: Produced `C-adversarial-simplifier.md` with SHA256 3fb33f8b4b133e849df3046cc6c0be4578155cff4f61489f88aa81198f0d991a and `NOT-IN-SCOPE.md` with SHA256 798ca65b918c7f74214f2cda5b29d897f03d3190a8658554eb9ea1ddce7e6415. Did not open the other round1 outputs before this.
+
+Next step: Wait for Round 2.
+
+Open: None.
+
+Evidence:
+- anchor: 9a936ddf077793a0050597b06947bdd8650bb455, uncommitted changes present
+- digest: sha256:c667f3ee91421e37bf556f71ab5e117d33e7c06aa2f44d4b1e2356ce535efbe5 over 455 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T09:09:32.806Z by agy-1d46b18e1c9cc12c
+- entry hash format: 2
+- entry: sha256:0974d5408966ff46adb2a42f7d452ff0bfaeb665af368f3469318309f3b336cc of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/antigravity-7cc4d435971d8cd7.md, archived 2026-09-27
+
+## 2026-09-25 - Write ISSUE-MATRIX for round 2
+
+Agent: antigravity (gemini)
+
+Action: Read the frozen round 1 reports (A-contract-tcb.md, B-performance-migration.md, C-adversarial-simplifier.md) and round 2 challenges (challenge-A, challenge-B, challenge-C). Synthesized the findings into round2/ISSUE-MATRIX.md according to PROTO-DEC-0052 item 1 and S-003.
+
+Result: Created round2/ISSUE-MATRIX.md with 14 rows, recording the positions, challenges, evidence, status, and owner classes without resolving disagreements. 
+
+Next step: Handoff to round 3 synthesisers and the coordinator (to write CORPUS.txt).
+
+Open: 
+- OQ-1: Minimum TCB subset if mutation budget is cut.
+- OQ-2: Cloud Evidence first-class vs Windows-only full attestations.
+- OQ-3: Independent EXPECTED authorship staffing under 0041.
+- OQ-4: Default disposition preserve vs fix for each D-1..D-6.
+- OQ-5: Bash-absent severity when Claude hooks absent.
+
+Evidence:
+- anchor: 5ace76c6ed76500740f22a7649c1cf9e535541b3, uncommitted changes present
+- digest: sha256:dadcf297b49ac050a6971d1681b966b9136e4698a4dc505885b5e32e2286dde2 over 462 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T10:00:33.454Z by antigravity-7cc4d435971d8cd7
+- entry hash format: 2
+- entry: sha256:0701fabcaa73b770b120fe7616659b07b292fdd4daf83f015662b241361fe336 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-0f8aa56190c5104d.md, archived 2026-09-27
+
+## 2026-09-25 - wai-synthesis: dispositions and revision proposal for workflowAI.md
+
+Agent: claude-0f8aa56190c5104d (Opus 5.5, effort high, launched by run-chain; senior synthesiser
+of frame task:wai-synthesis per its launch file; ADVISORY, certifies nothing).
+
+Action:
+- Read the launch file, COMMON.md and SYNTHESIS.md; the subject `docs/core-arch/stage-4/workflowAI.md`;
+  positions A and B; `critique.md`; PROTO-DEC-0073..0076; `MODEL-ECONOMICS.md`; `BACKLOG.md`;
+  `PROBLEMS.md`; the recovery, B6 and independence parts of
+  `OWNER-DECISION-execution-model-2026-09-25.md`; `USAGE.md`; `DISPATCH.json`.
+- Baseline cdf4864 (the package commit). Checked that the subject, DECISIONS and ops files did
+  not change between 0200730 (positions' baseline) and cdf4864. Inventory: the cycle folder holds
+  exactly the inputs the role file names (positions/A.md, positions/B.md, critique.md), untracked.
+- Re-verified the critique's citations instead of trusting them; added an owner source it did not
+  use (OWNER-DECISION:105, BLOCKED plus owner question when no substitute of the class exists).
+- Wrote `docs/research/2026-09-25-workflowai-review/synthesis.md` (179 lines; SYNTHESIS.md allows
+  200, COMMON.md's general cap is 150; the role file's limit was applied).
+
+Result:
+- 22 dispositions: ACCEPT 15 (D1, D3-D8, D10, D13, D15, D18-D22; D18 and D22 as notes only),
+  REJECT 6 (D2, D9, D12, D14, D16, D17), D11 split (reject the move, accept a note).
+  No blocking finding; PROBLEMS.md unchanged.
+- Dissent kept visible: D1 (A blocking), D6 (critique asks owner at launch), D10 (A demotes),
+  D20 (critique medium).
+- Revision proposal R1-R8 with exact replacement text for sections 1.4, 1.5, 1.6, 2, the section 3
+  table (rows 2, 3, 9), H-WAI-6, section 5, section 6. The subject file was not edited.
+- Backlog delta: S-4 new (run-chain manual step: negative wall time, launch name instead of the
+  model that ran), M-6 changed, C-5 new (TD-MODEL-QUALIFICATION), C-6 new (group tie-break).
+- Verdict: APPLY WITH OWNER QUESTIONS.
+
+Next step: the owner answers Q1-Q5; then the implementer applies R1-R8 to workflowAI.md and the
+backlog delta to BACKLOG.md under the lock, between rounds (0076 item 5).
+
+Open:
+- Q1: 0076 item 3 "лишь копит статусы" vs 0075 item 11 recovery; reported, not resolved.
+- Q2 group tie-break; Q3 substitute shortfall; Q4 DeepSeek Max approval scope; Q5 the critique
+  ran on deepseek-flash, outside the ladder.
+- Assumption: the role file's 200-line limit governs this output over COMMON's 150.
+
+Evidence:
+- anchor: cdf4864308ec19da8ab90e553edb884f6de0b77f, uncommitted changes present
+- digest: sha256:fc800a28e03a1be52d410a52cd2f33f608648b9f5729d8c20a86a373a8bc1127 over 516 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T17:39:25.408Z by claude-0f8aa56190c5104d
+- entry hash format: 2
+- entry: sha256:9293b813b9e328af5fedb9937c3e92b2df4a4f3dffaa15c1640d375af8df3bca of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/copilot-8fff6642b9c22e07.md, archived 2026-09-27
+
+## 2026-09-25 - r2-a challenge of zone A
+
+Agent: copilot
+
+Action: Ran protocol-session start as copilot (owner copilot-8fff6642b9c22e07). Frame task:vmc-r2-a challenger of zone A per prompts/R2-challenge.md and COMMON.md. Baseline a4e6aef. Read frozen round1 matching 5ace76c (A-contract-tcb, DECISION-BOUNDARY, CALL-GRAPH, CONTRACT-MAP, B-performance-migration, C-adversarial-simplifier, NOT-IN-SCOPE, MEASUREMENTS). Owner override recorded: r2-a = grok-4.5/high (copilot/grok) not gpt-5.6-sol/max, tier T6. Wrote round2/challenge-A.md (8 major proposals x 15 questions, cross-zone citations, no resolve). Did not edit validator/kernel/shared docs. Did not open other round2 outputs (only challenge-A.md present at freeze).
+
+Result: round2/challenge-A.md frozen, 229 lines (<=250). sha256=a0ed372cd1d6c4d4a249121e139c7725308fc97005476ed96f3a3ac8c8648304; did not open the other round2 outputs before this. Stance: PARTLY AGREE on TCB/diff/boundary/matrix/rollback/map; pushback on Needed-Yes overclaim, PASS+WARN cloud sufficiency, installer retention, bash-absent FAIL absolute.
+
+Next step: Coordinator continues r2-b/r2-c; r2-synthesis builds ISSUE-MATRIX. This session record --quick then stop.
+
+Open: OQ-1..OQ-5 in challenge-A.md (mutation minimum, cloud Evidence class, EXPECTED authorship, D-1..D-6 disposition, bash-absent without hooks). Timing DBI-02 remains owner. Signal: none new (owner override already in README Round 2 status).
+
+Launch: model=grok-4.5 effort=high client=copilot
+Orientation: grok-4.5 @ task:vmc-r2-a (parent program:validator-migration-council): challenger of zone A | rights=read, write own files | limits=COMMON section 5 | tools=git/node read | success=round2/challenge-A.md | tier=T6
+Tier-mismatch: table gpt-5.6-sol/max (codex) vs actual grok-4.5/high (copilot/grok); owner override 2026-09-25 same tier T6; recorded; no relaunch.
+
+Evidence:
+- anchor: 5ace76c6ed76500740f22a7649c1cf9e535541b3, uncommitted changes present
+- digest: sha256:cc7b89e7fa1d7c24437ac97aa82141549cff3d0d0baa5a0f1d5b0cfe05fbf0f4 over 458 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T09:38:55.861Z by copilot-8fff6642b9c22e07
+- entry hash format: 2
+- entry: sha256:bf27e83a6ff6511a5b323f012eecf9fcf14b78d3077aeef3734abaed3e97831a of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+---
+
+### From .ai/worklog/deepseek-46add74879ef9b14.md, archived 2026-09-27
+
+## 2026-09-25 - Round 2 challenge of zone C
+
+Launch: model=deepseek/deepseek-flash effort=unknown client=Kilo
+Orientation: deepseek-flash @ task:vmc-r2-c (parent program:validator-migration-council): challenger of zone C | rights=read, write own files | limits=COMMON section 5 | tools=Read, Grep, Glob, Bash (read-only git/node), Write (own files) | success=round2/challenge-C.md | tier=T6
+
+Agent: deepseek-flash (Kilo, owner `deepseek-46add74879ef9b14`), task:vmc-r2-c, parent program:validator-migration-council.
+
+Action: Read COMMON, R2-challenge, R1-C role file, owner sections 0-3, 9, 21-23, 29, 33, MEASUREMENTS, and round1 A/B/C plus DECISION-BOUNDARY, IMPLEMENTATION-DAG, VALIDATOR-CONTRACT-MAP and NOT-IN-SCOPE at the frozen commit and at baseline `a4e6aef`. Verified C's `path:line` facts (`validate-protocol.ps1:237-243`, `tests/helpers.cjs:10-15`, `tests/validator.test.cjs:40-137`, PROPOSAL:54-57). Challenged all eight major proposals of target C and its NOT-IN-SCOPE reasons with the fifteen §23 questions.
+
+Result: wrote `docs/research/2026-09-25-validator-migration-council/round2/challenge-C.md`, 175 lines (cap 250), sha256 `9f97a7f7ccba5dc661c423e1ed9488a91bfb9833cdd1b2500771cbfa3ce66bf1`. Verdicts: P1 PARTLY AGREE, P2 DISAGREE, P3 PARTLY AGREE, P4 PARTLY AGREE, P5 PARTLY AGREE, P6 DISAGREE, P7 AGREE, P8 PARTLY AGREE. Recorded 7 cross-zone contradictions (C:13 vs DBI-01; C:31 vs B:19; C:17 vs B:78; C:37 imprecision; Rust NEVER vs DBI-03 F; installer "rarely run" vs M-07; launcher reason vs PROTO-DEC-0039 item 3). Key finding: C's two falsification attempts aimed at stopping the migration do not survive the decision boundary — the Node destination is DBI-01 class A, only timing DBI-02 is open, and C's simpler option is already PROPOSAL option B; C's shared-timeout risk is weakened by M-14 (three concurrent suites, 376/376, no timeout). No reproduction in C reopens a decision.
+
+did not open the other round2 outputs before this.
+
+Next step: the r2 synthesiser may consume this in `round2/ISSUE-MATRIX.md`; this session has no further work.
+
+Open: none requiring the owner. OPEN QUESTION (for the issue matrix / coordinator, not the owner): C's "split suite <120 s" remains unmeasured; under COMMON §5 only the coordinator runs a fresh suite if one is needed.
+
+Signal: none new (no procedure-gap, script-candidate or fall met).
+
+Evidence:
+- anchor: 5ace76c6ed76500740f22a7649c1cf9e535541b3, uncommitted changes present
+- digest: sha256:165a92a9117d1fb3b3dd2a810bc90a34b4b502da8bc1aeb31f891fe7965b94af over 459 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T09:43:50.094Z by deepseek-46add74879ef9b14
+- entry hash format: 2
+- entry: sha256:9d0c44f09292f80a46520192a2c0ffd8e8858d6e65c3a02baade1e714383faf0 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/deepseek-674e359e91bc0a98.md, archived 2026-09-27
+
+## 2026-09-25 - wai-critique: critique of positions A and B on workflowAI.md
+
+Agent: deepseek
+
+Action: Read COMMON.md and CRITIQUE.md, then the subject workflowAI.md, positions A.md and B.md, MODEL-ECONOMICS.md, PROTO-DEC-0073..0076, OWNER-DECISION-execution-model-2026-09-25.md, BACKLOG.md, PROBLEMS.md and USAGE.md, all at baseline cdf48643 (tracked tree unchanged; step outputs read from the working tree). Checked every finding and every triage class of both positions against those sources; re-listed what both missed in section 1.5, section 2 and the section 6 tech-debt boundary.
+
+Result: Wrote docs/research/2026-09-25-workflowai-review/critique.md (96 lines). Verdict: RECOMMENDATION, no blocking defect. Corrections: A-7 WRONG (workflowAI.md:32-33 and PROTO-DEC-0076 item 1 already carry the DeepSeek exception; MODEL-ECONOMICS.md:34 is its route); A-1 CONFIRMED as a gap but blocking is unsupported (correct medium) and the 0075 item 9 violation framing is wrong; A-4 and A-5 OVERSTATED (H-WAI-6 stays a hypothesis; row 2 needs a 0076 item-2 citation, not a demotion); A-2, A-3, A-6 confirmed with class fixes. B-3, B-4, B-5, B-8, B-9 WRONG or OVERSTATED (1.5 does not implement 0075 item 9's compatibility/budget gates; headroom units are incomparable; independence is a preference and misses the primary); B-2 medium (B calls the same defect simple at B.md:70); B-7's resume-first defect is the already-open M-4 and contradicts B's own "fully scriptable" verdict; B's path:line refs do not match their quoted claims (evidence hygiene). Both missed: 0075 item 9 gates and the no-fit terminal (3.1), the one-/zero-substitute case (3.2), the auto-selectable approval-gated rung (3.3, A untriaged), independence's four forms (3.4), section 5 omitting the supervision breach M-4 (3.5), the unconditional "usage" report field (3.6), the untracked TD-MODEL-QUALIFICATION (3.7), and "stale-data handling" naming no artifact (3.8).
+
+Next step: none from me. The runner starts task:wai-synthesis on critique.md.
+
+Open: (1) The launch names "DeepSeek V4.1" but this session reports the model deepseek/deepseek-flash, effort unknown; the record should name what actually ran (COMMON rule 1), and the launch route may need correction. (2) O1-O3 in critique.md: 0076 item 3 vs 0075 item 11 wording; deepseek Max exclusion vs recorded approval; TD tracking. (3) Nothing was committed; only critique.md and this journal were written.
+
+---
+
+# Worklog: deepseek-674e359e91bc0a98
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+Evidence:
+- anchor: cdf4864308ec19da8ab90e553edb884f6de0b77f, uncommitted changes present
+- digest: sha256:581e394fb0dc950d03e3a5cdc5c19df557917e0c27daa6fa577ca3e27cfc8bd3 over 515 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T17:35:29.400Z by deepseek-674e359e91bc0a98
+- entry hash format: 2
+- entry: sha256:969c32b747834bc99f23cedf4d8a2cb085f7e88ebe14643eea49da8c0a31db26 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+---
+
+### From .ai/worklog/deepseek-fad8c4d160f61749.md, archived 2026-09-27
+
+## 2026-09-25 - revise (task:vmc-revise)
+
+Launch: model=deepseek/deepseek-v4-pro effort=unknown client=kilo
+Orientation: deepseek-v4-pro @ task:vmc-revise (parent program:validator-migration-council): reviser | rights=read, write own files | limits=COMMON section 5 | tools=read, grep, glob, bash (read-only git/node), write, edit | success=final-plan-2.md (full plan + Revision log) | tier=no README-table row for the closing step f; route assigned in R3-DISPATCH.json revise.route = deepseek/deepseek-v4-pro via Kilo, which is what I actually ran, so no Tier-mismatch for this slot
+
+Agent: deepseek-fad8c4d160f61749 (deepseek-v4-pro via Kilo, the assigned revise route)
+
+Action:
+- Started session; read COMMON.md, C-revise.md, R3-ADDENDUM.md, COMMON-LAUNCH.md, revise.md, README.md, R3-DISPATCH.json, round3/USAGE.md, round3/CORPUS.txt, final-plan.md (full 687 lines) and verification.md.
+- Confirmed verification.md verdict is "ACCEPT WITH CONDITIONS" (verification.md:12), not "ACCEPT", so the revise step runs (R3-DISPATCH.json revise.when notMatch).
+- Dispositioned both verification conditions: C-1 (Tier-mismatch note acknowledged, verification.md:68) and C-2 (Part 2 status OPEN - HYPOTHESIS UNDER VALIDATION, verification.md:70). Both are non-blocking and already satisfied in final-plan.md.
+- Wrote final-plan-2.md as an exact copy of final-plan.md with only the appended "## Revision log" (one row per finding: C-1 kept, C-2 kept, each with where + evidence). No plan text changed; dissent unchanged (C-revise step 2).
+
+Result:
+- final-plan-2.md produced. Both conditions kept (no change); the revision log documents this with path:line evidence. No finding rejected. No implementation, no shared-document edit, no commit/tag/push.
+
+Next step: The second verifier (task:vmc-reverify, mistral-medium-3.5 via vibe) reads final-plan-2.md and returns a verdict; it confirms the revision log and that both conditions are met.
+
+Open:
+- None for this slot: both verification conditions are non-blocking and already satisfied.
+- Validator note: validate-protocol.ps1 exits 1 on a pre-existing CRLF in the verifier's journal `.ai/worklog/mistral-verify-001.md` (od shows `\r\n`), not on any file of mine. final-plan-2.md and this journal are LF/UTF-8 (checked with `file` and `od`). I did not touch the mistral journal (COMMON section 5: write only own files), so the CRLF stays for the coordinator/owner to correct.
+- Signal: none (no procedure gap in my work; the CRLF is another session's file, outside my write authority).
+
+Evidence:
+- anchor: 4a85a23fcf597acc80b4cf3af2acf1a26a3a9e07, uncommitted changes present
+- digest: sha256:27fa070596fa16c4f8085f40b05d92b427d32b8d862cb7ebb12e9db100081f7f over 497 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T16:01:19.195Z by deepseek-fad8c4d160f61749
+- entry hash format: 2
+- entry: sha256:7a5222196758fb92c8dc4b5250e72bab1953dd19887c88c8abe060ff5be4da6b of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 1 in 3s
+- sanitized: 2026-09-25T16:02:35.609Z reason: documented the pre-existing CRLF validator failure (mistral-verify-001.md) after recording; no secret involved
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/gemini-0f0a641f874ee3af.md, archived 2026-09-27
+
+## 2026-09-25 - task:vmc-critique-b: Critique B of validator migration draft and F-3P-1
+
+Launch: model=gemini-3.8-flash effort=low client=agy
+Orientation: gemini-3.8-flash @ task:vmc-critique-b (parent program:validator-migration-council): Critic B (simplicity, performance, implementability, over-engineering) | rights=read, write own files | limits=COMMON section 5 | tools=view_file, write_to_file, run_command | success=docs/research/2026-09-25-validator-migration-council/critique-b.md | tier=T7
+Sha256: F85BE4AF5F37B15B7473E9CDC3871FAEA2B82987E1C52C7091966EFB86F29A21 docs/research/2026-09-25-validator-migration-council/critique-b.md
+Independence: did not open critique-a.md before this was finished (PROTO-DEC-0052 item 2; C-critique.md).
+Owner override: chat 2026-09-25 (Fable slots run kimi-k3 via copilot, verifier runs mistral-medium-3.5 via vibe).
+
+Agent: gemini
+
+Action:
+Executed task:vmc-critique-b per prompts/run-r3/critique-b.md, C-critique.md, COMMON.md, and R3-ADDENDUM.md. Evaluated draft-decision.md across all points D-01..D-18 and F-01..F-08 focusing on simplicity, performance, implementability, and over-engineering. Authored docs/research/2026-09-25-validator-migration-council/critique-b.md (142 lines, under 250 cap).
+
+Result:
+Delivered critique-b.md with verdicts across all points (mostly AGREE; PARTLY AGREE on D-04 Node floor qualification vs runtime enforcement and D-11 mutation testing scope). Evaluated drafter quality as GOOD. SHA256 of critique-b.md recorded.
+
+Next step:
+Final plan synthesis (task:vmc-final) by the appointed slot once both critiques are completed.
+
+Open:
+None for this slot. Genuine owner questions remain D-17 Q1 (timing under freeze) and Q2 (cloud Evidence attestation policy).
+
+Evidence:
+- anchor: 88376ed1cd1f6f469ac84e419936a36730b8b05c, uncommitted changes present
+- digest: sha256:f7b0c39f63f1a4b9ce7050affef7c3737b1874de8ea8771668b0b8f5a0b4e68e over 488 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T14:57:57.985Z by gemini-0f0a641f874ee3af
+- entry hash format: 2
+- entry: sha256:c8b939f725127f6a458e3e365cc4e68bbb36012c5615a2804242435471530a38 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/gemini-6bd5048d61dc5e10.md, archived 2026-09-27
+
+## 2026-09-25 - wai-discuss-a position
+
+Agent: gemini
+
+Action: Read baseline at 0200730326d107ad76f706e05762adea161ee603, evaluated docs/core-arch/stage-4/workflowAI.md across sections 1-3, PROTO-DEC-0073..0076, and MODEL-ECONOMICS.md, answered DISCUSS.md questions 1-5, and wrote discussant position A.
+
+Result: Position A written to docs/research/2026-09-25-workflowai-review/positions/A.md (90 lines). Identified: 1 blocking defect (missing BLOCKED/ASK OWNER terminal state when no rung meets capability floor), 1 complex-non-blocking defect (uncalibrated headroom group tie-breaking), 3 medium defects (primary model independence omission, H-WAI-6 misclassification of decided functional roles, self-citation in undisputed table row 2), and 2 simple defects (passive supervisor description, Kilo gateway exception under maker CLI rule).
+
+Next step: wai-critique review by Codex/Claude per DISPATCH.json.
+
+Open: Whether resolver should default to BLOCKED_BUDGET or immediate owner prompt upon floor exhaustion; formal striking of H-WAI-6 to Undisputed table.
+
+---
+
+# Worklog: gemini-6bd5048d61dc5e10
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+Evidence:
+- anchor: a74a60dcd5dd2354e415620b3fe771e285622021, uncommitted changes present
+- digest: sha256:5e39459e8d2cd434678b8f7cd0893e5871a76095a2bb9d2d1baea2b84582fbe6 over 513 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T17:10:25.859Z by gemini-6bd5048d61dc5e10
+- entry hash format: 2
+- entry: sha256:940e85230809a483078e46c10314ce054e541e3801a41ced6bef18ef7bed37ce of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+---
+
+### From .ai/worklog/gemini-e6af76bd5ee37bae.md, archived 2026-09-27
+
+## 2026-09-25 - Round 3 Synthesis C completed
+
+Agent: gemini-e6af76bd5ee37bae
+
+Action:
+- Verified all sha256 checksums of corpus files listed in `docs/research/2026-09-25-validator-migration-council/round3/CORPUS.txt` at start and finish; all matched.
+- Evaluated round-1 and round-2 corpus, baseline code, owner prompts, and F-3P-1 third-pass findings.
+- Authored `docs/research/2026-09-25-validator-migration-council/round3/synthesis-C.md` (123 lines, sha256: b7638bddbeda0b93943c85d222765302ba4d534481116ef25f7e0926cdfc8b40).
+- Did not open any other round-3 synthesis outputs before completion (PROTO-DEC-0052 item 2).
+
+Result:
+- Answered the 14 questions of owner §24 with evidence, resolving cross-zone tensions and preserving post-pilot migration timing unless owner directive triggers early execution.
+- Completed Part 2 on F-3P-1: threat model with controls per class, comparison matrix of 9 variants, answers to Q1-Q10, and risk-vs-friction proof.
+
+Next step:
+- Drafter (session r3-a / Fable) reads syntheses A, B, and C to prepare `draft-decision.md`.
+
+Open:
+- OPEN QUESTION: Does the owner approve advancing the validator migration ahead of the pilot report (reopening PROTO-DEC-0039 item 3 via an owner directive trigger row in `REGISTRY.md`), or shall execution remain scheduled post-pilot?
+
+Evidence:
+- anchor: cd90be1d3c1fede4e02f7ecff5b6507ea1f34338, uncommitted changes present
+- digest: sha256:38af224ac163bed819958800f89d992ec036a4f7a3622cac39c6bec437812f89 over 469 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T14:04:23.815Z by gemini-e6af76bd5ee37bae
+- entry hash format: 2
+- entry: sha256:8cf843e890f368b1cd9e32e3f53f7d749931988c6cce6ddd9f6e6ed65bbac6c0 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-59caa27957e80b10.md, archived 2026-09-27
+
+## 2026-09-25 - Start round-3 runner of validator migration council
+
+Launch: model=google/gemini-3.7-flash effort=default client=Kilo
+
+Agent: kilo
+
+Action: Started council round-3 background runner via `node docs/research/2026-09-25-validator-migration-council/tools/run-chain.cjs docs/research/2026-09-25-validator-migration-council/prompts/R3-DISPATCH.json runner`. Waited 180 seconds and checked `H status`.
+
+Result: Healthy runner process running (pid=22768, alive=true). Status report:
+- r3-a: STARTING pid=38900 copilot kimi-k3 try=1 journal=null outputLines=0 evidence=false idleMin=0
+- r3-b: DONE pid=18912 try=1 journal=codex-ebacaa892db4dcce.md outputLines=279 evidence=true idleMin=6
+- r3-c: DONE pid=21128 try=1 journal=gemini-e6af76bd5ee37bae.md outputLines=123 evidence=true idleMin=17
+- runner: pid=22768 alive=true
+
+Next step: Runner proceeds autonomously through syntheses, draft, critiques, final plan, and verification.
+
+Open: None for operator dispatch.
+
+Evidence:
+- anchor: 88376ed1cd1f6f469ac84e419936a36730b8b05c, uncommitted changes present
+- digest: sha256:1cbba41099fe820c4be4cbc148eee7537f3d29d968aa52fcceccaaf51d0a8a68 over 485 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T14:21:29.439Z by kilo-59caa27957e80b10
+- entry hash format: 2
+- entry: sha256:d9c17d8b6dc573be24a2a00b51b1de3801403ba3a280cfcb130d966b47f77d01 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-c4ba4c855eaffff7.md, archived 2026-09-27
+
+## 2026-09-25 - Start round-3 runner for validator migration council
+
+Agent: kilo
+
+Action:
+- Started protocol session kilo-c4ba4c855eaffff7.
+- Executed `node docs/research/2026-09-25-validator-migration-council/tools/r3-dispatch.cjs runner` to start background council runner process (pid 33040).
+- Waited 180 seconds and inspected status via `node docs/research/2026-09-25-validator-migration-council/tools/r3-dispatch.cjs status`.
+
+Result:
+Runner successfully started and running in background (pid=33040, alive=true).
+Status output:
+```
+# vmc-r3 status 2026-09-25T14:04:32.676Z
+
+r3-a: WAITING Kilo balance 12.02 < 15
+r3-b: WORKING pid=18912 route=primary try=1 journal=codex-ebacaa892db4dcce.md outputLines=0 evidence=false idleMin=0
+r3-c: WORKING pid=21128 route=primary try=1 journal=gemini-e6af76bd5ee37bae.md outputLines=123 evidence=true idleMin=0
+draft: NOT_STARTED
+critique-a: NOT_STARTED
+critique-b: NOT_STARTED
+final: NOT_STARTED
+verify: NOT_STARTED
+runner: pid=33040 alive=true
+```
+Signal: none
+
+Next step:
+Council runner continues execution autonomously across synthesis, draft, critiques, final plan, and verification.
+
+Open:
+None.
+
+Evidence:
+- anchor: cd90be1d3c1fede4e02f7ecff5b6507ea1f34338, uncommitted changes present
+- digest: sha256:38af224ac163bed819958800f89d992ec036a4f7a3622cac39c6bec437812f89 over 469 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-25T14:04:45.198Z by kilo-c4ba4c855eaffff7
+- entry hash format: 2
+- entry: sha256:35e5543974a73507c6baa8d9ba2a04ed7b2f8f2958a674175620726df17b0516 of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 3s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
