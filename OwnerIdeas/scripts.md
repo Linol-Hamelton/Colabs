@@ -1,4 +1,4 @@
-Advisory seed; consumed by R-5; status: RESOLUTION-CLAUDE.md section 4.4
+Advisory seed; consumed by R-5; status: docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md section 4.4
 Да. Здесь уже вырисовывается отдельная **исследовательская программа по script/runtime layer**, и она напрямую связана с возможностью перейти от 2–3 параллельных агентов к условным 10–15 и более.
 
 Причём я бы немного уточнил вашу формулировку архитектуры. Главная цель — не просто «поставить lock на репозиторий», а сделать так, чтобы **канонический repository имел одного арбитра записи, а агенты никогда не конкурировали за него напрямую**:

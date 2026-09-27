@@ -1,4 +1,4 @@
-Advisory seed; consumed by A-1; status: RESOLUTION-CLAUDE.md section 4.4
+Advisory seed; consumed by A-1; status: docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md section 4.4
 
 # H-AUTH-02 — BOUNDED EXECUTION AUTHORIZATION
 

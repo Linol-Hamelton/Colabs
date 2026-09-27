@@ -16,7 +16,7 @@ Owner request 2026-09-27. Read `README.md` in this folder first: trigger, merge 
 - PROTO-DEC-0047: items 5-6 and 8-10.
 - PROTO-DEC-0075: items 5 and 9-11.
 - `.ai/docs/CLI-AGENTS.md`.
-- `docs/research/2026-09-26-ownerideas-revision/round6/packages/PKG-1.md` and `PKG-3.md`.
+- `docs/research/archive/2026-09-26-ownerideas-revision/round6/packages/PKG-1.md` and `PKG-3.md`.
   PKG-3 leaves the resolver cost metric owner-open.
 - `docs/ops/MODEL-ECONOMICS.md` and `docs/ops/model-ladder.json`.
 - `docs/research/2026-09-27-cost-routes-research/`:

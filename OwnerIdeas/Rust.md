@@ -1,4 +1,4 @@
-Advisory seed; consumed by R-6; status: RESOLUTION-CLAUDE.md section 4.4
+Advisory seed; consumed by R-6; status: docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md section 4.4
 
 Ты работаешь с репозиторием **Colabs** — протоколом координации нескольких AI-агентов. Главная задача этого исследования — найти и проверить **максимально возможное количество практически значимых гипотез ускорения runtime Colabs**, особенно операций, которые сейчас могут занимать десятки секунд.
 

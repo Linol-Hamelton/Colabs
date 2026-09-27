@@ -67,7 +67,7 @@ None.
 ## Evidence
 
 - C - PROTO-DEC-0070 items 4-6 (owner terms for the PROTO-DEC-0066 run) made a general kernel rule by PROTO-DEC-0081.
-- C - R-L0-38.6 (the order) is the resolver's proposal (`round6/packages/PKG-4.md`, stage 5-6), not the owner's words; it tests the fail-safe outcomes first.
+- C - R-L0-38.6 (the order) is the resolver's proposal (`docs/research/archive/2026-09-26-ownerideas-revision/round6/packages/PKG-4.md`, stage 5-6), not the owner's words; it tests the fail-safe outcomes first.
 
 ## Risks
 

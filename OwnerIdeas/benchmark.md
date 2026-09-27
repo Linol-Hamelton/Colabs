@@ -1,4 +1,4 @@
-Advisory seed; consumed by R-3; status: RESOLUTION-CLAUDE.md section 4.4
+Advisory seed; consumed by R-3; status: docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md section 4.4
 
 
 Есть частично: в основном тексте уже учтены **latency, wall-clock time и Expected Accepted Completion Time**, но отдельно **скорость чтения контекста и скорость генерации** я явно не выделил. Это стоит добавить.

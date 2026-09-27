@@ -13,7 +13,7 @@ proposals.
 ## Trigger
 
 Start when both conditions hold:
-1. The OwnerIdeas revision (`docs/research/2026-09-26-ownerideas-revision/`) has its stage-12
+1. The OwnerIdeas revision (`docs/research/archive/2026-09-26-ownerideas-revision/`, CLOSED 2026-09-27, receipt CR-F01-1) has its stage-12
    verdict CLOSED.
 2. The owner says go.
 
@@ -56,3 +56,30 @@ carries a one-line pointer to this file.
   - Where two operators run at once, each works in its own `git worktree`.
   - On 2026-09-27 the cost-routes operator offered to commit the round-3 certification reports of
     the other operator. That must go to their owner session instead.
+
+## Transferred from the F-01 closure (CR-F01-1, 2026-09-27)
+
+TRANSFER targets named by the stage-12 closure of F-01 (R-L0-22.60):
+
+- **W5.** The dispatch test fixture left in `docs/research/2026-09-26-ownerideas-revision/` (`prompts/DISPATCH.json` and
+  `prompts/run/*`, 40 files). Re-home it under `tests/fixtures/`, point `tests/dispatch.test.cjs`
+  at it, then archive the leftover directory and add an INDEX row.
+- **W1.** Retire `docs/research/2026-09-25-validator-migration-council/tools/run-chain.cjs`
+  (F-06 had TRANSFER(A-3); A-3 is now implemented as `.ai/bin/protocol-dispatch.cjs`).
+- **W0.** The codex usage-parser exception (owner decision A, 2026-09-27).
+- **W4.** MiMo model identity: runs record only the requested model; record the observed one.
+- **W1/W7.** Cost-routes K-launch: `cr-collector-a` ended early with an unconfirmed cause (operator
+  journal `kilo-9a9b18229cce57fd`).
+- **Tooling finding.** The untracked `.ai/runtime/closure-receipts.cjs` overwrites
+  `docs/research/CLOSURES.jsonl` (`writeFileSync`), against R-L0-22.67. Never run it again; any
+  closure tool appends.
+- **Owner questions carried from F-01** (`docs/research/archive/2026-09-26-ownerideas-revision/round6/FINAL-RESOLUTION-CLAUDE.md`
+  section 9), all undecided:
+  - here: OQ-1 (redaction beyond journals), OQ-3 (stall default 10 min against PROTO-DEC-0051
+    item 4), OQ-4 (install scope `source` or `managed`), OQ-8 (run-record store), OQ-9 (switching
+    programs to `protocol-dispatch.cjs`);
+  - in F-03: OQ-2 (lives in P-L0-009 `## Open`), OQ-5, OQ-7;
+  - with the owner: OQ-6 (certifier floor override), OQ-10 (DIG counter), OQ-11 (carried items).
+- **Residual non-blocking findings** of `docs/research/archive/2026-09-26-ownerideas-revision/round9/FINAL-DEEPSEEK.md` section 8:
+  R-1 (a PKG-2 audit prompt at 184 lines against the 150 cap needs an owner-approved expansion),
+  R-3, R-4.

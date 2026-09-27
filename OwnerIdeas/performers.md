@@ -1,4 +1,4 @@
-Advisory seed; consumed by R-3; status: RESOLUTION-CLAUDE.md section 4.4
+Advisory seed; consumed by R-3; status: docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md section 4.4
 
 
 

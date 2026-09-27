@@ -14,7 +14,7 @@ back_edges: [3>2/1/owner]
 enforcement: P
 script_candidate: no:1
 evidence_class: [B, D]
-evidence: [PROTO-DEC-0052, PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, PROTO-DEC-0085, docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md]
+evidence: [PROTO-DEC-0052, PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, PROTO-DEC-0085, docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md]
 cost_basis: unknown
 trial: metric=M-010; kill=in two independent cases the governor itself blocks a work stream for more than 24 h with no related technical or external blocker; until=frames-5
 decision: [PROTO-DEC-0082, PROTO-DEC-0083, PROTO-DEC-0084, PROTO-DEC-0085]
@@ -222,7 +222,7 @@ Actor slots are defined in L1: `author` (frame author), `coordinator` (operator)
 
 ## Evidence
 
-- [B] `docs/research/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md` sections 1 and 7:
+- [B] `docs/research/archive/2026-09-26-ownerideas-revision/round3/RESOLUTION-CLAUDE.md` sections 1 and 7:
   the kernel decided far more than it built, and the revision produced seven research candidates.
   `docs/research/` gained twelve frame directories between 2026-09-20 and 2026-09-26. Cost:
   unknown (owner time and model runs not measured).
