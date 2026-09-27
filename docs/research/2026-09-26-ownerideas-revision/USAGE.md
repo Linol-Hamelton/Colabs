@@ -36,4 +36,5 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r9e-repair-pkg2 | agy | gemini-3.8-flash-high | - | 11 | 106 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r9f-repair-usage | agy | gemini-3.8-flash-high | - | 23 | 110 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r8e-cert-kimi-pkg2 | kimi | moonshot-ai/kimi-k2.7-code-highspeed | - | 38 | 97 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r12-final-deepseek | kilo | deepseek/deepseek-flash | - | 36 | 191 | 0.08 | 168855/15955 | 0.00 | 40 | 0 | DONE |
 | r9-verify-codex | codex | gpt-5.6-sol | medium | 28 | 86 | 0.00 | 0/0 | 0.00 | 204 | 0 | DONE |
