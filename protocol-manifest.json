@@ -73,6 +73,9 @@
     "tests/session.test.cjs",
     "tests/signals.test.cjs",
     "tests/upgrade.test.cjs",
+    "tests/validator-decisions.test.cjs",
+    "tests/validator-gate.test.cjs",
+    "tests/validator-lightpath.test.cjs",
     "tests/validator-syntax.test.cjs",
     "tests/validator.test.cjs"
   ],
