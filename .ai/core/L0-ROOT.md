@@ -1,10 +1,12 @@
 ---
 id: P-L0-000
-version: 0.6
+version: 0.7
 title: Kernel root - why the kernel exists, its invariants, and how everything else is found
 layer: L0
 type: invariant
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 roles: [all]
 stages: [any]
 triggers: [session-start]
@@ -20,7 +22,7 @@ cost_basis: unknown
 
 ## Purpose
 
-Draft 0.6, CORE-ARCH stage 1. Not binding until approved. Always loaded; everything else is
+Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding. Always loaded; everything else is
 loaded by your role and stage. Each rule says why it exists; the full evidence is in
 CORE-ARCH-2 §4 and in the Evidence section below. Scripts enforce the parts they can
 (`enforced_by`); the rest is judgement, so `script_candidate` is `no:4`.
@@ -136,7 +138,7 @@ Your role: L1 `ROLE-<slot>`. Your stage: L2. Missing rule: P-L0-002. Action alre
 to ask: P-L0-009. New or changed record: P-L0-001. Conflicting sources: P-L0-003. Layer consistency: P-L0-004. Decisions and
 reopening: P-L0-005. Candidates to improve or retire: P-L0-006. Comparative tests: P-L0-007.
 Research frames: P-L0-008.
-All are drafts until stage 1 is approved.
+Stage 1 is approved (PROTO-DEC-0061); P-L0-009 and the records of L1 and below are still drafts.
 
 ## Evidence
 
@@ -157,3 +159,4 @@ All are drafts until stage 1 is approved.
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — R-L0-19 anchors P-L0-004 (CA-24); P-L0-003..005 no longer pending — reviewer DeepSeek: RECOMMENDATION.
 - 0.4 — 2026-09-24 — claude-eb97ac9d13050014 — class E no longer means disuse; R-L0-20 and R-L0-21 anchor P-L0-006 and P-L0-007 (PROTO-DEC-0060) — review pending (stage-1 re-check).
 - 0.5 — 2026-09-26 — kilo-f22faac486b5e567 (transcription; text by claude-b00262b88c55444b) — R-L0-22 anchors P-L0-008 (PROTO-DEC-0083) — reviewer Mistral Medium 3.5 (`docs/reviews/2026-09-26-mistral-p-l0-008-0.2-review.md`): RECOMMENDATION.
+- 0.7 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061 — review pending (I-a certification).

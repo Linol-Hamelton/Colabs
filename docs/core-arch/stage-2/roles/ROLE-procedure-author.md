@@ -13,7 +13,7 @@ outputs: [record-draft, journal]
 enforcement: P
 script_candidate: no:4
 evidence_class: [A]
-evidence: [docs/core-arch/stage-1/P-L0-001-procedure-lifecycle.md:50, PROTO-DEC-0061]
+evidence: [.ai/core/L0-meta/P-L0-001-procedure-lifecycle.md:51, PROTO-DEC-0061]
 ---
 
 # ROLE-procedure-author
@@ -49,7 +49,7 @@ Every kernel record has an author who owns its dossier and its consistency check
 
 ## Evidence
 
-- A - R-L0-17.6 (`docs/core-arch/stage-1/P-L0-001-procedure-lifecycle.md:50`); stage 1 produced through it (PROTO-DEC-0061).
+- A - R-L0-17.6 (`.ai/core/L0-meta/P-L0-001-procedure-lifecycle.md:51`); stage 1 produced through it (PROTO-DEC-0061).
 
 ## Risks
 

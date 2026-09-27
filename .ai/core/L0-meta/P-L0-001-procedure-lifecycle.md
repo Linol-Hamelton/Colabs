@@ -1,16 +1,17 @@
 ---
 id: P-L0-001
-version: 0.5
+version: 0.6
 title: Procedure lifecycle - how a kernel procedure is created, changed and retired
 layer: L0
 type: procedure
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 roles: [procedure-author, reviewer, coordinator]
 stages: [any]
 triggers: [signal:procedure-gap, signal:fall, signal:script-candidate, owner-directive, research-consensus, incident]
-inputs: [signals, CATALOG, decisions-index, docs/core-arch/stage-1/procedure.schema.md]
+inputs: [signals, CATALOG, decisions-index, .ai/core/schema/procedure.schema.md]
 outputs: [record-draft, review-report, CATALOG, journal]
-tools: [TOOL-protocol-core, TOOL-protocol-index, TOOL-protocol-ledger]
 back_edges: [5>2/1/owner, 7>4/2/owner, 9>4/1/retire, 11>1/1/owner]
 enforcement: none
 script_candidate: no:4
@@ -22,7 +23,7 @@ trial: metric=M-001; kill=two layers built under it with more LCC defects found 
 
 # P-L0-001 Procedure lifecycle
 
-Draft 0.5 of CORE-ARCH stage 1, task S1-T02 (fix rounds: CA-03..CA-06, CA-08, CA-16; CA-S1; S1-T08 gap G4; PROTO-DEC-0060; CA-38). Not binding until approved (PROTO-DEC-0054 item 1).
+Draft 0.5 of CORE-ARCH stage 1, task S1-T02 (fix rounds: CA-03..CA-06, CA-08, CA-16; CA-S1; S1-T08 gap G4; PROTO-DEC-0060; CA-38). Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding.
 `enforcement: none` means the procedure is decided in design but not yet built: its
 mechanical parts become `protocol-core.cjs lint | catalog | check-links` (task S1-T10), which
 will move it to `S~`. `script_candidate: no:4` because the core of the procedure - whether
@@ -175,3 +176,4 @@ LCC-class defects found by the reviewer, per layer.
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — back edges name their source step (schema 0.3, CA-S1) — reviewer DeepSeek r3: verified.
 - 0.4 — 2026-09-24 — claude-eb97ac9d13050014 — step 1 search fallback until CATALOG exists (S1-T08 gap G4) — reviewer DeepSeek: RECOMMENDATION.
 - 0.5 — 2026-09-24 — claude-eb97ac9d13050014 — retirement by disuse removed; step 11 runs P-L0-006, retirement needs P-L0-007 (PROTO-DEC-0060) — review pending (stage-1 re-check).
+- 0.6 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061; `tools` removed: the three TOOL-* records are L3, written and planned by no stage (check-links DANGLING, LCC-5 at landing); the scripts stay named in the text; schema input path follows the landing — review pending (I-a certification).

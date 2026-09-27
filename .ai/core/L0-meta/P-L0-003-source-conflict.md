@@ -1,10 +1,12 @@
 ---
 id: P-L0-003
-version: 0.2
+version: 0.3
 title: Resolve a conflict between two sources of truth
 layer: L0
 type: procedure
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 roles: [all]
 stages: [any]
 triggers: [source-conflict]
@@ -20,7 +22,7 @@ cost_basis: unknown
 
 # P-L0-003 Resolve a conflict between two sources of truth
 
-Draft 0.2 of CORE-ARCH stage 1, task S1-T09 (fix: CA-25). Not binding until approved (PROTO-DEC-0054 item 1).
+Draft 0.2 of CORE-ARCH stage 1, task S1-T09 (fix: CA-25). Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding.
 
 ## Purpose
 
@@ -84,3 +86,4 @@ None. A stop goes to P-L0-002 and the answer re-enters at step 5.
 
 - 0.1 — 2026-09-24 — claude-eb97ac9d13050014 — first draft — reviewer DeepSeek S1-T11: FAIL (CA-25).
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — R-L0-03.5 removed: no source stated it, and step 3 already covers same-rank decisions — review pending.
+- 0.3 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061 — review pending (I-a certification).

@@ -359,6 +359,24 @@ else {
     }
 }
 
+# The kernel (.ai/core, CORE-ARCH package I-a, PROTO-DEC-0061) is checked by its own tool in one
+# process: record schema, catalog freshness and, where the design corpus exists, references.
+$coreRoot = Join-Path $Root '.ai/core'
+if (Test-Path -LiteralPath $coreRoot -PathType Container) {
+    $coreTool = Join-Path $Root '.ai/bin/protocol-core.cjs'
+    if (-not $nodeCommand) { Write-Result "FAIL" "kernel checks need Node.js: .ai/core exists" }
+    elseif (-not (Test-Path -LiteralPath $coreTool -PathType Leaf)) { Write-Result "FAIL" "kernel present but .ai/bin/protocol-core.cjs is missing" }
+    else {
+        $coreRun = Invoke-External $nodeCommand.Source @($coreTool, 'verify', '--root', $coreRoot)
+        if ($coreRun.Code -eq 0) { Write-Result "PASS" "kernel records verified (.ai/core: lint, catalog, links)" }
+        else {
+            $coreRows = @(($coreRun.Output + "`n" + $coreRun.Error) -split "`r?`n" | Where-Object { $_ -match '^(FINDING|STALE|DANGLING|BAD_LINE|ERROR) ' })
+            if ($coreRows.Count -eq 0) { $coreRows = @("protocol-core verify exited $($coreRun.Code)") }
+            foreach ($coreRow in $coreRows) { Write-Result "FAIL" ("kernel: " + $coreRow) }
+        }
+    }
+}
+
 # This checks the repository definition, not the user's Codex trust store.
 # Host activation must still be reviewed with /hooks in a trusted project.
 $codexSettingsPath = Join-Path $Root '.codex/hooks.json'

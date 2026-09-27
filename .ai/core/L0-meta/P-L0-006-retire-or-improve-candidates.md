@@ -1,10 +1,12 @@
 ---
 id: P-L0-006
-version: 0.1
+version: 0.2
 title: Find candidates to improve or retire a kernel record
 layer: L0
 type: procedure
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 roles: [coordinator, reviewer]
 stages: [any]
 triggers: [signal:procedure-gap, signal:fall, review-finding, stop-question, trial-kill, source-conflict, owner-directive]
@@ -20,8 +22,7 @@ trial: metric=M-008; kill=two batches in which a record was found wanting only a
 
 # P-L0-006 Find candidates to improve or retire a record
 
-Draft 0.1, CORE-ARCH stage 1, written on the owner's instruction (PROTO-DEC-0060 item 2). Not
-binding until approved.
+Draft 0.1, CORE-ARCH stage 1, written on the owner's instruction (PROTO-DEC-0060 item 2). Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding.
 
 ## Purpose
 
@@ -92,3 +93,4 @@ None. The candidate re-enters the kernel through P-L0-001 or P-L0-007.
 ## Change log
 
 - 0.1 — 2026-09-24 — claude-eb97ac9d13050014 — first draft (PROTO-DEC-0060) — review pending (stage-1 re-check).
+- 0.2 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061 — review pending (I-a certification).

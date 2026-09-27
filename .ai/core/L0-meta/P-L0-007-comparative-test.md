@@ -1,10 +1,12 @@
 ---
 id: P-L0-007
-version: 0.2
+version: 0.3
 title: Comparative test of kernel variants - A/B for a retirement candidate, A/B/C for the whole kernel
 layer: L0
 type: procedure
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 roles: [coordinator, implementer, reviewer]
 stages: [any]
 triggers: [retirement-candidate, program-exit, owner-directive]
@@ -20,8 +22,7 @@ trial: metric=M-009; kill=the first two tests give results the reviewer cannot t
 
 # P-L0-007 Comparative test of kernel variants
 
-Draft 0.2, CORE-ARCH stage 1, written on the owner's instruction (PROTO-DEC-0060 item 2). Not
-binding until approved.
+Draft 0.2, CORE-ARCH stage 1, written on the owner's instruction (PROTO-DEC-0060 item 2). Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding.
 
 ## Purpose
 
@@ -107,3 +108,4 @@ not by opinion. Two uses share one method:
 
 - 0.1 — 2026-09-24 — claude-eb97ac9d13050014 — first draft (PROTO-DEC-0060) — reviewer DeepSeek re-check: RECOMMENDATION (CA-39).
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — trial metric M-009, which measures the kill criterion (CA-39) — for the owner.
+- 0.3 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061 — review pending (I-a certification).

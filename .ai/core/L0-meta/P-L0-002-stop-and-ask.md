@@ -1,10 +1,12 @@
 ---
 id: P-L0-002
-version: 0.4
+version: 0.5
 title: Stop and ask when a rule is missing, conflicting or blocked
 layer: L0
 type: procedure
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 roles: [all]
 stages: [any]
 triggers: [rule-not-found, source-conflict, tool-blocked, scope-exceeded, budget-exhausted, premise-wrong]
@@ -15,13 +17,13 @@ enforcement: P
 script_candidate: no:4
 evidence_class: [A, B, C]
 evidence: [docs/research/2026-09-23-kernel-architecture/DISCUSSION.md:167, docs/research/2026-09-23-kernel-architecture/DISCUSSION.md:179, PROTO-DEC-0049]
-cost_basis: owner=unknown
+cost_basis: unknown
 trial: metric=M-002; kill=mean owner clarifications per stop-question above 1.5 over ten questions; until=CORE-ARCH package I
 ---
 
 # P-L0-002 Stop and ask
 
-Draft 0.4 of CORE-ARCH stage 1, task S1-T03 (fix rounds: CA-03, CA-07; R-L0-10.8; evidence path). Not binding until approved (PROTO-DEC-0054 item 1).
+Draft 0.4 of CORE-ARCH stage 1, task S1-T03 (fix rounds: CA-03, CA-07; R-L0-10.8; evidence path). Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding.
 
 ## Purpose
 
@@ -108,3 +110,4 @@ None. The answer re-enters the task at the step that stopped.
 - 0.2 — 2026-09-24 — claude-eb97ac9d13050014 — budget-exhausted and scope-exceeded in rules and form; artifact ids from schema 2.1 — reviewer DeepSeek r2: verified.
 - 0.3 — 2026-09-24 — claude-eb97ac9d13050014 — R-L0-10.8 for scope-exceeded (r2 observation) — reviewer DeepSeek r3: verified.
 - 0.4 — 2026-09-24 — claude-eb97ac9d13050014 — evidence points at the persisted external synthesis; no rule changed.
+- 0.5 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061; cost_basis `owner=unknown` outside the schema form, now `unknown` (lint F6 at landing) — review pending (I-a certification).

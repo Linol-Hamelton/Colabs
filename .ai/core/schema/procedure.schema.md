@@ -1,21 +1,23 @@
 ---
 id: SCHEMA-procedure
-version: 0.6
+version: 0.7
 title: Shape of every kernel record: front matter, body sections, loading levels
 layer: L0
 type: schema
-status: draft
+status: active
+owner_approval: PROTO-DEC-0061
+decision: [PROTO-DEC-0061]
 evidence_class: [B, C]
 evidence: [docs/research/2026-09-24-remediation-mapping/PROCEDURE-MAP.md:131, docs/research/2026-09-24-remediation-mapping/PROCEDURE-MAP.md:144, PROTO-DEC-0049]
 cost_basis: unknown
 ---
 
-# Procedure schema (draft 0.6)
+# Procedure schema
 
-- Status: draft of CORE-ARCH stage 1, task S1-T01. Not binding until approved (PROTO-DEC-0054 item 1).
+- Status: Landed in `.ai/core/` with package I-a on the stage-1 approval PROTO-DEC-0061; binding.
 - Pattern borrowed from graphmemory `src/graphs/*-types.ts`: the shape of a record is defined
   once, apart from the records and apart from the code that reads them.
-- Every file under `.ai/core/L*-*/` (after landing) starts with a front-matter block that
+- Every kernel record under `.ai/core/` starts with a front-matter block that
   matches this schema. `protocol-core.cjs lint` (spec: S1-T10) checks it.
 
 ## 1. Front-matter grammar
@@ -195,3 +197,4 @@ Invalid, with the exit each produces:
 - 0.4 — 2026-09-24 — claude-eb97ac9d13050014 — `legacy:` form in `supersedes`; stage-id registry 2.2 (both from the S1-T08 trial) — reviewer DeepSeek S1-T11: FAIL (CA-24 class, CA-26).
 - 0.5 — 2026-09-24 — claude-eb97ac9d13050014 — rule-id anchoring defined for every layer (CA-24); one exit-code rule for lint, consistent with SPEC and the examples (CA-26); `all` records load at summary until triggered (CA-S2) — reviewer DeepSeek: RECOMMENDATION.
 - 0.6 — 2026-09-24 — claude-eb97ac9d13050014 — `last_applied` is information only (PROTO-DEC-0060) — review pending (stage-1 re-check).
+- 0.7 — 2026-09-27 — claude-e108f8be9e0e2049 — landing, package I-a: status active on PROTO-DEC-0061 — review pending (I-a certification).
