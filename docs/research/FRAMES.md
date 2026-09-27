@@ -17,14 +17,14 @@ carries `receipt: <CR-id> <sha> K:n C:n A:n D:n R:n T:n` (P-L0-008 R-L0-22.67).
 | Candidates / cap | 4 / 5 (PROTO-DEC-0084) | 2026-09-26 | R-L0-22.55 (P-L0-008 0.3) |
 | RER at last gate | - | - | R-L0-22.46 |
 | Frames closed under P-L0-008 (trial: 5) | 0 (the transition inventory F-01..F-16 records closures before adoption) | 2026-09-26 | R-L0-22.50 |
-| Closed frames without a receipt | 0 (F-01 received CR-F01-1 on 2026-09-27) | 2026-09-27 | R-L0-22.56 |
+| Closed frames without a receipt | 0 (F-01 received CR-F01-1, F-02 received CR-F02-1 on 2026-09-27) | 2026-09-27 | R-L0-22.56 |
 
 ## Frames
 
 | ID | Frame | Path | Stream | Size | Status | Round | Opened | Gate owner | Verdict | Record | Suspension: reason; resume; responsible; review date |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | F-01 | OwnerIdeas revision | `docs/research/archive/2026-09-26-ownerideas-revision/` | S1 | major | CLOSED | 3 | 2026-09-26 | owner | ACCEPT at the stage-3 gate; stages 4-12 continue as implementation preparation and implementation (R-L0-22.7); the stage-4 Kimi/MiMo critique is the plan's single critique | PROTO-DEC-0079..0081; receipt: CR-F01-1 a140bea K:63 C:0 A:71 D:1 R:1 T:55 | - |
-| F-02 | Model-evidence layer (R-3): evidence base sufficient for Resolver v1 | `docs/research/archive/2026-09-26-model-layer/` | S2 | major | CLOSED | 2 | 2026-09-26 | owner | ACCEPT at the round-2 gate (PACKET-1 Q1) | PROTO-DEC-0080, 0084 | - |
+| F-02 | Model-evidence layer (R-3): evidence base sufficient for Resolver v1 | `docs/research/archive/2026-09-26-model-layer/` | S2 | major | CLOSED | 2 | 2026-09-26 | owner | ACCEPT at the round-2 gate (PACKET-1 Q1) | PROTO-DEC-0080, 0084; receipt: CR-F02-1 c3b9b53 K:0 C:0 A:20 D:0 R:0 T:0 | - |
 | F-03 | CORE-ARCH design program | `docs/core-arch/` | S1 | major | ACTIVE (continues) | continues through the approved stage 2 and the running stage-3 design (waits for Study B) | 2026-09-24 | owner | - | PROTO-DEC-0053, 0054; owner confirmation 2026-09-26: continues; every next stage passes admission under P-L0-008 | - |
 | F-04 | Study A (AX, MCP facade, Rust daemon and caches, incremental validation, general core API) | `docs/research/2026-09-25-improvement-research/` | S1 | major | SUSPENDED | - | 2026-09-25 | owner | - | PROTO-DEC-0066; RESOLUTION R-6 | waits for K-launch after M-3; resume "K-launch ready"; responsible owner; review 2026-10-03 |
 | F-05 | Study B (adaptive execution depth) | `docs/research/2026-09-25-improvement-research/` | S2 | major | SUSPENDED | - | 2026-09-25 | owner | - | PROTO-DEC-0066; RESOLUTION R-4 | waits for K-launch after M-3; resume "K-launch ready"; responsible owner; review 2026-10-03 |

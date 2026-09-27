@@ -33,7 +33,7 @@ You are the wave-1 executor. One executor session for the whole wave; one commit
    directory `docs/research/archive/2026-09-26-model-layer/`: build the artifact set, one disposition per
    artifact (ARCHIVE by default), apply in one commit under the lock, repoint active references,
    append the `CLOSURES.jsonl` line (append-only - never rewrite) and the receipt
-   `receipt: CR-F02-1 <apply-sha> K:.. C:.. A:.. D:.. R:.. T:..` on the F-02 row. The closer does
+   `receipt: CR-F02-1 c3b9b53 K:0 C:0 A:20 D:0 R:0 T:0` on the F-02 row. The closer does
    not certify its own receipt; the wave-1 reviewer checks it afterwards. In the same close-out:
    `docs/ops/MODEL-ECONOMICS.md` - ladder route id `deepseek/deepseek-flash`, effort `max` (Q1:
    "DeepSeek V4.1 Max" = V4.1 Flash at max effort), and close BACKLOG S-5 with its line.
