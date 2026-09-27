@@ -8,6 +8,39 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - F-01 closed; fresh evidence on the closed tree
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action: pulled `origin/v2.0.0` to `1c104ce` (fast-forward `8d9544a..1c104ce`), verified the F-01
+receipt rows (`FRAMES.md` F-01 `receipt: CR-F01-1 a140bea K:63 C:0 A:71 D:1 R:1 T:55`; the
+"Closed frames without a receipt" counter row at 0; the `CLOSURES.jsonl` line), then re-ran the full
+`protocol-handoff.cjs record` (not `--quick`) in a clean worktree at `1c104ce`; this entry carries
+that evidence. Housekeeping on the owner's prompt: pruned empty journals (report: before/after
+counts), deleted the disposable `.ai/runtime/apply-f01-closure.cjs` and
+`.ai/runtime/closure-receipts.cjs` (the latter overwrites `CLOSURES.jsonl`, against R-L0-22.67), and
+left the stale worktrees and the `claude/f01-closure-script` branch untouched by owner decision.
+
+Result: fresh Evidence matches the closed tree; this journal is the only file committed with it
+(plus `.ai/ARCHIVE.md` if the auto-archive moved older entries).
+
+Next step: none in this program; OPS-1 continues from its own dispatch.
+
+Open: `equinox-path` and `Colabs-cert/*` stay by owner decision; the codex token figures remain
+unreliable until OPS-1 W0.
+
+Evidence:
+- anchor: 1c104ce74b242b0fed1316fc1c723819426b4f98, uncommitted changes present
+- digest: sha256:fff94cc33ecb61578773e33a3387903e5bb27edbbd8cf05cb77cda99aa7a4a28 over 736 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T06:11:41.858Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:aa46f74c8cf4363acfc6b64b4e1a04398e6d0094b691a967a6b495bba2eeee47 of this entry without this block
+- parent-entry: sha256:226413167e64f43ac928c1ecf86b77552fcd4d1ae5b1d5e9e45e3750bf380aee
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 16s
+- test-protocol.ps1: exit 0 in 536s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-27 - Stage 12 handoff prepared; evidence re-recorded at the handoff commit
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
