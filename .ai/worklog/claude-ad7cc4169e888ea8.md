@@ -46,7 +46,7 @@ after the owner's Windows lane passes on the branch head.
   the closure-receipts.cjs overwrite, the collector-a early end, DeepSeek R-1/R-3/R-4, and 150
   journals against the cap of 100.
 - Correction: the Colabs-cert/* worktrees are not this program's.
-- No Evidence: this cloud has no PowerShell.
+- Owner Windows lane at b17e5f0: validator exit 0, suite 419/419, clean tree. No Evidence here.
 Signal: procedure-gap - a closure whose frame directory holds a live test fixture cannot archive it
 without a kernel change; fixtures belong under tests/fixtures from the start.
 
