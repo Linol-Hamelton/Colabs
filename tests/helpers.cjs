@@ -70,22 +70,45 @@ function shouldUseFastValidator(options = {}) {
   return true;
 }
 
-function seedProtocol(root, options = {}) {
-  // Derived from protocol-manifest.json, not from a list of its own. A fourth
-  // list that had to agree with the manifest is what broke the first CI run.
+// The protocol file set a fixture receives, read from the repository once per process.
+// Derived from protocol-manifest.json, not from a list of its own. A fourth
+// list that had to agree with the manifest is what broke the first CI run.
+let protocolFiles = null;
+function protocolFileSet() {
+  if (protocolFiles) return protocolFiles;
   const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'protocol-manifest.json'), 'utf8'));
   // A fixture stands in for the protocol source repository, so it needs the
   // source-only tooling too. An installed project gets only `managed`.
   const entries = [...manifest.managed, ...manifest.source, ...manifest.tests,
     ...manifest.integration, '.editorconfig', '.codex/config.toml', 'templates'];
-  for (const relative of entries) {
-    const source = path.join(repoRoot, relative);
-    if (!fs.existsSync(source)) continue;
+  const files = new Map();
+  const collect = (sourceRelative, targetRelative) => {
+    const source = path.join(repoRoot, sourceRelative);
+    if (!fs.existsSync(source)) return;
+    const stat = fs.lstatSync(source);
+    if (stat.isSymbolicLink()) throw new Error(`Fixture source is a link: ${sourceRelative}`);
+    if (stat.isDirectory()) {
+      for (const name of fs.readdirSync(source)) collect(path.join(sourceRelative, name), path.join(targetRelative, name));
+      return;
+    }
+    // A later entry replaces an earlier one at the same target, as the copy order did.
+    files.set(targetRelative, { bytes: fs.readFileSync(source), mode: stat.mode & 0o777 });
+  };
+  for (const relative of entries) collect(relative, relative);
+  collect(path.join('templates', 'ai'), '.ai');
+  protocolFiles = files;
+  return files;
+}
+
+function seedProtocol(root, options = {}) {
+  // Written, not copied: on Windows the first read of a file created by the copy API costs about
+  // 13 ms in on-access scanning, 1.2 s per fixture; written bytes cost 0.1 s (measured,
+  // docs/reviews/2026-09-27-claude-powershell-refactor-assessment.md section H).
+  for (const [relative, { bytes, mode }] of protocolFileSet()) {
     const target = path.join(root, relative);
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.cpSync(source, target, { recursive: true });
+    fs.writeFileSync(target, bytes, { mode });
   }
-  fs.cpSync(path.join(repoRoot, 'templates', 'ai'), path.join(root, '.ai'), { recursive: true });
   if (shouldUseFastValidator(options)) {
     const stubValidator = 'Write-Output "AI Collaboration Protocol - validation"\nWrite-Output "Protocol OK. 0 warning(s)."\nexit 0\n';
     fs.writeFileSync(path.join(root, 'validate-protocol.ps1'), stubValidator, 'ascii');
