@@ -1236,6 +1236,65 @@ test('T27: AC-usage: parse attempt usage from log across all parsers and negativ
   assert.deepEqual(noneRes.tokens, { in: null, out: null, source: 'none' });
 });
 
+test('W0: codex usage parser with grouping, colon, K/M suffixes, and raw line', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-usage-'));
+  try {
+    const checkCase = (text) => {
+      const p = path.join(tmp, 'test.log');
+      fs.writeFileSync(p, text, 'utf8');
+      return dispatch.parseUsageFromLog(p, 'codex-tokens');
+    };
+
+    // 1. "10 644"
+    const r1 = checkCase('tokens used\n10 644');
+    assert.equal(r1.found, true);
+    assert.equal(r1.usage.amount, 10644);
+    assert.equal(r1.usage.unit, 'tokens');
+
+    // 2. "10" + NBSP + "644"
+    const r2 = checkCase('tokens used\n10\u00A0644');
+    assert.equal(r2.found, true);
+    assert.equal(r2.usage.amount, 10644);
+
+    // 3. "10,644"
+    const r3 = checkCase('tokens used\n10,644');
+    assert.equal(r3.found, true);
+    assert.equal(r3.usage.amount, 10644);
+
+    // 4. "tokens used: 10 644"
+    const r4 = checkCase('tokens used: 10 644');
+    assert.equal(r4.found, true);
+    assert.equal(r4.usage.amount, 10644);
+
+    // 5. Real captured pair (cr-verifier-1.log:3883-3884): "tokens used\n252" + NBSP + "154" -> expected 252154
+    const r5 = checkCase('tokens used\n252\u00A0154\nDone: [VERIFICATION.md]');
+    assert.equal(r5.found, true);
+    assert.equal(r5.usage.amount, 252154);
+    assert.ok(r5.rawUsage && r5.rawUsage.includes('252\u00A0154'), 'rawUsage must be captured');
+
+    // 6. Dot as grouping character
+    const r6 = checkCase('tokens used: 10.644');
+    assert.equal(r6.found, true);
+    assert.equal(r6.usage.amount, 10644);
+
+    // 7. K and M suffixes
+    const r7a = checkCase('tokens used: 10k');
+    assert.equal(r7a.found, true);
+    assert.equal(r7a.usage.amount, 10000);
+
+    const r7b = checkCase('tokens used: 1.5K');
+    assert.equal(r7b.found, true);
+    assert.equal(r7b.usage.amount, 1500);
+
+    const r7c = checkCase('tokens used: 2.5M');
+    assert.equal(r7c.found, true);
+    assert.equal(r7c.usage.amount, 2500000);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+
 test('T28: AC-usage: two-attempt sum, mixed units giving actual=null, and cost recording', async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t28-'));
   const repoRoot = path.resolve(__dirname, '..');

@@ -1104,11 +1104,36 @@ function probeAll(registry, options = {}, clientFilter = []) {
   return { ok: allOk, rows };
 }
 
+function parseCodexTokenNumber(str) {
+  if (!str) return NaN;
+  const trimmed = str.trim();
+  const mSuffix = trimmed.match(/([kKmM])$/);
+  const suffix = mSuffix ? mSuffix[1].toUpperCase() : null;
+  const numPart = suffix ? trimmed.slice(0, -1).trim() : trimmed;
+
+  if (suffix) {
+    const mult = suffix === 'K' ? 1000 : 1000000;
+    const decMatch = numPart.match(/^([0-9\u00A0 ,.]*?)[.,]([0-9]{1,2})$/);
+    if (decMatch) {
+      const intPart = decMatch[1].replace(/[\u00A0 ,.]/g, '');
+      const val = parseFloat((intPart || '0') + '.' + decMatch[2]);
+      return Math.round(val * mult);
+    }
+    const cleaned = numPart.replace(/[\u00A0 ,.]/g, '');
+    const val = parseInt(cleaned, 10);
+    return isNaN(val) ? NaN : Math.round(val * mult);
+  }
+
+  const cleaned = numPart.replace(/[\u00A0 ,.]/g, '');
+  return parseInt(cleaned, 10);
+}
+
 function parseUsageFromLog(logPath, usageParser) {
   const result = {
     tokens: { in: null, out: null, source: 'none' },
     usage: { amount: null, unit: null },
-    found: false
+    found: false,
+    rawUsage: null
   };
 
   if (!usageParser || usageParser === 'none' || !logPath || !fs.existsSync(logPath)) {
@@ -1133,6 +1158,7 @@ function parseUsageFromLog(logPath, usageParser) {
     let stepCount = 0;
     let hasCost = false;
     let hasTokens = false;
+    const rawMatches = [];
 
     const lines = text.split(/\r?\n/);
     for (const line of lines) {
@@ -1142,6 +1168,7 @@ function parseUsageFromLog(logPath, usageParser) {
         const part = (parsed && parsed.part) ? parsed.part : parsed;
         if (part && part.type === 'step-finish') {
           stepCount++;
+          rawMatches.push(line.trim());
           if (typeof part.cost === 'number' && !isNaN(part.cost)) {
             costSum += part.cost;
             hasCost = true;
@@ -1164,6 +1191,7 @@ function parseUsageFromLog(logPath, usageParser) {
 
     if (stepCount > 0 && (hasCost || hasTokens)) {
       result.found = true;
+      result.rawUsage = rawMatches.join('\n');
       if (hasCost) {
         result.usage = {
           amount: Number(costSum.toFixed(6)),
@@ -1181,15 +1209,18 @@ function parseUsageFromLog(logPath, usageParser) {
   } else if (usageParser === 'copilot-credits') {
     let creditSum = 0;
     let count = 0;
+    const rawMatches = [];
     for (const m of text.matchAll(/AI Credits\s+([0-9.]+)/g)) {
       const val = parseFloat(m[1]);
       if (!isNaN(val)) {
         creditSum += val;
         count++;
+        rawMatches.push(m[0].trim());
       }
     }
     if (count > 0) {
       result.found = true;
+      result.rawUsage = rawMatches.join('\n');
       result.usage = {
         amount: Number(creditSum.toFixed(6)),
         unit: 'credits'
@@ -1199,15 +1230,19 @@ function parseUsageFromLog(logPath, usageParser) {
   } else if (usageParser === 'codex-tokens') {
     let tokenSum = 0;
     let count = 0;
-    for (const m of text.matchAll(/tokens used\s*\r?\n?\s*([0-9,]+)/gi)) {
-      const val = parseInt(m[1].replace(/,/g, ''), 10);
+    const rawMatches = [];
+    const codexRegex = /\btokens used\b\s*:?\s*([0-9](?:[0-9\u00A0 ,.]*[0-9kKmM])?|[0-9][kKmM])/gi;
+    for (const m of text.matchAll(codexRegex)) {
+      const val = parseCodexTokenNumber(m[1]);
       if (!isNaN(val)) {
         tokenSum += val;
         count++;
+        rawMatches.push(m[0].trim());
       }
     }
     if (count > 0) {
       result.found = true;
+      result.rawUsage = rawMatches.join('\n');
       result.usage = {
         amount: tokenSum,
         unit: 'tokens'
@@ -1915,7 +1950,8 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
         exitCode: res.exitCode !== undefined ? res.exitCode : null,
         class: mappedClass,
         tokens: attemptUsage.tokens,
-        usage: attemptUsage.usage
+        usage: attemptUsage.usage,
+        rawUsage: attemptUsage.rawUsage || null
       });
 
       if (res.class === 'STALL') {

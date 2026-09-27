@@ -91,6 +91,7 @@ One JSON object per line (JSON Lines format). Keys MUST appear in the exact orde
 | `class` | string | enum | YES | Classification: `NONE`, one of fifteen names from PROTO-DEC-0075 item 4, or `UNCLASSIFIED`. `UNCLASSIFIED` only allowed on non-last attempts of DONE records (PROTO-DEC-0049 item 2). |
 | `tokens` | object | see below | YES | Token usage. |
 | `usage` | object | see below | YES | Usage information. |
+| `rawUsage` | string\|null | any string or `null` | NO | Raw usage line captured from client log (W0). |
 
 ### `modelRan` object
 
