@@ -3871,3 +3871,64 @@ facts, the items at 40-79% and the dropped items. PROTO-DEC-0061 item 2 and PROT
 stand and are refined as above; PROTO-DEC-0038 and 0041 stand; this block supersedes nothing.
 
 Approved by: RuslanFomenko (direct owner instruction, 2026-09-27: consolidate the round's opinions; proposals at 100% consensus and at the significant tier - three of four sources, none objecting - are fixed as decisions; items at 40-79% go to a discussion file; below 40% is dropped without discussion; transcribed by kilo-70ef1574cc26c869)
+
+### PROTO-DEC-0088
+
+Status: Accepted
+Date: 2026-09-27
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0087 items 1-2 (the M1 outcome and the perf gate)
+
+Context:
+Owner round 2 on the M1 miss (2026-09-27). Both round syntheses were produced by a model from the
+Gemini family in advisory mode; the round-2 synthesis file is
+`docs/reviews/2026-09-27-m1-consensus-discussion.md`. Verified at transcription: `v2.0.0` =
+`0268178`, `perf-wave-1` = `680349c`, `kernel-batch-1` = `cf99cdf`; the owner's round rule stands
+(100% and the significant tier become decisions; 40-79% go to the discussion file; below 40% are
+dropped).
+
+Decision:
+1. Items R1-R6 of the M1 round are confirmed:
+   - R1: the M1 MISSED verdict stands unchanged; the 300 s threshold is not changed after the fact.
+   - R2: `perf-wave-1` is not merged now.
+   - R3: before any merge of `perf-wave-1` and `kernel-batch-1`, compare `git diff --name-only`.
+   - R4: a profiling run (`bench.cjs` + `report.cjs`) is mandatory.
+   - R5: two tasks are never run simultaneously on the one `agy` client.
+   - R6: models change in the order `MODEL-ECONOMICS.md` -> `model-ladder.json` -> test.
+2. Variant 1 (a repeat measurement of unchanged code) is removed as a standalone path; a repeat
+   measurement is possible only as the tail of Variant 3.
+3. The branch decision follows the recorded profile rule. The rule, pre-registered here verbatim
+   by meaning; the metrics come only from the bench output:
+   - W - the run wall time; `wall_f` - the wall time of each test file; L - the largest `wall_f`,
+     its file f*; L2 - the second largest `wall_f`; T - the summed measured time of the test
+     processes (all descendants); P - the part of T carried by powershell processes (validator,
+     installer); a file is "PS-heavy" when its powershell time is >= 50% of its own process time.
+   - Check order. V2 first: Variant 2 when P/T >= 0.70 AND PS-heavy files >= 3. Else V3: Variant 3
+     when all hold - (a) L/W >= 0.90, f* is the critical path; (b) L - L2 >= 20 s, the reserve
+     estimate; (c) the hot spot is localised in f* (at most one more file) or in one common test
+     helper; (d) it is removed by ONE bounded change in tests only, without changing validator or
+     protocol semantics. Points (c) and (d) are confirmed not by the profiler: the wave-1 author
+     writes a one-paragraph proposal (what, where, why the semantics do not change) and the owner
+     confirms it in one line; nothing is implemented before that confirmation. Otherwise
+     INCONCLUSIVE: stop, no optimisation by guesswork; the profile and the metric table go to the
+     owner. A metric the bench does not produce also yields INCONCLUSIVE.
+4. The outcome of Variant 2 is worded: M1 stays MISSED; wave 1 delivered a measured improvement
+   (median 306.24 s against the audit baseline 600 s [`0bd5a5f`] and the diagnostic 493.12 s at
+   `e752c0c`), but did not reach the pre-registered M1 <= 300 s. Test-only optimisation stops. The
+   next step is wave 2B (the Node validator) in its ROADMAP-1 turn. M1 is not renamed PASS.
+5. T1: the profile runs before the queue unfreezes. T2: recovery 2 and the Gemini DIG collector on
+   the one `agy` client run strictly sequentially; parallelism only when the tasks are genuinely
+   split across different CLI clients; the runner of each task is recorded in the operator journal.
+6. Correction to item 7 of the round: the merge gate is a SEPARATE DeepSeek review of the perf
+   commits on `perf-wave-1`, range `606b23a..64043a3` (`e752c0c`, `64043a3`) plus the Variant-3
+   commit if it exists. Focus: byte-equivalence of the fixture seeding; the test set and its
+   semantics unchanged (the same 420 tests; 34/34 after the split); no validator or protocol
+   changes. The existing wave-1 ROADMAP review (`docs/reviews/2026-09-27-deepseek-roadmap-w1-review.md`,
+   `f2d33fb..531e872`, RECOMMENDATION, fix `b1f2c2e`) stays closed and is not re-run.
+7. `perf-wave-1` merges only after three conditions: (a) the item-6 review with a PASS or
+   RECOMMENDATION verdict without blocking findings; (b) the R3 overlap check; (c) under Variant 3,
+   the outcome of the new campaign. The merge is the owner's decision.
+8. A-1 stays per PROTO-DEC-0087 item 4; the owner names A-1's certifiers separately.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-27, round-2 consensus with
+the owner's choices; transcribed by kilo-e1b4dd4a82b08b8e)
