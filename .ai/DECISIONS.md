@@ -3802,3 +3802,72 @@ The stage-8 role table and the stage-11 verifier change; STOP-3 checks gate the 
 launch; the F-02 gate report format is fixed; the T-rank note enters the next P-L2-002 revision.
 
 Approved by: RuslanFomenko (direct owner confirmation, 2026-09-26, STOP-3 arrangements given in advance; text drafted by claude-b00262b88c55444b; transcribed by kilo-f22faac486b5e567)
+
+### PROTO-DEC-0087
+
+Status: Accepted
+Date: 2026-09-27
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0061 item 2 (the candidate status of the branch and the landing order); PROTO-DEC-0055 item 3 (the exact candidate the certification binds)
+
+Context:
+On 2026-09-27 the owner received the report on three pushed commits (`0bd5a5f` on `v2.0.0`,
+`0c03775` on `core-landing-ia`, `e752c0c` and `64043a3` on `perf-wave-1`) together with three
+independent checks: a cloud review of the kernel branch, a review of the branches' state through
+GitHub, and a local repository fact-check with proposals. The owner instructed that the round's
+proposals at 100% consensus and at the significant tier - with four sources, the top tier below
+unanimity, three of four and none objecting - are fixed as decisions; that the items below that
+tier and at or above 40% go to a separate discussion file
+(`docs/reviews/2026-09-27-consensus-round-discussion.md`); and that everything below 40% is
+dropped without discussion. Verified against the tree at `0813a7c`: `docs/core-arch/` holds
+stage-1, stage-2 and stage-4 but no stage-3; `docs/reviews/` holds no certification of package
+I-a by Codex or Gemini; strict LCC fails on forward references to L1/L2, as PROTO-DEC-0061 item 2
+expects; `v2.0.0` has moved two commits past the reviewed head.
+
+Decision:
+1. Perf wave 1 is measured now, as planned: one diagnostic run at `e752c0c`, then five full runs
+   at `64043a3` with concurrency 16 on an otherwise idle workstation; acceptance is a median of
+   300 s or less. If M1 is missed, the work stops and the model is re-measured before any further
+   step; nothing is merged before the verdict.
+2. `core-landing-ia` is a candidate, not a landing: it is not merged into `v2.0.0` now, and
+   PROTO-DEC-0061 item 2 stands - the branch lands only after stages 2 and 3 and the certification
+   of package I-a. Any deviation from that order, including landing L0 alone, requires a new owner
+   decision block that supersedes PROTO-DEC-0061 item 2 as to the order and declares the forward
+   references to L1-L3 pending.
+3. The final certification of package I-a is made by Codex and Gemini, in parallel and
+   independently (PROTO-DEC-0055 item 3), and it binds the exact candidate that goes into
+   `v2.0.0`: the candidate is first brought to the current head with its full suite re-run, and
+   the receipts belong to that tree, not to `0c03775` as it stands. If a certifier is unavailable,
+   PROTO-DEC-0047 item 1 applies.
+4. A-1, the installed-role path that accepts a review marked `READ-ONLY ADVISORY`, is fixed as its
+   own high-risk task (three of four sources, none objecting): an own branch; first a regression
+   test that fails on the current validator, then the fix; source and installed parity; one
+   unified adversarial prompt; two independent certifiers (PROTO-DEC-0038 item 1, PROTO-DEC-0041
+   items 1-2); never mixed with the wave-1 performance commits.
+5. The SessionStart kernel entry is not made now and the permission classifier's refusal is not
+   worked around. The entry, its form and its budget are a separate owner decision after the
+   kernel has actually landed in `v2.0.0`; the round's two candidate forms are recorded in the
+   discussion file.
+
+Reasoning:
+The unanimous items state what the round verified about the repository, so they need no argument
+beyond agreement. A-1 is separate because mixing a security-semantics fix with a performance wave
+destroys the attribution the wave exists to provide, and the defect is reproduced but not urgent.
+The SessionStart question is a budget and design question, not a permission one: the kernel root
+alone is 9,164 bytes against a 9,500-character SessionStart budget that already carries TASK, git
+state, assignment and journals, so a mechanical insertion cannot work, and a pointer must not
+silently replace the `Always loaded` requirement.
+
+Alternatives rejected:
+Merging the kernel now; certifying `0c03775` as it stands; merging performance work before the M1
+verdict; letting A-1 ride the performance wave; bypassing the classifier by editing the hook.
+
+Consequences:
+`perf-wave-1` runs the M1 campaign; the kernel stays on `core-landing-ia` until stage 3 closes and
+package I-a passes; `0c03775` is not the certification subject; the A-1 fix opens as its own
+branch on the owner's go; SessionStart is untouched for now. The discussion file
+`docs/reviews/2026-09-27-consensus-round-discussion.md` carries the support table, the verified
+facts, the items at 40-79% and the dropped items. PROTO-DEC-0061 item 2 and PROTO-DEC-0055 item 3
+stand and are refined as above; PROTO-DEC-0038 and 0041 stand; this block supersedes nothing.
+
+Approved by: RuslanFomenko (direct owner instruction, 2026-09-27: consolidate the round's opinions; proposals at 100% consensus and at the significant tier - three of four sources, none objecting - are fixed as decisions; items at 40-79% go to a discussion file; below 40% is dropped without discussion; transcribed by kilo-70ef1574cc26c869)
