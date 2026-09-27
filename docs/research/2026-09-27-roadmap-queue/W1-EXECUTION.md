@@ -59,7 +59,7 @@ Packet & Directives: `docs/research/2026-09-27-roadmap-queue/PACKET-1.md` (Q1, Q
   - Under shared-document lock: identified the 28 oldest closed session journals with zero active references across the repository.
   - Preserved operator journal `kilo-e1b4dd4a82b08b8e.md` and current session journal `gemini-64401c9d1745781d.md`.
   - Appended all 28 journals whole into `.ai/ARCHIVE.md` with `### From .ai/worklog/<file>, archived 2026-09-27`.
-  - Removed all 28 files from `.ai/worklog/`, reducing total journal count from 127 to 99 files (satisfies the <= 100 limit).
+  - Removed all 28 files from `.ai/worklog/`, reducing total journal count from 126 to 99 files (100 including the reviewer journal; satisfies the <= 100 limit).
   - Released lock.
   - `validate-protocol.ps1` warning count dropped to 0 warnings.
 - **Deviations**: None.
@@ -123,3 +123,15 @@ The following 28 closed session journals were archived whole into `.ai/ARCHIVE.m
 - `test-protocol.ps1`: Exit code `0`, 24/24 test suites pass (duration 590.16 s).
 - `git status`: All item commits created with explicit path names; no uncommitted product files; ready for handoff.
 - Independent adversarial review will be executed by a separate DeepSeek session per PROTO-DEC-0041 item 1.
+
+---
+
+## 4. Fix Round (2026-09-27)
+
+Executed following independent review `docs/reviews/2026-09-27-deepseek-roadmap-w1-review.md` (verdict `RECOMMENDATION`):
+- **F-001 (MEDIUM)**: Restored dropped preambles for all 28 archived journals by appending section `## Restored journal preambles (2026-09-27, wave-1 fix round)` under lock to `.ai/ARCHIVE.md`, taking preambles verbatim from `f4e95c7~1` and preserving all 7 `Launch:`/`Orientation:` provenance records.
+- **F-002 (LOW)**: Updated `BASELINE.md` section 2 item 3 to state the requested 800–1000 ms sleep interval alongside the observed ~1.21 s mean sampling interval including WMI/CIM scan overhead.
+- **F-004 (LOW)**: Corrected journal count from 127 to 126 before archive, 99 after (100 including reviewer journal).
+- **F-006 (INFO)**: Collapsed double blank line before directory size limit note in `.ai/worklog/README.md` and `templates/ai/worklog/README.md`.
+- **F-003 / F-005**: Left as noted per instructions (no changes to `CLOSURES.jsonl` or `LAUNCH-W1.md`).
+

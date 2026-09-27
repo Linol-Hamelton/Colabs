@@ -11966,3 +11966,270 @@ Evidence:
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 3s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## Restored journal preambles (2026-09-27, wave-1 fix round)
+
+### codex-752016c00210e2f8.md
+
+# Worklog: codex-752016c00210e2f8
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-40f560a1b42e1601.md
+
+# Worklog: copilot-40f560a1b42e1601
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-65aaa10c0bca4aad.md
+
+# Worklog: copilot-65aaa10c0bca4aad
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-8c37b1b5958ec9ce.md
+
+# Worklog: copilot-8c37b1b5958ec9ce
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-b516462b0e6f9a59.md
+
+# Worklog: copilot-b516462b0e6f9a59
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-e66b80a441d5749c.md
+
+# Worklog: copilot-e66b80a441d5749c
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### gemini-85e970514eeb8782.md
+
+# Worklog: gemini-85e970514eeb8782
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### mistral-1c5f4245590b93f9.md
+
+# Worklog: mistral-1c5f4245590b93f9
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### mistral-6b8c4128fc68a0a7.md
+
+# Worklog: mistral-6b8c4128fc68a0a7
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### mistral-6cd9e50830e69e6a.md
+
+# Worklog: mistral-6cd9e50830e69e6a
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-aeeec92ccfc403c8.md
+
+# Worklog: copilot-aeeec92ccfc403c8
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### deepseek-00047ecda6778bfa.md
+
+# Worklog: deepseek-00047ecda6778bfa
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### deepseek-d89106f0bf1ab888.md
+
+# Journal deepseek-d89106f0bf1ab888
+
+### gemini-3ee87bb46909ffaf.md
+
+# Worklog: gemini-3ee87bb46909ffaf
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### gemini-d651295f446105b5.md
+
+# Worklog: gemini-d651295f446105b5
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### mistral-188f1c5c86316fe9.md
+
+# Worklog: mistral-188f1c5c86316fe9
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### agy-1d46b18e1c9cc12c.md
+
+Launch: model=Gemini 3.1 Pro (High) effort=High client=agy
+Orientation: Gemini 3.1 Pro (High) @ task:vmc-r1-c (parent program:validator-migration-council): researcher C | rights=read, write own files | limits=COMMON section 5 | tools=view_file, run_command | success=C-adversarial-simplifier.md, NOT-IN-SCOPE.md | tier=unknown
+
+# Worklog: agy-1d46b18e1c9cc12c
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### antigravity-7cc4d435971d8cd7.md
+
+Launch: model=Gemini 3.1 Pro (Low) effort=low client=agy
+Orientation: Gemini 3.1 Pro (Low) @ task:vmc-r2-synthesis (parent program:validator-migration-council): r2-synthesis | rights=read, write own files | limits=COMMON section 5 | tools=view_file, run_command | success=round2/ISSUE-MATRIX.md | tier=T4
+
+### claude-0f8aa56190c5104d.md
+
+Launch: model=claude-opus-5-5 effort=high client=claude (run-chain synthesis-1.cmd)
+Orientation: claude-opus-5-5 @ task:wai-synthesis (parent program:workflowai-review): senior synthesiser | success=docs/research/2026-09-25-workflowai-review/synthesis.md
+
+# Worklog: claude-0f8aa56190c5104d
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### copilot-8fff6642b9c22e07.md
+
+# Worklog: copilot-8fff6642b9c22e07
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### deepseek-46add74879ef9b14.md
+
+# Worklog: deepseek-46add74879ef9b14
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### deepseek-674e359e91bc0a98.md
+
+Launch: model=deepseek/deepseek-flash effort=unknown client=Kilo chat (owner-run)
+
+Orientation: deepseek-flash @ task:wai-critique (parent program:workflowai-review): critic | success=docs/research/2026-09-25-workflowai-review/critique.md
+
+### deepseek-fad8c4d160f61749.md
+
+# Worklog: deepseek-fad8c4d160f61749
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### gemini-0f0a641f874ee3af.md
+
+# Worklog: gemini-0f0a641f874ee3af
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### gemini-6bd5048d61dc5e10.md
+
+Launch: model=gemini-3.8-flash-high effort=high client=agy
+Orientation: gemini-3.8-flash-high @ task:wai-discuss-a (parent program:workflowai-review): discussant A | success=docs/research/2026-09-25-workflowai-review/positions/A.md
+
+### gemini-e6af76bd5ee37bae.md
+
+# Worklog: gemini-e6af76bd5ee37bae
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+Launch: model=gemini-3.8-flash effort=low client=agy
+Orientation: gemini-3.8-flash @ task:vmc-r3-c (parent program:validator-migration-council): synthesiser C | rights=read, write own files | limits=COMMON section 5 | tools=run_command, view_file, write_to_file, replace_file_content | success=docs/research/2026-09-25-validator-migration-council/round3/synthesis-C.md | tier=T7
+
+### kilo-59caa27957e80b10.md
+
+# Worklog: kilo-59caa27957e80b10
+
+Session journal. Owned by this session. No other session writes here.
+
+Newest entry first. Limit 150 lines.
+
+---
+
+### kilo-c4ba4c855eaffff7.md
+
+Launch: model=kilo/google/gemini-3.7-flash effort=1.0 client=Kilo

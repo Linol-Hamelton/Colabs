@@ -22,7 +22,7 @@ References: `docs/research/2026-09-25-validator-migration-council/final-plan-2.m
 
 1. **Pre-flight isolation**: Verified via full WMI process scan (`Get-CimInstance Win32_Process`) that no concurrent test, benchmark, or protocol sessions were executing on the workstation. Runs were completely exclusive.
 2. **Measurement harness**: Executed via `.ai/runtime/measure-baseline.ps1` using native Windows high-resolution timers (`System.Diagnostics.Stopwatch`) and asynchronous process-tree tracking.
-3. **Process-tree sampling**: Sampled every 800–1000 ms via `Get-CimInstance Win32_Process -Property ProcessId, ParentProcessId, WorkingSetSize`. At each sample interval:
+3. **Process-tree sampling**: Requested sleep interval 800–1000 ms; observed mean sampling interval ~1.21 s (including WMI/CIM scan overhead via `Get-CimInstance Win32_Process -Property ProcessId, ParentProcessId, WorkingSetSize`). At each sample interval:
    - Evaluated the dynamic process hierarchy originating from the root PowerShell process.
    - Identified all active tree members and calculated the instantaneous aggregate Working Set (`WorkingSetSize`).
    - Tracked all distinct process IDs spawned during execution to compute total descendant process count `Bn`.
