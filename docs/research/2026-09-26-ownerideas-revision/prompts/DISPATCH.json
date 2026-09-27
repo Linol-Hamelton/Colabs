@@ -342,11 +342,33 @@
       }
     },
     {
+      "id": "r9f-repair-usage",
+      "frame": "task:ownerideas-r9f-repair-usage",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/REPAIR-USAGE-GEMINI.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9f-repair-usage.md",
+      "needs": ["r9e-repair-pkg2"],
+      "route": {
+        "client": "agy",
+        "model": "gemini-3.8-flash-high"
+      }
+    },
+    {
+      "id": "r9g-freeze-candidate",
+      "frame": "task:ownerideas-r9g-freeze-candidate",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/FREEZE-CANDIDATE.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9g-freeze-candidate.md",
+      "needs": ["r9e-repair-pkg2", "r9f-repair-usage"],
+      "route": {
+        "client": "manual",
+        "model": "operator"
+      }
+    },
+    {
       "id": "r8e-cert-kimi-pkg2",
       "frame": "task:ownerideas-r8e-cert-kimi-pkg2",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-KIMI-PKG2-R3.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8e-cert-kimi-pkg2.md",
-      "needs": ["r9e-repair-pkg2"],
+      "needs": ["r9e-repair-pkg2", "r9f-repair-usage", "r9g-freeze-candidate"],
       "route": {
         "client": "kimi",
         "model": "moonshot-ai/kimi-k2.7-code-highspeed"
@@ -357,7 +379,7 @@
       "frame": "task:ownerideas-r8e-cert-mimo-pkg2",
       "out": "docs/research/2026-09-26-ownerideas-revision/round8/CERT-MIMO-PKG2-R3.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r8e-cert-mimo-pkg2.md",
-      "needs": ["r9e-repair-pkg2"],
+      "needs": ["r9e-repair-pkg2", "r9f-repair-usage", "r9g-freeze-candidate"],
       "route": {
         "client": "mimo",
         "model": "xiaomi/mimo-v2.6-pro",
@@ -369,7 +391,7 @@
       "frame": "task:ownerideas-r9-verify-codex",
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
       "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r9-verify-codex.md",
-      "needs": ["r8-review-deepseek", "r9b-repair-pkg5", "r9c-repair-hygiene", "r9d-repair-pkg2", "r9e-repair-pkg2", "r8e-cert-kimi-pkg2", "r8e-cert-mimo-pkg2"],
+      "needs": ["r8-review-deepseek", "r9b-repair-pkg5", "r9c-repair-hygiene", "r9d-repair-pkg2", "r9e-repair-pkg2", "r9f-repair-usage", "r9g-freeze-candidate", "r8e-cert-kimi-pkg2", "r8e-cert-mimo-pkg2"],
       "route": {
         "client": "codex",
         "model": "gpt-5.6-sol",
