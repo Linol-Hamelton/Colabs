@@ -21,3 +21,20 @@ Result: **INCONCLUSIVE** - the route works, the actual model id is not confirmed
 output. Awaiting the owner: accept the route as GLM-5.3 (weak confirmation only) / retry with a
 stronger method / treat as a probe failure and use the MiMo-V2.6-Pro reserve for this verifier
 slot as well.
+
+## 2026-09-28 update - the alias never selected GLM
+
+- The vibe log carries, for every recent run: `Active model 'glm-5-3' is not in your configured
+  models; falling back to default model 'mistral-medium-3.5'`. The `active_model = "glm-5-3"` set
+  in the config does not resolve, so every "GLM" run so far - including the earlier probe whose
+  self-report read "Mistral Large 24.02" - executed on the **mistral-medium-3.5 fallback**.
+- This build rejects the documented flag: `vibe --model zai-glm-5-3 -p "Answer only: 2+2=4"
+  --max-turns 1 --output streaming --trust` -> `vibe: error: unrecognized arguments: --model`
+  (probe-4).
+- The round-6 synthesis was dispatched twice (`vibe -p "...round6-consensus-task.md"`); both runs
+  died right after reading the inputs file, before writing any verdict (one runner state `failed`,
+  one `exited`).
+- Conclusion: **route identity cannot be verified in this build; GLM-5.3 is unavailable**. The
+  synthesis is blocked until the owner either adds a working model entry for `zai-glm-5-3` to the
+  vibe `models` array (or supplies the exact working invocation), or names another synthesizer.
+
