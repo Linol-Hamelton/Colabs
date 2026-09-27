@@ -387,6 +387,28 @@
       }
     },
     {
+      "id": "r12-gate-commit",
+      "frame": "task:ownerideas-r12-gate-commit",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/R12-GATE.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r12-gate-commit.md",
+      "needs": ["r9-verify-codex"],
+      "route": {
+        "client": "manual",
+        "model": "operator"
+      }
+    },
+    {
+      "id": "r12-final-deepseek",
+      "frame": "task:ownerideas-r12-final-deepseek",
+      "out": "docs/research/2026-09-26-ownerideas-revision/round9/FINAL-DEEPSEEK.md",
+      "launch": "docs/research/2026-09-26-ownerideas-revision/prompts/run/r12-final-deepseek.md",
+      "needs": ["r9-verify-codex", "r12-gate-commit"],
+      "route": {
+        "client": "kilo",
+        "model": "deepseek/deepseek-flash"
+      }
+    },
+    {
       "id": "r9-verify-codex",
       "frame": "task:ownerideas-r9-verify-codex",
       "out": "docs/research/2026-09-26-ownerideas-revision/round9/VERIFY-SOL.md",
