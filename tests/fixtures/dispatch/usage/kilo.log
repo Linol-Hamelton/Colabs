@@ -1,0 +1,4 @@
+{"type":"start"}
+{"part":{"type":"text","text":"processing"}}
+{"part":{"type":"step-finish","cost":0.0035,"tokens":{"input":120,"output":40}}}
+{"part":{"type":"step-finish","cost":0.0015,"tokens":{"input":80,"output":60}}}

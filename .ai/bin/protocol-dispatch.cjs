@@ -1104,6 +1104,121 @@ function probeAll(registry, options = {}, clientFilter = []) {
   return { ok: allOk, rows };
 }
 
+function parseUsageFromLog(logPath, usageParser) {
+  const result = {
+    tokens: { in: null, out: null, source: 'none' },
+    usage: { amount: null, unit: null },
+    found: false
+  };
+
+  if (!usageParser || usageParser === 'none' || !logPath || !fs.existsSync(logPath)) {
+    return result;
+  }
+
+  let text = '';
+  try {
+    text = fs.readFileSync(logPath, 'utf8');
+  } catch {
+    return result;
+  }
+
+  if (!text) {
+    return result;
+  }
+
+  if (usageParser === 'kilo-json') {
+    let costSum = 0;
+    let inTokens = 0;
+    let outTokens = 0;
+    let stepCount = 0;
+    let hasCost = false;
+    let hasTokens = false;
+
+    const lines = text.split(/\r?\n/);
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const parsed = JSON.parse(line);
+        const part = (parsed && parsed.part) ? parsed.part : parsed;
+        if (part && part.type === 'step-finish') {
+          stepCount++;
+          if (typeof part.cost === 'number' && !isNaN(part.cost)) {
+            costSum += part.cost;
+            hasCost = true;
+          }
+          if (part.tokens && typeof part.tokens === 'object') {
+            if (typeof part.tokens.input === 'number' && !isNaN(part.tokens.input)) {
+              inTokens += part.tokens.input;
+              hasTokens = true;
+            }
+            if (typeof part.tokens.output === 'number' && !isNaN(part.tokens.output)) {
+              outTokens += part.tokens.output;
+              hasTokens = true;
+            }
+          }
+        }
+      } catch {
+        // Not a JSON event
+      }
+    }
+
+    if (stepCount > 0 && (hasCost || hasTokens)) {
+      result.found = true;
+      if (hasCost) {
+        result.usage = {
+          amount: Number(costSum.toFixed(6)),
+          unit: 'USD'
+        };
+      }
+      if (hasTokens) {
+        result.tokens = {
+          in: Math.round(inTokens),
+          out: Math.round(outTokens),
+          source: 'client-output'
+        };
+      }
+    }
+  } else if (usageParser === 'copilot-credits') {
+    let creditSum = 0;
+    let count = 0;
+    for (const m of text.matchAll(/AI Credits\s+([0-9.]+)/g)) {
+      const val = parseFloat(m[1]);
+      if (!isNaN(val)) {
+        creditSum += val;
+        count++;
+      }
+    }
+    if (count > 0) {
+      result.found = true;
+      result.usage = {
+        amount: Number(creditSum.toFixed(6)),
+        unit: 'credits'
+      };
+      result.tokens = { in: null, out: null, source: 'none' };
+    }
+  } else if (usageParser === 'codex-tokens') {
+    let tokenSum = 0;
+    let count = 0;
+    for (const m of text.matchAll(/tokens used\s*\r?\n?\s*([0-9,]+)/gi)) {
+      const val = parseInt(m[1].replace(/,/g, ''), 10);
+      if (!isNaN(val)) {
+        tokenSum += val;
+        count++;
+      }
+    }
+    if (count > 0) {
+      result.found = true;
+      result.usage = {
+        amount: tokenSum,
+        unit: 'tokens'
+      };
+      result.tokens = { in: null, out: null, source: 'none' };
+    }
+  }
+
+  return result;
+}
+
 function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
   const repoRoot = opts.repoRoot || process.cwd();
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
@@ -1174,7 +1289,7 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
   } catch (e) {
     fs.closeSync(logFd);
     if (!opts.keepWorkdirOnExit) dropWorkdir(dir);
-    return Promise.resolve({ status: 'BLOCKED', class: 'POLICY_FAILURE', reason: e.message, workdir: dir });
+    return Promise.resolve({ status: 'BLOCKED', class: 'POLICY_FAILURE', reason: e.message, workdir: dir, logPath: logFilePath });
   }
 
   const env = executorEnv();
@@ -1297,7 +1412,8 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
           attemptNumber,
           sessionId: extractedSessionId,
           workdir: dir,
-          exitCode: childExitCode
+          exitCode: childExitCode,
+          logPath: logFilePath
         });
       }
 
@@ -1313,7 +1429,8 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
             attemptNumber,
             sessionId: extractedSessionId,
             workdir: dir,
-            exitCode: childExitCode
+            exitCode: childExitCode,
+            logPath: logFilePath
           });
         }
       } else {
@@ -1328,7 +1445,8 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
           attemptNumber,
           sessionId: extractedSessionId,
           workdir: dir,
-          exitCode: childExitCode
+          exitCode: childExitCode,
+          logPath: logFilePath
         });
       }
 
@@ -1344,7 +1462,8 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
           attemptNumber,
           sessionId: extractedSessionId,
           workdir: dir,
-          exitCode: childExitCode
+          exitCode: childExitCode,
+          logPath: logFilePath
         });
       }
 
@@ -1361,7 +1480,8 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
           attemptNumber,
           sessionId: extractedSessionId,
           workdir: dir,
-          exitCode: childExitCode
+          exitCode: childExitCode,
+          logPath: logFilePath
         });
       }
 
@@ -1374,7 +1494,8 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
         attemptNumber,
         sessionId: extractedSessionId,
         workdir: dir,
-        exitCode: childExitCode
+        exitCode: childExitCode,
+        logPath: logFilePath
       });
     }
 
@@ -1481,6 +1602,11 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
     : slotsList;
 
   let anyFailed = false;
+
+  let dispatchRunningSum = 0;
+  let dispatchRunningUnit = null;
+  let dispatchMixedUnits = false;
+  let dispatchHasAnyCost = false;
 
   for (const slot of targetSlots) {
     if (slot.when) {
@@ -1730,6 +1856,12 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
 
       const attemptEndIso = new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 
+      const activeClientName = activeRouteEntry.route.client;
+      const activeClientCfg = (registry && registry.clients && activeClientName) ? registry.clients[activeClientName] : null;
+      const attemptUsageParser = activeClientCfg ? (activeClientCfg.usage || 'none') : 'none';
+      const attemptLogPath = res.logPath || path.join(stateDir, 'logs', `${slot.id}-${attemptNum}.log`);
+      const attemptUsage = parseUsageFromLog(attemptLogPath, attemptUsageParser);
+
       const declaredOutputs = [];
       if (slot.out) declaredOutputs.push(slot.out.replace(/\\/g, '/'));
       if (slot.outputs) for (const p of slot.outputs) declaredOutputs.push(p.replace(/\\/g, '/'));
@@ -1782,8 +1914,8 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
         end: attemptEndIso,
         exitCode: res.exitCode !== undefined ? res.exitCode : null,
         class: mappedClass,
-        tokens: { in: null, out: null, source: 'none' },
-        usage: { amount: null, unit: null }
+        tokens: attemptUsage.tokens,
+        usage: attemptUsage.usage
       });
 
       if (res.class === 'STALL') {
@@ -1873,6 +2005,52 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
     if (slot.out) declaredOutputs.push(slot.out.replace(/\\/g, '/'));
     if (slot.outputs) for (const p of slot.outputs) declaredOutputs.push(p.replace(/\\/g, '/'));
 
+    // Cost computation (PROTO-DEC-0075 item 9, PKG-1 S8, PKG-3 S8)
+    const attemptsWithAmount = recordAttempts.filter(
+      a => a.usage && typeof a.usage.amount === 'number' && !isNaN(a.usage.amount)
+    );
+
+    let actualCost = null;
+    let slotUnit = null;
+
+    if (attemptsWithAmount.length > 0) {
+      const units = new Set(attemptsWithAmount.map(a => a.usage.unit).filter(Boolean));
+      if (units.size === 1) {
+        slotUnit = Array.from(units)[0];
+        const sum = attemptsWithAmount.reduce((acc, a) => acc + a.usage.amount, 0);
+        actualCost = Number(sum.toFixed(6));
+      }
+    }
+
+    if (actualCost !== null && slotUnit !== null) {
+      if (!dispatchHasAnyCost) {
+        dispatchHasAnyCost = true;
+        dispatchRunningUnit = slotUnit;
+        dispatchRunningSum = actualCost;
+      } else if (!dispatchMixedUnits) {
+        if (dispatchRunningUnit === slotUnit) {
+          dispatchRunningSum = Number((dispatchRunningSum + actualCost).toFixed(6));
+        } else {
+          dispatchMixedUnits = true;
+        }
+      }
+    } else if (attemptsWithAmount.length > 0) {
+      dispatchMixedUnits = true;
+    }
+
+    let cumulativeCost = null;
+    let costUnit = null;
+
+    if (dispatchHasAnyCost && !dispatchMixedUnits) {
+      cumulativeCost = dispatchRunningSum;
+    }
+
+    if (actualCost !== null) {
+      costUnit = slotUnit;
+    } else if (cumulativeCost !== null) {
+      costUnit = dispatchRunningUnit;
+    }
+
     const runRecordObj = {
       schema: 'run-record/1',
       runId: slotState.runId || `R-${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}-${slot.id}`,
@@ -1913,7 +2091,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
         stallMin: dispatch.stallMin || 10,
         hardMin: dispatch.hardMin || 120
       },
-      cost: { estimated: null, actual: null, cumulative: null, unit: null },
+      cost: { estimated: null, actual: actualCost, cumulative: cumulativeCost, unit: costUnit },
       completion: lastCompletion ? {
         processEnded: lastCompletion.processEnded,
         exitCode: lastCompletion.exitCode,
@@ -2020,6 +2198,13 @@ function reportDispatch(dispatchFile, opts = {}) {
     } catch {}
   }
 
+  let registry = null;
+  try {
+    registry = opts.registry
+      ? (typeof opts.registry === 'object' ? opts.registry : loadRegistry(opts.registry))
+      : loadRegistry();
+  } catch {}
+
   const slots = dispatch.slots || dispatch.jobs;
   for (const s of slots) {
     const outputs = s.outputs || (s.out ? [s.out] : []);
@@ -2029,12 +2214,23 @@ function reportDispatch(dispatchFile, opts = {}) {
       console.log(`REPORT slot=${s.id} route=${routeStr} state=NOT_STARTED attempts=0 outputs="${outputs.join(',')}" usage=none (no-run-record)`);
     } else {
       const rec = matching[matching.length - 1];
-      const lastAttempt = rec.attempts[rec.attempts.length - 1];
-      const routeStr = lastAttempt.route ? `${lastAttempt.route.client}:${lastAttempt.route.model || ''}` : 'none';
-      const usageStr = (lastAttempt.usage && lastAttempt.usage.amount !== null)
-        ? `${lastAttempt.usage.amount} ${lastAttempt.usage.unit}`
-        : 'none (client reported no tokens/cost)';
-      console.log(`REPORT slot=${s.id} route=${routeStr} state=${rec.state} attempts=${rec.attempts.length} outputs="${outputs.join(',')}" usage=${usageStr}`);
+      const lastAttempt = (rec.attempts && rec.attempts.length) ? rec.attempts[rec.attempts.length - 1] : null;
+      const clientName = (lastAttempt && lastAttempt.route) ? lastAttempt.route.client : (s.route ? s.route.client : null);
+      const clientCfg = (registry && registry.clients && clientName) ? registry.clients[clientName] : null;
+      const usageKey = clientCfg ? (clientCfg.usage || 'none') : 'none';
+
+      const routeStr = (lastAttempt && lastAttempt.route) ? `${lastAttempt.route.client}:${lastAttempt.route.model || ''}` : 'none';
+      let usageStr;
+      if (lastAttempt && lastAttempt.usage && lastAttempt.usage.amount !== null) {
+        usageStr = `${lastAttempt.usage.amount} ${lastAttempt.usage.unit}`;
+      } else {
+        if (usageKey === 'none') {
+          usageStr = 'none (client usage=none in clients.json)';
+        } else {
+          usageStr = `none (parser ${usageKey} found no usage in log)`;
+        }
+      }
+      console.log(`REPORT slot=${s.id} route=${routeStr} state=${rec.state} attempts=${rec.attempts ? rec.attempts.length : 0} outputs="${outputs.join(',')}" usage=${usageStr}`);
     }
   }
   return 0;
@@ -2314,6 +2510,9 @@ module.exports = {
   checkCommand,
   chunkIsProgress,
   classifyErrorText,
+  parseUsageFromLog,
+  reportDispatch,
+  runDispatch,
   tree,
   killExact,
   killTree,

@@ -1179,6 +1179,345 @@ test('T26: AC-10: PKG-5 dispatcher fall signal test', () => {
   }
 });
 
+test('T27: AC-usage: parse attempt usage from log across all parsers and negative patterns', () => {
+  const usageFixturesDir = path.resolve(__dirname, 'fixtures', 'dispatch', 'usage');
+
+  // 1. Kilo parser (kilo-json)
+  const kiloRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'kilo.log'), 'kilo-json');
+  assert.equal(kiloRes.found, true);
+  assert.equal(kiloRes.usage.amount, 0.005);
+  assert.equal(kiloRes.usage.unit, 'USD');
+  assert.deepEqual(kiloRes.tokens, { in: 200, out: 100, source: 'client-output' });
+
+  // 2. MiMo parser (kilo-json)
+  const mimoRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'mimo.log'), 'kilo-json');
+  assert.equal(mimoRes.found, true);
+  assert.equal(mimoRes.usage.amount, 0.02);
+  assert.equal(mimoRes.usage.unit, 'USD');
+  assert.deepEqual(mimoRes.tokens, { in: 450, out: 150, source: 'client-output' });
+
+  // 3. Copilot credits (AI Credits 12.5)
+  const copilotRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'copilot.log'), 'copilot-credits');
+  assert.equal(copilotRes.found, true);
+  assert.equal(copilotRes.usage.amount, 12.5);
+  assert.equal(copilotRes.usage.unit, 'credits');
+  assert.deepEqual(copilotRes.tokens, { in: null, out: null, source: 'none' });
+
+  // 4. Codex tokens (tokens used\n12,345)
+  const codexRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'codex.log'), 'codex-tokens');
+  assert.equal(codexRes.found, true);
+  assert.equal(codexRes.usage.amount, 12345);
+  assert.equal(codexRes.usage.unit, 'tokens');
+  assert.deepEqual(codexRes.tokens, { in: null, out: null, source: 'none' });
+
+  // 5. Negative patterns: "line 503" and "429 tokens" must NOT be parsed as usage
+  for (const parser of ['codex-tokens', 'copilot-credits', 'kilo-json']) {
+    const negRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'negative.log'), parser);
+    assert.equal(negRes.found, false, `negative.log should not match parser ${parser}`);
+    assert.equal(negRes.usage.amount, null);
+    assert.equal(negRes.usage.unit, null);
+    assert.deepEqual(negRes.tokens, { in: null, out: null, source: 'none' });
+  }
+
+  // 6. Log without usage
+  for (const parser of ['codex-tokens', 'copilot-credits', 'kilo-json']) {
+    const noRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'no-usage.log'), parser);
+    assert.equal(noRes.found, false);
+    assert.equal(noRes.usage.amount, null);
+    assert.equal(noRes.usage.unit, null);
+    assert.deepEqual(noRes.tokens, { in: null, out: null, source: 'none' });
+  }
+
+  // 7. usage=none client
+  const noneRes = dispatch.parseUsageFromLog(path.join(usageFixturesDir, 'codex.log'), 'none');
+  assert.equal(noneRes.found, false);
+  assert.equal(noneRes.usage.amount, null);
+  assert.equal(noneRes.usage.unit, null);
+  assert.deepEqual(noneRes.tokens, { in: null, out: null, source: 'none' });
+});
+
+test('T28: AC-usage: two-attempt sum, mixed units giving actual=null, and cost recording', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t28-'));
+  const repoRoot = path.resolve(__dirname, '..');
+  const launchFile = 'tests/fixtures/dispatch/t28-launch.md';
+  const outFile = 'tests/fixtures/dispatch/out1.txt';
+
+  try {
+    fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
+    fs.writeFileSync(path.resolve(repoRoot, launchFile), '# T28 launch\n', 'utf8');
+
+    const runnerScript = path.join(tmp, 'runner.cjs');
+    fs.writeFileSync(runnerScript, `'use strict';
+const fs = require('fs');
+const path = require('path');
+const mode = process.argv[2];
+const tmpDir = process.argv[3];
+const workdir = process.cwd();
+
+const outPath = path.join(workdir, 'tests', 'fixtures', 'dispatch', 'out1.txt');
+fs.mkdirSync(path.dirname(outPath), { recursive: true });
+fs.writeFileSync(outPath, 'output\\n', 'utf8');
+
+const journalDir = path.join(workdir, '.ai', 'worklog');
+fs.mkdirSync(journalDir, { recursive: true });
+fs.writeFileSync(path.join(journalDir, 'gemini-0123456789abcdef.md'), '# Worklog\\n\\nEvidence: ok\\n', 'utf8');
+
+const marker = path.join(tmpDir, 'marker.txt');
+if (mode === 'two-attempts') {
+  if (!fs.existsSync(marker)) {
+    fs.writeFileSync(marker, 'attempt1', 'utf8');
+    console.log('tokens used\\n1,000');
+    process.exit(1);
+  } else {
+    console.log('tokens used\\n2,500');
+    process.exit(0);
+  }
+}
+`, 'utf8');
+
+    const fakeRegPath = path.join(tmp, 'clients.json');
+    fs.writeFileSync(fakeRegPath, JSON.stringify({
+      schema: 'clients/1',
+      clients: {
+        fakeRunner: {
+          binary: 'node',
+          present: true,
+          version: process.version,
+          verifiedOn: '2026-09-26',
+          source: 'node --version',
+          command: ['node', runnerScript, 'two-attempts', tmp],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: { command: null, sessionId: null, note: 'none' },
+          usage: 'codex-tokens',
+          failureModes: []
+        }
+      }
+    }), 'utf8');
+
+    const runsFile = path.join(tmp, 'runs.jsonl');
+    const dispPath = path.join(tmp, 'disp.json');
+    fs.writeFileSync(dispPath, JSON.stringify({
+      stateDir: path.relative(repoRoot, path.join(tmp, 'state')).replace(/\\/g, '/'),
+      slots: [
+        {
+          id: 'slot-two-attempts',
+          launch: launchFile,
+          out: outFile,
+          route: { client: 'fakeRunner', model: 'm1' }
+        }
+      ]
+    }), 'utf8');
+
+    const r = runBin([
+      'run', dispPath,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile,
+      '--fast-retry'
+    ]);
+    assert.equal(r.code, 0);
+
+    const recs = runrecord.readRecords(runsFile);
+    assert.equal(recs.length, 1);
+    const rec = recs[0];
+    assert.equal(rec.attempts.length, 2);
+    assert.equal(rec.attempts[0].usage.amount, 1000);
+    assert.equal(rec.attempts[0].usage.unit, 'tokens');
+    assert.equal(rec.attempts[1].usage.amount, 2500);
+    assert.equal(rec.attempts[1].usage.unit, 'tokens');
+    assert.equal(rec.cost.actual, 3500);
+    assert.equal(rec.cost.cumulative, 3500);
+    assert.equal(rec.cost.unit, 'tokens');
+    assert.equal(rec.cost.estimated, null);
+
+    const valErrors = runrecord.validateRecord(rec);
+    assert.deepEqual(valErrors, []);
+
+    // Also verify mixed units giving actual=null via a constructed 2-attempt record
+    const mixedRec = JSON.parse(JSON.stringify(rec));
+    mixedRec.runId = 'R-20260927T000000Z-mixed';
+    mixedRec.slot = 'mixed';
+    mixedRec.attempts[0].usage = { amount: 10, unit: 'USD' };
+    mixedRec.attempts[1].usage = { amount: 5, unit: 'credits' };
+    mixedRec.cost = { estimated: null, actual: null, cumulative: null, unit: null };
+    const mixedValErrors = runrecord.validateRecord(mixedRec);
+    assert.deepEqual(mixedValErrors, []);
+  } finally {
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('T29: AC-usage: report distinct reasons and renderUsage table', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-t29-'));
+
+  try {
+    const fakeRegPath = path.join(tmp, 'clients.json');
+    fs.writeFileSync(fakeRegPath, JSON.stringify({
+      schema: 'clients/1',
+      clients: {
+        noneClient: {
+          binary: 'node',
+          present: true,
+          version: '1',
+          verifiedOn: '2026-09-26',
+          source: 'none',
+          command: ['node', '-e', ''],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: { command: null, sessionId: null, note: 'none' },
+          usage: 'none',
+          failureModes: []
+        },
+        codexClient: {
+          binary: 'node',
+          present: true,
+          version: '1',
+          verifiedOn: '2026-09-26',
+          source: 'none',
+          command: ['node', '-e', ''],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: { command: null, sessionId: null, note: 'none' },
+          usage: 'codex-tokens',
+          failureModes: []
+        },
+        copilotClient: {
+          binary: 'node',
+          present: true,
+          version: '1',
+          verifiedOn: '2026-09-26',
+          source: 'none',
+          command: ['node', '-e', ''],
+          model: { how: 'none', listing: null },
+          effort: { how: 'none', values: null, note: null },
+          env: {},
+          resume: { command: null, sessionId: null, note: 'none' },
+          usage: 'copilot-credits',
+          failureModes: []
+        }
+      }
+    }), 'utf8');
+
+    const dispPath = path.join(tmp, 'disp.json');
+    fs.writeFileSync(dispPath, JSON.stringify({
+      slots: [
+        { id: 'slot-none', launch: 'tests/fixtures/dispatch/hang-launch.md', out: 'out.txt', route: { client: 'noneClient', model: 'm1' } },
+        { id: 'slot-parser-empty', launch: 'tests/fixtures/dispatch/hang-launch.md', out: 'out.txt', route: { client: 'codexClient', model: 'm2' } },
+        { id: 'slot-with-usage', launch: 'tests/fixtures/dispatch/hang-launch.md', out: 'out.txt', route: { client: 'copilotClient', model: 'm3' } }
+      ]
+    }), 'utf8');
+
+    const runsFile = path.join(tmp, 'RUNS.jsonl');
+    const records = [
+      {
+        schema: 'run-record/1',
+        runId: 'R-20260927T000000Z-slot-none',
+        slot: 'slot-none',
+        frame: 'task:test',
+        role: null,
+        selection: 'owner',
+        resolution: { ladderSnapshot: null, primary: { client: 'noneClient', model: 'm1', effort: null }, substitutes: [], excluded: [], skipped: [], unverified: [], approval: null, shortfall: null },
+        pins: { head: 'a'.repeat(40), launchFile: 'launch.md', launchSha256: 'b'.repeat(64), roleSha256: null, corpusHash: null, dispatchVersion: '1' },
+        attempts: [{
+          n: 1, kind: 'fresh', reason: 'first', routeRole: 'primary',
+          route: { client: 'noneClient', model: 'm1', effort: null },
+          effortUsed: null, modelRan: { id: 'm1', source: 'requested' },
+          sessionId: null, start: '2026-09-27T00:00:00Z', end: '2026-09-27T00:01:00Z',
+          exitCode: 0, class: 'NONE',
+          tokens: { in: null, out: null, source: 'none' },
+          usage: { amount: null, unit: null }
+        }],
+        budget: { freshUsed: 1, resumes: 0, stallMin: 10, hardMin: 60 },
+        cost: { estimated: null, actual: null, cumulative: null, unit: null },
+        completion: { processEnded: true, exitCode: 0, outputsPresent: true, outputsNonEmpty: true, structuralCheck: 'pass', validator: 'pass', evidence: 'evidence.md', supervisorDone: true },
+        state: 'DONE', fallen: false, transitions: [], outputs: ['out.txt']
+      },
+      {
+        schema: 'run-record/1',
+        runId: 'R-20260927T000000Z-slot-parser-empty',
+        slot: 'slot-parser-empty',
+        frame: 'task:test',
+        role: null,
+        selection: 'owner',
+        resolution: { ladderSnapshot: null, primary: { client: 'codexClient', model: 'm2', effort: null }, substitutes: [], excluded: [], skipped: [], unverified: [], approval: null, shortfall: null },
+        pins: { head: 'a'.repeat(40), launchFile: 'launch.md', launchSha256: 'b'.repeat(64), roleSha256: null, corpusHash: null, dispatchVersion: '1' },
+        attempts: [{
+          n: 1, kind: 'fresh', reason: 'first', routeRole: 'primary',
+          route: { client: 'codexClient', model: 'm2', effort: null },
+          effortUsed: null, modelRan: { id: 'm2', source: 'requested' },
+          sessionId: null, start: '2026-09-27T00:00:00Z', end: '2026-09-27T00:01:00Z',
+          exitCode: 0, class: 'NONE',
+          tokens: { in: null, out: null, source: 'none' },
+          usage: { amount: null, unit: null }
+        }],
+        budget: { freshUsed: 1, resumes: 0, stallMin: 10, hardMin: 60 },
+        cost: { estimated: null, actual: null, cumulative: null, unit: null },
+        completion: { processEnded: true, exitCode: 0, outputsPresent: true, outputsNonEmpty: true, structuralCheck: 'pass', validator: 'pass', evidence: 'evidence.md', supervisorDone: true },
+        state: 'DONE', fallen: false, transitions: [], outputs: ['out.txt']
+      },
+      {
+        schema: 'run-record/1',
+        runId: 'R-20260927T000000Z-slot-with-usage',
+        slot: 'slot-with-usage',
+        frame: 'task:test',
+        role: null,
+        selection: 'owner',
+        resolution: { ladderSnapshot: null, primary: { client: 'copilotClient', model: 'm3', effort: null }, substitutes: [], excluded: [], skipped: [], unverified: [], approval: null, shortfall: null },
+        pins: { head: 'a'.repeat(40), launchFile: 'launch.md', launchSha256: 'b'.repeat(64), roleSha256: null, corpusHash: null, dispatchVersion: '1' },
+        attempts: [{
+          n: 1, kind: 'fresh', reason: 'first', routeRole: 'primary',
+          route: { client: 'copilotClient', model: 'm3', effort: null },
+          effortUsed: null, modelRan: { id: 'm3', source: 'requested' },
+          sessionId: null, start: '2026-09-27T00:00:00Z', end: '2026-09-27T00:01:00Z',
+          exitCode: 0, class: 'NONE',
+          tokens: { in: null, out: null, source: 'none' },
+          usage: { amount: 12.5, unit: 'credits' }
+        }],
+        budget: { freshUsed: 1, resumes: 0, stallMin: 10, hardMin: 60 },
+        cost: { estimated: null, actual: 12.5, cumulative: 12.5, unit: 'credits' },
+        completion: { processEnded: true, exitCode: 0, outputsPresent: true, outputsNonEmpty: true, structuralCheck: 'pass', validator: 'pass', evidence: 'evidence.md', supervisorDone: true },
+        state: 'DONE', fallen: false, transitions: [], outputs: ['out.txt']
+      }
+    ];
+
+    for (const rec of records) {
+      assert.deepEqual(runrecord.validateRecord(rec), []);
+      fs.appendFileSync(runsFile, JSON.stringify(rec) + '\n', 'utf8');
+    }
+
+    const r = runBin([
+      'report', dispPath,
+      '--registry', fakeRegPath,
+      '--runs-file', runsFile
+    ]);
+
+    assert.equal(r.code, 0);
+    // Reason 1: client usage=none in clients.json
+    assert.match(r.stdout, /REPORT slot=slot-none route=noneClient:m1 state=DONE attempts=1 outputs="out\.txt" usage=none \(client usage=none in clients\.json\)/);
+    // Reason 2: parser <key> found no usage in log
+    assert.match(r.stdout, /REPORT slot=slot-parser-empty route=codexClient:m2 state=DONE attempts=1 outputs="out\.txt" usage=none \(parser codex-tokens found no usage in log\)/);
+    // With usage
+    assert.match(r.stdout, /REPORT slot=slot-with-usage route=copilotClient:m3 state=DONE attempts=1 outputs="out\.txt" usage=12\.5 credits/);
+    // Old wording completely removed
+    assert.ok(!r.stdout.includes('client reported no tokens/cost'));
+
+    // renderUsage table
+    const table = runrecord.renderUsage(records);
+    // Assert headers
+    assert.ok(table.includes('| Run | Slot | Selection | Client | Model ran | Effort used | Fresh/Resume | Wall min | Tokens in/out | Cost | State |'));
+    // Cost column has rendered cost
+    assert.ok(table.includes('12.50 credits'));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test('Guard test: test suite leaves no changes to tracked files', () => {
   const current = getTrackedStatus();
   const changed = current.filter(l => !initialTrackedStatus.includes(l));
