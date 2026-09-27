@@ -6,6 +6,32 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Cost-routes: round 1 и верификация завершены, пять реестров сведены
+
+Agent: kilo-9a9b18229cce57fd (Kilo Code session; operator of K-launch)
+
+Action:
+- Верификатор (codex, `gpt-5.6-luna`, через legacy run-chain) завершён: `round2/VERIFICATION.md`, вердикт FAIL к черновикам. CONFIRMED: Gemini API 2.5-family и `gemma-4` free tier, OpenRouter `deepseek-v4.1-flash` 0.035/0.29, `kimi-k3` 3/15, `glm-5.3-flash` 0.04/0.50, Vercel `kimi-k3` и `kimi-k2.7-code-highspeed`; REFUTED: «все `:free` 0/0», Vercel «ровно 4 модели 0/0»; остальное UNVERIFIABLE (подписочные включения, DeepSeek/Moonshot/HF-таблицы, Kilo EPERM, численные квоты).
+- Сведены пять артефактов в `docs/research/2026-09-27-cost-routes-research/`: `COST-ZERO-ROUTES.md` (49 строк), `PRICES-OFFICIAL.md` (134), `FREE-UNTIL-BALANCE.md` (41), `GAPS.md` (65), `EVIDENCE.md` (91) - русский, таблицы, метки построчно, лимит 250 соблюдён; UNVERIFIABLE/REFUTED вынесены в OPEN QUESTION и GAPS.
+- Промежуточный коммит `e998bd3` (12 файлов: README, prompts, round1, журналы A/B/оператора) запушен по команде владельца (`9cda8dd..e998bd3`); файлы чужих сессий не включались; раунд-3 сертификации (kimi/mimo) не трогались.
+
+Result: исследование выполнено (round 1 сбор + round 2 верификация + пять сводных реестров); открытые вопросы владельцу - в `GAPS.md` §6.
+
+Next step: коммит завершения (пять реестров + VERIFICATION.md + USAGE-VERIFIER.md + журналы) и пуш; решение владельца по GAPS §6.
+
+Open: UNVERIFIABLE-пункты (GAPS §1-4); procedure-gap: K-launch требует закоммиченных copyIn; сверка расхождения баланса Kilo ($0.03 vs $-0.00).
+
+Evidence:
+- anchor: 38f727a81476ed59189c289393dc53b219024e88, uncommitted changes present
+- digest: sha256:ce2a2bbd45ebd05c13d84339f8beeca70700d8eafc4e8a17f2d1f6c0cacdcb97 over 727 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T02:38:09.972Z by kilo-9a9b18229cce57fd
+- entry hash format: 2
+- entry: sha256:15fb4f8910deadc61c6f5374ad7251e7dde01f861a5d8324a3bc0456b904abd9 of this entry without this block
+- parent-entry: legacy
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-27 - K-launch: SCOPE_STOP из-за untracked copyIn; сбор спасён, верификатор запущен
 
 Agent: kilo-9a9b18229cce57fd (Kilo Code session; operator of K-launch)

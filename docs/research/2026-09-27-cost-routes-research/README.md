@@ -1,6 +1,11 @@
 # Study: zero-cost routes and official prices (owner prompt 2026-09-27)
 
-Status: LAUNCHED 2026-09-27 by operator session `kilo-9a9b18229cce57fd`; round 1 running.
+Status: ROUNDS COMPLETE 2026-09-27 (operator `kilo-9a9b18229cce57fd`). Five registries are
+published at the study root; round-2 verification rendered FAIL to the drafts
+(`round2/VERIFICATION.md`), and its UNVERIFIABLE/REFUTED items are carried as OPEN QUESTION in the
+registries and listed in `GAPS.md`. Collector drafts were salvaged from kept clones after the
+dispatcher marked both attempts POLICY_FAILURE (scope check on untracked `copyIn` files; an
+operator configuration error, not a collector defect).
 
 Binding input: `OWNER-PROMPT.md` (owner prompt, committed `1fae654`). It defines scope, the hard
 boundaries and the acceptance criteria; where this file and the prompt disagree, the prompt wins.
