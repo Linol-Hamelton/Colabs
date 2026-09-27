@@ -30,12 +30,32 @@ Owner request 2026-09-27. Read `README.md` in this folder first: trigger, merge 
 
 ## Workstreams
 
+### W0. First commit: fix the codex usage parser
+
+- **Defect.** It is present in `run-chain.cjs` `usageOf` and in the candidate `7f199c5`.
+  - The regex `/tokens used\s*\r?\n?\s*([0-9,]+)/` accepts only commas as digit groupers.
+  - On the owner's machine codex prints space-grouped numbers:
+    `tokens used: 10 644` (cost-routes `EVIDENCE.md:18`).
+  - That text parses as 10, or as 0 when a colon follows the words. `USAGE-VERIFIER.md` shows 252
+    for a 5-minute run.
+  - Reproduced in the cloud on 2026-09-27: `"tokens used\n10 644" -> 10`.
+- **Confirm first.** Read the raw codex log under `.ai/runtime/cost-routes-verifier/` and quote
+  its exact "tokens used" line.
+- **Fix.** Accept an optional colon, and space, non-breaking space, comma and dot as grouping
+  characters. Also accept a K or M suffix if codex prints one.
+- **Tests:** `10 644`, `10 644`, `10,644`, `tokens used: 10 644`, and one real captured line.
+  Also keep the raw usage line in the attempt record so an auditor can recheck the figure.
+
 ### W1. Run programs on the kernel dispatcher
 
-- Retire `run-chain.cjs` for new programs.
+- Retire `run-chain.cjs` for new programs. The cost-routes verifier still ran on `run-chain.cjs`
+  (`USAGE-VERIFIER.md`).
 - Use `.ai/bin/protocol-dispatch.cjs`. It already provides stall detection, the hard ceiling,
   resume, substitutes and per-attempt usage.
 - Every dispatch input is committed before launch: launch files and copyIn files.
+- **Client state in private clones.** The private-clone environment must let a client read its
+  own user-level state. The cost-routes verifier could not run `kilo` (EPERM on its state store).
+  Give read access to the client's own state directory, never write access to another client's.
 
 ### W2. Owner channel: a Telegram bot
 
@@ -119,6 +139,22 @@ No website, no localhost server, no open ports.
 - **Resolver order stays:** capability floor, then compatibility, then cost (metric per D4).
   - Among admissible routes, zero-cost comes first.
   - On QUOTA_EXHAUSTED, move to the next admissible route automatically.
+- **What the cost-routes study established** (verified rows only; everything else is OPEN
+  QUESTION in its `GAPS.md`):
+  - $0 now:
+    - Kilo free models, including `kilo/kilo-auto/free`: works at a negative balance (empirical
+      plus the pricing page); the served model is chosen by the router;
+    - OpenRouter `:free` variants: 50 requests a day on our tier, and not every variant is 0/0;
+    - Gemini API Free Tier: 2.5-family and gemma-4; the quotas are not confirmed.
+  - Subscription CLIs cost $0 only until the quota is exhausted. On 2026-09-27, copilot (monthly)
+    and claude (weekly) already refused every call.
+  - The Kimi Code subscription returned 403.
+  - The MiMo free channel ended; MiMo now goes through paid OpenRouter.
+- **Owner premises needed before D4** (`GAPS.md` section 6):
+  - whether an "included in subscription" claim may be taken as an owner premise without
+    account-level proof;
+  - permission for single paid calls to read balances and error texts;
+  - the reference source for the Kilo balance.
 - **Hard limits.**
   - No automatic route change for certifier slots without an owner record.
   - No silent senior-to-weaker swap (0075 item 9).
@@ -173,6 +209,8 @@ These go into `DECISION-DRAFTS.md` in this folder. Never write them into `.ai/DE
 - The route registry has cost fields for every route in the ladder.
 - The resolver picks a zero-cost route when one clears the floor. Tests cover the certifier-slot
   exclusion and the auto-router exclusion.
+- The codex usage parser counts `tokens used: 10 644` as 10644. The figure matches a real
+  captured line.
 - Usage is recorded for kilo, mimo, copilot, codex, kimi and claude. The other clients are marked
   not-exposed.
 - The dispatch suite leaves `git status` clean after a killed run.

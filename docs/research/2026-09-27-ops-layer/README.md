@@ -50,3 +50,9 @@ carries a one-line pointer to this file.
   - never reformatted.
 - **Dispatcher inputs** (launch files and copyIn files) are committed before launch. Uncommitted
   inputs caused the SCOPE_STOP of cost-routes round 1.
+- **Parallel operators in one checkout.**
+  - `git add` names paths explicitly: never `git add -A` or `.`.
+  - A session never commits another session's files: its reports, journals or usage tables.
+  - Where two operators run at once, each works in its own `git worktree`.
+  - On 2026-09-27 the cost-routes operator offered to commit the round-3 certification reports of
+    the other operator. That must go to their owner session instead.
