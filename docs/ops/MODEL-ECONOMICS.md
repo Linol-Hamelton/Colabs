@@ -31,7 +31,7 @@ The ladder as rungs, with routes observed on 2026-09-25 (`agy models`, the codex
 | 2 | Opus 5.5 High | claude | yes |
 | 3 | Opus 5.5 Medium | claude | yes |
 | 4 | GPT-5.6 Sol Medium | codex | after 22:01 local (5-hour limit) |
-| 5 (group) | DeepSeek V4.1 Max | deepseek/deepseek-flash, effort max (Q1: "DeepSeek V4.1 Max" = V4.1 Flash at max effort; own key; long tasks on manual approval) | on approval |
+| 5 (group) | DeepSeek V4.1 Max | Kilo with the owner's key; long tasks only after the owner's manual approval | on approval |
 | 5 (group) | Gemini 3.8 High | agy (`gemini-3.8-flash-high`) | yes |
 | 5 (group) | GPT-5.6 Terra High | codex | after 22:01 local |
 | 6 | GPT-5.6 Luna XHigh | codex | after 22:01 local |
@@ -42,6 +42,10 @@ The ladder as rungs, with routes observed on 2026-09-25 (`agy models`, the codex
 Not in the ladder, so not used without the owner naming them for a task: copilot models (monthly
 quota exhausted until 1 Oct), Kilo gateway models (balance $0.03), kimi, grok, and agy's Claude
 4.6 and GPT-OSS.
+
+## Route notes (2026-09-27)
+
+- **DeepSeek V4.1 Max** (ladder rung 5, PACKET-1.md Q1): route id `deepseek/deepseek-flash`, effort `max` (V4.1 Flash at max effort; own key; long tasks on manual approval). Closes BACKLOG S-5.
 
 ## Owner's earlier ranking (chat, 2026-09-25, verbatim)
 
