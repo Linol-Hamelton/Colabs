@@ -232,7 +232,8 @@ To prevent unproductive cycles, token waste, and process thrashing:
 - Acquire shared lock (`node .ai/bin/protocol-lock.cjs acquire --owner [owner-name]`) before editing shared docs (.ai/TASK.md, .ai/PLAN.md).
 - Write session journal with all five labels (Agent, Action, Result, Next step, Open).
 - Author and persist Unified Adversarial Audit Prompt (exact title `# Unified Adversarial Audit Prompt: [SUBTASK TITLE]`, <= 150 lines) before handoff.
-- Record evidence receipt via `node .ai/bin/protocol-handoff.cjs record --owner [owner-name] [--quick]`.
+- Record evidence receipt via `node .ai/bin/protocol-handoff.cjs record --owner [owner-name] [--quick]`. Never edit an entry after `record`; add a new one.
+- Final chat report to the owner in Russian (summary of changes, top findings).
 - NEVER mark the task Completed in .ai/TASK.md.
 - Release lock and halt for certifying review.
 ```
@@ -272,7 +273,8 @@ To prevent unproductive cycles, token waste, and process thrashing:
    Verdict: [PASS | FAIL | BLOCKED | RECOMMENDATION]
    ```
 5. Reviewer journal entry MUST explicitly cite the review path (e.g. `Action: reviewed [path]`).
-6. Record certifying evidence receipt in reviewer journal: `node .ai/bin/protocol-handoff.cjs record --owner [reviewer-owner-name]`.
+6. Record certifying evidence receipt in reviewer journal: `node .ai/bin/protocol-handoff.cjs record --owner [reviewer-owner-name]`. Never edit an entry after `record`; add a new one.
+7. Final chat report to the owner in Russian (verdict, review path, top findings).
 ````
 
 ### Template 4: Unified Adversarial Audit Prompt (For Peer Models)

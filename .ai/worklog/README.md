@@ -33,6 +33,9 @@ typing a claim:
 node .ai/bin/protocol-handoff.cjs record --owner <your-session-id>
 ```
 
+Never edit an entry after `record`; add a new one.
+
+
 When this directory passes thirty files, move the oldest closed journals whole
 into `.ai/ARCHIVE.md`. Moving entries out of a journal does not reduce the file
 count; moving the file does. See section 8 of `AGENTS.md`.

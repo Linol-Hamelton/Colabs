@@ -27,7 +27,7 @@
   Russian" (package COMMON.md line 3). Fix applied to the package: the language rule is repeated
   at the point of use, as the last step of COMMON rule 6. Carry it into every prompt template in
   the next kernel batch. A script cannot check a chat reply, so this stays a prompt-level control.
-  Fixed in the package; the template change is open.
+  Closed 2026-09-27: language rule repeated at point of use in templates/prompts/COMMON.md and .ai/docs/PAIRED-CYCLE.md prompt templates.
 - S-5: the ladder rung "DeepSeek V4.1 Max" in MODEL-ECONOMICS. Confirmed with owner (PACKET-1.md Q1): DeepSeek V4.1 Max = V4.1 Flash at max effort (`deepseek/deepseek-flash`, effort `max`). Closed 2026-09-27 (F-02, CR-F02-1).
 
 - S-7: `launch-test.cjs` runs about 20 scenarios in parallel, and concurrent WMI queries once timed
@@ -42,7 +42,7 @@
 - S-10: Mistral (vibe) twice edited its journal entry after `record` (round-3 reverify; L
   certifier 2), which breaks the entry hash. Fixed each time by a new entry and a new record. Add
   "never edit an entry after record; add a new one" to the vibe client profile and to prompt
-  templates. Source: coordinator. Open.
+  templates. Source: coordinator. Closed 2026-09-27: added "never edit an entry after record; add a new one" to vibe client notes in .ai/docs/CLI-AGENTS.md, templates/ai/worklog/README.md, .ai/docs/PAIRED-CYCLE.md, and templates/prompts/COMMON.md.
 - S-6: run-chain records a manual step's wall time as a negative number and its model as the name in
   the launch file ("DeepSeek V4.1"), while the step ran on `deepseek/deepseek-flash`. Source: the
   workflowAI review synthesis. Closed 2026-09-27 for the kernel path (F-01, CR-F01-1): a run
