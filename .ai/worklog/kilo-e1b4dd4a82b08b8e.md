@@ -8,6 +8,49 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Round 5 executed: block 0090, merge A, kb1 five commits, capability section, 2A review
+
+Agent: kilo-e1b4dd4a82b08b8e (Kilo Code session; model `deepseek/deepseek-flash`; effort unknown;
+usage not exposed by the client; client Kilo)
+
+Action: Step 0 verified (`22ff6a6` exactly one local commit; heads `origin/v2.0.0` `95d2d07`,
+`perf-wave-1` `f8e20b2`, `kernel-batch-1` `ed458ae`; `64043a3` not an ancestor; `0090` free; the
+round-5 file present; the kb1 staged set is exactly the 7 paths of P1). Step 1: **PROTO-DEC-0090**
+(P1-P10, O1-O3; P4 fixed by the owner - the 2A/2B certifier pair is MiMo-V2.6-Pro + GPT-5.6 Sol
+per PACKET-1 Q2, while Sol + GLM-5.3 with the MiMo reserve belongs to A-1 only) plus the registry
+row under the lock; validator 0 warnings; commit **`f93ac04`** pushed together with `22ff6a6`;
+v2.0.0 == origin. Step 2: `git merge --no-ff 64043a3` -> merge commit **`86d5526`**;
+`HEAD^1..HEAD` = exactly the 7 A files; the full suite on the merged head: 420/420 pass, exit 0
+(329.7 s); pushed. Step 3: decomposed the kb1 staged set into five commits by item - item 4
+**`fde0248`**, item 5 **`653117c`**, item 6 **`fa74541`**, `W2A-EXECUTION.md`
+**`3fba0d2`** (as is), journal **`48365b2`**; contents unchanged; `verify` = matches; pushed. Step 4
+started: the full suite on the clean kb1 tree 421/421 pass, exit 0 (616.2 s); the review task
+committed (`5a6cad1`) and the DeepSeek review runs (`bgp_0e4e111a7001g2drWenLOvBnMW`, pid 15564;
+focus W0/W5/W1-retire/items 4-6 plus the a-e mandates; up to 3 rounds). Step 5: the owner section
+appended to `MODEL-ECONOMICS.md`; resolver test 7/7 pass; commit **`ad7bbad`** pushed.
+
+Result: the round-5 block and the A merge are durable and pushed; kb1 is five clean commits ahead
+with `verify` matches; the capability section landed without touching the ladder hash; the 2A
+review runs; nothing of kernel-batch-1 is merged.
+
+Next step: the review verdict -> candidate freeze -> the ≤150-line adversarial prompt -> the
+MiMo+Sol certification pair -> the owner's merge word; the Addendum check and the Gemini DIG
+collector after the agy author exits; the probe chain later.
+
+Open: the Addendum confirmation line; the second perf merge (step 7); the A-1 launch (owner's
+word); the model probe.
+
+Evidence:
+- anchor: ad7bbad470984deb881fe60fa11b06e31ab8965a, uncommitted changes present
+- digest: sha256:f2dbfe31e8506a13c63c10ac6d2297fa74a1dab00c7e3e04f658f9c5b0da984d over 768 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T21:59:43.333Z by kilo-e1b4dd4a82b08b8e
+- entry hash format: 2
+- entry: sha256:6440c7ffa6707ce8b4966fb037d347601a2df85164bafc973a72c13f8c79e06b of this entry without this block
+- parent-entry: sha256:6590ce0b668235cf4f9ac107823a502c7cf1d1c4864857fe2d1aff13c19054b6
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 7s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-27 - Round 4 executed: block 0089, round files, Addendum author; kb1 staged-state flagged
 
 Agent: kilo-e1b4dd4a82b08b8e (Kilo Code session; model `deepseek/deepseek-flash`; effort unknown;
