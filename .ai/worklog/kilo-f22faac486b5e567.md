@@ -8,6 +8,37 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Round 3: both certifiers PASS; verifier released
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- **Kimi round 3: PASS** (CERT-KIMI-PKG2-R3.md; CANDIDATE 7f199c5, HEAD 6944958/9cda8dd, empty normative diff; PKG-2 in full + PKG-1 S8 + PKG-3 S8 + 0075 item 9; PKG-5 not re-opened; slot DONE with evidence).
+- **MiMo round 3: PASS** (CERT-MIMO-PKG2-R3.md, 133 lines; same header requirements; PKG-1/2/3 PASS, PKG-5 not re-opened; report complete; its full record still finishing - evidence pending at the time of release).
+- Operator released `r9-verify-codex` (accepted flag and job cleared in the state; the live supervisor pid 26656 will start it once `r8e-cert-mimo-pkg2` settles DONE). No supervisor restart was needed (the existing one had loaded the gated DISPATCH).
+- Parallel note: the cost-routes research in the neighbouring frame is not hung; its collector-a is BLOCKED by a POLICY_FAILURE (touched README.md in its READ-ONLY temp copy) and collector-b is running (log growing). Reported to the owner; no interference.
+
+Result: The frozen CANDIDATE passed both certifiers (round 3 of 3); the final verifier (GPT-5.6 Sol) is queued.
+
+Next step: VERIFY-SOL.md verdict; on PASS - prune, commit, push, then STOP-7 and STOP-8 to the owner as one message; on FAIL - to the owner with reproductions (no round 4).
+
+Open: MiMo record finishing; verify queued.
+
+Evidence:
+- anchor: e998bd3241dd0633fd57fd465b2cd979d025c832, uncommitted changes present
+- digest: sha256:c2747e0e57f340f75649b469db510243f59f2939a0306e1381a50551af57352e over 720 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T02:30:26.708Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:9fd6e12747871020c99d077298e6333a8214ba3e63ac73e96deb85609206a925 of this entry without this block
+- parent-entry: sha256:baa1f41eefd0c60b3bcd02647c15402f3fb040f542e67ad07d54dfcd0a4ed465
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 11s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - Freeze complete: CANDIDATE 7f199c5; round-3 certification started
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
