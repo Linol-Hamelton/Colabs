@@ -47,3 +47,5 @@ Get-ChildItem docs/research/2026-09-27-perf/PROFILE-1/stats/*.json | ForEach-Obj
 ## 5. Status
 
 **pending script confirmation** (the figures wait for the improved `report.cjs`).
+
+confirmed by report.cjs @ 22ff6a6
