@@ -30,3 +30,5 @@ Written by `run-chain.cjs` from each client's own output: kilo JSON step costs, 
 | r8b-cont-e2 | vibe | mistral-medium-3.5 | - | 16 | 551 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r9b-repair-pkg5 | agy | gemini-3.8-flash-high | - | 39 | 143 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
 | r9c-repair-hygiene | agy | gemini-3.8-flash-high | - | 32 | 209 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r9d-repair-pkg2 | agy | gemini-3.8-flash-high | - | 11 | 103 | 0.00 | 0/0 | 0.00 | 0 | 0 | DONE |
+| r8d-cert-kimi-pkg2 | kimi | moonshot-ai/kimi-k2.7-code-highspeed | - | 0 | 0 | 0.00 | 0/0 | 0.00 | 0 | 1 | FAILED |

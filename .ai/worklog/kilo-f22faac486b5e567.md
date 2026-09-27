@@ -6,6 +6,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - PKG-2 repair committed (CANDIDATE b8781ca); local lane green; round-2 certs running
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r9d-repair-pkg2` DONE quickly (report REPAIR-PKG2-GEMINI.md, 02:48): F-PKG2-1 fixed - the fixtures now carry the real `head` (`fd789acdb6558400576644822622544c41296980`) and a real `launchSha256`; `tests/runrecord.test.cjs` verifies pins against repository objects; F-PKG2-2 - the golden DONE record added alongside the real-past-failure record.
+- The repair was committed path-scoped (`tests/fixtures/runrecord/golden.jsonl`, `pattern-test.jsonl`, `tests/runrecord.test.cjs`, the report, the journal) as the NEW CANDIDATE **b8781ca6fc9d854786cbd7ffc656b8b3c0c2bcde**, pushed (ef9ef23..b8781ca).
+- Deviation noted: the supervisor marked the repair DONE and started both round-2 certifiers a couple of minutes before the operator lane and before the repair commit (the commit followed immediately; the certifiers judged the same content and read HEAD after the commit, so their subject is b8781ca; if a report names f3ab4b8 instead, flag it at their completion).
+- Local lane on b8781ca (green): `validate-protocol.ps1` OK (1 WARN: >100 journals); `node --test tests/runrecord.test.cjs` pass; `test-protocol.ps1` 416/416 pass; after the runs the tracked tree shows only `USAGE.md` (the runner's own file) - no test pollution.
+- Round-2 certifiers `r8d-cert-kimi-pkg2` and `r8d-cert-mimo-pkg2` (PKG-2 only) are STARTING; `r9-verify-codex` waits.
+
+Result: the only round-1 defect is repaired, committed and locally verified; certification round 2 judges PKG-2 on the new CANDIDATE.
+
+Next step: both round-2 verdicts - on PASS release the Sol verifier; then STOPS 7-8 and the readiness report.
+
+Open: round-2 certs running; the double-start deviation above.
+
+Evidence:
+- anchor: b8781ca6fc9d854786cbd7ffc656b8b3c0c2bcde, uncommitted changes present
+- digest: sha256:41472e9f9e269cc6a303301aae9b40783901b71764ffd9c4ffe1e8b755c52b82 over 693 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T00:01:21.287Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:f1891e90e5025fb1a33916b0c7a1a5fbcc31e8874f2f491c7ffaeb01710394f7 of this entry without this block
+- parent-entry: sha256:71d347d1f1fc7fb9c108bb7a4e698507b3bcdb3f989f74b8629e09452f1c0e77
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - Cert round 1 on f3ab4b8: Kimi PASS, MiMo FAIL on PKG-2; targeted PKG-2 repair running
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
