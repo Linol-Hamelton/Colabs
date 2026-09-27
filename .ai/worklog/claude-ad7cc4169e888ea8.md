@@ -9,6 +9,49 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - ROADMAP-1 queued: the open-work inventory as one operator prompt
+
+Agent: claude-ad7cc4169e888ea8 (cloud session on v2.0.0), advisor to the owner; certifies nothing.
+
+Action:
+- On the owner's request, took an inventory of open work. Read: TASK.md, FRAMES.md,
+  BACKLOG.md, PROBLEMS.md, cost-routes GAPS.md, the F-02 round-2 GATE-REPORT, PROTO-DEC-0048,
+  0077 and 0086, `final-plan-2.md` section AC, and the OwnerIdeas headers.
+- Wrote `docs/research/2026-09-27-roadmap-queue/PROMPT.md`, status QUEUED. It orders the open items
+  from defined-and-simple to undefined-and-heavy:
+  - wave 0: owner packet 1, Q1-Q7;
+  - wave 1: docs and hygiene;
+  - wave 2A: one kernel batch;
+  - wave 2B: the Node validator;
+  - wave 3: drafts and a narrow audit;
+  - wave 4: queued.
+  Every wave carries a cycle budget.
+- Archived my oldest journal entry with `protocol-archive.cjs` to stay under 150 lines.
+- No shared document edited; no decision written.
+
+Result:
+- The prompt is committed; nothing is launched.
+- Findings recorded in the prompt:
+  - PROTO-DEC-0048 has no measurable exit criterion;
+  - the section AC conditions 3-5 for the Node validator are open;
+  - CORE-ARCH stage 3 waits on M-3 through F-05;
+  - F-02 waits only on the owner (deadline 2026-09-29).
+- Kernel status as read from the tree:
+  - the v1.9.6 tools are active;
+  - `protocol-dispatch.cjs` is in the tree, but no program has run on it yet;
+  - `.ai/core/` does not exist, so the CORE-ARCH kernel is not landed.
+- No Evidence: no PowerShell in this cloud.
+
+Next step:
+- The owner says go.
+- The operator sends packet 1 and runs the waves.
+
+Open:
+- Q1-Q7 are for the owner.
+- The certifier pair is not yet confirmed.
+
+---
+
 ## 2026-09-27 - F-01 stage-12 closure: verdict CLOSED, receipt CR-F01-1
 
 Agent: claude-ad7cc4169e888ea8 (cloud session), closer of F-01 at stage 12 on the owner's order
@@ -97,52 +140,3 @@ Open:
   on the workstation.
 - The round-3 certification reports are still uncommitted. Their owning operator
   (kilo-f22faac486b5e567) must commit them, not the cost-routes operator.
-
----
-
-## 2026-09-27 - OPS-1 operations-layer program queued (owner request)
-
-Agent: claude-ad7cc4169e888ea8 (claude-opus-5-5, Claude Code cloud session on v2.0.0), advisor to
-the owner on the OwnerIdeas revision; certifies nothing.
-
-Action:
-- The owner asked me directly to commit the operations-layer prompt and to queue it so that it
-  surfaces after stage 12.
-- Wrote `docs/research/2026-09-27-ops-layer/README.md` (status QUEUED, trigger, merge rules) and
-  `PROMPT.md`. The prompt covers:
-  - W1 kernel dispatcher;
-  - W2 Telegram owner channel and heartbeat;
-  - W3 L0-L3 ladder and consultant independence;
-  - W4 cost-aware routing;
-  - W5 hermetic dispatch tests;
-  - owner decision drafts D1-D5.
-- Under the shared-document lock, appended one pointer sentence to the end of the last paragraph
-  of `.ai/TASK.md` section Next. No new line was added; TASK stays at 80 lines.
-- Inputs read:
-  - cost-routes round-1 collector reports (e998bd3);
-  - PKG-1 S8 and PKG-3 S8;
-  - PROTO-DEC-0047 and PROTO-DEC-0075;
-  - `tests/dispatch.test.cjs`, for the non-hermetic launch files.
-
-Result:
-- The program is queued, not launched.
-- No decision is recorded: D1-D5 are drafts that the program itself will write in its own folder.
-- Merge safety:
-  - all content is in new files;
-  - the only shared edit is one sentence appended to one line;
-  - kernel files wait for the OwnerIdeas CANDIDATE to close;
-  - phases B and C run on a separate branch `ops-1`.
-- No Evidence: this cloud has no PowerShell, so `record` cannot run here.
-Signal: procedure-gap - cost-routes round 1 ended BLOCKED because dispatcher inputs were not
-committed (SCOPE_STOP). The rule "commit inputs before launch" is recorded in the OPS-1 README.
-
-Next step:
-- At stage 12, the closure report names OPS-1 as the next item.
-- The owner gives the go for phase A.
-- The operator launches it from `PROMPT.md`.
-
-Open:
-- D1-D5 are for the owner.
-- The Kimi route is open: the Kimi Code subscription returned 403 in cost-routes round 1.
-- Claude weekly limit: collector A hit it on the workstation on 2026-09-27; it resets at 14:00
-  Moscow time.

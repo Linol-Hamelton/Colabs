@@ -10995,3 +10995,54 @@ Evidence:
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 10s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-ad7cc4169e888ea8.md, archived 2026-09-27
+
+## 2026-09-27 - OPS-1 operations-layer program queued (owner request)
+
+Agent: claude-ad7cc4169e888ea8 (claude-opus-5-5, Claude Code cloud session on v2.0.0), advisor to
+the owner on the OwnerIdeas revision; certifies nothing.
+
+Action:
+- The owner asked me directly to commit the operations-layer prompt and to queue it so that it
+  surfaces after stage 12.
+- Wrote `docs/research/2026-09-27-ops-layer/README.md` (status QUEUED, trigger, merge rules) and
+  `PROMPT.md`. The prompt covers:
+  - W1 kernel dispatcher;
+  - W2 Telegram owner channel and heartbeat;
+  - W3 L0-L3 ladder and consultant independence;
+  - W4 cost-aware routing;
+  - W5 hermetic dispatch tests;
+  - owner decision drafts D1-D5.
+- Under the shared-document lock, appended one pointer sentence to the end of the last paragraph
+  of `.ai/TASK.md` section Next. No new line was added; TASK stays at 80 lines.
+- Inputs read:
+  - cost-routes round-1 collector reports (e998bd3);
+  - PKG-1 S8 and PKG-3 S8;
+  - PROTO-DEC-0047 and PROTO-DEC-0075;
+  - `tests/dispatch.test.cjs`, for the non-hermetic launch files.
+
+Result:
+- The program is queued, not launched.
+- No decision is recorded: D1-D5 are drafts that the program itself will write in its own folder.
+- Merge safety:
+  - all content is in new files;
+  - the only shared edit is one sentence appended to one line;
+  - kernel files wait for the OwnerIdeas CANDIDATE to close;
+  - phases B and C run on a separate branch `ops-1`.
+- No Evidence: this cloud has no PowerShell, so `record` cannot run here.
+Signal: procedure-gap - cost-routes round 1 ended BLOCKED because dispatcher inputs were not
+committed (SCOPE_STOP). The rule "commit inputs before launch" is recorded in the OPS-1 README.
+
+Next step:
+- At stage 12, the closure report names OPS-1 as the next item.
+- The owner gives the go for phase A.
+- The operator launches it from `PROMPT.md`.
+
+Open:
+- D1-D5 are for the owner.
+- The Kimi route is open: the Kimi Code subscription returned 403 in cost-routes round 1.
+- Claude weekly limit: collector A hit it on the workstation on 2026-09-27; it resets at 14:00
+  Moscow time.
