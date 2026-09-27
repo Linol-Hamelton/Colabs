@@ -3993,3 +3993,61 @@ Decision:
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-27, round-4 consensus with
 the owner's choices; transcribed by kilo-e1b4dd4a82b08b8e)
+
+### PROTO-DEC-0090
+
+Status: Accepted
+Date: 2026-09-27
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0088 item 7 (the commits-A gate, now executed); PROTO-DEC-0089 items 1 and 4
+(which certifier pair belongs to which wave).
+
+Context:
+Owner round 5 (2026-09-27). The synthesis was produced by a model from the Gemini family in
+advisory mode; the round record is `docs/reviews/2026-09-27-round5-consensus-discussion.md`.
+Item 4 below is fixed by the owner: the synthesis had mixed the certifier pairs, and the owner
+restored PACKET-1 Q2 for waves 2A/2B. No new consensus rounds on these points.
+
+Decision:
+1. P1 - the staged recovery-2 work in `kb1` is committed by the operator item by item; the paths
+   are only those actually staged:
+   - commit 1: item 4 - `.ai/bin/protocol-dispatch.cjs`, `docs/ops/RUNS.jsonl`,
+     `tests/dispatch.test.cjs`;
+   - commit 2: item 5 - `docs/research/2026-09-25-improvement-research/prompts/launch-test.cjs`;
+   - commit 3: item 6 - `.ai/docs/clients.json`;
+   - commit 4: `docs/research/2026-09-27-roadmap-queue/W2A-EXECUTION.md` AS IS (the SHA stubs are
+     not touched);
+   - commit 5: the session journal `.ai/worklog/gemini-d7d44e9eac34702c.md` with its Evidence.
+   The item-to-SHA mapping goes only into the operator journal.
+2. P2 - recovery 3 is not launched routinely. The emergency case - incompleteness, red tests, or a
+   diff that does not decompose by item - is reported to the owner first, before any commit.
+3. P3 - the operator does not change the implementation; each commit carries only its own files;
+   after the series `verify` must say matches. Otherwise stop: the record is made by the executor,
+   not the operator.
+4. P4 (fixed by the owner) - `kernel-batch-1` stays a candidate. The order: the full test set on a
+   clean tree (all pass) -> DeepSeek review -> candidate freeze -> certification by
+   **MiMo-V2.6-Pro + GPT-5.6 Sol** (PACKET-1 Q2; the pair of waves 2A and 2B, unchanged). The pair
+   GPT-5.6 Sol + GLM-5.3 with the MiMo-V2.6-Pro reserve relates ONLY to A-1 (PROTO-DEC-0089 items
+   1 and 4).
+5. P5-P6 - the commits-A gate is assembled (DeepSeek PASS, clean R3, the owner's word). The merge
+   is `git merge --no-ff 64043a3`; fast-forward is forbidden. M1 campaign 1 stays MISSED.
+6. P7 - the A-1 executor is outside the GPT and GLM families; MiMo-V2.6-Pro cannot be the A-1
+   executor (it is the reserve certifier).
+7. P8 - `MODEL-ECONOMICS.md` is changed only by the owner; the operator does not touch
+   `model-ladder.json` or the effort-to-tier mappings before the probe.
+8. P9 - one agy session at a time; the Addendum author session is not interrupted; the Gemini DIG
+   collector runs after it exits.
+9. P10 - unchanged per PROTO-DEC-0089 (the `dispatch.test.cjs` moratorium, the control run,
+   `perf-wave-2`, the 5 x c16 campaign).
+10. O1 - the A-1 executor: Claude Opus 5.5 (Claude Code), effort max; High only if the limit is
+    exhausted, with a record.
+11. O2 - only commits A (`64043a3`) merge now. The second merge - the DeepSeek review, M1-REPORT,
+    PROFILE-1, the Addendum - comes after the script confirmation of the Addendum and the range
+    check (the operator's step 7).
+12. O3 - the section "Owner capability update, 2026-09-27" goes into `MODEL-ECONOMICS.md`
+    verbatim; how its numeric tiers relate to PROTO-DEC-0086 item 5 (T-ranks are relative within a
+    provider) is an open question for the next P-L2-002 revision; PROTO-DEC-0086 is not changed by
+    this block.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-27, round-5 consensus with
+the owner's choices; transcribed by kilo-e1b4dd4a82b08b8e)
