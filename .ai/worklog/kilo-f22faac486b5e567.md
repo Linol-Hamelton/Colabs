@@ -8,6 +8,42 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Morning answers applied; FINAL-DEEPSEEK accepted (with a recorded deviation)
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action (owner answers 2026-09-27, recorded):
+- STOP-7: leave F-01 as CLOSED for stage 12; the stage-12 closure MUST add the receipt row
+  `receipt: CR-F01-1 <sha> K:n C:n A:n D:n R:n T:n` to the F-01 row (R-L0-22.67) and zero the
+  "Closed frames without a receipt" counter; if stage 12 ends NOT_CLOSED, F-01 becomes
+  TRANSITION-PENDING.
+- STOP-8: the five items (OQ-1, OQ-2, OQ-3, the F-02 gate, the DeepSeek identity mapping) do NOT
+  block; they stay recorded as open owner decisions in FINAL-DEEPSEEK section 9 and must be listed
+  in the closure report; the implementation must not pre-empt any of them.
+- Codex parser defect: option A - a recorded exception in the closure report and in this journal.
+  Until it is fixed in OPS-1 W0, every codex token figure in USAGE/RUNS is untrustworthy and must
+  not be used for routing decisions; W0 is the first OPS-1 commit.
+- E-stop accepted as-is: FINAL-DEEPSEEK.md is not edited. Recorded deviation: the report carries
+  two `^Verdict:` lines (header and closing section; both PASS) instead of exactly one, and the
+  required items sit in section 7 ("Known items") plus section 9 ("OPEN OWNER DECISIONS"); E3 was
+  confirmed first (Evidence with `validate exit 0` and `test-protocol.ps1: exit 0 in 524s` in the
+  MAIN checkout journal), the Sol worktree was removed with `git worktree remove`
+  (`.ai/runtime/codex-r9-verify`; only pre-existing worktrees remain), then the report and journal
+  were committed by explicit paths (`e11907a`) and pushed.
+- Cost-routes GAPS.md section 6: noted, not part of the stage-12 closure; its three inputs already
+  gate OPS-1 D4 (W4) and the owner answers at OPS-1 phase A.
+
+Result: Stage 12 has both verdicts (Sol PASS, DeepSeek PASS); its inputs are committed and pushed.
+
+Next step: write and commit `round9/STAGE12-READY.md` (<=80 lines), then the final full `record`
+(not --quick) in a clean worktree at the final commit, commit that journal entry, and hand the
+frozen package to the owner for the cloud closure.
+
+Open: closure must write the F-01 receipt and list the open owner decisions; codex token figures
+remain untrustworthy until OPS-1 W0.
+
+---
+
 ## 2026-09-27 - Overnight runbook: Sol PASS committed; r12 DeepSeek verdict running
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
