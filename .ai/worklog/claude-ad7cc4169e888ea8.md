@@ -9,6 +9,59 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - F-01 stage-12 closure: verdict CLOSED, receipt CR-F01-1
+
+Agent: claude-ad7cc4169e888ea8 (cloud session), closer of F-01 at stage 12 on the owner's order
+("закрывай здесь"). Closes and records; certifies nothing.
+
+Action:
+- Checked the DISPATCH-OWNER stage-12 criteria against the repository.
+  - Inputs: STAGE12-READY, FINAL-DEEPSEEK, VERIFY-SOL, round-3 certificates, morning answers.
+  - Owner Windows lane at 55e1e05: validator exit 0; suite 419/419.
+  - Operator Evidence verifies at 55e1e05.
+- Built the F-01 artifact set and dispositions (R-L0-22.57-22.62).
+  - A cloud trial move showed that `tests/dispatch.test.cjs` T5 needs `prompts/DISPATCH.json` and
+    `prompts/run/*` in place.
+  - The owner chose variant A: the fixture stays unchanged as TRANSFER to OPS-1 W5, and its
+    citations resolve through the archive INDEX.
+- The environment refused my mass `git mv`. I did not work around it and released the lock.
+  - The owner then had the operator run my fail-closed script, from branch
+    `claude/f01-closure-script` (1b22bcb). Its dry-run in the cloud: move 71, keep 40, edits 21,
+    dangling 0.
+  - Operator apply commit: a140bea on `claude/f01-closure`.
+- Verified a140bea in the cloud:
+  - 70 renames at 100% similarity; the README moved unchanged;
+  - the edits are minimal; every changed blob is LF with no BOM;
+  - zero dangling references;
+  - 9 node suites pass; the tree is clean afterwards.
+- Receipt commit (under the lock):
+  - CLOSURES.jsonl gains CR-F01-1 (K:63 C:0 A:71 D:1 R:1 T:55; active bytes 4082183 -> 3142600);
+  - the FRAMES F-01 row carries the receipt, and the counter "without a receipt" is 0;
+  - TASK.md updated in the same line, still 80 lines;
+  - report `docs/reviews/2026-09-27-claude-f01-stage12-closure.md`.
+
+Result: F-01 verdict CLOSED. It takes effect when `v2.0.0` fast-forwards to `claude/f01-closure`
+after the owner's Windows lane passes on the branch head.
+- Recorded findings: the codex exception (owner A), non-hermetic tests, MiMo identity not observed,
+  the closure-receipts.cjs overwrite, the collector-a early end, DeepSeek R-1/R-3/R-4, and 150
+  journals against the cap of 100.
+- Correction: the Colabs-cert/* worktrees are not this program's.
+- No Evidence: this cloud has no PowerShell.
+Signal: procedure-gap - a closure whose frame directory holds a live test fixture cannot archive it
+without a kernel change; fixtures belong under tests/fixtures from the start.
+
+Next step:
+- The owner runs the Windows lane on `claude/f01-closure`.
+- If it is green: I fast-forward v2.0.0, and add a journal-only line with the result.
+- Then OPS-1 on the owner's go.
+
+Open:
+- The owner decisions listed in report section 7.
+- Removal of the stale worktrees.
+- Journal pruning.
+
+---
+
 ## 2026-09-27 - OPS-1 prompt updated from the finished cost-routes study
 
 Agent: claude-ad7cc4169e888ea8 (claude-opus-5-5, cloud session on v2.0.0), advisor; certifies
