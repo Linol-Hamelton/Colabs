@@ -6,6 +6,36 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Round-2 certs: MiMo running; Kimi restarted after the owner's recharge
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r8d-cert-kimi-pkg2` round 1 failed: try 1 ran 15+ minutes (log 240 KB) then the Kimi client returned `429 Your credit balance is running low for account org-a316...`; try 2 died instantly on the same error; no `CERT-KIMI-PKG2-R2.md`. Reported as a blocker; the owner chose to recharge and asked for a restart.
+- Only Gemini question answered for the owner: no `agy` slot is running or queued (future Gemini work is conditional - a repair on a round-2 FAIL), so his network manipulations are safe now; the running MiMo cert and the future codex verification are network-bound and would need a restart after any outage (no substitution).
+- `r8d-cert-kimi-pkg2` reset and restarted after the recharge: STARTING (pid 16600; the new log's first line is a validator `[PASS] commits on record: 288`, no 429 so far). `r8d-cert-mimo-pkg2` STARTING again (pid 16612). CANDIDATE for round 2 is `b8781ca6fc9d854786cbd7ffc656b8b3c0c2bcde`.
+
+Result: Both round-2 certifiers are retrying on the PKG-2 repair CANDIDATE.
+
+Next step: read both round-2 reports when done (both must name b8781ca, Mode CERTIFYING, PKG-2 PASS/FAIL); on both PASS release the Sol verifier; then STOPS 7-8 and the readiness report.
+
+Open: Kimi round-2 in flight (the recharge must hold); MiMo round-2 in flight.
+
+Evidence:
+- anchor: 75452bc9adbfa1cfd9538535072bbc0298fc2110, uncommitted changes present
+- digest: sha256:41472e9f9e269cc6a303301aae9b40783901b71764ffd9c4ffe1e8b755c52b82 over 693 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T00:09:59.101Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:e130e0af995eb3584c29594c181b9ce9237a98cfcf5d1570ece9c8bec22046db of this entry without this block
+- parent-entry: sha256:f1891e90e5025fb1a33916b0c7a1a5fbcc31e8874f2f491c7ffaeb01710394f7
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 11s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - PKG-2 repair committed (CANDIDATE b8781ca); local lane green; round-2 certs running
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
