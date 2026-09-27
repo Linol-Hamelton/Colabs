@@ -34,13 +34,14 @@ Next step: r9f DONE and its process exited -> freeze check -> lane -> freeze com
 Open: r9f running.
 
 Evidence:
-- anchor: 1fae6547fd062dc3b77dfc1ba1c274d494387981, uncommitted changes present
-- digest: sha256:dfd9696c7428b3b6d62538721352bfd5500b95ca8e31075da1e572fcbe926ab1 over 709 tracked and untracked files
+- anchor: 401bcb32db9c5567679651e44002fa9f600db8f6, uncommitted changes present
+- digest: sha256:c737b52beed9d02fa254cfe0c39a8ffe4dff90a37463ce3052b5c04fe2c61a13 over 714 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-27T01:19:47.062Z by kilo-f22faac486b5e567
+- recorded: 2026-09-27T01:46:52.992Z by kilo-f22faac486b5e567
 - entry hash format: 2
-- entry: sha256:2e0def64bf49c34b144082f7011e53e2a5fb9bfaf578249403c6ed12dccdc1c2 of this entry without this block
+- entry: sha256:b2cd851bf39cec97b5e8bba528e8dfd77143d262efef637b5a6478616964c780 of this entry without this block
 - parent-entry: sha256:1683048495e471c8da286ff32ae894055041b76e0afddf0ee1b2090d02dddf54
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 6s
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- test-protocol.ps1: exit 0 in 518s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
