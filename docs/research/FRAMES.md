@@ -10,7 +10,7 @@ carries `receipt: <CR-id> <sha> K:n C:n A:n D:n R:n T:n` (P-L0-008 R-L0-22.67).
 
 | Counter | Value | As of | Source |
 |---|---|---|---|
-| DIG | not counted (ledger pending; first count is task one of the OwnerIdeas plan) | 2026-09-26 | R-L0-22.45 |
+| DIG | 13 (F-01 baseline per PACKET-1 amendments 2026-09-27; the wave-3 registry audit refines it) | 2026-09-27 | R-L0-22.45 |
 | DIG_FLOOR | - | - | R-L0-22.44 |
 | DEFERRED_ACCEPTED | 0 | 2026-09-26 | R-L0-22.42 |
 | DEFER backlog / cap | 3 / 5 (PROTO-DEC-0084) | 2026-09-26 | R-L0-22.29 |
@@ -39,7 +39,7 @@ carries `receipt: <CR-id> <sha> K:n C:n A:n D:n R:n T:n` (P-L0-008 R-L0-22.67).
 | F-14 | Remediation mapping cycle | `docs/research/2026-09-24-remediation-mapping/` | S1 | major | CLOSED | 3 | 2026-09-24 | owner | ACCEPT | PROTO-DEC-0048 item 4; 0052-0054; receipt: CR-F14-1 receipt-only K:0 C:0 A:0 D:0 R:0 T:22 | - |
 | F-15 | workflowAI review | `docs/research/archive/2026-09-25-workflowai-review/` | S2 | major | CLOSED | 2 | 2026-09-25 | owner | ACCEPT | PROTO-DEC-0078; receipt: CR-F15-1 6507cab K:0 C:0 A:14 D:0 R:0 T:0 | - |
 | F-16 | Cycle-history one-round proposal (Codex research) | `docs/reviews/2026-09-20-codex-cycle-history-research.md` | S1 | major | CLOSED | - | 2026-09-20 | owner | DEFER (D-01) | PROTO-DEC-0083 transition; owner confirmation 2026-09-26; receipt: CR-F16-1 receipt-only K:3 C:0 A:0 D:0 R:0 T:0 | - |
-
+| F-17 | DIG registry audit: "decided but not built" across PROTO-DEC-0022..0086 and A-1..A-14 | `docs/research/2026-09-27-roadmap-queue/drafts/` | S1 | minor | ACTIVE | 1 | 2026-09-27 | owner | - | PACKET-1 amendments 1-2 (owner, 2026-09-27); advisory audit: no verdict, no certification; producers: Mistral 0022-0047, Gemini 3.8 Flash 0048-0067, DeepSeek 0068-0086 + A-1..A-14; verifier GPT-5.6 Sol (20% sample plus every "not built" row); cover and dup checks mandatory | - |
 ## DEFER backlog (cap: pending owner number; R-L0-22.29)
 
 | ID | Item | Summary | Reason | Reopen trigger | Canonical source | Date |
