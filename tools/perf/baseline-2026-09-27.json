@@ -1,0 +1,55 @@
+{
+  "commit": "606b23a88ba17bfd1ad7f751f7d3f01916cd7cd4",
+  "date": "2026-09-27",
+  "machine": "i9-13900HX, 32 logical CPUs, ~32 GB RAM, Windows 11 26200 ru-RU, PowerShell 5.1.26100, Node 22.21.0, git 2.53, Defender real-time and on-access on",
+  "report": "docs/reviews/2026-09-27-claude-powershell-refactor-assessment.md",
+  "suite": {
+    "runs": [
+      { "conc": 16, "wallS": 542.9 },
+      { "conc": 8, "wallS": 609.9, "cpuAvg": 50, "cpuMax": 85, "freeMinMB": 3038, "maxConcurrent": { "node": 44, "powershell": 18, "git": 13 } },
+      { "conc": 24, "wallS": 584.6, "cpuAvg": 55, "cpuMax": 100, "freeMinMB": 1267, "maxConcurrent": { "node": 58, "powershell": 24, "git": 27 } },
+      { "conc": 16, "wallS": 600.3, "cpuAvg": 54, "cpuMax": 99, "freeMinMB": 1936, "maxConcurrent": { "node": 55, "powershell": 24, "git": 22 } },
+      { "conc": 8, "wallS": 664.1, "cpuAvg": 47, "cpuMax": 96, "freeMinMB": 3596, "maxConcurrent": { "node": 42, "powershell": 19, "git": 14 } }
+    ],
+    "medianS": 600.3,
+    "cv": 0.073,
+    "tests": 419,
+    "criticalPathFile": { "file": "validator.test.cjs", "serialS": [489, 446, 584, 554, 492] },
+    "nextFiles": { "dispatch.test.cjs": [211, 234], "gate.test.cjs": [157, 199], "handoff.test.cjs": [141, 184], "hooks.test.cjs": [140, 173], "validator-syntax.test.cjs": [119, 199] }
+  },
+  "perSuiteCounts": {
+    "powershellFromNode": 291,
+    "powershellNestedInstallerEstimate": 125,
+    "gitFromNode": 3375,
+    "gitInsidePowerShellEstimate": 1500,
+    "nodeCliSpawns": 674,
+    "gitInit": 391,
+    "gitCommit": 497,
+    "makeProtocolFixture": 350,
+    "cpSyncCalls": 26752,
+    "filesCopied": 30272,
+    "bytesCopied": 408762112,
+    "recursiveRemovals": 548,
+    "leakedTempDirsPerRun": 28
+  },
+  "components": {
+    "validatorRealTreeMs": 5700,
+    "validatorSubprocessesPerRun": 18,
+    "validatorInSuiteP50Ms": 4788,
+    "validatorInSuiteP95Ms": 8977,
+    "installerAnyModeMs": [1046, 1355],
+    "gitInitIdleMs": 65,
+    "gitCommitIdleMs": 100,
+    "fixtureSeedPlusFirstReadMs": { "cpSync": 1323, "written": 120 },
+    "gateSliceParity": { "steps": 17, "mismatches": 0, "powershellMs": 71492, "nodeMs": 23.4 },
+    "factorialPerIterationMs": { "PS+cpSync": 5673, "PS+written": 4377, "Node+cpSync": 1962, "Node+written": 806 },
+    "verifyMs": [643, 743],
+    "snapshotMs": [274, 441],
+    "recordQuickS": 7
+  },
+  "evidenceHistorySince20260925": {
+    "validate-protocol.ps1": { "n": 150, "medianS": 4, "p90S": 9, "p95S": 12, "maxS": 18 },
+    "test-protocol.ps1": { "n": 49, "medianS": 318, "p90S": 526, "p95S": 571, "maxS": 605 }
+  },
+  "milestones": { "M1": "median <= 300 s after Commit A", "M2": "median <= 120 s", "M3": "P90 <= 60 s" }
+}
