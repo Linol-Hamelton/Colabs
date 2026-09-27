@@ -923,7 +923,7 @@ function renderUsage(records, options = {}) {
   });
   
   // Build markdown table
-  const headers = ['Run', 'Slot', 'Selection', 'Client', 'Model', 'Effort', 'Fresh/Resume', 'Wall min', 'Tokens in/out', 'Cost', 'State'];
+  const headers = ['Run', 'Slot', 'Selection', 'Client', 'Model ran', 'Effort used', 'Fresh/Resume', 'Wall min', 'Tokens in/out', 'Cost', 'State'];
   
   let md = '| ' + headers.join(' | ') + ' |\n';
   md += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
@@ -996,18 +996,7 @@ function collapseSessions(rows) {
 // ============================================================================
 
 function printUsage() {
-  console.log(`USAGE node .ai/bin/protocol-runrecord.cjs <command> [args]
-
-Commands:
-  validate <file.jsonl>    Validate records in a JSON Lines file
-  append <file.jsonl> <record.json>  Append a validated record to a file
-  render <file.jsonl> [--frame <id>] [--out <path.md>]  Render usage table
-  sessions [--dir <dir>]   Collapse and count sessions from metrics
-
-Exit codes:
-  0: ok
-  1: refusal
-  2: unknown or malformed`);
+  console.log('USAGE command=[validate|append|render|sessions] syntax="node .ai/bin/protocol-runrecord.cjs <command> [args]"');
 }
 
 function main() {
@@ -1027,19 +1016,53 @@ function main() {
         process.exit(2);
       }
       const file = args[1];
-      
-      try {
-        const records = readRecords(file);
-        console.log(`SUMMARY records=${records.length} invalid=0`);
-        process.exit(0);
-      } catch (err) {
-        // Try to parse error message for line number
-        const match = err.message.match(/line\s+(\d+)/);
-        const lineNum = match ? match[1] : 'unknown';
-        console.log(`INVALID line=${lineNum} error="${err.message}"`);
-        console.log(`SUMMARY records=0 invalid=1`);
+      if (!fs.existsSync(file)) {
+        console.log(`ERROR reason=file-not-found file="${file}"`);
         process.exit(2);
       }
+      
+      const content = fs.readFileSync(file, 'utf8');
+      const lines = content.split('\n');
+      if (lines.length > 0 && lines[lines.length - 1] === '') {
+        lines.pop();
+      }
+      
+      let totalCount = 0;
+      let invalidCount = 0;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lineNum = i + 1;
+        totalCount++;
+        
+        if (line.trim() === '') {
+          invalidCount++;
+          console.log(`INVALID line=${lineNum} error="empty line"`);
+          continue;
+        }
+        
+        let obj;
+        try {
+          obj = JSON.parse(line);
+        } catch (err) {
+          invalidCount++;
+          console.log(`INVALID line=${lineNum} error="${err.message.replace(/"/g, '\\"')}"`);
+          continue;
+        }
+        
+        const errors = validateRecord(obj);
+        if (errors.length > 0) {
+          invalidCount++;
+          for (const errMsg of errors) {
+            console.log(`INVALID line=${lineNum} error="${errMsg.replace(/"/g, '\\"')}"`);
+          }
+        } else {
+          console.log(`VALID line=${lineNum} runId=${obj.runId}`);
+        }
+      }
+      
+      console.log(`SUMMARY records=${totalCount} invalid=${invalidCount}`);
+      process.exit(invalidCount === 0 ? 0 : 2);
       break;
     }
     

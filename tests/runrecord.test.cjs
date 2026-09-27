@@ -520,20 +520,25 @@ function testT12_AppendNothingOnInvalid() {
 // ============================================================================
 
 function testT13_RenderGoldenTable() {
-  const record1 = PAST_FAILURE_RECORD;
-  const record2 = GOLDEN_DONE_RECORD;
+  const goldenFile = path.join(FIXTURES_DIR, 'golden.jsonl');
+  const goldenMdFile = path.join(FIXTURES_DIR, 'golden.md');
+  assert(fs.existsSync(goldenMdFile), 'T13: golden.md must exist');
   
-  const records = [record1, record2];
+  const records = readRecords(goldenFile);
   const rendered = renderUsage(records);
+  const goldenMd = fs.readFileSync(goldenMdFile, 'utf8');
   
-  // Check that it produces a markdown table
-  assert(rendered.includes('| Run | Slot |'), 'T13: Should contain headers');
+  // Exact byte/line equality against committed golden table (AC-7)
+  assert.strictEqual(rendered, goldenMd, 'T13: Rendered table must equal golden.md byte-for-byte');
+  
+  // Check that it produces a markdown table with S4 column names
+  assert(rendered.includes('| Run | Slot | Selection | Client | Model ran | Effort used | Fresh/Resume | Wall min | Tokens in/out | Cost | State |'), 'T13: Should contain S4 headers');
   assert(rendered.includes('| ---'), 'T13: Should contain separator');
   assert(rendered.includes('R-20260926T123940Z-r6-claude-final'), 'T13: Should contain record');
   assert(rendered.includes('FAILED'), 'T13: Should contain FAILED state');
   assert(rendered.includes('DONE'), 'T13: Should contain DONE state');
   
-  console.log('T13 PASS: Render produces valid markdown table with DONE and FAILED records');
+  console.log('T13 PASS: Render produces valid markdown table with DONE and FAILED records matching golden.md');
 }
 
 // ============================================================================
@@ -572,8 +577,24 @@ function testT14_SessionsRatio() {
 }
 
 // ============================================================================
-// T2-T14: AC-9 - Every CLI stdout line matches pattern
+// T2-T14: AC-9 - Every CLI stdout line matches pattern ^[A-Z][A-Z_]*( |$)
 // ============================================================================
+
+const BIN_PATH = path.join(__dirname, '..', '.ai', 'bin', 'protocol-runrecord.cjs');
+
+function runCli(args, options = {}) {
+  return spawnSync(process.execPath, [BIN_PATH, ...args], {
+    encoding: 'utf8',
+    ...options
+  });
+}
+
+function assertCliPattern(stdout) {
+  const lines = stdout.split('\n').filter(line => line.trim() !== '');
+  for (const line of lines) {
+    assert(/^[A-Z][A-Z_]*( |$)/.test(line), `CLI stdout line must match ^[A-Z][A-Z_]*( |$): "${line}"`);
+  }
+}
 
 function testPattern_validate() {
   ensureFixturesDir();
@@ -585,6 +606,99 @@ function testPattern_validate() {
   assert.deepStrictEqual(validateRecord(records[0]), []);
   verifyPinsAgainstRepo(records[0].pins);
   console.log('PATTERN VALIDATE PASS: library functions produce correct output and verify pins');
+}
+
+function testCliPattern_AllCommands() {
+  const goldenFile = path.join(FIXTURES_DIR, 'golden.jsonl');
+  
+  // 1. No command: USAGE line, exit 2
+  const rNoCmd = runCli([]);
+  assert.strictEqual(rNoCmd.status, 2, 'No command should exit 2');
+  assertCliPattern(rNoCmd.stdout);
+  assert(rNoCmd.stdout.startsWith('USAGE '), 'No command should output USAGE line');
+  
+  // 2. Unknown command: ERROR reason=unknown-command, exit 2
+  const rUnknown = runCli(['unknown-command-xyz']);
+  assert.strictEqual(rUnknown.status, 2, 'Unknown command should exit 2');
+  assertCliPattern(rUnknown.stdout);
+  assert(rUnknown.stdout.startsWith('ERROR reason=unknown-command'), 'Unknown command should output ERROR');
+  
+  // 3. validate on golden.jsonl: VALID lines + SUMMARY, exit 0
+  const rVal = runCli(['validate', goldenFile]);
+  assert.strictEqual(rVal.status, 0, 'validate golden.jsonl should exit 0');
+  assertCliPattern(rVal.stdout);
+  assert(rVal.stdout.includes('VALID line=1 runId=R-20260926T123940Z-r6-claude-final'));
+  assert(rVal.stdout.includes('VALID line=2 runId=R-20260926T123940Z-r6-claude-final'));
+  assert(rVal.stdout.includes('SUMMARY records=2 invalid=0'));
+  
+  // 4. validate on invalid file: INVALID lines + SUMMARY, exit 2
+  const invalidFile = path.join(FIXTURES_DIR, 'tmp-cli-invalid.jsonl');
+  try {
+    fs.writeFileSync(invalidFile, '{"bad": "jsonl"}\n');
+    const rValBad = runCli(['validate', invalidFile]);
+    assert.strictEqual(rValBad.status, 2, 'validate bad file should exit 2');
+    assertCliPattern(rValBad.stdout);
+    assert(rValBad.stdout.includes('INVALID line=1'));
+    assert(rValBad.stdout.includes('SUMMARY records=1 invalid=1'));
+  } finally {
+    if (fs.existsSync(invalidFile)) fs.unlinkSync(invalidFile);
+  }
+  
+  // 5. append valid record: APPENDED runId=..., exit 0
+  const appendFile = path.join(FIXTURES_DIR, 'tmp-cli-append.jsonl');
+  const recordFile = path.join(FIXTURES_DIR, 'tmp-cli-record.json');
+  try {
+    fs.writeFileSync(recordFile, JSON.stringify(GOLDEN_RECORD));
+    const rApp = runCli(['append', appendFile, recordFile]);
+    assert.strictEqual(rApp.status, 0, 'append should exit 0');
+    assertCliPattern(rApp.stdout);
+    assert(rApp.stdout.startsWith('APPENDED runId=' + GOLDEN_RECORD.runId));
+  } finally {
+    if (fs.existsSync(appendFile)) fs.unlinkSync(appendFile);
+    if (fs.existsSync(recordFile)) fs.unlinkSync(recordFile);
+  }
+  
+  // 6. render with --out: WROTE path=..., exit 0
+  const outMd = path.join(FIXTURES_DIR, 'tmp-cli-render.md');
+  try {
+    const rRen = runCli(['render', goldenFile, '--out', outMd]);
+    assert.strictEqual(rRen.status, 0, 'render --out should exit 0');
+    assertCliPattern(rRen.stdout);
+    assert(rRen.stdout.startsWith('WROTE path='));
+  } finally {
+    if (fs.existsSync(outMd)) fs.unlinkSync(outMd);
+  }
+  
+  // 7. sessions on synthetic fixture dir: SESSION rows + SUMMARY, exit 0
+  const tmpMetricsDir = path.join(FIXTURES_DIR, 'tmp-cli-metrics');
+  try {
+    fs.mkdirSync(tmpMetricsDir, { recursive: true });
+    const rows = [];
+    for (let s = 1; s <= 26; s++) {
+      const sessionId = `session-${s.toString().padStart(3, '0')}`;
+      const stopCount = s === 26 ? 2 : 3;
+      for (let i = 1; i <= stopCount; i++) {
+        rows.push(JSON.stringify({
+          session: sessionId,
+          agent: `agent-${s}`,
+          ts: `2026-09-26T${s.toString().padStart(2, '0')}:00:00Z`,
+          changedFiles: i,
+          handoffComplete: i === stopCount
+        }));
+      }
+    }
+    fs.writeFileSync(path.join(tmpMetricsDir, 'sessions.jsonl'), rows.join('\n') + '\n');
+    const rSess = runCli(['sessions', '--dir', tmpMetricsDir]);
+    assert.strictEqual(rSess.status, 0, 'sessions should exit 0');
+    assertCliPattern(rSess.stdout);
+    assert(rSess.stdout.includes('SESSION '));
+    assert(rSess.stdout.includes('SUMMARY rows=77 sessions=26 ratio=2.96'));
+  } finally {
+    if (fs.existsSync(path.join(tmpMetricsDir, 'sessions.jsonl'))) fs.unlinkSync(path.join(tmpMetricsDir, 'sessions.jsonl'));
+    if (fs.existsSync(tmpMetricsDir)) fs.rmdirSync(tmpMetricsDir);
+  }
+  
+  console.log('CLI PATTERN PASS: every CLI stdout line matches ^[A-Z][A-Z_]*( |$) and exits follow S5');
 }
 
 // ============================================================================
@@ -628,8 +742,9 @@ function runTests() {
   // T14 (AC-8)
   testT14_SessionsRatio();
   
-  // Pattern test
+  // Pattern test (AC-9)
   testPattern_validate();
+  testCliPattern_AllCommands();
   
   console.log('\nAll T1-T14 tests passed!');
   console.log('AC-1 through AC-10 checks: PASS');
