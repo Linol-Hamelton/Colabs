@@ -69,7 +69,7 @@ forever.
 The operator sends Q1-Q7 at once and waits. Each answer is transcribed with provenance.
 
 - **Q1. F-02 gate.**
-  - Your verdict on `docs/research/2026-09-26-model-layer/round2/` (verifier: PASS with
+  - Your verdict on `docs/research/archive/2026-09-26-model-layer/round2/` (verifier: PASS with
     recommendations; 20 CONFIRMED, 27 UNVERIFIED, 0 REJECTED).
   - Confirm that DeepSeek V4.1 Max is V4.1 Flash at max effort. This one answer also closes
     BACKLOG S-5.

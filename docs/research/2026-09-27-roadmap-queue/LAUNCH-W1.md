@@ -28,9 +28,9 @@ You are the wave-1 executor. One executor session for the whole wave; one commit
 ## Items
 
 1. **F-02 close-out** (after Q1). File verdict `ACCEPT` on the F-02 row in
-   `docs/research/FRAMES.md` (gate: `docs/research/2026-09-26-model-layer/round2/GATE-REPORT.md`,
+   `docs/research/FRAMES.md` (gate: `docs/research/archive/2026-09-26-model-layer/round2/GATE-REPORT.md`,
    owner answer in PACKET-1.md). Apply the P-L0-008 closure (R-L0-22.56-22.67) to the frame
-   directory `docs/research/2026-09-26-model-layer/`: build the artifact set, one disposition per
+   directory `docs/research/archive/2026-09-26-model-layer/`: build the artifact set, one disposition per
    artifact (ARCHIVE by default), apply in one commit under the lock, repoint active references,
    append the `CLOSURES.jsonl` line (append-only - never rewrite) and the receipt
    `receipt: CR-F02-1 <apply-sha> K:.. C:.. A:.. D:.. R:.. T:..` on the F-02 row. The closer does

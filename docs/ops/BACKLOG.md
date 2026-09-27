@@ -28,9 +28,7 @@
   at the point of use, as the last step of COMMON rule 6. Carry it into every prompt template in
   the next kernel batch. A script cannot check a chat reply, so this stays a prompt-level control.
   Fixed in the package; the template change is open.
-- S-5: the ladder rung "DeepSeek V4.1 Max" in MODEL-ECONOMICS. Kilo names `deepseek/deepseek-flash`
-  "DeepSeek V4.1 Flash", and the session recorded effort as unknown. Confirm with the owner that
-  "Max" is the effort level, and record the route id and effort in the ladder table. Open.
+- S-5: the ladder rung "DeepSeek V4.1 Max" in MODEL-ECONOMICS. Confirmed with owner (PACKET-1.md Q1): DeepSeek V4.1 Max = V4.1 Flash at max effort (`deepseek/deepseek-flash`, effort `max`). Closed 2026-09-27 (F-02, CR-F02-1).
 
 - S-7: `launch-test.cjs` runs about 20 scenarios in parallel, and concurrent WMI queries once timed
   out `zz-t16` (Gemini, 1 of 4 runs; Mistral 3/3 and Codex 3/3 clean). Throttle the scenarios.
