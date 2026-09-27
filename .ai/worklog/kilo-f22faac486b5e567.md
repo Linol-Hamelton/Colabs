@@ -8,6 +8,46 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - Owner addendum: freeze check runs before the CANDIDATE commit
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action (owner addendum 2026-09-27, recorded):
+- The freeze (`r9g`) must first run `git status --short -- .ai/bin tests docs/specs .ai/docs protocol-manifest.json`
+  and see exactly `M .ai/bin/protocol-dispatch.cjs`, `M tests/dispatch.test.cjs`,
+  `?? tests/fixtures/dispatch/usage/...` (the r9e files are already in `9d3f84d`). If
+  `tests/dispatch.test.cjs` is unmodified or no usage fixtures exist, r9f is incomplete: do not
+  freeze; send it back to finish the mandatory TESTS section. Any other path: do not freeze;
+  investigate first. The freeze commit carries only the r9f files; the agreed message still names
+  both repairs because the CANDIDATE diff `b8781ca..CANDIDATE` contains both. The procedure file
+  `prompts/run/r9g-freeze-candidate.md` now carries this check.
+- Status at 04:15: `r9f-repair-usage` WORKING (agy pid 22072; its log shows it running
+  `tests/dispatch.test.cjs` with the new T27-T29 cases); `r9g` waits; the round-3 certs stay gated.
+- Third-party processes observed and left untouched: `codex` (pid 36516, 03:13) and `vibe-acp`
+  (pid 31688, 03:13) - not started by this chain (owner's own activity).
+
+Result: The freeze procedure is fully specified; r9f is still finishing its tests.
+
+Next step: r9f DONE -> freeze check -> local lane + full record -> one-commit freeze (new CANDIDATE)
+-> round-3 certs.
+
+Open: r9f running.
+
+Evidence:
+- anchor: 928a1ac25e9c1aab10ee9ce8de55604f6f1b6c24, uncommitted changes present
+- digest: sha256:05bdbf9bddb18ef1e56d79424920941419f2ce46834064ae8e39806176d11efe over 708 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T01:14:51.302Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:1683048495e471c8da286ff32ae894055041b76e0afddf0ee1b2090d02dddf54 of this entry without this block
+- parent-entry: sha256:fa09e871fffcc704e126ca8065633f8b9681c448216d2147933e13ab4e4bc863
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - Owner directive: usage repair folded into round 3; freeze gate applied; r9e DONE, r9f running
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
