@@ -8,6 +8,41 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - ROADMAP-1: owner M1 directive; 2A partial; the M1 window is open
+
+Agent: kilo-e1b4dd4a82b08b8e (Kilo Code session; model `deepseek/deepseek-flash`; effort unknown;
+usage not exposed by the client; client Kilo)
+
+Action: recorded the owner's directive (2026-09-27): agy is back; GPT is limited; Claude's window
+is nearly exhausted; Kimi is dropped (expensive and weak) - replacements are chosen on the fly.
+Order until the end of the day (PROTO-DEC-0087 item 1): (1) do not interrupt the 2A resume; on its
+exit run the commit-discipline check; (2) then the M1 window - no new sessions and no `record`
+until the verdict; the perf-wave-1 session runs one diagnostic suite at `e752c0c` and five at
+`64043a3` with concurrency 16, median <= 300 s, else STOP; (3) after the verdict the wave-3 chain
+continues (Gemini collector 0048-0067, cover/dup, Sol, drafter, a replacement for Kimi);
+(4) before merging `perf-wave-1` and 2A check `git diff --name-only` overlaps; `core-landing-ia`
+stays frozen (PROTO-DEC-0087 items 2-3); A-1 gets its own branch after M1.
+
+Findings at the check: the 2A resume session died again (no agy process, runner `failed`, last
+output "waiting for task-139"); it had committed W5 (`61c7159`) and W1-retire (`cf99cdf`).
+`a4312e8..HEAD` holds four commits - W0, the resume task, W5, W1-retire; items 4-6 (RUNS.jsonl,
+S-7, S-10), `W2A-EXECUTION.md` and the journal entry are missing (the journal is still the
+149-byte header). Byte-identity of the 40 re-homed fixture files at HEAD: 0 differences. Per the
+supervisor note I committed nothing of the dead session's work; recovery 2 is held until after the
+M1 verdict, since the window bans new sessions. The M1 launch file is committed on the
+`perf-wave-1` branch (`14bc608`) and the single M1 session runs
+(`bgp_0e4151ea9001KBW2kNIAINmIvU`, pid 31184). This entry is written without `record` (the window
+rule); its evidence stamp follows the verdict.
+
+Result: the M1 window is open with exactly one session; 2A is partial and its recovery 2 awaits the
+verdict; nothing is merged.
+
+Next step: follow M1 to the verdict; then recovery 2 for the remaining 2A items; then the wave-3
+chain with replacements; the merge-overlap check before any merge.
+
+Open: the agy provider has died twice today (recovery budget 1 of 2 used); the Kimi replacement is
+chosen at dispatch; GPT/Sol availability is re-checked at dispatch.
+
 ## 2026-09-27 - ROADMAP-1 2A: executor stalled, recovery 1 launched; an operator commit slip corrected
 
 Agent: kilo-e1b4dd4a82b08b8e (Kilo Code session; model `deepseek/deepseek-flash`; effort unknown;
