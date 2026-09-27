@@ -8,6 +8,37 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-27 - MiMo full record green; GPT-5.6 Sol verification running
+
+Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
+
+Action:
+- `r8e-cert-mimo-pkg2`: report PASS (133 lines); its FIRST full record ended `test-protocol.ps1: exit 1 in 527s` - a concurrent-test collision (exactly the case the owner's sequential rule targets). The agent re-ran the suite independently (419/419) and re-recorded; the final Evidence (02:59:20Z, anchor 2924512) shows `validate-protocol.ps1: exit 0`, `test-protocol.ps1: exit 0 in 519s`. The slot stays ACCEPTED (report complete, record green).
+- Correction recorded: my first accept reason claimed "no active child" while the record's powershell/node pipeline was live; the verifier was immediately re-deferred until the record exited, then released.
+- `r9-verify-codex` released and WORKING: codex, model gpt-5.6-sol, journal codex-8459a69abda6f8ba (supervisor bgp_0e0d1cf7e)).
+- Git procedure followed: earlier `fetch`/`pull --ff-only` brought the cloud session's work (2924512: TASK.md OPS-1 sentence, ARCHIVE, claude journal, ops-layer); TASK/ARCHIVE were clean locally.
+
+Result: All three rounds and repairs are closed; the final independent verification of the frozen CANDIDATE runs.
+
+Next step: VERIFY-SOL verdict; on PASS - prune, commit our files by explicit paths, push, then STOP-7/STOP-8 to the owner and the step-9 readiness report with the full record in a clean worktree at the final commit.
+
+Open: verification running.
+
+Evidence:
+- anchor: 2924512309851e043f5c99a7c5ca9319b6492112, uncommitted changes present
+- digest: sha256:3a1272c5fe7b303be96684c5dac178abfaa8efdb49e9e0fdfa61bb3de1387b3b over 729 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T03:06:14.722Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:5d10ef7f43e942afb58798ad196fcd9bf76a4f44b30c942adaea6b1d6a9cbd6f of this entry without this block
+- parent-entry: sha256:9fd6e12747871020c99d077298e6333a8214ba3e63ac73e96deb85609206a925
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+
 ## 2026-09-27 - Round 3: both certifiers PASS; verifier released
 
 Agent: kilo-f22faac486b5e567 (Kilo Code session; model deepseek-flash; client Kilo)
