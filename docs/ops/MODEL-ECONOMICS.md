@@ -111,3 +111,26 @@ written by `run-chain.cjs`.
   is at 84%. The final plan and the revision now have the substitute `deepseek/deepseek-v4-pro`
   (own key).
 - Codex is exhausted until 22:01; the chain needs it no more.
+
+## Owner capability update, 2026-09-27
+
+The following capability ranges are owner-defined routing constraints:
+
+- GPT-6 Sol: tiers 6-9.
+- GPT-6 Luna: tiers 3-6.
+- Claude Opus 5.5: tiers 6-9.
+- Claude Sonnet 5.5: tiers 4-7.
+
+These ranges define eligibility only. Exact CLI model IDs and effort-to-tier
+mappings are not yet approved and must not be inferred by the operator.
+How these tiers relate to PROTO-DEC-0086 item 5 is an open question for the next P-L2-002 revision.
+
+Next step:
+1. Probe each relevant CLI for the actual available model IDs.
+2. Probe the actually supported effort values.
+3. Record the probe evidence.
+4. Only then derive/update model-ladder.json and clients.json.
+5. Recompute sectionSha256 only if the ladder section itself changes.
+6. Run resolver tests.
+
+No operator-created effort-to-tier mapping is authorised before the probe.
