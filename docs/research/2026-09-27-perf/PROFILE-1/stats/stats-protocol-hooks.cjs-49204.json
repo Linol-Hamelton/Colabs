@@ -1,0 +1,1 @@
+{"who":"protocol-hooks.cjs","depth":2,"pid":49204,"kinds":{"git:rev-parse":{"n":2,"ms":668.9932},"git:ls-files":{"n":2,"ms":339.6794},"git:status":{"n":1,"ms":228.31300000000005},"git:config":{"n":1,"ms":246.4339},"git:hash-object":{"n":1,"ms":329.26289999999995}},"fs":{},"helpers":{},"samples":{},"lifeMs":1839}

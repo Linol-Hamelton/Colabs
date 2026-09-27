@@ -1,0 +1,1 @@
+{"who":"protocol-handoff.cjs","depth":2,"pid":48912,"kinds":{"git:rev-parse":{"n":1,"ms":943.1877000000001},"git:merge-base":{"n":1,"ms":141.51869999999997},"git:diff":{"n":1,"ms":107.10950000000003},"git:ls-files":{"n":1,"ms":92.49900000000002}},"fs":{},"helpers":{},"samples":{},"lifeMs":1300}

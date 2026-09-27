@@ -1,0 +1,92 @@
+﻿processes reporting: 1077
+
+spawned processes by kind (top 20; [nested] = spawned by a child of a test file)
+   125   1208.4 s  mean  9667 ms  PS:validate-protocol.ps1
+   179    515.7 s  mean  2881 ms  node:protocol-handoff.cjs
+   496    298.7 s  mean   602 ms  git:commit
+    39    277.2 s  mean  7108 ms  node:protocol-dispatch.cjs
+    10    210.5 s  mean 21051 ms  node:-e
+   600    207.2 s  mean   345 ms  [nested] git:ls-files
+   454    180.7 s  mean   398 ms  [nested] git:rev-parse
+    86    167.6 s  mean  1948 ms  PS:setup-ai-protocol.ps1
+   391    163.1 s  mean   417 ms  git:init
+    58    157.5 s  mean  2715 ms  node:protocol-hooks.cjs
+    73    156.5 s  mean  2143 ms  node:protocol-session.cjs
+   403    147.1 s  mean   365 ms  [nested] git:status
+    73    117.8 s  mean  1613 ms  [nested] PS:validate-protocol.ps1
+   254     93.8 s  mean   369 ms  [nested] git:config
+   112     89.5 s  mean   799 ms  git:add
+   217     79.8 s  mean   368 ms  [nested] git:hash-object
+    48     62.4 s  mean  1301 ms  [nested] git:ls-remote
+    94     58.0 s  mean   617 ms  node:protocol-verdict.cjs
+    12     53.8 s  mean  4486 ms  [nested] wake.md"
+    27     34.5 s  mean  1278 ms  [nested] git:checkout
+
+totals
+  3407   1510.2 s  mean   443 ms  git
+   297   1513.4 s  mean  5095 ms  PowerShell
+   674   1480.9 s  mean  2197 ms  node CLIs
+    11     29.3 s  mean  2663 ms  bash
+
+latency distributions (ms): count mean P50 P90 P95 max
+PS:-Command                        2   6024   6391   6391   6391   6391
+PS:setup-ai-protocol.ps1          86   1948   2032   2772   3023   3893
+PS:test-protocol.ps1               5   1095    896   2319   2319   2319
+PS:validate-protocol.ps1         198   6698   7789  12758  13648  16220
+git:commit                       497    602    489   1125   1289   2019
+git:init                         391    417    321    798   1031   1654
+makeFixture                       39   1108   1062   1688   1955   1968
+makeProtocolFixture              350   1104    970   1781   2072   2541
+rmSync-recursive                 556     59     46    134    178    421
+
+fixture churn: {"cpSync":{"n":79,"ms":381.1967000000004},"cpFiles":89,"cpMB":1,"rmRecursive":{"n":556,"ms":32566.697999999684},"tempDirs":467}
+helpers (exported calls): {"makeProtocolFixture":{"n":350,"s":386.5},"run":{"n":569,"s":1022.7},"write":{"n":1380,"s":1.3},"findGitBash":{"n":3,"s":0.5},"git":{"n":250,"s":168.3},"runPowerShell":{"n":211,"s":1375.9},"makeFixture":{"n":39,"s":43.2},"seedProtocol":{"n":3,"s":0.5}}
+
+per test file: children seconds, spawns, PS, git
+   332 s   141    0    66  session.test.cjs
+   276 s    38    0     2  dispatch.test.cjs
+   245 s   201    0   136  hooks.test.cjs
+   228 s    89   20    68  validator-lightpath.test.cjs
+   224 s   183    0   109  gate.test.cjs
+   224 s    64   20    44  validator-decisions.test.cjs
+   213 s   276    3   228  handoff.test.cjs
+   200 s    22   18     4  validator-gate.test.cjs
+   168 s   140   62    78  installer.test.cjs
+   166 s    45   18    27  validator-syntax.test.cjs
+   153 s    55    3    30  review-findings.test.cjs
+   151 s   263    0   135  rulebook.test.cjs
+   144 s    46   16    30  validator.test.cjs
+   132 s    45   24    19  upgrade.test.cjs
+   130 s    70    0    36  handoff-chain.test.cjs
+   121 s    34    8    26  registry.test.cjs
+   119 s    42    7    17  codex.test.cjs
+    91 s    47   14    28  manifest.test.cjs
+    73 s    96    0    36  lock.test.cjs
+    65 s    36    0    16  archive.test.cjs
+    37 s    68    0    61  ledger.test.cjs
+    11 s    41    0     7  signals.test.cjs
+     9 s    12    0     8  operator.test.cjs
+     7 s    13    0    10  index.test.cjs
+     4 s    22    0    15  runrecord.test.cjs
+     2 s     3    0     0  resolver.test.cjs
+
+TAP totals {"tests":420,"pass":420,"fail":0,"cancelled":0,"skipped":0,"duration_ms":299055.3721}; per-file serial time (critical-path candidates):
+  804.2 s  validator.test.cjs
+    276 s  dispatch.test.cjs
+  231.2 s  gate.test.cjs
+  219.6 s  hooks.test.cjs
+  218.8 s  handoff.test.cjs
+  167.8 s  validator-syntax.test.cjs
+  165.2 s  session.test.cjs
+  160.6 s  rulebook.test.cjs
+slowest tests:
+  191.2 s  completed tasks require a prompt and independent review completion gate
+  128.9 s  decision immutability: appending a new block exits 0, editing a committed block exits 1
+   58.0 s  T26: AC-10: PKG-5 dispatcher fall signal test
+   48.6 s  validator rejects broken Codex registrations and execution overrides
+   46.0 s  T21: AC-8: STALL recovery with wakes and fallen = true
+   43.5 s  gate-check 15: review-path citation passes for exact, backtick, quote, space, closing pare
+   40.7 s  T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds
+   37.2 s  malformed settings, wrong commands, missing files and fake imports fail
+   36.2 s  every runtime entrypoint is required, not only the validator
+   34.6 s  task status must be meaningful and unique

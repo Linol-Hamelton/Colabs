@@ -1,0 +1,2569 @@
+TAP version 13
+# archived 1 entry(s) from .ai/worklog/tester-8c6e89e58553e30c.md to .ai/ARCHIVE.md
+# [WARN] autoArchiveWorklog skipped: Cannot archive: shared documents lock is held by session other-live-session
+# archived 1 entry(s) from .ai/worklog/tester-21be454de3998cbc.md to .ai/ARCHIVE.md
+# archived 1 entry(s) from .ai/worklog/hash-dedup.md to .ai/ARCHIVE.md
+# archived 1 entry(s) from .ai/worklog/append-check.md to .ai/ARCHIVE.md
+# archived 1 entry(s) from .ai/worklog/format2-arch.md to .ai/ARCHIVE.md
+# archived 0 entry(s) from .ai/worklog/format2-arch.md (1 total, keeping 1)
+# archived 1 entry(s) from .ai/worklog/batch-a.md to .ai/ARCHIVE.md
+# archived 1 entry(s) from .ai/worklog/batch-b.md to .ai/ARCHIVE.md
+# Subtest: archive worklog moves older entries to .ai/ARCHIVE.md and preserves the newest entry
+ok 1 - archive worklog moves older entries to .ai/ARCHIVE.md and preserves the newest entry
+  ---
+  duration_ms: 7706.3634
+  type: 'test'
+  ...
+# Subtest: archive status reports size limits and warnings when files approach thresholds
+ok 2 - archive status reports size limits and warnings when files approach thresholds
+  ---
+  duration_ms: 1729.934
+  type: 'test'
+  ...
+# Subtest: autoArchiveWorklog automatically moves older entries when line limit is exceeded
+ok 3 - autoArchiveWorklog automatically moves older entries when line limit is exceeded
+  ---
+  duration_ms: 3892.2161
+  type: 'test'
+  ...
+# Subtest: autoArchiveWorklog respects active lock and does not write to ARCHIVE.md concurrently
+ok 4 - autoArchiveWorklog respects active lock and does not write to ARCHIVE.md concurrently
+  ---
+  duration_ms: 3910.0457
+  type: 'test'
+  ...
+# Subtest: archive deduplication uses exact valid entry hashes, not incidental text
+ok 5 - archive deduplication uses exact valid entry hashes, not incidental text
+  ---
+  duration_ms: 5881.4392
+  type: 'test'
+  ...
+# Subtest: archive append is verified before pruning and retries remain idempotent
+ok 6 - archive append is verified before pruning and retries remain idempotent
+  ---
+  duration_ms: 6163.3656
+  type: 'test'
+  ...
+# Subtest: P-4: format-2 archive round-trip preserves archived-parent marker and verifies with verify --deep
+ok 7 - P-4: format-2 archive round-trip preserves archived-parent marker and verifies with verify --deep
+  ---
+  duration_ms: 12859.5656
+  type: 'test'
+  ...
+# Subtest: P5-F2: second batch boundary in ARCHIVE.md remains valid across archive batches and verify --deep
+ok 8 - P5-F2: second batch boundary in ARCHIVE.md remains valid across archive batches and verify --deep
+  ---
+  duration_ms: 25464.9008
+  type: 'test'
+  ...
+# Subtest: Codex and Claude isolate snapshots and journals for identical session ids
+ok 9 - Codex and Claude isolate snapshots and journals for identical session ids
+  ---
+  duration_ms: 14974.3415
+  type: 'test'
+  ...
+# Subtest: Codex resume and compact retain outstanding changes and bounded context
+ok 10 - Codex resume and compact retain outstanding changes and bounded context
+  ---
+  duration_ms: 12795.3241
+  type: 'test'
+  ...
+# Subtest: Codex missing baseline and malformed inputs warn without blocking
+ok 11 - Codex missing baseline and malformed inputs warn without blocking
+  ---
+  duration_ms: 4029.193
+  type: 'test'
+  ...
+# Subtest: configured Codex commands run in native shell and Bash from a Unicode subfolder
+ok 12 - configured Codex commands run in native shell and Bash from a Unicode subfolder
+  ---
+  duration_ms: 20162.7035
+  type: 'test'
+  ...
+# Subtest: configured Codex command uses the linked worktree instead of the main checkout
+ok 13 - configured Codex command uses the linked worktree instead of the main checkout
+  ---
+  duration_ms: 7732.3021
+  type: 'test'
+  ...
+# Subtest: validator rejects broken Codex registrations and execution overrides
+ok 14 - validator rejects broken Codex registrations and execution overrides
+  ---
+  duration_ms: 48579.8816
+  type: 'test'
+  ...
+# Subtest: host Codex config formatting is preserved outside protocol encoding scope
+ok 15 - host Codex config formatting is preserved outside protocol encoding scope
+  ---
+  duration_ms: 12620.1317
+  type: 'test'
+  ...
+# Subtest: C2: PROTOCOL.md defines context digest rules and external tooling policy anchors
+ok 16 - C2: PROTOCOL.md defines context digest rules and external tooling policy anchors
+  ---
+  duration_ms: 2.4079
+  type: 'test'
+  ...
+# Subtest: C2: AGENTS.md section 7 contains external tooling and MCP advisory pointer sentence
+ok 17 - C2: AGENTS.md section 7 contains external tooling and MCP advisory pointer sentence
+  ---
+  duration_ms: 1.6249
+  type: 'test'
+  ...
+# Subtest: T1: no arguments exits 2 with USAGE row
+ok 18 - T1: no arguments exits 2 with USAGE row
+  ---
+  duration_ms: 158.0185
+  type: 'test'
+  ...
+# Subtest: T2: unknown command or flag exits 2 with ERROR row
+ok 19 - T2: unknown command or flag exits 2 with ERROR row
+  ---
+  duration_ms: 750.6596
+  type: 'test'
+  ...
+# Subtest: T3: registry loader validation
+ok 20 - T3: registry loader validation
+  ---
+  duration_ms: 2.6638
+  type: 'test'
+  ...
+# Subtest: T4: dispatch loader validation
+ok 21 - T4: dispatch loader validation
+  ---
+  duration_ms: 315.9922
+  type: 'test'
+  ...
+# Subtest: T5: check parity: DISPATCH.json exits 0, R3-DISPATCH.json exits 1 with 10 launch-missing rows
+ok 22 - T5: check parity: DISPATCH.json exits 0, R3-DISPATCH.json exits 1 with 10 launch-missing rows
+  ---
+  duration_ms: 619.8639
+  type: 'test'
+  ...
+# Subtest: T6: end-to-end run with fake client in work mode
+ok 23 - T6: end-to-end run with fake client in work mode
+  ---
+  duration_ms: 14223.4571
+  type: 'test'
+  ...
+# Subtest: T7-T10: policy and scope violations end in BLOCKED with clone kept
+ok 24 - T7-T10: policy and scope violations end in BLOCKED with clone kept
+  ---
+  duration_ms: 22201.0136
+  type: 'test'
+  ...
+# Subtest: T11: credential canaries absent from child env, GIT_CONFIG_NOSYSTEM=1 present
+ok 25 - T11: credential canaries absent from child env, GIT_CONFIG_NOSYSTEM=1 present
+  ---
+  duration_ms: 3.9008
+  type: 'test'
+  ...
+# Subtest: T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds
+ok 26 - T12, T13: STALL at --stall-seconds and TIMEOUT at --hard-seconds
+  ---
+  duration_ms: 40711.4798
+  type: 'test'
+  ...
+# Subtest: T14: failure classification and bare-number guards
+ok 27 - T14: failure classification and bare-number guards
+  ---
+  duration_ms: 9.7323
+  type: 'test'
+  ...
+# Subtest: T15: needs and when skipping rules
+ok 28 - T15: needs and when skipping rules
+  ---
+  duration_ms: 173.9301
+  type: 'test'
+  ...
+# Subtest: T16: second run of live slot exits 1 due to start lock
+ok 29 - T16: second run of live slot exits 1 due to start lock
+  ---
+  duration_ms: 5.52
+  type: 'test'
+  ...
+# Subtest: T17: probe command output and exits
+ok 30 - T17: probe command output and exits
+  ---
+  duration_ms: 3471.3088
+  type: 'test'
+  ...
+# Subtest: T18: every stdout line matches uppercase token format
+ok 31 - T18: every stdout line matches uppercase token format
+  ---
+  duration_ms: 2498.1944
+  type: 'test'
+  ...
+# Subtest: T19: script source contains no docs/research/ path, no prompt text, and pointer template exactly once
+ok 32 - T19: script source contains no docs/research/ path, no prompt text, and pointer template exactly once
+  ---
+  duration_ms: 0.7503
+  type: 'test'
+  ...
+# Subtest: T20: AC-7, AC-12: transient retry, run record validation, usage render
+ok 33 - T20: AC-7, AC-12: transient retry, run record validation, usage render
+  ---
+  duration_ms: 16818.0035
+  type: 'test'
+  ...
+# Subtest: T21: AC-8: STALL recovery with wakes and fallen = true
+ok 34 - T21: AC-8: STALL recovery with wakes and fallen = true
+  ---
+  duration_ms: 46008.3278
+  type: 'test'
+  ...
+# Subtest: T22: AC-9: INVALID_OUTPUT repair resume
+ok 35 - T22: AC-9: INVALID_OUTPUT repair resume
+  ---
+  duration_ms: 14175.178
+  type: 'test'
+  ...
+# Subtest: T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise starts new run
+ok 36 - T23: AC-10: Launch pinning mismatch BLOCKED pin-changed, and --revise starts new run
+  ---
+  duration_ms: 22244.9573
+  type: 'test'
+  ...
+# Subtest: T24: AC-11: Completion contract requires Evidence line
+ok 37 - T24: AC-11: Completion contract requires Evidence line
+  ---
+  duration_ms: 15380.505
+  type: 'test'
+  ...
+# Subtest: T25: AC-7: PROCESS_CRASH recovery via resume
+ok 38 - T25: AC-7: PROCESS_CRASH recovery via resume
+  ---
+  duration_ms: 10726.5875
+  type: 'test'
+  ...
+# Subtest: T26: AC-10: PKG-5 dispatcher fall signal test
+ok 39 - T26: AC-10: PKG-5 dispatcher fall signal test
+  ---
+  duration_ms: 57965.159
+  type: 'test'
+  ...
+# Subtest: T27: AC-usage: parse attempt usage from log across all parsers and negative patterns
+ok 40 - T27: AC-usage: parse attempt usage from log across all parsers and negative patterns
+  ---
+  duration_ms: 9.0493
+  type: 'test'
+  ...
+# Subtest: T28: AC-usage: two-attempt sum, mixed units giving actual=null, and cost recording
+ok 41 - T28: AC-usage: two-attempt sum, mixed units giving actual=null, and cost recording
+  ---
+  duration_ms: 7172.2016
+  type: 'test'
+  ...
+# Subtest: T29: AC-usage: report distinct reasons and renderUsage table
+ok 42 - T29: AC-usage: report distinct reasons and renderUsage table
+  ---
+  duration_ms: 131.564
+  type: 'test'
+  ...
+# Subtest: Guard test: test suite leaves no changes to tracked files
+ok 43 - Guard test: test suite leaves no changes to tracked files
+  ---
+  duration_ms: 211.5831
+  type: 'test'
+  ...
+# Subtest: gate-check 1: pass when completed task cites certifying review with verifying owner receipt
+ok 44 - gate-check 1: pass when completed task cites certifying review with verifying owner receipt
+  ---
+  duration_ms: 9607.374
+  type: 'test'
+  ...
+# Subtest: gate-check 2: fails with stale reason when a tracked file is modified after certification
+ok 45 - gate-check 2: fails with stale reason when a tracked file is modified after certification
+  ---
+  duration_ms: 5394.5093
+  type: 'test'
+  ...
+# Subtest: gate-check 3a: fails when new review (Date > 2026-09-19) is missing Mode
+ok 46 - gate-check 3a: fails when new review (Date > 2026-09-19) is missing Mode
+  ---
+  duration_ms: 3586.917
+  type: 'test'
+  ...
+# Subtest: gate-check 3b: passes with warning when legacy review (Date <= 2026-09-19) lacks fields but receipt verifies
+ok 47 - gate-check 3b: passes with warning when legacy review (Date <= 2026-09-19) lacks fields but receipt verifies
+  ---
+  duration_ms: 5110.2602
+  type: 'test'
+  ...
+# Subtest: gate-check 4: fails when review has Mode: ADVISORY even if receipt is fresh
+ok 48 - gate-check 4: fails when review has Mode: ADVISORY even if receipt is fresh
+  ---
+  duration_ms: 3560.2756
+  type: 'test'
+  ...
+# Subtest: gate-check 5: multi-review owner where journal mentions review A only (citing B fails, citing A passes)
+ok 49 - gate-check 5: multi-review owner where journal mentions review A only (citing B fails, citing A passes)
+  ---
+  duration_ms: 9213.6082
+  type: 'test'
+  ...
+# Subtest: gate-check 6: fails when Receipt-Owner names a journal with no mention of the review
+ok 50 - gate-check 6: fails when Receipt-Owner names a journal with no mention of the review
+  ---
+  duration_ms: 8880.1314
+  type: 'test'
+  ...
+# Subtest: gate-check 7: passes when review has empty Receipt: field
+ok 51 - gate-check 7: passes when review has empty Receipt: field
+  ---
+  duration_ms: 8444.284
+  type: 'test'
+  ...
+# Subtest: gate-check 8: exits 0 with not applicable when task status is In progress
+ok 52 - gate-check 8: exits 0 with not applicable when task status is In progress
+  ---
+  duration_ms: 2135.2173
+  type: 'test'
+  ...
+# Subtest: gate-check 9: fails when independent review is missing Date
+ok 53 - gate-check 9: fails when independent review is missing Date
+  ---
+  duration_ms: 5513.9883
+  type: 'test'
+  ...
+# Subtest: gate-check 10: fails when independent review has malformed Date
+ok 54 - gate-check 10: fails when independent review has malformed Date
+  ---
+  duration_ms: 5615.4048
+  type: 'test'
+  ...
+# Subtest: gate-check 11: deadlock regression - record succeeds on Completed task with real validator, gate-check verifies fresh
+ok 55 - gate-check 11: deadlock regression - record succeeds on Completed task with real validator, gate-check verifies fresh
+  ---
+  duration_ms: 29690.7684
+  type: 'test'
+  ...
+# Subtest: gate-check 12: new review with proper Date in header and older Date in body after --- is treated as new (fails on missing Mode)
+ok 56 - gate-check 12: new review with proper Date in header and older Date in body after --- is treated as new (fails on missing Mode)
+  ---
+  duration_ms: 4095.0815
+  type: 'test'
+  ...
+# Subtest: gate-check 13: review whose header has no Date but whose body has one fails with missing or invalid Date
+ok 57 - gate-check 13: review whose header has no Date but whose body has one fails with missing or invalid Date
+  ---
+  duration_ms: 7203.4099
+  type: 'test'
+  ...
+# Subtest: gate-check 14: review-path citation is boundary-aware (.bak and -draft citations fail with does not mention)
+ok 58 - gate-check 14: review-path citation is boundary-aware (.bak and -draft citations fail with does not mention)
+  ---
+  duration_ms: 14783.4857
+  type: 'test'
+  ...
+# Subtest: gate-check 15: review-path citation passes for exact, backtick, quote, space, closing paren, and end-of-line
+ok 59 - gate-check 15: review-path citation passes for exact, backtick, quote, space, closing paren, and end-of-line
+  ---
+  duration_ms: 43461.0982
+  type: 'test'
+  ...
+# Subtest: gate-check: pass with owner-selected in-repository review path outside docs/reviews/ in installed role
+ok 60 - gate-check: pass with owner-selected in-repository review path outside docs/reviews/ in installed role
+  ---
+  duration_ms: 5804.7974
+  type: 'test'
+  ...
+# Subtest: gate-check: fails with prompt or review outside docs/reviews/ in source role
+ok 61 - gate-check: fails with prompt or review outside docs/reviews/ in source role
+  ---
+  duration_ms: 1556.4951
+  type: 'test'
+  ...
+# Subtest: gate-check: fails when completion gate review path attempts path traversal
+ok 62 - gate-check: fails when completion gate review path attempts path traversal
+  ---
+  duration_ms: 1954.2377
+  type: 'test'
+  ...
+# Subtest: gate-check: light path succeeds for docs-only change
+ok 63 - gate-check: light path succeeds for docs-only change
+  ---
+  duration_ms: 3770.4574
+  type: 'test'
+  ...
+# Subtest: gate-check: light path fails when core file modified under Scope: docs
+ok 64 - gate-check: light path fails when core file modified under Scope: docs
+  ---
+  duration_ms: 3572.633
+  type: 'test'
+  ...
+# Subtest: gate-check: light path fails when protected core file is named as the review artifact
+ok 65 - gate-check: light path fails when protected core file is named as the review artifact
+  ---
+  duration_ms: 2958.184
+  type: 'test'
+  ...
+# Subtest: gate-check: filled CERTIFY template header from real PAIRED-CYCLE.md passes gate-check
+ok 66 - gate-check: filled CERTIFY template header from real PAIRED-CYCLE.md passes gate-check
+  ---
+  duration_ms: 4816.606
+  type: 'test'
+  ...
+# Subtest: gate-check: light path stays valid after ordinary commit of completed docs work
+ok 67 - gate-check: light path stays valid after ordinary commit of completed docs work
+  ---
+  duration_ms: 7963.3072
+  type: 'test'
+  ...
+# Subtest: gate-check: light path rejects non-40-hex baseline before calling git
+ok 68 - gate-check: light path rejects non-40-hex baseline before calling git
+  ---
+  duration_ms: 3564.6129
+  type: 'test'
+  ...
+# Subtest: gate-check: executable under docs forces strict path and fails without adversarial prompt
+ok 69 - gate-check: executable under docs forces strict path and fails without adversarial prompt
+  ---
+  duration_ms: 5649.9054
+  type: 'test'
+  ...
+# Subtest: gate-check: light path review parser rejects verdict suffix with exact failure reason
+ok 70 - gate-check: light path review parser rejects verdict suffix with exact failure reason
+  ---
+  duration_ms: 3211.3843
+  type: 'test'
+  ...
+# Subtest: gate-check: light path review parser rejects transcription with exact failure reason
+ok 71 - gate-check: light path review parser rejects transcription with exact failure reason
+  ---
+  duration_ms: 4799.2718
+  type: 'test'
+  ...
+# Subtest: gate-check: light path review parser rejects body-only fields with exact failure reason
+ok 72 - gate-check: light path review parser rejects body-only fields with exact failure reason
+  ---
+  duration_ms: 3839.8123
+  type: 'test'
+  ...
+# Subtest: gate-check: in-root junction is rejected by isSafeInRoot in Node engine
+ok 73 - gate-check: in-root junction is rejected by isSafeInRoot in Node engine
+  ---
+  duration_ms: 3901.4802
+  type: 'test'
+  ...
+# Subtest: gate-check: out-of-root junction is rejected by isSafeInRoot in Node engine
+ok 74 - gate-check: out-of-root junction is rejected by isSafeInRoot in Node engine
+  ---
+  duration_ms: 746.5533
+  type: 'test'
+  ...
+# Subtest: gate-check: strict path fails when review is missing Reviewer in Node engine
+ok 75 - gate-check: strict path fails when review is missing Reviewer in Node engine
+  ---
+  duration_ms: 1969.4548
+  type: 'test'
+  ...
+# Subtest: gate-check: leading ./ in prompt and review paths is accepted in source repository
+ok 76 - gate-check: leading ./ in prompt and review paths is accepted in source repository
+  ---
+  duration_ms: 3668.4272
+  type: 'test'
+  ...
+# Subtest: gate-check: review with header terminator on line 0 produces empty header and fails missing Reviewer
+ok 77 - gate-check: review with header terminator on line 0 produces empty header and fails missing Reviewer
+  ---
+  duration_ms: 1199.0514
+  type: 'test'
+  ...
+# archived 1 entry(s) from .ai/worklog/deep-tamper.md to .ai/ARCHIVE.md
+# archived 1 entry(s) from .ai/worklog/deep-duplicate.md to .ai/ARCHIVE.md
+# archived 2 entry(s) from .ai/worklog/deep-chain.md to .ai/ARCHIVE.md
+# Subtest: evidence chains parent-entry to previous entry hash creating an auditable Merkle link
+ok 78 - evidence chains parent-entry to previous entry hash creating an auditable Merkle link
+  ---
+  duration_ms: 12150.6162
+  type: 'test'
+  ...
+# Subtest: tampering with an earlier entry in the journal invalidates later parent-entry verification
+ok 79 - tampering with an earlier entry in the journal invalidates later parent-entry verification
+  ---
+  duration_ms: 7691.5676
+  type: 'test'
+  ...
+# Subtest: tampering with authenticated Evidence metadata invalidates the entry hash
+ok 80 - tampering with authenticated Evidence metadata invalidates the entry hash
+  ---
+  duration_ms: 5169.832
+  type: 'test'
+  ...
+# Subtest: record fails closed and refuses to stamp evidence when parent entry is tampered
+ok 81 - record fails closed and refuses to stamp evidence when parent entry is tampered
+  ---
+  duration_ms: 10526.883
+  type: 'test'
+  ...
+# Subtest: full in-journal verification detects tampering three entries back even if latest is recorded
+ok 82 - full in-journal verification detects tampering three entries back even if latest is recorded
+  ---
+  duration_ms: 15807.2763
+  type: 'test'
+  ...
+# Subtest: timestamped entry headings are supported across newestSection, record, and verify
+ok 83 - timestamped entry headings are supported across newestSection, record, and verify
+  ---
+  duration_ms: 8024.9586
+  type: 'test'
+  ...
+# Subtest: legacy Evidence format < 4 is treated as legacy instead of tampered
+ok 84 - legacy Evidence format < 4 is treated as legacy instead of tampered
+  ---
+  duration_ms: 5743.9734
+  type: 'test'
+  ...
+# Subtest: verify --deep re-hashes archived entry body and fails when body in ARCHIVE.md is tampered
+ok 85 - verify --deep re-hashes archived entry body and fails when body in ARCHIVE.md is tampered
+  ---
+  duration_ms: 13594.7173
+  type: 'test'
+  ...
+# Subtest: verify --deep rejects duplicate archived copies instead of accepting the first valid one
+ok 86 - verify --deep rejects duplicate archived copies instead of accepting the first valid one
+  ---
+  duration_ms: 14341.6022
+  type: 'test'
+  ...
+# Subtest: verify --deep traverses archived parent links and detects missing links and cycles
+ok 87 - verify --deep traverses archived parent links and detects missing links and cycles
+  ---
+  duration_ms: 18342.196
+  type: 'test'
+  ...
+# Subtest: numeric timezone offset in entry heading is supported and verified
+ok 88 - numeric timezone offset in entry heading is supported and verified
+  ---
+  duration_ms: 8512.311
+  type: 'test'
+  ...
+# Subtest: compact ISO-8601 timezone offset in entry heading is supported and verified
+ok 89 - compact ISO-8601 timezone offset in entry heading is supported and verified
+  ---
+  duration_ms: 6917.5926
+  type: 'test'
+  ...
+# Subtest: archive terminal uniqueness accepts unique transitional root and rejects second transitional root
+ok 90 - archive terminal uniqueness accepts unique transitional root and rejects second transitional root
+  ---
+  duration_ms: 1019.5901
+  type: 'test'
+  ...
+# Subtest: archive orphan detection rejects format >= 4 entry lacking parent-entry or valid terminal
+ok 91 - archive orphan detection rejects format >= 4 entry lacking parent-entry or valid terminal
+  ---
+  duration_ms: 851.7115
+  type: 'test'
+  ...
+# Subtest: two independent valid archive chains from different journals are accepted
+ok 92 - two independent valid archive chains from different journals are accepted
+  ---
+  duration_ms: 1010.6131
+  type: 'test'
+  ...
+# Subtest: re-root attack with unreachable older record pointing into reached chain fails with orphaned segment
+ok 93 - re-root attack with unreachable older record pointing into reached chain fails with orphaned segment
+  ---
+  duration_ms: 1612.2157
+  type: 'test'
+  ...
+# Subtest: archive record with deleted evidence is untrusted and fails verification
+ok 94 - archive record with deleted evidence is untrusted and fails verification
+  ---
+  duration_ms: 987.7184
+  type: 'test'
+  ...
+# Subtest: removing digest format line from middle record does not fabricate a terminal root (older record remains checked)
+ok 95 - removing digest format line from middle record does not fabricate a terminal root (older record remains checked)
+  ---
+  duration_ms: 1248.6227
+  type: 'test'
+  ...
+# Subtest: an empty final field before a separator is not a complete entry
+ok 96 - an empty final field before a separator is not a complete entry
+  ---
+  duration_ms: 1.5271
+  type: 'test'
+  ...
+# Subtest: evidence is parsed as its own field and never absorbed into Open
+ok 97 - evidence is parsed as its own field and never absorbed into Open
+  ---
+  duration_ms: 1318.1242
+  type: 'test'
+  ...
+# Subtest: recording evidence twice replaces the block instead of stacking it
+ok 98 - recording evidence twice replaces the block instead of stacking it
+  ---
+  duration_ms: 1247.5063
+  type: 'test'
+  ...
+# Subtest: the anchor changes when a tracked file changes
+ok 99 - the anchor changes when a tracked file changes
+  ---
+  duration_ms: 7334.911
+  type: 'test'
+  ...
+# Subtest: verify rejects a missing block, stale evidence and a recorded failure
+ok 100 - verify rejects a missing block, stale evidence and a recorded failure
+  ---
+  duration_ms: 11427.2979
+  type: 'test'
+  ...
+# Subtest: evidence cannot be attached to a journal with no dated entry
+ok 101 - evidence cannot be attached to a journal with no dated entry
+  ---
+  duration_ms: 951.2851
+  type: 'test'
+  ...
+# Subtest: verify without a target asks whether any journal matches the tree
+ok 102 - verify without a target asks whether any journal matches the tree
+  ---
+  duration_ms: 4726.6296
+  type: 'test'
+  ...
+# Subtest: verify reports every journal when none matches the tree
+ok 103 - verify reports every journal when none matches the tree
+  ---
+  duration_ms: 2867.5129
+  type: 'test'
+  ...
+# Subtest: a clean installed project records and verifies a default handoff without source tooling
+ok 104 - a clean installed project records and verifies a default handoff without source tooling
+  ---
+  duration_ms: 18560.5473
+  type: 'test'
+  ...
+# Subtest: source handoff still runs the required suite and records its real failure
+ok 105 - source handoff still runs the required suite and records its real failure
+  ---
+  duration_ms: 9771.3332
+  type: 'test'
+  ...
+# Subtest: a missing source suite is a failed handoff, including legacy manifests without a role
+ok 106 - a missing source suite is a failed handoff, including legacy manifests without a role
+  ---
+  duration_ms: 8808.67
+  type: 'test'
+  ...
+# Subtest: missing or invalid manifests cannot produce handoff evidence
+ok 107 - missing or invalid manifests cannot produce handoff evidence
+  ---
+  duration_ms: 3597.7689
+  type: 'test'
+  ...
+# Subtest: an explicit missing owner never falls back to another session journal
+ok 108 - an explicit missing owner never falls back to another session journal
+  ---
+  duration_ms: 4262.2525
+  type: 'test'
+  ...
+# Subtest: clean tracked files are identified by the Git index, not read from disk
+ok 109 - clean tracked files are identified by the Git index, not read from disk
+  ---
+  duration_ms: 4326.8323
+  type: 'test'
+  ...
+# Subtest: a modified file is read even though it is tracked
+ok 110 - a modified file is read even though it is tracked
+  ---
+  duration_ms: 7168.4616
+  type: 'test'
+  ...
+# Subtest: deletions and new files are still detected
+ok 111 - deletions and new files are still detected
+  ---
+  duration_ms: 6853.2884
+  type: 'test'
+  ...
+# Subtest: evidence from an older digest format is named, not called stale
+ok 112 - evidence from an older digest format is named, not called stale
+  ---
+  duration_ms: 5754.8698
+  type: 'test'
+  ...
+# Subtest: a file keeps one identity untracked, staged and committed
+ok 113 - a file keeps one identity untracked, staged and committed
+  ---
+  duration_ms: 10672.7397
+  type: 'test'
+  ...
+# Subtest: recorded evidence still verifies after the work is committed
+ok 114 - recorded evidence still verifies after the work is committed
+  ---
+  duration_ms: 12729.2458
+  type: 'test'
+  ...
+# Subtest: CRLF host evidence survives staging and commit while a real edit still invalidates it
+ok 115 - CRLF host evidence survives staging and commit while a real edit still invalidates it
+  ---
+  duration_ms: 27365.9656
+  type: 'test'
+  ...
+# Subtest: core.filemode=false keeps an executable index mode when only content changes
+ok 116 - core.filemode=false keeps an executable index mode when only content changes
+  ---
+  duration_ms: 15209.3483
+  type: 'test'
+  ...
+# Subtest: dirty hashing handles argument edge cases and files beyond the first batch
+ok 117 - dirty hashing handles argument edge cases and files beyond the first batch
+  ---
+  duration_ms: 7861.8439
+  type: 'test'
+  ...
+# Subtest: record rejects journals containing unredacted secret patterns
+ok 118 - record rejects journals containing unredacted secret patterns
+  ---
+  duration_ms: 1494.9905
+  type: 'test'
+  ...
+# Subtest: record executes manifest testCommand and stamps host test scope in evidence
+ok 119 - record executes manifest testCommand and stamps host test scope in evidence
+  ---
+  duration_ms: 5085.4363
+  type: 'test'
+  ...
+# Subtest: rehash command updates entry hash after secret redaction with sanitized marker
+ok 120 - rehash command updates entry hash after secret redaction with sanitized marker
+  ---
+  duration_ms: 7834.1019
+  type: 'test'
+  ...
+# Subtest: P-3: legacy newest entry fails verify without --allow-legacy and passes with --allow-legacy
+ok 121 - P-3: legacy newest entry fails verify without --allow-legacy and passes with --allow-legacy
+  ---
+  duration_ms: 10400.176
+  type: 'test'
+  ...
+# Subtest: P-3: no-owner verify excludes legacy receipts from matching handoffs
+ok 122 - P-3: no-owner verify excludes legacy receipts from matching handoffs
+  ---
+  duration_ms: 4024.4746
+  type: 'test'
+  ...
+# Subtest: P-3: doctor reports legacy unauthenticated count as warning in source role and exits 0
+ok 123 - P-3: doctor reports legacy unauthenticated count as warning in source role and exits 0
+  ---
+  duration_ms: 4014.3696
+  type: 'test'
+  ...
+# Subtest: P-4: field order with parent-entry before entry parses correctly and does not confuse entry capture
+ok 124 - P-4: field order with parent-entry before entry parses correctly and does not confuse entry capture
+  ---
+  duration_ms: 0.711
+  type: 'test'
+  ...
+# Subtest: P-4: findParentEntry resolves older section when parent-entry precedes entry
+ok 125 - P-4: findParentEntry resolves older section when parent-entry precedes entry
+  ---
+  duration_ms: 1438.6109
+  type: 'test'
+  ...
+# Subtest: Fact 11: journal at limit-minus-10 lines auto-archives older entries during record to keep total lines <= 150
+ok 126 - Fact 11: journal at limit-minus-10 lines auto-archives older entries during record to keep total lines <= 150
+  ---
+  duration_ms: 8226.4443
+  type: 'test'
+  ...
+# Subtest: Fact 11: simulated oversized single entry causes record to exit non-zero with actionable message and leaves journal unchanged
+ok 127 - Fact 11: simulated oversized single entry causes record to exit non-zero with actionable message and leaves journal unchanged
+  ---
+  duration_ms: 3447.2284
+  type: 'test'
+  ...
+# Subtest: read-only sessions ignore pre-existing edits and ignored runtime files
+ok 128 - read-only sessions ignore pre-existing edits and ignored runtime files
+  ---
+  duration_ms: 11162.4061
+  type: 'test'
+  ...
+# Subtest: snapshot metadata does not collide with a file named __dirty
+ok 129 - snapshot metadata does not collide with a file named __dirty
+  ---
+  duration_ms: 3832.543
+  type: 'test'
+  ...
+# Subtest: Stop detects spaces and unicode
+ok 130 - Stop detects spaces and unicode
+  ---
+  duration_ms: 6491.9117
+  type: 'test'
+  ...
+# Subtest: Stop detects deletion
+ok 131 - Stop detects deletion
+  ---
+  duration_ms: 5759.2458
+  type: 'test'
+  ...
+# Subtest: Stop detects staged rename
+ok 132 - Stop detects staged rename
+  ---
+  duration_ms: 8977.4265
+  type: 'test'
+  ...
+# Subtest: Stop detects more than 60 paths
+ok 133 - Stop detects more than 60 paths
+  ---
+  duration_ms: 11627.5567
+  type: 'test'
+  ...
+# Subtest: same timestamp, touched worklog, and header-only edits do not count as a handoff
+ok 134 - same timestamp, touched worklog, and header-only edits do not count as a handoff
+  ---
+  duration_ms: 22598.2181
+  type: 'test'
+  ...
+# Subtest: an incomplete entry cannot acknowledge changes; a new complete entry can
+ok 135 - an incomplete entry cannot acknowledge changes; a new complete entry can
+  ---
+  duration_ms: 17219.0463
+  type: 'test'
+  ...
+# Subtest: session-specific worklogs prevent another Claude session satisfying the check
+ok 136 - session-specific worklogs prevent another Claude session satisfying the check
+  ---
+  duration_ms: 17755.1238
+  type: 'test'
+  ...
+# Subtest: SessionStart resume and compaction preserve unrecorded changes
+ok 137 - SessionStart resume and compaction preserve unrecorded changes
+  ---
+  duration_ms: 22002.7621
+  type: 'test'
+  ...
+# Subtest: context includes a complete recent entry beyond line 30 and excludes older entries
+ok 138 - context includes a complete recent entry beyond line 30 and excludes older entries
+  ---
+  duration_ms: 6064.6303
+  type: 'test'
+  ...
+# Subtest: oversized entries are explicitly omitted whole, and context remains bounded
+ok 139 - oversized entries are explicitly omitted whole, and context remains bounded
+  ---
+  duration_ms: 5868.1213
+  type: 'test'
+  ...
+# Subtest: context includes an archive summary so archived sessions are visible
+ok 140 - context includes an archive summary so archived sessions are visible
+  ---
+  duration_ms: 6796.029
+  type: 'test'
+  ...
+# Subtest: missing baseline, invalid JSON, missing session id, and corrupt state produce visible warnings
+ok 141 - missing baseline, invalid JSON, missing session id, and corrupt state produce visible warnings
+  ---
+  duration_ms: 11766.9101
+  type: 'test'
+  ...
+# Subtest: the configured Git Bash commands work at root, in subdirectories, and in a worktree
+ok 142 - the configured Git Bash commands work at root, in subdirectories, and in a worktree
+  ---
+  duration_ms: 24490.3972
+  type: 'test'
+  ...
+# Subtest: Stop warns and flags unredacted secret patterns in worklog entries
+ok 143 - Stop warns and flags unredacted secret patterns in worklog entries
+  ---
+  duration_ms: 5945.0921
+  type: 'test'
+  ...
+# Subtest: Stop returns telemetry fields and records JSONL line in .ai/runtime/metrics/sessions.jsonl
+ok 144 - Stop returns telemetry fields and records JSONL line in .ai/runtime/metrics/sessions.jsonl
+  ---
+  duration_ms: 7287.6878
+  type: 'test'
+  ...
+# Subtest: Stop produces changedFiles: 0 and firstEditMs: null when tree is clean
+ok 145 - Stop produces changedFiles: 0 and firstEditMs: null when tree is clean
+  ---
+  duration_ms: 5644.1344
+  type: 'test'
+  ...
+# Subtest: vanished path between snapshot and stat is skipped gracefully
+ok 146 - vanished path between snapshot and stat is skipped gracefully
+  ---
+  duration_ms: 6547.3869
+  type: 'test'
+  ...
+# Subtest: metrics file rotates to sessions.1.jsonl when exceeding 1 MB
+ok 147 - metrics file rotates to sessions.1.jsonl when exceeding 1 MB
+  ---
+  duration_ms: 7375.6129
+  type: 'test'
+  ...
+# Subtest: changed-without-journal Stop writes row with handoffComplete: false and preserves warning
+ok 148 - changed-without-journal Stop writes row with handoffComplete: false and preserves warning
+  ---
+  duration_ms: 7053.6385
+  type: 'test'
+  ...
+# Subtest: Stop without SessionStart writes row with null baseline-dependent fields and preserves warning
+ok 149 - Stop without SessionStart writes row with null baseline-dependent fields and preserves warning
+  ---
+  duration_ms: 3829.4869
+  type: 'test'
+  ...
+# Subtest: secret-warning Stop writes row with handoffComplete: false and preserves warning
+ok 150 - secret-warning Stop writes row with handoffComplete: false and preserves warning
+  ---
+  duration_ms: 5043.5401
+  type: 'test'
+  ...
+# Subtest: metrics write failure (read-only directory in a fixture) hook still succeeds and does not throw
+ok 151 - metrics write failure (read-only directory in a fixture) hook still succeeds and does not throw
+  ---
+  duration_ms: 5518.5356
+  type: 'test'
+  ...
+# Subtest: no journal text, diffs, or secrets appear in any metrics row across exits
+ok 152 - no journal text, diffs, or secrets appear in any metrics row across exits
+  ---
+  duration_ms: 6069.8351
+  type: 'test'
+  ...
+# Subtest: session context surfaces large tracked documents that git status never shows
+ok 153 - session context surfaces large tracked documents that git status never shows
+  ---
+  duration_ms: 3719.8204
+  type: 'test'
+  ...
+# Subtest: the large-document block is absent when nothing qualifies
+ok 154 - the large-document block is absent when nothing qualifies
+  ---
+  duration_ms: 2907.3929
+  type: 'test'
+  ...
+# Subtest: a non-ASCII tracked document reaches the inventory despite git quoting
+ok 155 - a non-ASCII tracked document reaches the inventory despite git quoting
+  ---
+  duration_ms: 3066.8174
+  type: 'test'
+  ...
+# Subtest: the index covers every real block and excludes the template
+ok 156 - the index covers every real block and excludes the template
+  ---
+  duration_ms: 1119.5691
+  type: 'test'
+  ...
+# Subtest: the normative line is the first sentence, numbering stripped, never a paraphrase
+ok 157 - the normative line is the first sentence, numbering stripped, never a paraphrase
+  ---
+  duration_ms: 1227.497
+  type: 'test'
+  ...
+# Subtest: the reverse index maps a path to the decisions that name it
+ok 158 - the reverse index maps a path to the decisions that name it
+  ---
+  duration_ms: 1314.7575
+  type: 'test'
+  ...
+# Subtest: the index carries the source hash and --check detects a stale one
+ok 159 - the index carries the source hash and --check detects a stale one
+  ---
+  duration_ms: 4145.3902
+  type: 'test'
+  ...
+# Subtest: the index is derived state and never claims authority
+ok 160 - the index is derived state and never claims authority
+  ---
+  duration_ms: 969.4358
+  type: 'test'
+  ...
+# Subtest: installer initializes paths with spaces, brackets and Unicode and remains reusable
+ok 161 - installer initializes paths with spaces, brackets and Unicode and remains reusable
+  ---
+  duration_ms: 18983.3483
+  type: 'test'
+  ...
+# Subtest: Verify with InitGit never creates an absent target
+ok 162 - Verify with InitGit never creates an absent target
+  ---
+  duration_ms: 1718.7593
+  type: 'test'
+  ...
+# Subtest: populated state survives Verify, ordinary install and Force byte for byte
+ok 163 - populated state survives Verify, ordinary install and Force byte for byte
+  ---
+  duration_ms: 8951.2514
+  type: 'test'
+  ...
+# Subtest: managed changes require Force and retain a backup without resetting state
+ok 164 - managed changes require Force and retain a backup without resetting state
+  ---
+  duration_ms: 12936.2399
+  type: 'test'
+  ...
+# Subtest: settings merge preserves permissions and user hooks while updating legacy protocol hooks
+ok 165 - settings merge preserves permissions and user hooks while updating legacy protocol hooks
+  ---
+  duration_ms: 10215.8121
+  type: 'test'
+  ...
+# Subtest: Codex merge preserves path mentions and case variants while deduplicating canonical commands
+ok 166 - Codex merge preserves path mentions and case variants while deduplicating canonical commands
+  ---
+  duration_ms: 10409.4125
+  type: 'test'
+  ...
+# Subtest: a host Codex configuration is never written or touched
+ok 167 - a host Codex configuration is never written or touched
+  ---
+  duration_ms: 11394.9597
+  type: 'test'
+  ...
+# Subtest: hygiene merge preserves application rules and scopes protocol overrides
+ok 168 - hygiene merge preserves application rules and scopes protocol overrides
+  ---
+  duration_ms: 8198.4344
+  type: 'test'
+  ...
+# Subtest: a CRLF host can check out its installed hooks and still validate
+ok 169 - a CRLF host can check out its installed hooks and still validate
+  ---
+  duration_ms: 17135.7014
+  type: 'test'
+  ...
+# Subtest: missing state fails self-check and Verify without recreating it
+ok 170 - missing state fails self-check and Verify without recreating it
+  ---
+  duration_ms: 9664.5497
+  type: 'test'
+  ...
+# Subtest: incomplete installer source fails before creating target files
+ok 171 - incomplete installer source fails before creating target files
+  ---
+  duration_ms: 1977.6341
+  type: 'test'
+  ...
+# Subtest: invalid JSON in .claude/settings.json is preserved and fails before installation
+ok 172 - invalid JSON in .claude/settings.json is preserved and fails before installation
+  ---
+  duration_ms: 2524.8409
+  type: 'test'
+  ...
+# Subtest: invalid hook structure in .claude/settings.json cannot partially apply Force
+ok 173 - invalid hook structure in .claude/settings.json cannot partially apply Force
+  ---
+  duration_ms: 14307.9819
+  type: 'test'
+  ...
+# Subtest: invalid hook structure in .claude/settings.json is rejected before Git initialization
+ok 174 - invalid hook structure in .claude/settings.json is rejected before Git initialization
+  ---
+  duration_ms: 2926.636
+  type: 'test'
+  ...
+# Subtest: invalid source structure in .claude/settings.json cannot create the target
+ok 175 - invalid source structure in .claude/settings.json cannot create the target
+  ---
+  duration_ms: 2257.4115
+  type: 'test'
+  ...
+# Subtest: invalid JSON in .codex/hooks.json is preserved and fails before installation
+ok 176 - invalid JSON in .codex/hooks.json is preserved and fails before installation
+  ---
+  duration_ms: 2686.3664
+  type: 'test'
+  ...
+# Subtest: invalid hook structure in .codex/hooks.json cannot partially apply Force
+ok 177 - invalid hook structure in .codex/hooks.json cannot partially apply Force
+  ---
+  duration_ms: 13367.7219
+  type: 'test'
+  ...
+# Subtest: invalid hook structure in .codex/hooks.json is rejected before Git initialization
+ok 178 - invalid hook structure in .codex/hooks.json is rejected before Git initialization
+  ---
+  duration_ms: 3000.9425
+  type: 'test'
+  ...
+# Subtest: invalid source structure in .codex/hooks.json cannot create the target
+ok 179 - invalid source structure in .codex/hooks.json cannot create the target
+  ---
+  duration_ms: 2359.0522
+  type: 'test'
+  ...
+# Subtest: malformed managed markers in .gitattributes fail before any installation changes
+ok 180 - malformed managed markers in .gitattributes fail before any installation changes
+  ---
+  duration_ms: 10798.2293
+  type: 'test'
+  ...
+# Subtest: a broken Git directory and nonrepository target fail clearly
+ok 181 - a broken Git directory and nonrepository target fail clearly
+  ---
+  duration_ms: 3508.4613
+  type: 'test'
+  ...
+# Subtest: cover names the unit that has no record
+ok 182 - cover names the unit that has no record
+  ---
+  duration_ms: 3364.6956
+  type: 'test'
+  ...
+# Subtest: cover names a record that has no unit behind it
+ok 183 - cover names a record that has no unit behind it
+  ---
+  duration_ms: 5113.5897
+  type: 'test'
+  ...
+# Subtest: a gap fails only under --expect-all; an unexpected record always fails
+ok 184 - a gap fails only under --expect-all; an unexpected record always fails
+  ---
+  duration_ms: 4369.1887
+  type: 'test'
+  ...
+# Subtest: dup reports records shared across two producers
+ok 185 - dup reports records shared across two producers
+  ---
+  duration_ms: 2512.0114
+  type: 'test'
+  ...
+# Subtest: dup separates duplication inside one set from duplication across sets
+ok 186 - dup separates duplication inside one set from duplication across sets
+  ---
+  duration_ms: 2603.8129
+  type: 'test'
+  ...
+# Subtest: dup exits non-zero on a cross-producer duplicate and ignores the --out path
+ok 187 - dup exits non-zero on a cross-producer duplicate and ignores the --out path
+  ---
+  duration_ms: 2369.1314
+  type: 'test'
+  ...
+# Subtest: a corpus that is not a git repository still gets an inventory
+ok 188 - a corpus that is not a git repository still gets an inventory
+  ---
+  duration_ms: 760.0856
+  type: 'test'
+  ...
+# Subtest: the report states that it is advisory and decides nothing
+ok 189 - the report states that it is advisory and decides nothing
+  ---
+  duration_ms: 2289.1464
+  type: 'test'
+  ...
+# Subtest: a non-ASCII tracked path survives git quoting (the certification blocker)
+ok 190 - a non-ASCII tracked path survives git quoting (the certification blocker)
+  ---
+  duration_ms: 3730.8444
+  type: 'test'
+  ...
+# Subtest: a missing comparison set fails instead of reporting no duplicates
+ok 191 - a missing comparison set fails instead of reporting no duplicates
+  ---
+  duration_ms: 2940.8416
+  type: 'test'
+  ...
+# Subtest: the same directory twice is refused rather than matching itself
+ok 192 - the same directory twice is refused rather than matching itself
+  ---
+  duration_ms: 2412.0717
+  type: 'test'
+  ...
+# Subtest: an exclusion written with a trailing slash still excludes
+ok 193 - an exclusion written with a trailing slash still excludes
+  ---
+  duration_ms: 5177.1066
+  type: 'test'
+  ...
+# Subtest: a missing records directory fails with a named reason
+ok 194 - a missing records directory fails with a named reason
+  ---
+  duration_ms: 3114.8976
+  type: 'test'
+  ...
+# Subtest: shared ownership excludes another writer and only the owner can release it
+ok 195 - shared ownership excludes another writer and only the owner can release it
+  ---
+  duration_ms: 4069.2661
+  type: 'test'
+  ...
+# archived 0 entry(s) from .ai/worklog/session-b.md
+# Subtest: concurrent acquisitions grant ownership to exactly one process
+ok 196 - concurrent acquisitions grant ownership to exactly one process
+  ---
+  duration_ms: 4339.2006
+  type: 'test'
+  ...
+# Subtest: an interrupted operation is visible and never silently stolen
+ok 197 - an interrupted operation is visible and never silently stolen
+  ---
+  duration_ms: 1665.9642
+  type: 'test'
+  ...
+# Subtest: invalid session identities cannot become worklog paths
+ok 198 - invalid session identities cannot become worklog paths
+  ---
+  duration_ms: 2116.6888
+  type: 'test'
+  ...
+# Subtest: an abandoned lock from a dead process is diagnosed and can be cleared with clear-lock
+ok 199 - an abandoned lock from a dead process is diagnosed and can be cleared with clear-lock
+  ---
+  duration_ms: 2346.4394
+  type: 'test'
+  ...
+# Subtest: a lock held by a live process cannot be cleared with clear-lock
+ok 200 - a lock held by a live process cannot be cleared with clear-lock
+  ---
+  duration_ms: 1154.3342
+  type: 'test'
+  ...
+# Subtest: acquire with --force recovers an abandoned lock from a dead process
+ok 201 - acquire with --force recovers an abandoned lock from a dead process
+  ---
+  duration_ms: 1360.5682
+  type: 'test'
+  ...
+# Subtest: acquire with --force refuses to steal a lock held by a live process
+ok 202 - acquire with --force refuses to steal a lock held by a live process
+  ---
+  duration_ms: 1247.6363
+  type: 'test'
+  ...
+# Subtest: --session-pid accepts a live supervisor process and rejects a dead or invalid PID
+ok 203 - --session-pid accepts a live supervisor process and rejects a dead or invalid PID
+  ---
+  duration_ms: 1800.8881
+  type: 'test'
+  ...
+# Subtest: --session-pid rejects pid <= 4
+ok 204 - --session-pid rejects pid <= 4
+  ---
+  duration_ms: 1337.0099
+  type: 'test'
+  ...
+# Subtest: --session-pid rejects unrelated live PID without token
+ok 205 - --session-pid rejects unrelated live PID without token
+  ---
+  duration_ms: 1128.01
+  type: 'test'
+  ...
+# Subtest: --session-pid accepts own PID and parent PPID
+ok 206 - --session-pid accepts own PID and parent PPID
+  ---
+  duration_ms: 2255.8784
+  type: 'test'
+  ...
+# Subtest: --session-pid accepts registered PID with correct token and rejects wrong token
+ok 207 - --session-pid accepts registered PID with correct token and rejects wrong token
+  ---
+  duration_ms: 1706.9343
+  type: 'test'
+  ...
+# Subtest: foreign host lock has unknown liveness and is preserved against unforced clear
+ok 208 - foreign host lock has unknown liveness and is preserved against unforced clear
+  ---
+  duration_ms: 1735.6323
+  type: 'test'
+  ...
+# Subtest: live registered lock requires --force and --reason to clear
+ok 209 - live registered lock requires --force and --reason to clear
+  ---
+  duration_ms: 2366.8516
+  type: 'test'
+  ...
+# Subtest: status reports liveness cooperative when tokenHash is missing
+ok 210 - status reports liveness cooperative when tokenHash is missing
+  ---
+  duration_ms: 1763.178
+  type: 'test'
+  ...
+# Subtest: CLI-held lock is preserved and autoArchiveWorklog does not steal it
+ok 211 - CLI-held lock is preserved and autoArchiveWorklog does not steal it
+  ---
+  duration_ms: 3146.5043
+  type: 'test'
+  ...
+# Subtest: real CLI supervisor registration flow without manual state injection
+ok 212 - real CLI supervisor registration flow without manual state injection
+  ---
+  duration_ms: 5570.456
+  type: 'test'
+  ...
+# Subtest: seeded fixtures hold exactly the files and bytes of a recursive copy of their sources
+ok 213 - seeded fixtures hold exactly the files and bytes of a recursive copy of their sources
+  ---
+  duration_ms: 2948.0382
+  type: 'test'
+  ...
+# Subtest: every managed and integration entry exists in this repository
+ok 214 - every managed and integration entry exists in this repository
+  ---
+  duration_ms: 0.8199
+  type: 'test'
+  ...
+# Subtest: every state entry has a template to create it from
+ok 215 - every state entry has a template to create it from
+  ---
+  duration_ms: 0.2761
+  type: 'test'
+  ...
+# Subtest: the manifest lists itself, so installs carry it forward
+ok 216 - the manifest lists itself, so installs carry it forward
+  ---
+  duration_ms: 0.1313
+  type: 'test'
+  ...
+# Subtest: PAIRED-CYCLE.md is pinned in manifest managed entries
+ok 217 - PAIRED-CYCLE.md is pinned in manifest managed entries
+  ---
+  duration_ms: 0.1124
+  type: 'test'
+  ...
+# Subtest: an installed project contains every manifest entry
+ok 218 - an installed project contains every manifest entry
+  ---
+  duration_ms: 5407.179
+  type: 'test'
+  ...
+# Subtest: a manifest entry with no file stops the installer before it writes
+ok 219 - a manifest entry with no file stops the installer before it writes
+  ---
+  duration_ms: 3176.0951
+  type: 'test'
+  ...
+# Subtest: validation fails when the manifest is unreadable
+ok 220 - validation fails when the manifest is unreadable
+  ---
+  duration_ms: 7852.14
+  type: 'test'
+  ...
+# Subtest: every protocol test file is listed in the manifest
+ok 221 - every protocol test file is listed in the manifest
+  ---
+  duration_ms: 0.8662
+  type: 'test'
+  ...
+# Subtest: a host project keeps its own line endings and still validates
+ok 222 - a host project keeps its own line endings and still validates
+  ---
+  duration_ms: 10260.3878
+  type: 'test'
+  ...
+# Subtest: protocol files are still held to the encoding rules
+ok 223 - protocol files are still held to the encoding rules
+  ---
+  duration_ms: 10234.79
+  type: 'test'
+  ...
+# Subtest: an installed project receives the runtime but not the source tooling
+ok 224 - an installed project receives the runtime but not the source tooling
+  ---
+  duration_ms: 3794.8049
+  type: 'test'
+  ...
+# Subtest: the installed manifest declares its role and drops the source lists
+ok 225 - the installed manifest declares its role and drops the source lists
+  ---
+  duration_ms: 3455.851
+  type: 'test'
+  ...
+# Subtest: an installed project validates without the installer present
+ok 226 - an installed project validates without the installer present
+  ---
+  duration_ms: 11800.5502
+  type: 'test'
+  ...
+# Subtest: fresh hygiene files govern protocol paths only
+ok 227 - fresh hygiene files govern protocol paths only
+  ---
+  duration_ms: 4342.4966
+  type: 'test'
+  ...
+# Subtest: a Supersedes pointing at no decision fails validation
+ok 228 - a Supersedes pointing at no decision fails validation
+  ---
+  duration_ms: 11321.3515
+  type: 'test'
+  ...
+# Subtest: installing adds nothing to a host project own directories
+ok 229 - installing adds nothing to a host project own directories
+  ---
+  duration_ms: 2808.5268
+  type: 'test'
+  ...
+# Subtest: the tools resolve the project root from .ai/bin, including a subdirectory
+ok 230 - the tools resolve the project root from .ai/bin, including a subdirectory
+  ---
+  duration_ms: 11190.4211
+  type: 'test'
+  ...
+# Subtest: no shipped file mentions a path the protocol no longer installs
+ok 231 - no shipped file mentions a path the protocol no longer installs
+  ---
+  duration_ms: 8.594
+  type: 'test'
+  ...
+# Subtest: the injected context names a tool the installed project actually has
+ok 232 - the injected context names a tool the installed project actually has
+  ---
+  duration_ms: 8009.5955
+  type: 'test'
+  ...
+# Subtest: operator doctor reports protocol health and deep Merkle audit
+ok 233 - operator doctor reports protocol health and deep Merkle audit
+  ---
+  duration_ms: 3312.0947
+  type: 'test'
+  ...
+# Subtest: operator status reports lock and document status
+ok 234 - operator status reports lock and document status
+  ---
+  duration_ms: 2528.2549
+  type: 'test'
+  ...
+# Subtest: operator clean with dry-run does not modify files
+ok 235 - operator clean with dry-run does not modify files
+  ---
+  duration_ms: 2368.3782
+  type: 'test'
+  ...
+# Subtest: operator telemetry reports collaboration metrics
+ok 236 - operator telemetry reports collaboration metrics
+  ---
+  duration_ms: 1402.7683
+  type: 'test'
+  ...
+# Subtest: registry check 1: complete valid registry passes with 0 warnings
+ok 237 - registry check 1: complete valid registry passes with 0 warnings
+  ---
+  duration_ms: 17053.8166
+  type: 'test'
+  ...
+# Subtest: registry check 2: registry absent emits WARN (migration safety)
+ok 238 - registry check 2: registry absent emits WARN (migration safety)
+  ---
+  duration_ms: 10574.6398
+  type: 'test'
+  ...
+# Subtest: registry check 3: missing decision id in registry emits WARN
+ok 239 - registry check 3: missing decision id in registry emits WARN
+  ---
+  duration_ms: 14459.0286
+  type: 'test'
+  ...
+# Subtest: registry check 4: extra decision id in registry not in DECISIONS.md emits WARN
+ok 240 - registry check 4: extra decision id in registry not in DECISIONS.md emits WARN
+  ---
+  duration_ms: 15973.3058
+  type: 'test'
+  ...
+# Subtest: registry check 5: edited row vs HEAD emits WARN (immutability)
+ok 241 - registry check 5: edited row vs HEAD emits WARN (immutability)
+  ---
+  duration_ms: 16479.9984
+  type: 'test'
+  ...
+# Subtest: registry check 6: new decision block without Reopen-trigger: emits WARN
+ok 242 - registry check 6: new decision block without Reopen-trigger: emits WARN
+  ---
+  duration_ms: 16045.1339
+  type: 'test'
+  ...
+# Subtest: registry check 7: new decision block with unknown Reopen-trigger emits WARN
+ok 243 - registry check 7: new decision block with unknown Reopen-trigger emits WARN
+  ---
+  duration_ms: 14880.4962
+  type: 'test'
+  ...
+# Subtest: registry check 8: case-mutated row vs HEAD emits immutability and unknown-id WARN
+ok 244 - registry check 8: case-mutated row vs HEAD emits immutability and unknown-id WARN
+  ---
+  duration_ms: 16822.7838
+  type: 'test'
+  ...
+# Subtest: AC-1: ladder file matches S2 for every rung; stale sectionSha256 exits 1 ladder-stale
+ok 245 - AC-1: ladder file matches S2 for every rung; stale sectionSha256 exits 1 ladder-stale
+  ---
+  duration_ms: 364.9153
+  type: 'test'
+  ...
+# Subtest: AC-2: fixture ladder, floor T3, no exclusions: primary is largest rung number, substitutes go up in order
+ok 246 - AC-2: fixture ladder, floor T3, no exclusions: primary is largest rung number, substitutes go up in order
+  ---
+  duration_ms: 5.9137
+  type: 'test'
+  ...
+# Subtest: AC-3: each exclusion reason produced by its own fixture
+ok 247 - AC-3: each exclusion reason produced by its own fixture
+  ---
+  duration_ms: 5.06
+  type: 'test'
+  ...
+# Subtest: AC-4: null context window produces UNVERIFIED row and keeps the rung
+ok 248 - AC-4: null context window produces UNVERIFIED row and keeps the rung
+  ---
+  duration_ms: 2.9529
+  type: 'test'
+  ...
+# Subtest: AC-5: shortfall: kernel or certification exits 1 ASK_OWNER; other starts and records shortfall
+ok 249 - AC-5: shortfall: kernel or certification exits 1 ASK_OWNER; other starts and records shortfall
+  ---
+  duration_ms: 1427.6341
+  type: 'test'
+  ...
+# Subtest: AC-6: slot with route never runs the resolver (selection = owner)
+ok 250 - AC-6: slot with route never runs the resolver (selection = owner)
+  ---
+  duration_ms: 2.9566
+  type: 'test'
+  ...
+# Subtest: AC-15: real-ladder cross-check with all clients live
+ok 251 - AC-15: real-ladder cross-check with all clients live
+  ---
+  duration_ms: 2.1818
+  type: 'test'
+  ...
+# Subtest: an entry rewritten after certification no longer verifies
+ok 252 - an entry rewritten after certification no longer verifies
+  ---
+  duration_ms: 22908.5241
+  type: 'test'
+  ...
+# Subtest: a fresh receipt verifies when an older entry follows the new one
+ok 253 - a fresh receipt verifies when an older entry follows the new one
+  ---
+  duration_ms: 23604.0743
+  type: 'test'
+  ...
+# Subtest: the evidence block carries a hash of the entry without itself
+ok 254 - the evidence block carries a hash of the entry without itself
+  ---
+  duration_ms: 19506.6156
+  type: 'test'
+  ...
+# Subtest: an abandoned lock gate is diagnosed and can be cleared
+ok 255 - an abandoned lock gate is diagnosed and can be cleared
+  ---
+  duration_ms: 2495.8549
+  type: 'test'
+  ...
+# Subtest: a gate owned by a living process is not cleared
+ok 256 - a gate owned by a living process is not cleared
+  ---
+  duration_ms: 1073.3918
+  type: 'test'
+  ...
+# Subtest: stop does not claim a handoff that was never written
+ok 257 - stop does not claim a handoff that was never written
+  ---
+  duration_ms: 8538.2286
+  type: 'test'
+  ...
+# Subtest: fields parse the same whatever order they are written in
+ok 258 - fields parse the same whatever order they are written in
+  ---
+  duration_ms: 1.5954
+  type: 'test'
+  ...
+# Subtest: a stub entry is not a complete entry
+ok 259 - a stub entry is not a complete entry
+  ---
+  duration_ms: 0.2741
+  type: 'test'
+  ...
+# Subtest: a quick receipt says the suite was not run
+ok 260 - a quick receipt says the suite was not run
+  ---
+  duration_ms: 20610.1579
+  type: 'test'
+  ...
+# Subtest: prune removes journals with no entry and keeps the rest
+ok 261 - prune removes journals with no entry and keeps the rest
+  ---
+  duration_ms: 11387.31
+  type: 'test'
+  ...
+# Subtest: prune keeps a journal with a nonstandard heading that holds an entry
+ok 262 - prune keeps a journal with a nonstandard heading that holds an entry
+  ---
+  duration_ms: 2059.2638
+  type: 'test'
+  ...
+# Subtest: prune still removes a journal that holds nothing
+ok 263 - prune still removes a journal that holds nothing
+  ---
+  duration_ms: 1285.6224
+  type: 'test'
+  ...
+# Subtest: editing a committed decision block fails validation
+ok 264 - editing a committed decision block fails validation
+  ---
+  duration_ms: 14622.6349
+  type: 'test'
+  ...
+# Subtest: a version that disagrees with the manifest fails validation
+ok 265 - a version that disagrees with the manifest fails validation
+  ---
+  duration_ms: 12894.011
+  type: 'test'
+  ...
+# Subtest: deleting a committed decision block fails validation
+ok 266 - deleting a committed decision block fails validation
+  ---
+  duration_ms: 14338.3552
+  type: 'test'
+  ...
+# Subtest: A4: review template and AGENTS.md define Mode, Receipt-Owner, and capabilities
+ok 267 - A4: review template and AGENTS.md define Mode, Receipt-Owner, and capabilities
+  ---
+  duration_ms: 0.7461
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: all clean/fixed findings yields PASS
+ok 268 - verdict arithmetic: all clean/fixed findings yields PASS
+  ---
+  duration_ms: 3257.7732
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: confirmed finding on protected path (.ai/bin/) is FAIL even if severity is LOW
+ok 269 - verdict arithmetic: confirmed finding on protected path (.ai/bin/) is FAIL even if severity is LOW
+  ---
+  duration_ms: 3159.7316
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: confirmed finding on validator / gate / hooks is FAIL
+ok 270 - verdict arithmetic: confirmed finding on validator / gate / hooks is FAIL
+  ---
+  duration_ms: 1535.2304
+  type: 'test'
+  ...
+# Subtest: F-001: verdict arithmetic normalises leading ./ on protected path to FAIL (exit 1)
+ok 271 - F-001: verdict arithmetic normalises leading ./ on protected path to FAIL (exit 1)
+  ---
+  duration_ms: 1582.7846
+  type: 'test'
+  ...
+# Subtest: F-001: verdict arithmetic normalises case variation on protected path to FAIL (exit 1)
+ok 272 - F-001: verdict arithmetic normalises case variation on protected path to FAIL (exit 1)
+  ---
+  duration_ms: 1180.8209
+  type: 'test'
+  ...
+# Subtest: F-001: normal path containing false-protection word (data/gate/validate) yields RECOMMENDATION (exit 0)
+ok 273 - F-001: normal path containing false-protection word (data/gate/validate) yields RECOMMENDATION (exit 0)
+  ---
+  duration_ms: 1347.2129
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on .ai/... protected path yields FAIL (exit 1)
+ok 274 - PROTO-DEC-0046: neutral requirement on .ai/... protected path yields FAIL (exit 1)
+  ---
+  duration_ms: 1606.8213
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on .claude/... protected path yields FAIL (exit 1)
+ok 275 - PROTO-DEC-0046: neutral requirement on .claude/... protected path yields FAIL (exit 1)
+  ---
+  duration_ms: 1396.6962
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on .codex/... protected path yields FAIL (exit 1)
+ok 276 - PROTO-DEC-0046: neutral requirement on .codex/... protected path yields FAIL (exit 1)
+  ---
+  duration_ms: 1389.764
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on managed validate-protocol.ps1 yields FAIL (exit 1)
+ok 277 - PROTO-DEC-0046: neutral requirement on managed validate-protocol.ps1 yields FAIL (exit 1)
+  ---
+  duration_ms: 1489.6671
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on managed protocol-manifest.json yields FAIL (exit 1)
+ok 278 - PROTO-DEC-0046: neutral requirement on managed protocol-manifest.json yields FAIL (exit 1)
+  ---
+  duration_ms: 1349.5388
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on source entry setup-ai-protocol.ps1 yields FAIL (exit 1)
+ok 279 - PROTO-DEC-0046: neutral requirement on source entry setup-ai-protocol.ps1 yields FAIL (exit 1)
+  ---
+  duration_ms: 1426.6615
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: neutral requirement on off-protected control docs/notes.md yields RECOMMENDATION (exit 0)
+ok 280 - PROTO-DEC-0046: neutral requirement on off-protected control docs/notes.md yields RECOMMENDATION (exit 0)
+  ---
+  duration_ms: 1592.4563
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected path form D:/Colabs/.ai/bin/x exits 2 (BLOCKED)
+ok 281 - PROTO-DEC-0046: rejected path form D:/Colabs/.ai/bin/x exits 2 (BLOCKED)
+  ---
+  duration_ms: 1106.3751
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected path form C:/Colabs/.ai/bin/x exits 2 (BLOCKED)
+ok 282 - PROTO-DEC-0046: rejected path form C:/Colabs/.ai/bin/x exits 2 (BLOCKED)
+  ---
+  duration_ms: 964.7898
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected path form ../.ai/bin/x exits 2 (BLOCKED)
+ok 283 - PROTO-DEC-0046: rejected path form ../.ai/bin/x exits 2 (BLOCKED)
+  ---
+  duration_ms: 1486.5947
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected path form x/../.ai/bin/x exits 2 (BLOCKED)
+ok 284 - PROTO-DEC-0046: rejected path form x/../.ai/bin/x exits 2 (BLOCKED)
+  ---
+  duration_ms: 1095.7225
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected UNC path forms (//... and \\\\...) exit 2 (BLOCKED)
+ok 285 - PROTO-DEC-0046: rejected UNC path forms (//... and \\\\...) exit 2 (BLOCKED)
+  ---
+  duration_ms: 1516.4554
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected POSIX-root path form /home/user/... exits 2 (BLOCKED)
+ok 286 - PROTO-DEC-0046: rejected POSIX-root path form /home/user/... exits 2 (BLOCKED)
+  ---
+  duration_ms: 1201.5949
+  type: 'test'
+  ...
+# Subtest: PROTO-DEC-0046: rejected Windows drive-relative form D:.ai/bin/x exits 2 (BLOCKED)
+ok 287 - PROTO-DEC-0046: rejected Windows drive-relative form D:.ai/bin/x exits 2 (BLOCKED)
+  ---
+  duration_ms: 1464.5211
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: confirmed finding off protected path naming invariant or contract is FAIL
+ok 288 - verdict arithmetic: confirmed finding off protected path naming invariant or contract is FAIL
+  ---
+  duration_ms: 2858.9642
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: confirmed finding off protected paths without invariant/contract is RECOMMENDATION
+ok 289 - verdict arithmetic: confirmed finding off protected paths without invariant/contract is RECOMMENDATION
+  ---
+  duration_ms: 1682.4397
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: confirmed finding with reproduction none cannot exceed RECOMMENDATION (advisory)
+ok 290 - verdict arithmetic: confirmed finding with reproduction none cannot exceed RECOMMENDATION (advisory)
+  ---
+  duration_ms: 2065.6011
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: unresolved finding or unrunnable check yields BLOCKED (exit 2)
+ok 291 - verdict arithmetic: unresolved finding or unrunnable check yields BLOCKED (exit 2)
+  ---
+  duration_ms: 3941.7794
+  type: 'test'
+  ...
+# Subtest: verdict arithmetic: malformed ledger exits 2 (BLOCKED)
+ok 292 - verdict arithmetic: malformed ledger exits 2 (BLOCKED)
+  ---
+  duration_ms: 2790.8764
+  type: 'test'
+  ...
+# Subtest: stop rule: pass when attempts <= 2 and contiguous
+ok 293 - stop rule: pass when attempts <= 2 and contiguous
+  ---
+  duration_ms: 2356.3576
+  type: 'test'
+  ...
+# Subtest: stop rule: third attempt on one root-cause triggers STOP (exit 1)
+ok 294 - stop rule: third attempt on one root-cause triggers STOP (exit 1)
+  ---
+  duration_ms: 2076.8375
+  type: 'test'
+  ...
+# Subtest: stop rule: non-contiguous attempts (1, 3) is a ledger defect (exit 2)
+ok 295 - stop rule: non-contiguous attempts (1, 3) is a ledger defect (exit 2)
+  ---
+  duration_ms: 2080.691
+  type: 'test'
+  ...
+# Subtest: scope check: clean subset passes (exit 0)
+ok 296 - scope check: clean subset passes (exit 0)
+  ---
+  duration_ms: 5513.7323
+  type: 'test'
+  ...
+# Subtest: scope check: handles non-ASCII paths without C-quoting failure via -z
+ok 297 - scope check: handles non-ASCII paths without C-quoting failure via -z
+  ---
+  duration_ms: 5735.4415
+  type: 'test'
+  ...
+# Subtest: scope check: prefix is not a directory match (exit 1)
+ok 298 - scope check: prefix is not a directory match (exit 1)
+  ---
+  duration_ms: 5092.0152
+  type: 'test'
+  ...
+# Subtest: scope check: touching forbidden path fails (exit 1)
+ok 299 - scope check: touching forbidden path fails (exit 1)
+  ---
+  duration_ms: 5195.003
+  type: 'test'
+  ...
+# Subtest: scope check: missing baseline or unreadable scope file exits 2
+ok 300 - scope check: missing baseline or unreadable scope file exits 2
+  ---
+  duration_ms: 1507.631
+  type: 'test'
+  ...
+# Subtest: F-004: scope check detects untracked forbidden file and fails (exit 1)
+ok 301 - F-004: scope check detects untracked forbidden file and fails (exit 1)
+  ---
+  duration_ms: 4438.6843
+  type: 'test'
+  ...
+# Subtest: independence check: Receipt-Owner equals producer owner exits 1
+ok 302 - independence check: Receipt-Owner equals producer owner exits 1
+  ---
+  duration_ms: 2543.8416
+  type: 'test'
+  ...
+# Subtest: independence check: reviewer is named as implementer in TASK.md exits 1
+ok 303 - independence check: reviewer is named as implementer in TASK.md exits 1
+  ---
+  duration_ms: 2055.5699
+  type: 'test'
+  ...
+# Subtest: independence check: unknown owner exits 2
+ok 304 - independence check: unknown owner exits 2
+  ---
+  duration_ms: 1116.8688
+  type: 'test'
+  ...
+# Subtest: independence check: valid independent reviewer passes (exit 0)
+ok 305 - independence check: valid independent reviewer passes (exit 0)
+  ---
+  duration_ms: 1257.9366
+  type: 'test'
+  ...
+# Subtest: F-002: independence check is deterministic with swapped mtimes and does not rely on mtime
+ok 306 - F-002: independence check is deterministic with swapped mtimes and does not rely on mtime
+  ---
+  duration_ms: 3131.1902
+  type: 'test'
+  ...
+# Subtest: F-002: independence check exits 2 when producer cannot be determined from declared inputs
+ok 307 - F-002: independence check exits 2 when producer cannot be determined from declared inputs
+  ---
+  duration_ms: 1925.6189
+  type: 'test'
+  ...
+# Subtest: RC-ledger-parse (C01, F-S2-01, F-S2-03): malformed shapes exit 2 in both verdict and stop-rule mode
+ok 308 - RC-ledger-parse (C01, F-S2-01, F-S2-03): malformed shapes exit 2 in both verdict and stop-rule mode
+  ---
+  duration_ms: 14652.0087
+  type: 'test'
+  ...
+# Subtest: RC-manifest-schema (C02): missing, empty, or wrong-type manifest keys fail closed (exit 2)
+ok 309 - RC-manifest-schema (C02): missing, empty, or wrong-type manifest keys fail closed (exit 2)
+  ---
+  duration_ms: 7088.1641
+  type: 'test'
+  ...
+# Subtest: RC-manifest-root-discovery (C03): no ancestor borrowing and no nested shadowing
+ok 310 - RC-manifest-root-discovery (C03): no ancestor borrowing and no nested shadowing
+  ---
+  duration_ms: 3585.674
+  type: 'test'
+  ...
+# Subtest: RC-touched-input-exemption (C04): untracked scope file on forbidden path fails scope check
+ok 311 - RC-touched-input-exemption (C04): untracked scope file on forbidden path fails scope check
+  ---
+  duration_ms: 4568.5211
+  type: 'test'
+  ...
+# Subtest: RC-owner-source-guessing (C05): producer identity only from declared inputs
+ok 312 - RC-owner-source-guessing (C05): producer identity only from declared inputs
+  ---
+  duration_ms: 2915.8123
+  type: 'test'
+  ...
+# Subtest: RC-spec-controller-omission (C06): controller role in TASK.md excluded from certifying
+ok 313 - RC-spec-controller-omission (C06): controller role in TASK.md excluded from certifying
+  ---
+  duration_ms: 1436.0871
+  type: 'test'
+  ...
+# Subtest: RC-text-as-judgement (C08): negative invariant mention is RECOMMENDATION and unrunnable test filename does not block
+ok 314 - RC-text-as-judgement (C08): negative invariant mention is RECOMMENDATION and unrunnable test filename does not block
+  ---
+  duration_ms: 3428.4956
+  type: 'test'
+  ...
+# Subtest: RC-path-alphabet (C09): boundPaths accepts Unicode and + tokens
+ok 315 - RC-path-alphabet (C09): boundPaths accepts Unicode and + tokens
+  ---
+  duration_ms: 644.4565
+  type: 'test'
+  ...
+# Subtest: RC-absolute-diagnostics (C10): scope error output uses repo-relative path
+ok 316 - RC-absolute-diagnostics (C10): scope error output uses repo-relative path
+  ---
+  duration_ms: 3231.2591
+  type: 'test'
+  ...
+# Subtest: RC-ledger-parse (F-R2-01, attempt 2 of 2): framed rows, list items, inline code, fenced blocks outside table and prose before header exit 2
+ok 317 - RC-ledger-parse (F-R2-01, attempt 2 of 2): framed rows, list items, inline code, fenced blocks outside table and prose before header exit 2
+  ---
+  duration_ms: 13580.1587
+  type: 'test'
+  ...
+# Subtest: RC-attempt-contiguity (F-R2-03, attempt 1): cross-file counting, union contiguity, duplicate merging, and conflict detection
+ok 318 - RC-attempt-contiguity (F-R2-03, attempt 1): cross-file counting, union contiguity, duplicate merging, and conflict detection
+  ---
+  duration_ms: 5000.728
+  type: 'test'
+  ...
+# Subtest: RC-role-prose-substring (F-R2-02, attempt 1): exact tokens and negation guard
+ok 319 - RC-role-prose-substring (F-R2-02, attempt 1): exact tokens and negation guard
+  ---
+  duration_ms: 5097.8186
+  type: 'test'
+  ...
+# Subtest: RC-arg-parsing (F-R2-04, attempt 1): unknown flags exit 2 on both tools
+ok 320 - RC-arg-parsing (F-R2-04, attempt 1): unknown flags exit 2 on both tools
+  ---
+  duration_ms: 1788.4814
+  type: 'test'
+  ...
+# Subtest: Codex observations (C05): candidate journal fenced blocks and commit SHA owners fail closed
+ok 321 - Codex observations (C05): candidate journal fenced blocks and commit SHA owners fail closed
+  ---
+  duration_ms: 3054.4338
+  type: 'test'
+  ...
+# Starting PKG-2 runrecord tests...
+# T1 PASS: Golden DONE record and past failure record validate, verify pins against repository, and serialize to fixed bytes
+# PIN NEGATIVE PASS: invented head and launchSha256 rejected by repository verification
+# T2 PASS: Extra key rejected
+# T3 PASS: Missing required key rejected
+# T4 PASS: Wrong enum rejected
+# T5 PASS: Wrong type rejected
+# T6 PASS: Wrong key order rejected
+# T7 PASS: Wrong schema rejected
+# T8 PASS: Empty attempts array rejected
+# T9 PASS: DONE with invalid completion rejected
+# T10a PASS: Budget over-run detected (3 primary fresh)
+# T10b PASS: Budget over-run detected (7 fresh attempts)
+# T11a PASS: tokens.source=none with number rejected
+# T11b PASS: end before start rejected (BACKLOG S-6 regression)
+# T12 PASS: readRecords names the invalid line
+# T12b PASS: appendRecord writes nothing on invalid record
+# T13 PASS: Render produces valid markdown table with DONE and FAILED records matching golden.md
+# T14 PASS: sessions on synthetic fixture prints ratio=2.96
+# PATTERN VALIDATE PASS: library functions produce correct output and verify pins
+# CLI PATTERN PASS: every CLI stdout line matches ^[A-Z][A-Z_]*( |$) and exits follow S5
+# All T1-T14 tests passed!
+# AC-1 through AC-10 checks: PASS
+# Subtest: D:\\Colabs\\.ai\\runtime\\perf1\\tests\\runrecord.test.cjs
+ok 19 - D:\\Colabs\\.ai\\runtime\\perf1\\tests\\runrecord.test.cjs
+  ---
+  duration_ms: 4020.5806
+  type: 'test'
+  ...
+# Subtest: an assistant without hooks gets a journal and the same context
+ok 323 - an assistant without hooks gets a journal and the same context
+  ---
+  duration_ms: 3458.0136
+  type: 'test'
+  ...
+# Subtest: the identity is the same for the journal, the lock and the evidence
+ok 324 - the identity is the same for the journal, the lock and the evidence
+  ---
+  duration_ms: 4448.1859
+  type: 'test'
+  ...
+# Subtest: starting twice with one session id reuses the journal
+ok 325 - starting twice with one session id reuses the journal
+  ---
+  duration_ms: 6260.2795
+  type: 'test'
+  ...
+# Subtest: two assistants in one checkout never share a journal
+ok 326 - two assistants in one checkout never share a journal
+  ---
+  duration_ms: 6173.992
+  type: 'test'
+  ...
+# Subtest: an agent name that could escape the worklog directory is refused
+ok 327 - an agent name that could escape the worklog directory is refused
+  ---
+  duration_ms: 2820.7133
+  type: 'test'
+  ...
+# Subtest: stop reports a changed tree with no new complete entry
+ok 328 - stop reports a changed tree with no new complete entry
+  ---
+  duration_ms: 9171.4881
+  type: 'test'
+  ...
+# Subtest: stop prints extended telemetry including wall time and handoff status
+ok 329 - stop prints extended telemetry including wall time and handoff status
+  ---
+  duration_ms: 13865.1343
+  type: 'test'
+  ...
+# Subtest: whoami names the journal without creating one
+ok 330 - whoami names the journal without creating one
+  ---
+  duration_ms: 1905.6068
+  type: 'test'
+  ...
+# Subtest: session start and whoami print session token and preserve nonce across runs
+ok 331 - session start and whoami print session token and preserve nonce across runs
+  ---
+  duration_ms: 9155.6734
+  type: 'test'
+  ...
+# Subtest: the hooks and this tool agree on where a session writes
+ok 332 - the hooks and this tool agree on where a session writes
+  ---
+  duration_ms: 1.1109
+  type: 'test'
+  ...
+# Subtest: each assistant is told its own role, in the owner own words
+ok 333 - each assistant is told its own role, in the owner own words
+  ---
+  duration_ms: 9374.9074
+  type: 'test'
+  ...
+# Subtest: an assistant the task does not name is told to ask first
+ok 334 - an assistant the task does not name is told to ask first
+  ---
+  duration_ms: 6037.2138
+  type: 'test'
+  ...
+# Subtest: a task with no Roles section says nothing about roles
+ok 335 - a task with no Roles section says nothing about roles
+  ---
+  duration_ms: 5636.7042
+  type: 'test'
+  ...
+# Subtest: only well-formed role lines are read
+ok 336 - only well-formed role lines are read
+  ---
+  duration_ms: 2240.8052
+  type: 'test'
+  ...
+# Subtest: prune protects an empty journal when its owning session process is still alive
+ok 337 - prune protects an empty journal when its owning session process is still alive
+  ---
+  duration_ms: 5360.7839
+  type: 'test'
+  ...
+# Subtest: prune protects an empty journal when its owner holds the shared lock
+ok 338 - prune protects an empty journal when its owner holds the shared lock
+  ---
+  duration_ms: 5883.6175
+  type: 'test'
+  ...
+# Subtest: glm, mistral and copilot assistants initialize sessions, acquire locks and isolate journals
+ok 339 - glm, mistral and copilot assistants initialize sessions, acquire locks and isolate journals
+  ---
+  duration_ms: 15828.1485
+  type: 'test'
+  ...
+# Subtest: cleanup-runtime removes orphan snapshots and stale temp files while protecting active sessions
+ok 340 - cleanup-runtime removes orphan snapshots and stale temp files while protecting active sessions
+  ---
+  duration_ms: 5508.8934
+  type: 'test'
+  ...
+# Subtest: cleanup-runtime --force preserves snapshot if hostname is foreign or pid status unknown
+ok 341 - cleanup-runtime --force preserves snapshot if hostname is foreign or pid status unknown
+  ---
+  duration_ms: 2160.817
+  type: 'test'
+  ...
+# Subtest: cleanup-runtime preserves foreign-host stale snapshot older than 7 days (null liveness)
+ok 342 - cleanup-runtime preserves foreign-host stale snapshot older than 7 days (null liveness)
+  ---
+  duration_ms: 1685.2264
+  type: 'test'
+  ...
+# Subtest: isSessionAlive contract matches 6-state specification
+ok 343 - isSessionAlive contract matches 6-state specification
+  ---
+  duration_ms: 22.8162
+  type: 'test'
+  ...
+# Subtest: A1 branch 1: supervisor alive, transient dead, aged -> journal + snapshot preserved
+ok 344 - A1 branch 1: supervisor alive, transient dead, aged -> journal + snapshot preserved
+  ---
+  duration_ms: 1785.7739
+  type: 'test'
+  ...
+# Subtest: A1 branch 2: supervisor dead, transient dead, aged -> journal quarantined, snapshot removable
+ok 345 - A1 branch 2: supervisor dead, transient dead, aged -> journal quarantined, snapshot removable
+  ---
+  duration_ms: 2487.1242
+  type: 'test'
+  ...
+# Subtest: A1 branch 3: supervisor dead, transient alive -> preserved
+ok 346 - A1 branch 3: supervisor dead, transient alive -> preserved
+  ---
+  duration_ms: 1914.6205
+  type: 'test'
+  ...
+# Subtest: A1 branch 4: no supervisor, dead, aged -> prunable/removable
+ok 347 - A1 branch 4: no supervisor, dead, aged -> prunable/removable
+  ---
+  duration_ms: 1893.3188
+  type: 'test'
+  ...
+# Subtest: A1 branch 5: no supervisor, dead, fresh -> preserved by recency
+ok 348 - A1 branch 5: no supervisor, dead, fresh -> preserved by recency
+  ---
+  duration_ms: 1272.3397
+  type: 'test'
+  ...
+# Subtest: A1 branch 6: foreign host, aged -> prune preserves without --force; cleanup preserves even with --force
+ok 349 - A1 branch 6: foreign host, aged -> prune preserves without --force; cleanup preserves even with --force
+  ---
+  duration_ms: 1845.2296
+  type: 'test'
+  ...
+# Subtest: A1 branch 7: journal with content, everything dead -> never quarantined
+ok 350 - A1 branch 7: journal with content, everything dead -> never quarantined
+  ---
+  duration_ms: 1128.4173
+  type: 'test'
+  ...
+# Subtest: A1 branch 8: --force + live supervisor -> preserved (both commands)
+ok 351 - A1 branch 8: --force + live supervisor -> preserved (both commands)
+  ---
+  duration_ms: 2261.2901
+  type: 'test'
+  ...
+# Subtest: A1 branch 9: --force + foreign host -> prune may quarantine (audited), cleanup preserves
+ok 352 - A1 branch 9: --force + foreign host -> prune may quarantine (audited), cleanup preserves
+  ---
+  duration_ms: 2506.4427
+  type: 'test'
+  ...
+# Subtest: A1 branch 10: missing state file, empty journal fresh / aged -> preserved / quarantined
+ok 353 - A1 branch 10: missing state file, empty journal fresh / aged -> preserved / quarantined
+  ---
+  duration_ms: 1231.8814
+  type: 'test'
+  ...
+# Subtest: A1 branch 11: certify two entries, archive the older (--keep 1), verify --deep -> exit 0
+ok 354 - A1 branch 11: certify two entries, archive the older (--keep 1), verify --deep -> exit 0
+  ---
+  duration_ms: 19286.1077
+  type: 'test'
+  ...
+# Subtest: AUD-4: corrupt or unreadable state JSON with an aged empty journal is quarantined by prune
+ok 355 - AUD-4: corrupt or unreadable state JSON with an aged empty journal is quarantined by prune
+  ---
+  duration_ms: 1039.9342
+  type: 'test'
+  ...
+# Subtest: AUD-4: active lock holder empty journal is preserved by prune even under --force
+ok 356 - AUD-4: active lock holder empty journal is preserved by prune even under --force
+  ---
+  duration_ms: 2266.4612
+  type: 'test'
+  ...
+# Subtest: cycle guard: requiring protocol-session then protocol-lock exposes callable liveness functions without undefined exports
+ok 357 - cycle guard: requiring protocol-session then protocol-lock exposes callable liveness functions without undefined exports
+  ---
+  duration_ms: 127.962
+  type: 'test'
+  ...
+# Subtest: CLI stop executes auto-archive without circular dependency warnings when journal exceeds 150 lines
+ok 358 - CLI stop executes auto-archive without circular dependency warnings when journal exceeds 150 lines
+  ---
+  duration_ms: 7150.7863
+  type: 'test'
+  ...
+# Subtest: AC-1: Golden ledger passes check; header modified by 1 byte fails
+ok 359 - AC-1: Golden ledger passes check; header modified by 1 byte fails
+  ---
+  duration_ms: 609.336
+  type: 'test'
+  ...
+# Subtest: AC-2: Negative fixtures fail with exact line numbers and no silent pass-through
+ok 360 - AC-2: Negative fixtures fail with exact line numbers and no silent pass-through
+  ---
+  duration_ms: 1731.2422
+  type: 'test'
+  ...
+# Subtest: AC-3: add assigns sequential IDs; update appends and list reflects; unknown id exits 1
+ok 361 - AC-3: add assigns sequential IDs; update appends and list reflects; unknown id exits 1
+  ---
+  duration_ms: 1094.6277
+  type: 'test'
+  ...
+# Subtest: AC-4: Concurrency: two processes adding 50 signals each produce 100 valid lines with 100 distinct IDs
+ok 362 - AC-4: Concurrency: two processes adding 50 signals each produce 100 valid lines with 100 distinct IDs
+  ---
+  duration_ms: 1106.5836
+  type: 'test'
+  ...
+# Subtest: AC-5: Stale lock removal with WARN row; busy lock timeout exits 1 ledger-busy
+ok 363 - AC-5: Stale lock removal with WARN row; busy lock timeout exits 1 ledger-busy
+  ---
+  duration_ms: 748.4793
+  type: 'test'
+  ...
+# Subtest: AC-6: import on fixture repository with pipe, dash, id-prefixed lines, duplicates, and skipped lines
+ok 364 - AC-6: import on fixture repository with pipe, dash, id-prefixed lines, duplicates, and skipped lines
+  ---
+  duration_ms: 4575.8104
+  type: 'test'
+  ...
+# Subtest: AC-7: plan --batch B1 --stamp then plan --batch B2 prints ESCALATE for open signal, not closed
+ok 365 - AC-7: plan --batch B1 --stamp then plan --batch B2 prints ESCALATE for open signal, not closed
+  ---
+  duration_ms: 642.6587
+  type: 'test'
+  ...
+# Subtest: AC-8: count and export --json agree with list on golden ledger
+ok 366 - AC-8: count and export --json agree with list on golden ledger
+  ---
+  duration_ms: 596.258
+  type: 'test'
+  ...
+# Subtest: AC-9: Every stdout line across all CLI commands matches ^[A-Z][A-Z_]*( |$)
+ok 367 - AC-9: Every stdout line across all CLI commands matches ^[A-Z][A-Z_]*( |$)
+  ---
+  duration_ms: 921.1168
+  type: 'test'
+  ...
+# Subtest: an installed project that keeps an older managed engine fails validation
+ok 368 - an installed project that keeps an older managed engine fails validation
+  ---
+  duration_ms: 11933.9027
+  type: 'test'
+  ...
+# Subtest: a plain install cannot claim a version it did not deliver
+ok 369 - a plain install cannot claim a version it did not deliver
+  ---
+  duration_ms: 16183.8739
+  type: 'test'
+  ...
+# Subtest: a reconciled AGENTS.md warns but does not fail validation
+ok 370 - a reconciled AGENTS.md warns but does not fail validation
+  ---
+  duration_ms: 13456.8624
+  type: 'test'
+  ...
+# Subtest: a reconciled COPILOT.md and GLM.md warn but do not fail validation
+ok 371 - a reconciled COPILOT.md and GLM.md warn but do not fail validation
+  ---
+  duration_ms: 13010.4853
+  type: 'test'
+  ...
+# Subtest: the installed manifest records a digest for every managed file
+ok 372 - the installed manifest records a digest for every managed file
+  ---
+  duration_ms: 5276.6859
+  type: 'test'
+  ...
+# Subtest: a reconciled PAIRED-CYCLE.md warns but does not fail validation
+ok 373 - a reconciled PAIRED-CYCLE.md warns but does not fail validation
+  ---
+  duration_ms: 10768.0366
+  type: 'test'
+  ...
+# Subtest: missing PAIRED-CYCLE.md in an installed project fails validation
+ok 374 - missing PAIRED-CYCLE.md in an installed project fails validation
+  ---
+  duration_ms: 12661.4483
+  type: 'test'
+  ...
+# Subtest: upgrade from historical release fixture v1.9.4 restores PAIRED-CYCLE and reaches parity with -Force
+ok 375 - upgrade from historical release fixture v1.9.4 restores PAIRED-CYCLE and reaches parity with -Force
+  ---
+  duration_ms: 24447.3269
+  type: 'test'
+  ...
+# Historical upgrade verified PASS for release tag: v1.9.4
+# Subtest: upgrade from historical release fixture v1.9.5 restores PAIRED-CYCLE and reaches parity with -Force
+ok 376 - upgrade from historical release fixture v1.9.5 restores PAIRED-CYCLE and reaches parity with -Force
+  ---
+  duration_ms: 25160.2199
+  type: 'test'
+  ...
+# Historical upgrade verified PASS for release tag: v1.9.5
+# Subtest: historical release tag coverage: all required release tags (v1.9.4, v1.9.5) verified
+ok 377 - historical release tag coverage: all required release tags (v1.9.4, v1.9.5) verified
+  ---
+  duration_ms: 234.4249
+  type: 'test'
+  ...
+# Historical release upgrade suite PASS verified for tags: v1.9.4, v1.9.5
+# Subtest: each decision validates its own status, date and approval field
+ok 378 - each decision validates its own status, date and approval field
+  ---
+  duration_ms: 15020.9387
+  type: 'test'
+  ...
+# Subtest: approval in a following block or template cannot approve an earlier block
+ok 379 - approval in a following block or template cannot approve an earlier block
+  ---
+  duration_ms: 13022.3476
+  type: 'test'
+  ...
+# Subtest: Proposed status is forbidden in DECISIONS and PROTO-DEC-nnnn is accepted
+ok 380 - Proposed status is forbidden in DECISIONS and PROTO-DEC-nnnn is accepted
+  ---
+  duration_ms: 34309.138
+  type: 'test'
+  ...
+# Subtest: task status must be meaningful and unique
+ok 381 - task status must be meaningful and unique
+  ---
+  duration_ms: 34631.5303
+  type: 'test'
+  ...
+# Subtest: decision immutability: appending a new block exits 0, editing a committed block exits 1
+ok 382 - decision immutability: appending a new block exits 0, editing a committed block exits 1
+  ---
+  duration_ms: 128921.1313
+  type: 'test'
+  ...
+# Subtest: completed tasks require a prompt and independent review completion gate
+ok 383 - completed tasks require a prompt and independent review completion gate
+  ---
+  duration_ms: 191207.8865
+  type: 'test'
+  ...
+# Subtest: F-5: PowerShell validator review with header terminator on line 0 does not splice last line
+ok 384 - F-5: PowerShell validator review with header terminator on line 0 does not splice last line
+  ---
+  duration_ms: 9297.2878
+  type: 'test'
+  ...
+# Subtest: R5: light path succeeds for docs-only change with single independent review
+ok 385 - R5: light path succeeds for docs-only change with single independent review
+  ---
+  duration_ms: 20540.4952
+  type: 'test'
+  ...
+# Subtest: R5: modifying core file under Scope: docs forces strict path and fails without adversarial prompt
+ok 386 - R5: modifying core file under Scope: docs forces strict path and fails without adversarial prompt
+  ---
+  duration_ms: 20082.7532
+  type: 'test'
+  ...
+# Subtest: R5: unknown scope under light format forces strict path and fails
+ok 387 - R5: unknown scope under light format forces strict path and fails
+  ---
+  duration_ms: 15034.6599
+  type: 'test'
+  ...
+# Subtest: R5: traversal in light path review path is rejected
+ok 388 - R5: traversal in light path review path is rejected
+  ---
+  duration_ms: 16950.271
+  type: 'test'
+  ...
+# Subtest: R5: advisory review in light path is rejected
+ok 389 - R5: advisory review in light path is rejected
+  ---
+  duration_ms: 20257.6196
+  type: 'test'
+  ...
+# Subtest: R5: missing review file in light path fails
+ok 390 - R5: missing review file in light path fails
+  ---
+  duration_ms: 17929.9791
+  type: 'test'
+  ...
+# Subtest: C40-02: light path stays valid after ordinary commit of completed docs work
+ok 391 - C40-02: light path stays valid after ordinary commit of completed docs work
+  ---
+  duration_ms: 24495.7413
+  type: 'test'
+  ...
+# Subtest: C40-01: modifying protected core file and naming it as review artifact fails
+ok 392 - C40-01: modifying protected core file and naming it as review artifact fails
+  ---
+  duration_ms: 13430.3353
+  type: 'test'
+  ...
+# Subtest: C40-05: executable under docs forces strict path and fails without adversarial prompt
+ok 393 - C40-05: executable under docs forces strict path and fails without adversarial prompt
+  ---
+  duration_ms: 12946.2328
+  type: 'test'
+  ...
+# Subtest: C40-04: review with PASS WITH BLOCKERS verdict suffix is rejected
+ok 394 - C40-04: review with PASS WITH BLOCKERS verdict suffix is rejected
+  ---
+  duration_ms: 11114.3526
+  type: 'test'
+  ...
+# Subtest: C40-04: transcribed review is rejected
+ok 395 - C40-04: transcribed review is rejected
+  ---
+  duration_ms: 12423.2438
+  type: 'test'
+  ...
+# Subtest: C40-04: Reviewer and Verdict only in body section are rejected
+ok 396 - C40-04: Reviewer and Verdict only in body section are rejected
+  ---
+  duration_ms: 9597.0688
+  type: 'test'
+  ...
+# Subtest: C40-02: light path rejects non-40-hex baseline before calling git
+ok 397 - C40-02: light path rejects non-40-hex baseline before calling git
+  ---
+  duration_ms: 26727.9534
+  type: 'test'
+  ...
+# Subtest: F-4: PowerShell validator normalizes leading ./ in prompt and review paths in source role
+ok 398 - F-4: PowerShell validator normalizes leading ./ in prompt and review paths in source role
+  ---
+  duration_ms: 9629.8547
+  type: 'test'
+  ...
+# Subtest: encoding checks ignore scratch files but include tracked ignored files
+ok 399 - encoding checks ignore scratch files but include tracked ignored files
+  ---
+  duration_ms: 23406.1484
+  type: 'test'
+  ...
+# Subtest: untracked Unicode and literal wildcard filenames are checked as paths
+ok 400 - untracked Unicode and literal wildcard filenames are checked as paths
+  ---
+  duration_ms: 20851.7637
+  type: 'test'
+  ...
+# Subtest: BOM, malformed UTF-8, CRLF and PowerShell syntax fail independently
+ok 401 - BOM, malformed UTF-8, CRLF and PowerShell syntax fail independently
+  ---
+  duration_ms: 11019.4086
+  type: 'test'
+  ...
+# Subtest: malformed settings, wrong commands, missing files and fake imports fail
+ok 402 - malformed settings, wrong commands, missing files and fake imports fail
+  ---
+  duration_ms: 37222.7293
+  type: 'test'
+  ...
+# Subtest: a deleted installer fails validation instead of skipping its self-check
+ok 403 - a deleted installer fails validation instead of skipping its self-check
+  ---
+  duration_ms: 7172.703
+  type: 'test'
+  ...
+# Subtest: every runtime entrypoint is required, not only the validator
+ok 404 - every runtime entrypoint is required, not only the validator
+  ---
+  duration_ms: 36180.0461
+  type: 'test'
+  ...
+# Subtest: globally disabled hooks fail validation in both settings files
+ok 405 - globally disabled hooks fail validation in both settings files
+  ---
+  duration_ms: 17710.9523
+  type: 'test'
+  ...
+# Subtest: ignore rules cancelled by a later negation fail validation
+ok 406 - ignore rules cancelled by a later negation fail validation
+  ---
+  duration_ms: 6192.8222
+  type: 'test'
+  ...
+# Subtest: hooks left enabled and ignore rules intact still validate
+ok 407 - hooks left enabled and ignore rules intact still validate
+  ---
+  duration_ms: 8003.1307
+  type: 'test'
+  ...
+# Subtest: a fresh protocol instance validates and reports its idle task
+ok 408 - a fresh protocol instance validates and reports its idle task
+  ---
+  duration_ms: 10845.8279
+  type: 'test'
+  ...
+# Subtest: junction escape outside repository root fails safe path check in validator
+ok 409 - junction escape outside repository root fails safe path check in validator
+  ---
+  duration_ms: 18704.0238
+  type: 'test'
+  ...
+# Subtest: required protocol state is inspected even when Git ignores it
+ok 410 - required protocol state is inspected even when Git ignores it
+  ---
+  duration_ms: 14786.0783
+  type: 'test'
+  ...
+# Subtest: line limits count a final newline correctly, with and without it
+ok 411 - line limits count a final newline correctly, with and without it
+  ---
+  duration_ms: 25417.1661
+  type: 'test'
+  ...
+# Subtest: a directory named .git does not prove a valid working tree
+ok 412 - a directory named .git does not prove a valid working tree
+  ---
+  duration_ms: 7550.8532
+  type: 'test'
+  ...
+# Subtest: Git history command failures are failures instead of empty-history warnings
+ok 413 - Git history command failures are failures instead of empty-history warnings
+  ---
+  duration_ms: 9648.3103
+  type: 'test'
+  ...
+# Subtest: linked worktrees with .git files validate
+ok 414 - linked worktrees with .git files validate
+  ---
+  duration_ms: 10097.6952
+  type: 'test'
+  ...
+# Subtest: a protocol instance in a parent repository requires its own root
+ok 415 - a protocol instance in a parent repository requires its own root
+  ---
+  duration_ms: 7084.4525
+  type: 'test'
+  ...
+# Subtest: C40-06: in-root junction is rejected by path safety check
+ok 416 - C40-06: in-root junction is rejected by path safety check
+  ---
+  duration_ms: 12351.7606
+  type: 'test'
+  ...
+# Subtest: C40-07: non-.md files and nested subdirectories in docs/reviews are counted towards corpus budget
+ok 417 - C40-07: non-.md files and nested subdirectories in docs/reviews are counted towards corpus budget
+  ---
+  duration_ms: 8470.3606
+  type: 'test'
+  ...
+# Subtest: C40-07: docs/reviews/archive is excluded from corpus budget count
+ok 418 - C40-07: docs/reviews/archive is excluded from corpus budget count
+  ---
+  duration_ms: 7828.4131
+  type: 'test'
+  ...
+# Subtest: C40-07: corpus byte limit triggers warning independently of file count
+ok 419 - C40-07: corpus byte limit triggers warning independently of file count
+  ---
+  duration_ms: 8182.3115
+  type: 'test'
+  ...
+# Subtest: C40-07: junction / symlink outside root in docs/reviews is not traversed by corpus check
+ok 420 - C40-07: junction / symlink outside root in docs/reviews is not traversed by corpus check
+  ---
+  duration_ms: 5656.0354
+  type: 'test'
+  ...
+1..420
+# tests 420
+# suites 0
+# pass 420
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 299055.3721

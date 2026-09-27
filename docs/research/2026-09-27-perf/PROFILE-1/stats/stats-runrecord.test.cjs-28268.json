@@ -1,0 +1,1 @@
+{"who":"runrecord.test.cjs","depth":1,"pid":28268,"kinds":{"git:rev-parse":{"n":1,"ms":380.8416},"git:cat-file":{"n":14,"ms":2136.0968000000003},"node:protocol-runrecord.cjs":{"n":7,"ms":1191.6649999999995}},"fs":{},"helpers":{},"samples":{},"lifeMs":3764}
