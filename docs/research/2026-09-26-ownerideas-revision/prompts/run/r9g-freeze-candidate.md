@@ -9,16 +9,28 @@
 
 1. Confirm `r9e-repair-pkg2` and `r9f-repair-usage` are DONE and their reports exist:
    `round9/REPAIR-PKG2-R3-GEMINI.md`, `round9/REPAIR-USAGE-GEMINI.md`.
-1b. **Freeze check (owner addendum 2026-09-27, run BEFORE the CANDIDATE commit).** Run
+1b. **Freeze check (owner addendum 2026-09-27, corrected the same day; run BEFORE the CANDIDATE
+   commit).** Run
    `git status --short -- .ai/bin tests docs/specs .ai/docs protocol-manifest.json`; the expected
    output is exactly:
    - `M  .ai/bin/protocol-dispatch.cjs`
    - `M  tests/dispatch.test.cjs`
    - `?? tests/fixtures/dispatch/usage/...`
    (the r9e files are already committed in `9d3f84d`).
-   - If `tests/dispatch.test.cjs` is NOT modified, or there are no usage fixtures, r9f is
-     incomplete (its TESTS section is mandatory): do not freeze; send r9f back to finish its tests.
-   - Any other path in that list: do not freeze; find out where it came from first.
+   - **Transient `t20-/t24-/...-launch.md`** are pre-existing PKG-1 test design: the dispatch tests
+     write them into `tests/fixtures/dispatch/` and delete them at the end. They are NOT an r9f
+     defect and NOT a reason to send r9f back.
+   - **Freeze only when r9f is DONE and no test process is running** (the agy pid has exited). Run
+     the local lane yourself, **sequentially**, never in parallel with another test run.
+   - A leftover untracked `*-launch.md` after that is junk from an interrupted run: delete it,
+     rerun the lane, check again.
+   - Confirm `tests/fixtures/dispatch/hang-launch.md` shows no ` M`; if it is modified, restore it
+     with `git checkout -- tests/fixtures/dispatch/hang-launch.md` and rerun the lane.
+   - Send r9f back only if its own work is missing: the `dispatch.test.cjs` changes, the usage
+     fixtures, or passing T27-T29.
+   - Log for **stage 12**, not for this round: the dispatch tests are not hermetic; they write into
+     the tracked tree (pre-existing PKG-1 design; already covered by the stage-9 F-4 finding and the
+     r9c hygiene repair, which did not fully close the `*-launch.md` class).
    The freeze commit carries only the r9f files; the agreed message names both repairs because the
    CANDIDATE diff `b8781ca..CANDIDATE` contains both.
 2. Run the full local lane on the combined tree:
