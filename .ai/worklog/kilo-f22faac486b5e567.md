@@ -42,7 +42,21 @@ frozen package to the owner for the cloud closure.
 Open: closure must write the F-01 receipt and list the open owner decisions; codex token figures
 remain untrustworthy until OPS-1 W0.
 
+Evidence:
+- anchor: a4c286ce0b561966becf72420602522965ea4c9b, clean tree
+- digest: sha256:a25f2ee264a2e9249f43e7451b7ebfea98ec9a39060df0955d6df696cb05a742 over 733 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-27T04:36:30.514Z by kilo-f22faac486b5e567
+- entry hash format: 2
+- entry: sha256:6879b560201eadd6b1f9df39da63e462f00b48923f7eb393baf1fe745a552f10 of this entry without this block
+- parent-entry: legacy
+- scope: protocol checks only; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 14s
+- test-protocol.ps1: exit 0 in 489s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
 ---
+
 
 ## 2026-09-27 - Overnight runbook: Sol PASS committed; r12 DeepSeek verdict running
 
