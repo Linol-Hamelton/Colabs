@@ -267,9 +267,10 @@
           "{sessionId}"
         ],
         "sessionId": "printed in launch output",
-        "note": "supports --resume [SESSION_ID]"
+        "note": "supports --resume [SESSION_ID]; never edit an entry after record; add a new entry"
       },
       "usage": "none",
+      "note": "never edit an entry after record; add a new entry",
       "failureModes": [
         {
           "pattern": "charmap.*codec",
