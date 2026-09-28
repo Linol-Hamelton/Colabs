@@ -4700,3 +4700,27 @@ Decision:
    merge goes to OWNER-QUEUE.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0104
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0103 item 1 (the start condition for the REPEAT merged-tree run)
+
+Context:
+The owner opened the window (Available ~8.8 GB) and ordered the repeat of the single merged run.
+Insurance: if Available is between 7 and 8 GB at start, start anyway, on the ground that the first
+run started at 5.93 GB, dipped to 3.63 GB and finished in 284.7 s without WMI timeouts; the standing
+8 GB threshold does not change. The registry-fix review provenance is unverified (recorded from the
+session context; no call log exposed), to be marked `modelRan=unverified` in MEASUREMENTS.
+
+Decision:
+1. The repeat merged-tree run may start with Available >= 7 GB; all other PROTO-DEC-0103 conditions
+   are unchanged; the S5 second line records time, WMI timeouts, Available at start/min/finish.
+2. Red -> roll back the local merge, STOP, one line to the owner.
+3. The registry-fix review MEASUREMENTS row carries `model_ran=unverified` and
+   `model_ran_source=unverified` (session context only).
+4. After the push the operator sends one line: "2A merged, push <SHA>", then continues with S6.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
