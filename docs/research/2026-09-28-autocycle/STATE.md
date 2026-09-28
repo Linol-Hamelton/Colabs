@@ -153,6 +153,10 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
    **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact
    `CATALOG.jsonl` merged (48 rows, `a612bff`); MiMo verifier (20% sample) launched 18:52Z as
    `bgp_0e959c1ae001mQ3JOFzDWHEmUs` (launch `LAUNCH-F18-VERIFY.md` `e31a31a`); result pending.
+   **F-18 verifier DONE 18:58Z: RECOMMENDATION - 9 CONFIRM / 0 REJECT / 1 UNSURE (row 20
+   swe-bench-pro: datacamp.com HTTP 403 for one of four scores); review
+   `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md` (CERTIFYING, receipt
+   mimo-4aeecec4ecf66249) @ `81cab28` (pushed). Exit condition met; owner acceptance pending.**
    **Gate cadence:** 30-min gate lines (cron `wku_0e952e8bc001bOY0i80R1E8jwO`) to
    `.ai/runtime/gate-autocycle.log`; kilo WS 3.16 GB at 18:42 (< 6 GB).
 4. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
