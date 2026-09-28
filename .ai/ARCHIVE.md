@@ -13695,3 +13695,43 @@ Evidence:
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 8s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/claude-ad7cc4169e888ea8.md, archived 2026-09-28
+
+## 2026-09-27 - OPS-1 prompt updated from the finished cost-routes study
+
+Agent: claude-ad7cc4169e888ea8 (claude-opus-5-5, cloud session on v2.0.0), advisor; certifies
+nothing.
+
+Action:
+- Read the study's final files (aa5ac9d): `COST-ZERO-ROUTES.md`, `FREE-UNTIL-BALANCE.md`,
+  `GAPS.md`, `round2/VERIFICATION.md` and `USAGE-VERIFIER.md`.
+- Reproduced the codex usage parser against the format recorded in `EVIDENCE.md:18`:
+  - `"tokens used\n10 644"` parses as 10;
+  - `"tokens used: 10 644"` parses as 0.
+  The same regex is in `.ai/bin/protocol-dispatch.cjs:1202` of the candidate 7f199c5.
+- Updated `docs/research/2026-09-27-ops-layer/PROMPT.md`:
+  - W0: the codex parser fix comes first;
+  - W1: client-state access in private clones;
+  - W4: the study's verified results and the owner premises from `GAPS.md` section 6;
+  - acceptance: a check for the codex fix.
+- Updated `README.md` with the rules for parallel operators.
+- No shared document was edited.
+
+Result:
+- The OPS-1 prompt now reflects the verified results of the study.
+- The codex under-count is a known defect of the candidate. Whether to fix it now or record it as
+  an exception is the owner's decision (PROTO-DEC-0047 item 5: three rounds are used).
+- No Evidence: this cloud has no PowerShell.
+
+Next step:
+- The owner decides on the codex defect.
+- At stage 12 I record it either as a finding or as an accepted exception.
+
+Open:
+- The raw codex log line is not yet quoted: confirm it from `.ai/runtime/cost-routes-verifier/`
+  on the workstation.
+- The round-3 certification reports are still uncommitted. Their owning operator
+  (kilo-f22faac486b5e567) must commit them, not the cost-routes operator.

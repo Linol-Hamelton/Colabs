@@ -9,6 +9,56 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - AUTOCYCLE-1 prepared: night operator prompt, relay capsule, mailbox and rule engine
+
+Agent: claude-ad7cc4169e888ea8 (cloud session on v2.0.0), advisor to the owner; certifies and
+executes nothing.
+
+Action:
+- At the owner's request, turned the owner's draft into an operator prompt for an unattended night.
+  Folder `docs/research/2026-09-28-autocycle/`:
+  - `AUTOCYCLE-PROMPT.md`;
+  - `OWNER-DRAFT.md` (verbatim);
+  - `CLAUDE-FINALIZER-START.md`;
+  - seeds of `STATE.md` and `OWNER-QUEUE.md`;
+  - an empty `MEASUREMENTS.jsonl`;
+  - `cycles/C01/00-PROMPT.md` (the round-6 decision);
+  - `README.md` (the pattern).
+- Wrote `tools/mailbox.cjs`: mailbox waits over origin refs, the consensus rule engine (`tally`) and
+  the efficiency formula. It is ASCII only; 10 tally cases were checked by hand, covering 100%,
+  two x 80%, three x 60%, the round limit, 40-59%, under 40% on the second vote, blocker, reserved
+  and a non-consecutive gap.
+- Checked against the repository:
+  - PROTO-DEC-0090 certifier pairs;
+  - origin heads (kernel-batch-1 and perf-wave-1 are still unpushed locally);
+  - F-02 CLOSED;
+  - F-17 ACTIVE;
+  - `SUPERVISOR-PREREG.md`.
+
+Result:
+- The prompt is ready and nothing is launched. The owner sends a one-line launch message.
+- Details the owner's rule did not state are now fixed in the text:
+  - with 2-4 participants the 80-99% band cannot occur;
+  - silence counts as no;
+  - round 1 is not a voting round;
+  - the round limit sends majorities to the owner;
+  - a reserved list covers what the delegation may not decide;
+  - the delegated merge needs six conditions;
+  - shadow cost is used for E;
+  - there is an empty-cycle stop;
+  - the mailbox for a finalizer without a CLI, with timeouts;
+  - the memory gate and a degraded mode if there is no reboot.
+- No Evidence: this cloud has no PowerShell.
+
+Next step: the owner sends the launch line; the operator runs Part A; the owner reboots and starts
+the finalizer session.
+
+Open:
+- The owner may edit the parameters (section 0).
+- Certifiers for any `kernel-batch-2` are the owner's.
+
+---
+
 ## 2026-09-27 - ROADMAP-1 queued: the open-work inventory as one operator prompt
 
 Agent: claude-ad7cc4169e888ea8 (cloud session on v2.0.0), advisor to the owner; certifies nothing.
@@ -102,41 +152,3 @@ Open:
 - The owner decisions listed in report section 7.
 - Removal of the stale worktrees.
 - Journal pruning.
-
----
-
-## 2026-09-27 - OPS-1 prompt updated from the finished cost-routes study
-
-Agent: claude-ad7cc4169e888ea8 (claude-opus-5-5, cloud session on v2.0.0), advisor; certifies
-nothing.
-
-Action:
-- Read the study's final files (aa5ac9d): `COST-ZERO-ROUTES.md`, `FREE-UNTIL-BALANCE.md`,
-  `GAPS.md`, `round2/VERIFICATION.md` and `USAGE-VERIFIER.md`.
-- Reproduced the codex usage parser against the format recorded in `EVIDENCE.md:18`:
-  - `"tokens used\n10 644"` parses as 10;
-  - `"tokens used: 10 644"` parses as 0.
-  The same regex is in `.ai/bin/protocol-dispatch.cjs:1202` of the candidate 7f199c5.
-- Updated `docs/research/2026-09-27-ops-layer/PROMPT.md`:
-  - W0: the codex parser fix comes first;
-  - W1: client-state access in private clones;
-  - W4: the study's verified results and the owner premises from `GAPS.md` section 6;
-  - acceptance: a check for the codex fix.
-- Updated `README.md` with the rules for parallel operators.
-- No shared document was edited.
-
-Result:
-- The OPS-1 prompt now reflects the verified results of the study.
-- The codex under-count is a known defect of the candidate. Whether to fix it now or record it as
-  an exception is the owner's decision (PROTO-DEC-0047 item 5: three rounds are used).
-- No Evidence: this cloud has no PowerShell.
-
-Next step:
-- The owner decides on the codex defect.
-- At stage 12 I record it either as a finding or as an accepted exception.
-
-Open:
-- The raw codex log line is not yet quoted: confirm it from `.ai/runtime/cost-routes-verifier/`
-  on the workstation.
-- The round-3 certification reports are still uncommitted. Their owning operator
-  (kilo-f22faac486b5e567) must commit them, not the cost-routes operator.
