@@ -8,6 +8,39 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Environment gate FAILED (nonpaged pool +43%); heavy steps paused
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Pre-dispatch check before the DIG verification session (Luna): free RAM 11.49 GB OK; max
+process CPU 0.93% of total OK; Committed 31.3/65.2 GB (48%) OK; `Pool Nonpaged Bytes` 985.5 MB
+against the post-reboot baseline 690.63 MB = +42.7% (limit +20%) FAIL. A 60 s re-sample: 988.6 MB
+(+3.1 MB/min), Paged 891.5 -> 874.3 MB (fluctuating). Per AUTOCYCLE section 10 the reaction is: no
+new heavy step and no parallel sessions until it recovers - recorded here, in STATE Memory and in
+OWNER-QUEUE. The prepared DIG task (`DIG-VERIFY-TASK.md`, commit `ac754ba` on roadmap-wave3) and the
+single agy retry are both heavy steps and are paused. Context: the baseline was a quiet 7.6-min
+post-boot sample; the absolute level is well below the pre-reboot 2133.84 MB, and the growth is slow.
+
+Result: Luna is NOT dispatched; no heavy step is running. The owner ruling is requested: waive the
+quiet-boot baseline under observation, or keep the pause. H-2 (pools regrow after the reboot) gets a
+data point: nonpaged grew ~300 MB over ~50 min of normal activity.
+
+Next step: owner ruling on the gate; then the DIG verification with Luna, and/or the one agy retry
+when the owner reports "VPN ok".
+
+Open: gate (owner); agy route (owner); Sonnet 5.5 id (owner); MiMo route (owner).
+
+Evidence:
+- anchor: 1946975b83761bc06be23d0f601cea2153c9770d, uncommitted changes present
+- digest: sha256:7e28e30d19dc2d18348ab3f1da7b40db2a4b44ea5c543f336dd4bab8cfb8f185 over 1869 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T12:48:13.406Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:1f5c880fd10c4dcba73a8cda2db132b17eaf2b32ab5c790c33dbf396ce29b525 of this entry without this block
+- parent-entry: sha256:265db41e2b4c78152d6826da081cba7d1898079a22db6bfd6e4da3df5d6969e5
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - PROTO-DEC-0093 recorded; DIG verifier Luna; agy retry gated on the owner's VPN
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

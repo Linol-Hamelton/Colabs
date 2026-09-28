@@ -149,3 +149,7 @@ OpenRouter credits for MiMo; Sonnet 5.5 id unconfirmed).
   TextInputHost fresh (PID 15084, 62.9 MB, 0.9 s CPU); a 5 s CPU sample shows no process above 1%
   of total capacity (max Code 0.93%; 32 logical processors).
   Pools returned to ~0.7/0.5 GB (was 5.9 GB paged before reboot) - consistent with H-2.
+- GATE FAIL 2026-09-28T12:52Z: Nonpaged 985.5 MB = +42.7% over the baseline (limit +20%), +3.1 MB/min
+  over a 60 s re-sample; Paged 891->874 MB; committed 48%; free 11.5 GB; CPU max 0.93%. Heavy steps
+  paused per section 10 (Luna DIG not dispatched; the agy retry paused too). Owner ruling requested.
+  H-2 data point: nonpaged grew ~300 MB in ~50 min of activity after a fresh boot.
