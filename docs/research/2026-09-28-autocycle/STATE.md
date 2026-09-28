@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T18:20Z - OWNER ANSWERED Q-A..Q-D (PROTO-DEC-0107): remaining F-C01 work =
-H1 only, part of Kernel v1; A-1 RUNNING; H1 certifiers named (Luna + MiMo); NIGHT_END not extended;
-the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T18:35Z - A-1 AND H1 RUN IN PARALLEL (ADV-002); advisor calls are light
+(owner clarification); H1 = the installed protected set (PROTO-DEC-0107 item 1); certifiers: A-1
+Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -24,8 +24,19 @@ the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md`
   `tests/rulebook.test.cjs:270,293`); what is really open is the host path - H1 (the installed
   manifest has no `source`, so `protocol-verdict` check 1 exits 2 in every host project) and H2 (no
   host consumer-path declaration). Both were inferred from code; H1 is now reproduced.
-- Next advisor call (002): sent now with the probe output and the owner's answers (PROTO-DEC-0107);
-  later calls at the A-1 freeze and the A-1 verdicts.
+- ADV-002 (selection=advisor): H1 starts NOW in parallel with A-1 (vibe is a light step, the files
+  are disjoint); names: branch `h1-installed-protected-set`, worktree `.ai/runtime/h1`,
+  `LAUNCH-H1.md`, certifier prompt `docs/reviews/2026-09-28-h1-adversarial-prompt.md`; allowed files
+  = `.ai/bin/protocol-verdict.cjs`, `tests/rulebook.test.cjs`, the spec protected-set paragraph,
+  the prompt, the journal (NOT `tests/validator-gate.test.cjs` - A-1 edits it); semantics: source or
+  missing role unchanged (`managed`+`source` required), installed = `managed` + `.ai/`, `.claude/`,
+  `.codex/` with `source` present -> exit 2, any other role -> exit 2; a 9-case test matrix in
+  `tests/rulebook.test.cjs` (prefix `PROTO-DEC-0107 H1:`); the A-1 flow adds an operator full suite
+  on the branch before the DeepSeek review; MiMo certifies both candidates in separate sequential
+  sessions. Owner clarification (selection=owner): advisor calls are LIGHT (like codex/vibe remote
+  calls; the 8 GB gate does not block them; wait only under Available < 4 GB); heavy = full suite,
+  measurements, local code-working sessions.
+- Next advisor call (003): at the first freeze or the first verdicts, or on an ambiguity.
 
 ## Kernel v1 (PROTO-DEC-0105, owner decision)
 
@@ -46,6 +57,10 @@ the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md`
   (b) in a fresh installed fixture the installed tool exits **2** (BLOCKED `source must be a
   non-empty array`) and the installed manifest has `hasSource=false` (H1 confirmed). Raw outputs:
   operator journal 2026-09-28.
+- H1 execution (ADV-002): worktree `.ai/runtime/h1`, branch `h1-installed-protected-set` @ `606fcc5`
+  (cut from `606fcc5`); executor vibe launched 18:34Z (background `bgp_0e94889cc001d6qaazaxD8B6oV`,
+  pid 31832, max-turns 150, registered minimal tool list); it runs only
+  `node --test tests/rulebook.test.cjs`; the full suite stays with the operator.
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
@@ -75,6 +90,10 @@ the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md`
 - ADV-001 exchange: request `118f932`, reply + advisor journal `f6b9fe8`.
 - Owner answered Q-A..Q-D; **PROTO-DEC-0107** appended under the lock + REGISTRY row (transcribed by
   kilo-2fec8d740dc73400); OWNER-QUEUE Q-A..Q-D resolved.
+- ADV-002 exchange: request `1688372`, reply `ca4f9fc`; owner gate clarification (advisor calls are
+  light); `LAUNCH-H1.md` `606fcc5`; H1 worktree + vibe executor started in parallel with A-1.
+- A-1 progress: failing regression committed `6f44903` (advisory must fail the gate); the fix to
+  `validate-protocol.ps1` is in progress.
 - Under the lock: the `.ai/TASK.md` F-C01 line corrected (ADV-001-7); OWNER-QUEUE +Q-A..Q-D.
 - `LAUNCH-A1.md` `74b46ff`; A-1 worktree + branch created from it; executor session started.
 - F-C01 probe, light, no tree changes (details in the Kernel v1 section above).
@@ -83,8 +102,8 @@ the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md`
   above ~5% after that (msmpeng 4.5%, transient).
 - Earlier today: 2A merged `bb19cc3`, registry fix `b04e0d9`, S6 green (2 valid RUNS rows: one
   `tokens.source="none"`, one full usage 127656/37257, 0.093511 USD); pushed `v2.0.0` to `74b46ff`.
-- 18:25Z section-10 gate FAIL before advisor 002: Available 7.7 -> 7.2 GB (< 8; A-1 holds ~2 GB).
-  The call is deferred until the gate recovers; advisor 002 request is pushed (`1688372`).
+- 18:25Z perceived section-10 gate block before advisor 002 (Available 7.7 -> 7.2 GB); corrected by
+  the owner: advisor calls are light, so the call proceeded at Available 8.88 GB (ADV-002-6).
 
 ## Packet-2 table (S1-S9, value + source; the owner chose the Kernel v1 variant: A')
 
@@ -102,15 +121,15 @@ the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md`
 
 ## Next actions (in order)
 
-1. **A-1**: watch the executor (a stall is 15 min without a tree write or journal update;
-   PROTO-DEC-0047 item 6); on the candidate: the DeepSeek review per Q-D (approved: one call if the
-   balance >= $3), then freeze, then Sol (Medium, prompt <= 150, report <= 250) + MiMo in parallel on
-   one SHA; FAIL -> STOP to the owner, a repeat only by the owner's word; the merge is the owner's.
-2. **H1 fix (the F-C01 remainder)**: advisor 002 now; after its reply - branch from v2.0.0 + LAUNCH
-   file; the vibe executor starts only after A-1 completes (heavy steps serial, ADV-001-4); failing
-   test first; DeepSeek review; certifiers Luna + MiMo on the frozen SHA (owner-approved,
-   PROTO-DEC-0107); merge per the delegated rule (not a reserved category) unless it falls after
-   NIGHT_END - after 23:00 MSK merges only by the owner's word.
+1. **A-1**: watch the executor (stall = 15 min; PROTO-DEC-0047 item 6); on the candidate: gate, then
+   the operator's full suite on `a1-installed-advisory` (quiet window; time/pass/Available into the
+   journal), then the DeepSeek review per Q-D (record the balance first; one call if >= $3), a fix
+   loop on a blocking finding, then freeze (SHA into STATE, push the branch), then Sol (Medium,
+   <=150/<=250) + MiMo in parallel on one SHA; FAIL -> STOP; the merge is the owner's.
+2. **H1 fix (the F-C01 remainder)**: RUNNING (vibe, `.ai/runtime/h1`); on delivery: the diff must
+   contain only the ADV-002-2 files and must not overlap A-1; then the full suite (never simultaneous
+   with the A-1 suite), DeepSeek review (balance first, >= $3), freeze, Luna (codex, xhigh) + MiMo on
+   one SHA; merge per the delegated rule, but after 20:00Z only by the owner's word.
 3. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
 4. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
