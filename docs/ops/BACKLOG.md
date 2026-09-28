@@ -51,6 +51,11 @@
 
 ## Medium
 
+- Tests must not hardcode ids the live corpus can take: `tests/registry.test.cjs` tests 6/7 pinned
+  `PROTO-DEC-0099`; the live `.ai/DECISIONS.md` reached 0099 on 2026-09-28 and the fixture-based
+  validator run then failed with duplicate/edited-block FAILs (the fixture resolves the real corpus).
+  Source: the failed merged-tree suite 2026-09-28. Immediate fix applied on v2.0.0 (computed id =
+  max+1); rule for future tests: derive synthetic ids from the fixture or reserve a far range.
 - Kilo client: `kilo.exe serve` (VS Code extension `kilocode.kilo-code-7.8.1`) grows its Working Set
   over a long operator session (16:02Z 3.98 GB -> 16:20Z 6.17 -> 16:23Z 8.24 GB peak; trimmed back
   to 3.7-4.0 GB by 16:27-16:32Z) while private memory holds ~8.3-8.6 GB; the spike pushed Available
