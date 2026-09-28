@@ -71,6 +71,10 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
   (cut from `606fcc5`); executor vibe launched 18:34Z (background `bgp_0e94889cc001d6qaazaxD8B6oV`,
   pid 31832, max-turns 150, registered minimal tool list); it runs only
   `node --test tests/rulebook.test.cjs`; the full suite stays with the operator.
+- **H1 candidate DELIVERED 18:39Z (vibe, mistral-medium-3.5): `28d13cc` tests (nine
+  `PROTO-DEC-0107 H1:` cases) + `d31ebb6` fix/spec/prompt(96)/journal; only the ADV-002-2 allowed
+  files; 63/63 on the branch; working tree clean. The operator full suite is queued until the A-1
+  session exits (ADV-002-5).**
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
@@ -140,22 +144,24 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
    journal), then the DeepSeek review per Q-D (record the balance first; one call if >= $3), a fix
    loop on a blocking finding, then freeze (SHA into STATE, push the branch), then Sol (Medium,
    <=150/<=250) + MiMo in parallel on one SHA; FAIL -> STOP; the merge is the owner's.
-2. **H1 fix (the F-C01 remainder)**: RUNNING (vibe, `.ai/runtime/h1`); on delivery: the diff must
-   contain only the ADV-002-2 files and must not overlap A-1; then the full suite (never simultaneous
-   with the A-1 suite), DeepSeek review (balance first, >= $3), freeze, Luna (codex, xhigh) + MiMo on
-   one SHA; merge per the delegated rule, but after 20:00Z only by the owner's word.
-3. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
-4. At the freeze: the public-composition tables (install into an empty temp folder; compare with
+2. **H1 fix (the F-C01 remainder)**: candidate DELIVERED (`28d13cc`, `d31ebb6`); on A-1 exit: gate,
+   then the full suite (never simultaneous with the A-1 suite), DeepSeek review (balance first,
+   >= $3), freeze, Luna (codex, xhigh) + MiMo on one SHA; merge per the delegated rule, but after
+   20:00Z only by the owner's word. (Autonomous brief: H1 candidate awaits the suite.)
+3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
+   (`M-2A-RES-CHECK.md`); no code changes.
+4. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
+5. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
    installer/validator needs) to the owner; nothing deleted before the owner's word; the tag-name
    proposal `kernel-v1.0.0` awaits approval. **Tables built (autonomous brief item 3a):
    `COMMUNITY-COMPOSITION.md` - 45 stay / 1963 leave @ `63de030` + 5 validator-referenced leaves and
    the state-file freeze-form question in OWNER-QUEUE; nothing deleted.**
-5. Open backlog/residuals: **M-2A-res** (F-2A-01/F-2A-05 LOW residuals, next wave), **N-3**
+6. Open backlog/residuals: **M-2A-res** (F-2A-01/F-2A-05 LOW residuals, next wave), **N-3**
    (document `PROTOCOL_JOURNAL_IMPORT_ROOT` in the next forward artifact), the Kilo-client growth
    line, the "tests must not hardcode live-corpus ids" line, and the OWNER-QUEUE additions (license
    lawyer before the first sale; authorship article) - all in `docs/ops/BACKLOG.md` / `OWNER-QUEUE.md`.
-6. Other queued work already completed tonight: F-18 catalog collectors (branch `bench-catalog`,
+7. Other queued work already completed tonight: F-18 catalog collectors (branch `bench-catalog`,
    `c53e412`; MiMo verifier pending), DIG corrections + Luna rechecks (all green), OPS-1 phase A
    (branch `ops-1`, `49164b7`; phases B/C gated), wave-3 drafts (`e8181ec`).
 
