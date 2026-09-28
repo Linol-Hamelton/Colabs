@@ -4515,3 +4515,48 @@ Decision:
    edited): operator = DeepSeek API (paid); Vercel = bonus route, currently 401.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0099
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0096 item 2 and PROTO-DEC-0098 item 6 (the packet-2 gate and the S2 reading);
+PROTO-DEC-0098 items 2 and 5 (reviewer provenance and the post-review order); the efficiency
+accounting of AUTOCYCLE-PROMPT section 7
+
+Context:
+The owner answered the packet-2 handover and the DeepSeek review report on 2026-09-28: packet 2 waits
+for three signals; the S2 reading is corrected to A' because F-C01 (the host review-path contract;
+its probes return RECOMMENDATION/0 instead of FAIL/1) lies on the pilot path; the S8 list is due; S9
+awaits the owner; the reviewer's provenance must come from the call log/step_finish, not from the
+model's own words; and the efficiency accounting changes to a findings-based q.
+
+Decision:
+1. Packet 2 (the Kernel v1 choice) is postponed until three signals: S1 (the MiMo + Sol round-2
+   verdicts on 2A), S5 (a full suite run on the frozen 2A candidate: wall time and any WMI timeouts -
+   a heavy step, only in a quiet window, strictly sequential, no parallel sessions), S6
+   (docs/ops/RUNS.jsonl after the 2A merge: every dispatch row carries usage or a not-exposed
+   marker). Then the whole table goes to the owner.
+2. S2 is corrected by a NEW line (the old is not edited): S2 = A', because F-C01 lies on the pilot
+   path. The single Gemini "not built" row (PROTO-DEC-0060 item 3: `.ai/core/` absent, landing
+   deferred to package I-a) is named and classified as kernel-internal, not on the host/install path.
+3. S8: the operator lists every case where the supervisor/advisor corrected the operator (including
+   the parallel full run with agy and the freeze-before-review order) and marks, per case, whether it
+   is an S8 category (lock, archive, commit). The owner counts.
+4. S9 waits for the owner's answer; the operator does not fill it.
+5. Reviewer provenance: in the review report and MEASUREMENTS, `modelRan` and `providerID` come only
+   from the call log/step_finish, never from the model's own words. Then the established order: fix
+   the review findings -> freeze -> MiMo + Sol certification (effort Medium), round 2 of 3. If round
+   2 yields no PASS/RECOMMENDATION from both certifiers -> STOP and to the owner (round 3 under S1
+   means variant B).
+6. Efficiency (AUTOCYCLE-PROMPT section 7; E = (q x v) / (cost_shadow x minutes); the owner's
+   R = A*Q/(T*C)): from now on, as NEW accounting rules, old rows not edited:
+   a. q for a reviewer/certifier counts findings, not the verdict: q = reproduced findings / claimed
+      findings; with zero claimed findings, q = 1.0 when no later check (another certifier, a run,
+      the next round) finds a missed defect, and 0 when one does. The verdict itself does not affect
+      q. The round-1 2A rows (Sol, MiMo) are recomputed this way.
+   b. Rows with role=probe and calls without a substantive result (v = 0) do not enter the E ranking;
+      the top by E compares only within one role (reviewer with reviewer, collector with collector).
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
