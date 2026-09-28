@@ -315,9 +315,17 @@ function scopeCheck(dir, baseHead, declaredOutputs, knownProcs = {}) {
   return { bad: bad.length ? bad : null };
 }
 
+// Journal imports land in the repository by default. PROTOCOL_JOURNAL_IMPORT_ROOT redirects
+// them (tests bind it to their temp root so a dispatch run never writes into the tracked tree).
+function journalImportRoot(repoRoot) {
+  const override = process.env.PROTOCOL_JOURNAL_IMPORT_ROOT;
+  return override ? path.resolve(override) : repoRoot;
+}
+
 function importResults(dir, declaredOutputs, repoRoot = getRepoRoot()) {
   const imported = [];
   const declaredNorm = (declaredOutputs || []).map(p => p.replace(/\\/g, '/'));
+  const jRoot = journalImportRoot(repoRoot);
 
   for (const p of declaredNorm) {
     const src = path.resolve(dir, p);
@@ -335,7 +343,7 @@ function importResults(dir, declaredOutputs, repoRoot = getRepoRoot()) {
       const norm = e.path.replace(/\\/g, '/');
       if (JOURNAL_RE.test(norm)) {
         const src = path.resolve(dir, norm);
-        const dst = path.resolve(repoRoot, norm);
+        const dst = path.resolve(jRoot, norm);
         fs.mkdirSync(path.dirname(dst), { recursive: true });
         fs.copyFileSync(src, dst);
         imported.push(norm);

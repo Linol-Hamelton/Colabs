@@ -30,6 +30,12 @@ fs.writeFileSync(DEFAULT_TEST_SIGNALS, '# Signals ledger\n\nAppend-only.\n\n', '
 process.env.PROTOCOL_RUNS_FILE = DEFAULT_TEST_RUNS;
 process.env.PROTOCOL_SIGNALS_FILE = DEFAULT_TEST_SIGNALS;
 
+// W5 (F-2A-03): bind journal imports into the suite temp root so no dispatch run in this
+// suite ever writes into the tracked tree; a killed run leaves a clean git status.
+const JOURNAL_IMPORT_ROOT = path.join(TEST_SUITE_TMP, 'journal-import');
+process.env.PROTOCOL_JOURNAL_IMPORT_ROOT = JOURNAL_IMPORT_ROOT;
+const TEST_JOURNAL = path.join(JOURNAL_IMPORT_ROOT, '.ai', 'worklog', 'gemini-0123456789abcdef.md');
+
 const getTrackedStatus = () => {
   const r = spawnSync('git', ['status', '--porcelain'], {
     cwd: path.resolve(__dirname, '..'),
@@ -214,7 +220,7 @@ test('T6: end-to-end run with fake client in work mode', () => {
     ]
   }), 'utf8');
 
-  const journalPath = path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md');
+  const journalPath = TEST_JOURNAL;
 
   try {
     // Probe level 0 test with fake client
@@ -238,7 +244,7 @@ test('T6: end-to-end run with fake client in work mode', () => {
 
     // Declared output must exist in repoRoot
     assert.ok(fs.existsSync(path.resolve(repoRoot, outFile)));
-    // Journal must have been imported into repoRoot .ai/worklog
+    // Journal must have been imported into the suite temp root, not the tracked tree
     assert.ok(fs.existsSync(journalPath));
   } finally {
     // Cleanup imported test artifacts
@@ -627,7 +633,7 @@ test('T20: AC-7, AC-12: transient retry, run record validation, usage render', (
     try { fs.unlinkSync(path.join(os.tmpdir(), 'fake-transient.txt')); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -714,7 +720,7 @@ test('T21: AC-8: STALL recovery with wakes and fallen = true', () => {
   } finally {
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -796,7 +802,7 @@ test('T22: AC-9: INVALID_OUTPUT repair resume', () => {
   } finally {
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -932,7 +938,7 @@ test('T24: AC-11: Completion contract requires Evidence line', () => {
   } finally {
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -1012,7 +1018,7 @@ test('T25: AC-7: PROCESS_CRASH recovery via resume', () => {
   } finally {
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -1428,7 +1434,7 @@ if (mode === 'two-attempts') {
   } finally {
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -1693,7 +1699,73 @@ test('T30: Item 4: dispatch attempt without --runs-file appends to dispatch.runs
     try { fs.unlinkSync(path.resolve(repoRoot, customRuns)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
     try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
-    try { fs.unlinkSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')); } catch {}
+    try { fs.unlinkSync(TEST_JOURNAL); } catch {}
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('W5 (F-2A-03): the imported journal is bound to the test temp root, never the tracked tree', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'disp-w5-'));
+  const journalRoot = path.join(tmp, 'journal-root');
+  const launchFile = path.join(TEST_TMP_DIR, 'w5-launch.md').replace(/\\/g, '/');
+  const repoRoot = path.resolve(__dirname, '..');
+  const outFile = DEFAULT_OUT_FILE;
+  const journalRel = '.ai/worklog/gemini-0123456789abcdef.md';
+  const journalInTemp = path.join(journalRoot, '.ai', 'worklog', 'gemini-0123456789abcdef.md');
+  const journalInRepo = path.resolve(repoRoot, journalRel);
+
+  fs.mkdirSync(path.dirname(path.resolve(repoRoot, launchFile)), { recursive: true });
+  fs.writeFileSync(path.resolve(repoRoot, launchFile), '# W5 launch\n', 'utf8');
+
+  const fakeRegPath = path.join(tmp, 'clients.json');
+  fs.writeFileSync(fakeRegPath, JSON.stringify({
+    schema: 'clients/1',
+    clients: {
+      fake: {
+        binary: 'node',
+        present: true,
+        version: process.version,
+        verifiedOn: '2026-09-26',
+        source: 'node --version',
+        command: ['node', FAKE_CLIENT, 'work', '{workdir}', '{workdir}'],
+        model: { how: 'none', listing: null },
+        effort: { how: 'none', values: null, note: null },
+        env: {},
+        resume: { command: null, sessionId: null, note: 'none' },
+        usage: 'none',
+        failureModes: []
+      }
+    }
+  }), 'utf8');
+
+  const dispPath = path.join(tmp, 'disp.json');
+  fs.writeFileSync(dispPath, JSON.stringify({
+    stateDir: path.relative(repoRoot, path.join(tmp, 'state')).replace(/\\/g, '/'),
+    slots: [
+      { id: 'w5-slot', launch: launchFile, out: outFile, route: { client: 'fake', model: 'test' } }
+    ]
+  }), 'utf8');
+
+  try {
+    const r = runBin(['run', dispPath, '--registry', fakeRegPath], path.resolve(__dirname, '..'), {
+      PROTOCOL_JOURNAL_IMPORT_ROOT: journalRoot
+    });
+    assert.equal(r.code, 0);
+    assert.match(r.stdout, /^DONE slot=w5-slot/m);
+
+    assert.ok(fs.existsSync(journalInTemp), 'the imported journal must land inside the test temp root');
+    assert.ok(!fs.existsSync(journalInRepo), 'the imported journal must never land in the tracked tree');
+    const porcelain = spawnSync('git', ['status', '--porcelain'], {
+      cwd: path.resolve(__dirname, '..'),
+      encoding: 'utf8',
+      windowsHide: true
+    }).stdout || '';
+    assert.ok(!porcelain.includes('gemini-0123456789abcdef'), `git status must stay clean of the test journal: ${porcelain}`);
+  } finally {
+    try { fs.unlinkSync(journalInTemp); } catch {}
+    try { fs.unlinkSync(journalInRepo); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, launchFile)); } catch {}
+    try { fs.unlinkSync(path.resolve(repoRoot, outFile)); } catch {}
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
@@ -1710,6 +1782,18 @@ test('Guard test: test suite leaves no changes to tracked files', () => {
   const currentFixtures = getFixturesStatus();
   const changedFixtures = currentFixtures.filter(l => !initialFixturesStatus.includes(l));
   assert.deepEqual(changedFixtures, [], `Test suite modified or created files under tests/fixtures:\n${changedFixtures.join('\n')}`);
+
+  // W5 (F-2A-03): the fake client's journal never reaches the tracked tree, not even as an
+  // untracked file a killed run would leave behind.
+  assert.ok(!fs.existsSync(path.resolve(repoRoot, '.ai/worklog/gemini-0123456789abcdef.md')),
+    'the fake client journal leaked into the tracked tree');
+  const porcelainAll = spawnSync('git', ['status', '--porcelain'], {
+    cwd: path.resolve(__dirname, '..'),
+    encoding: 'utf8',
+    windowsHide: true
+  }).stdout || '';
+  assert.ok(!porcelainAll.includes('gemini-0123456789abcdef'),
+    `git status must stay clean of the fake client journal:\n${porcelainAll}`);
 });
 
 test.after(() => {
