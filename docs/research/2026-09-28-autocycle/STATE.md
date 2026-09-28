@@ -48,11 +48,11 @@ as facts change and pushes after every step.
 
 - Recovery-3 launch file committed on `kernel-batch-1`: `LAUNCH-2A-RECOVERY3.md`, commit `670f520`
   (pushed). Candidate stays `5bc9940`.
-- agy instability: dispatch 1 (12:02Z) failed 400 location; dispatch 2 (12:07Z) failed
-  loadCodeAssist EOF; dispatch 3 (12:09Z) failed `streamGenerateContent` EOF after ~18 min with no
-  file output (grpc code 2, retryable true). Attempt 4 dispatched 2026-09-28T12:29Z
-  (bgp_0e7fb341f001xLhjRj6PveUolb). Awaiting the unified adversarial audit prompt (deliverable
-  `docs/reviews/2026-09-28-gemini-wave2a-adversarial-prompt.md`).
+- agy route DOWN (2026-09-28): four dispatch failures in 30 min - 400 location; `loadCodeAssist`
+  EOF; `streamGenerateContent` EOF after ~18 min; `gemini-3.8-flash-high` no longer recognized
+  (`invalid model selection`), then `agy models` timed out. Retries stopped. Recovery 3 is NOT
+  completed; the blocker is in OWNER-QUEUE (fix agy or name a substitute executor). Deliverable
+  remains `docs/reviews/2026-09-28-gemini-wave2a-adversarial-prompt.md`.
 - After the prompt lands: freeze the candidate, then MiMo + Sol certification. The MiMo route
   question is in OWNER-QUEUE (OpenRouter blocked by credits; xiaomi route verified).
 - Owner note 2026-09-28T12:16Z: first cycle after the reboot strictly sequential (section 10); the

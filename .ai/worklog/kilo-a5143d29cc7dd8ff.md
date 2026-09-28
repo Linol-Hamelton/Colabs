@@ -8,6 +8,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - agy unreachable: recovery-3 attempt 4 failed; retries stopped; blocker queued
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Attempt 4 (12:29Z, bgp_0e7fb341f001xLhjRj6PveUolb) failed at startup:
+`invalid model selection (--model "gemini-3.8-flash-high" --effort ""): model gemini-3.8-flash-high is
+not recognized as a known model or custom model in settings`. A follow-up `agy models` then timed out
+after 120 s. Retries stopped per plan: four infrastructure failures in 30 minutes (400 location,
+`loadCodeAssist` EOF, `streamGenerateContent` EOF after ~18 min, unrecognized model). Added the row
+to MEASUREMENTS.jsonl, the item to OWNER-QUEUE and the state to STATE.md.
+
+Result: Recovery 3 is NOT completed; the Gemini executor has no working route. C01 item 6c routes a
+fallen recovery to the owner, and no decision names a substitute executor, so the branch stops here
+and waits on OWNER-QUEUE. H-1 (memory) is not implicated: all four failures are route/setup errors.
+
+Next step: owner fixes agy (VPN and the model list/settings) or names a substitute; meanwhile the
+operator may proceed with agy-independent approved work (DIG verification with Sol/codex; wave-3
+drafts that do not need agy; benchmark-catalog preparation) as the next single heavy step.
+
+Open: agy route (owner); recovery 3 blocked.
+
+Evidence:
+- anchor: 66c565bb81c31feb6d53164fe939599fb66e5a85, uncommitted changes present
+- digest: sha256:f095e1a7155b2c057d54d75571f457f9be85dc9085d52d597599ad3892eca491 over 1869 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T12:32:59.054Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:c178c274744315e1e311f12498915e78a99ec8da88c85076323b39da47c7b508 of this entry without this block
+- parent-entry: sha256:124051fb589503ad5cab5443ee9a853cf1478aa2e74bc7447abdd27a87128e6c
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - agy recovery-3: attempts 2-3 failed on network; attempt 4 dispatched
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
