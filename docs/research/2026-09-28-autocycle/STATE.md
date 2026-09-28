@@ -194,9 +194,13 @@ accepted); WAITING for the owner's release/CoLabus lines; no new development in 
    object `bf680c88`); PROTO-DEC-0108 recorded under the lock (Zenodo integration enabled; Software
    Heritage save request accepted). WAITING for the owner's two lines ("релиз опубликован, DOI
    <...>", "CoLabus создан, доступ выдан"), then PROTO-DEC-0106 steps d-f one by one.** The five
-   state files reset to the installer's empty-project skeletons (ADV-003 item 7); the five
-   validator-referenced leaves are analyzed in `COMMUNITY-COMPOSITION.md` (owner decides; operator
-   recommends keeping the four config/CI/test files and treating REGISTRY.md as the owner's call).
+   state files reset to the installer's empty-project skeletons (ADV-003 item 7). **The five
+   validator-referenced files ALL STAY (verdict 2026-09-28, selection=owner): `.editorconfig` and
+   `.codex/config.toml` as exceptions; `test-protocol.ps1`, `tests/` entirely and
+   `.github/workflows/protocol.yml` because `role=source` requires them (FAIL otherwise,
+   `validate-protocol.ps1:144-158`); `REGISTRY.md` stays as a path with stub content. Tables
+   recalculated: 158 stay / 1881 leave, referenced=0. Step (f) check extended: validator PASS +
+   full suite PASS on the cleaned tree + Community install validator PASS.**
 5. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
    installer/validator needs) to the owner; nothing deleted before the owner's word; the tag-name

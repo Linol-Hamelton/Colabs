@@ -1,80 +1,55 @@
 # Community-состав: таблицы «остаётся / уходит» (PROTO-DEC-0106 п.9)
 
-Построено механически 2026-09-28 18:42Z оператором (kilo-2fec8d740dc73400). Метод: установка протокола установщиком в пустую временную папку
+Построено механически 2026-09-28 21:11Z оператором (kilo-2fec8d740dc73400). Метод: установка протокола установщиком в пустую временную папку
 (`setup-ai-protocol.ps1 -Target <temp> -InitGit`, 34 файла) + сравнение с `git ls-files`
-`D:\Colabs` @ `63de03058521b921011e86520c468acd510731bb`. Ничего не удалено; это только таблицы для решения владельца.
+`D:\Colabs` @ `86f08b0a6344ad5f86195c97b256f1890584d472`. Ничего не удалено; это только таблицы для решения владельца.
 
 Состав по правилу PROTO-DEC-0106 п.9: остаётся то, что получает ПУСТОЙ проект при установке
 (managed + integration + создаваемое установщиком), плюс исключения: LICENSE, README.md,
 QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`templates/`).
 
-## Пограничные случаи (вопрос владельцу; механика их не решает)
+## Пограничные случаи и решения владельца (2026-09-28)
 
-1. **Пять файлов состояния создаёт установщик, но PROTO-DEC-0106 п.9 называет содержимое
-   «уходит»**: `.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, `.ai/ARCHIVE.md`,
-   `.ai/worklog/README.md` (плюс сами журналы). В пустой установке это скелеты из `templates/ai/`;
-   в исходном дереве - накопленная история. Механическое чтение: в публичном коммите эти пути
-   остаются, но с содержимым-скелетом (накопленный текст уходит). **Решение о форме заморозки -
-   за владельцем** (скелет вместо содержимого vs иное); строка в OWNER-QUEUE.
-2. **Пять файлов из «уходит», на которые ссылается `validate-protocol.ps1`** (долг владельцу по ADV-003
-   item 2; рекомендация: оставить исключениями, если это протокольный код/тесты; решение владельца):
-
-   | путь | что это | есть ли что-то кроме протокольного | ссылка в валидаторе |
-   |---|---|---|---|
-   | `.editorconfig` | стиль-конфиг репозитория (UTF-8/LF/final newline, отступы 2/4, md без trim) | нет: чистая конфигурация стиля | `validate-protocol.ps1:216` (textNames), `:694` (config allowlist) |
-   | `.codex/config.toml` | конфигурация клиента Codex (approval_policy=on-request, sandbox_mode=workspace-write; хуки в hooks.json) | нет: только параметры клиента протокола | `:203` (исключён из программной проверки) |
-   | `.github/workflows/protocol.yml` | CI протокола: валидатор + набор + anchor + установка в чистую папку + идемпотентность reinstall | нет: только протокольные шаги (упоминает suite/installer) | `:206` |
-   | `test-protocol.ps1` | полный регрессионный набор протокола (Node 22, ASCII, LF) | нет: тесты протокола | `:654` (rootProtectedFiles) |
-   | `docs/decisions/REGISTRY.md` | append-only реестр переходов статусов решений (governance-метаданные) | не код и не тесты: только метаданные решений (включая упоминания закрытой части) | `:475-478`, `:531`: отсутствие -> **WARN** (не FAIL); удаление строк -> WARN |
-
-   Рекомендация оператора: первые четыре оставить в публичной версии (протокольный код/конфиг/тесты);
-   `REGISTRY.md` - метаданные решений, не идеи/планы/данные; если владелец решит исключить, валидатор
-   даёт только WARN в source-роли.
-
-   **Решение владельца 2026-09-28 (selection=owner):**
-   - `.editorconfig` и `.codex/config.toml` - **остаются** в публичной версии исключениями;
-   - `docs/decisions/REGISTRY.md` - **заменить заготовкой** (только шапка таблицы, пустой реестр),
-     согласованно со скелетом `.ai/DECISIONS.md`;
-   - `test-protocol.ps1` и `.github/workflows/protocol.yml` - решение отложено; факты ниже.
-
-   **Факты для отложенного решения (отправлены владельцу 2026-09-28):**
-   - (а) Отсутствие в `role=source`: `validate-protocol.ps1:144-146` добавляет `manifest.source` +
-     `manifest.tests` в `$Required`; `:154-158` на каждый отсутствующий файл пишет
-     `FAIL "missing file: <rel>"`. `test-protocol.ps1` входит в `manifest.source` -> его удаление
-     из source-дерева = **FAIL** (если не менять список манифеста). `protocol.yml` не входит ни в
-     один список манифеста; `:206` срабатывает только при наличии файла (protocol-owned для
-     encoding-проверок) -> удаление **безмолвно** (ни FAIL, ни WARN).
-   - (б) От `tests/fixtures/prompts/**` зависят только `tests/dispatch.test.cjs`: T5 (`:153-175`)
-     копирует каталог целиком (40 файлов) и требует `check` exit 0 с числом слотов; T18 (`:526-542`)
-     гоняет `check` по `DISPATCH.json`. `tests/runrecord.test.cjs` читает промпт r6 из объекта git
-     `fd789ac` (история, достижима), а не из фикстуры. В каталоге: `DISPATCH.json` + 39
-     исторических research-промптов (`run/*.md`), всего 73.1 KB.
-   - (в) В `tests/` кроме протокольного кода: 29 `.cjs` (код тестов) + 66 файлов `fixtures/`
-     (prompts 40, signals 10, dispatch 9, resolver 4, runrecord 3). Единственное не-кодовое
-     содержимое - фикстуры: 39 `run/*.md` (исторические research-промпты, входы для тестов
-     dispatch), логи usage, goldens, «плохие примеры» signals. Идей/планов/данных сверх этого нет.
-
-3. Размеры в таблицах - из исходного дерева на указанном SHA; в пустой установке те же пути
-   существуют, но меньше по размеру (скелеты). `.ai/runtime/` и прочие игнорируемые файлы в
-   состав не входят (их нет в `git ls-files`). Untracked-файлы текущих сессий также не входят.
+1. **Пять файлов, на которые ссылается `validate-protocol.ps1`** - все остаются в публичной версии
+   (вердикт владельца 2026-09-28, selection=owner): `.editorconfig` и `.codex/config.toml` - как
+   исключения; `test-protocol.ps1`, `tests/` целиком (код и фикстуры) и
+   `.github/workflows/protocol.yml` - остаются, потому что `role=source` требует `test-protocol.ps1`
+   и `manifest.tests` (иначе `FAIL`, `validate-protocol.ps1:144-158`), замороженный манифест
+   Kernel v1 не правится, и публичная версия обязана проходить свой валидатор, набор и CI;
+   исторические research-промпты в `tests/fixtures/prompts/` остаются как входы тестов (они и так
+   в истории/Zenodo/SWH). `docs/decisions/REGISTRY.md` остаётся путём, но его содержимое заменяется
+   заготовкой (только шапка таблицы - пустой реестр), согласованно со скелетом `.ai/DECISIONS.md`.
+2. **Пять state-файлов** (`.ai/TASK.md`, `.ai/PLAN.md`, `.ai/DECISIONS.md`, `.ai/ARCHIVE.md`,
+   `.ai/worklog/README.md`): в публичном коммите содержимое = скелеты ровно такие, как создаёт
+   установщик для пустого проекта (решение владельца ADV-003 item 7).
+3. **Проверка шага (f) расширена** (вердикт владельца 2026-09-28): на очищенном дереве - validator
+   PASS и полный `test-protocol.ps1` PASS; плюс установка Community-дерева в пустую папку -
+   validator PASS. Иначе push не делается.
+4. Размеры - из исходного дерева на указанном SHA; `.ai/runtime/**` и untracked-файлы вне состава;
+   из «уходящих» файлов ни один больше не упоминается установщиком/валидатором (referenced=0;
+   все пять ссылочных файлов перешли в «остаётся»).
 
 ## Остаётся (Community Edition)
 
 | путь | размер | что это |
 |---|---|---|
-| `.ai/ARCHIVE.md` | 1027.0 KB | создаётся установщиком |
-| `.ai/DECISIONS.md` | 354.0 KB | создаётся установщиком |
+| `.ai/ARCHIVE.md` | 1064.5 KB | создаётся установщиком |
+| `.ai/DECISIONS.md` | 355.2 KB | создаётся установщиком |
 | `.ai/PLAN.md` | 23.0 KB | создаётся установщиком |
+| `.ai/SIGNALS.md` | 19.9 KB | source (манифест протокола; без него validator FAIL) |
 | `.ai/TASK.md` | 13.4 KB | создаётся установщиком |
 | `.ai/bin/protocol-archive.cjs` | 10.8 KB | managed (манифест протокола) |
+| `.ai/bin/protocol-dispatch.cjs` | 85.1 KB | source (манифест протокола; без него validator FAIL) |
 | `.ai/bin/protocol-handoff.cjs` | 56.6 KB | managed (манифест протокола) |
 | `.ai/bin/protocol-hooks.cjs` | 28.5 KB | managed (манифест протокола) |
 | `.ai/bin/protocol-index.cjs` | 7.6 KB | managed (манифест протокола) |
 | `.ai/bin/protocol-ledger.cjs` | 13.4 KB | managed (манифест протокола) |
 | `.ai/bin/protocol-lock.cjs` | 13.6 KB | managed (манифест протокола) |
+| `.ai/bin/protocol-runrecord.cjs` | 37.5 KB | source (манифест протокола; без него validator FAIL) |
 | `.ai/bin/protocol-scope.cjs` | 19.3 KB | managed (манифест протокола) |
 | `.ai/bin/protocol-session.cjs` | 16.8 KB | managed (манифест протокола) |
-| `.ai/bin/protocol-verdict.cjs` | 26.9 KB | managed (манифест протокола) |
+| `.ai/bin/protocol-signals.cjs` | 35.0 KB | source (манифест протокола; без него validator FAIL) |
+| `.ai/bin/protocol-verdict.cjs` | 28.1 KB | managed (манифест протокола) |
 | `.ai/bin/protocol.cjs` | 11.2 KB | managed (манифест протокола) |
 | `.ai/docs/CLI-AGENTS.md` | 12.8 KB | managed (манифест протокола) |
 | `.ai/docs/CODEX.md` | 3.8 KB | managed (манифест протокола) |
@@ -82,23 +57,35 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/docs/GLM.md` | 3.0 KB | managed (манифест протокола) |
 | `.ai/docs/PAIRED-CYCLE.md` | 31.7 KB | managed (манифест протокола) |
 | `.ai/docs/PROTOCOL.md` | 34.3 KB | managed (манифест протокола) |
+| `.ai/docs/clients.json` | 9.6 KB | source (манифест протокола; без него validator FAIL) |
+| `.ai/docs/dispatch/repair.md` | 0.2 KB | source (манифест протокола; без него validator FAIL) |
+| `.ai/docs/dispatch/wake.md` | 0.1 KB | source (манифест протокола; без него validator FAIL) |
 | `.ai/worklog/README.md` | 1.1 KB | создаётся установщиком |
 | `.claude/hooks/protocol-hooks.cjs` | 0.2 KB | managed (манифест протокола) |
 | `.claude/hooks/session-start.sh` | 0.4 KB | managed (манифест протокола) |
 | `.claude/hooks/stop-worklog-check.sh` | 0.4 KB | managed (манифест протокола) |
 | `.claude/settings.json` | 1.1 KB | integration (манифест протокола) |
+| `.codex/config.toml` | 0.3 KB | конфиг клиента Codex (решение владельца 2026-09-28: остаётся исключением) |
 | `.codex/hooks.json` | 0.9 KB | integration (манифест протокола) |
 | `.codex/hooks/protocol.cjs` | 0.2 KB | managed (манифест протокола) |
+| `.editorconfig` | 0.2 KB | стиль-конфиг (решение владельца 2026-09-28: остаётся исключением) |
 | `.gitattributes` | 0.3 KB | integration (манифест протокола) |
 | `.github/copilot-instructions.md` | 2.0 KB | managed (манифест протокола) |
+| `.github/workflows/protocol.yml` | 2.4 KB | CI протокола (решение владельца 2026-09-28) |
 | `.gitignore` | 0.3 KB | integration (манифест протокола) |
 | `AGENTS.md` | 20.8 KB | managed (манифест протокола) |
 | `CLAUDE.md` | 1.4 KB | managed (манифест протокола) |
-| `protocol-manifest.json` | 2.9 KB | managed (манифест протокола) |
-| `validate-protocol.ps1` | 61.1 KB | managed (манифест протокола) |
+| `CONTRIBUTING.md` | 2.4 KB | source (манифест протокола; без него validator FAIL) |
 | `LICENSE` | 1.0 KB | лицензия MIT (исключение состава) |
-| `README.md` | 10.4 KB | README Community (исключение) |
 | `QUICKSTART.md` | 6.0 KB | quickstart (исключение) |
+| `README.md` | 10.4 KB | README Community (исключение) |
+| `SECURITY.md` | 1.3 KB | source (манифест протокола; без него validator FAIL) |
+| `docs/decisions/REGISTRY.md` | 41.6 KB | реестр решений: остаётся путём, содержимое заменяется заготовкой (шапка таблицы) - решение владельца 2026-09-28 |
+| `docs/ops/model-ladder.json` | 4.0 KB | source (манифест протокола; без него validator FAIL) |
+| `docs/specs/bin-output-schema.md` | 2.4 KB | source (манифест протокола; без него validator FAIL) |
+| `docs/specs/run-record.schema.md` | 9.6 KB | source (манифест протокола; без него validator FAIL) |
+| `docs/specs/signals-ledger.md` | 3.2 KB | source (манифест протокола; без него validator FAIL) |
+| `protocol-manifest.json` | 2.9 KB | managed (манифест протокола) |
 | `setup-ai-protocol.ps1` | 19.5 KB | установщик (исключение) |
 | `templates/ai/ARCHIVE.md` | 1.3 KB | шаблон, который читает установщик (исключение) |
 | `templates/ai/DECISIONS.md` | 1.3 KB | шаблон, который читает установщик (исключение) |
@@ -107,48 +94,132 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `templates/ai/worklog/README.md` | 1.1 KB | шаблон, который читает установщик (исключение) |
 | `templates/prompts/COMMON.md` | 1.9 KB | шаблон, который читает установщик (исключение) |
 | `templates/reviews/REVIEW.md` | 4.6 KB | шаблон, который читает установщик (исключение) |
+| `test-protocol.ps1` | 1.4 KB | source (манифест протокола; без него validator FAIL) |
+| `tests/archive.test.cjs` | 16.1 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/codex.test.cjs` | 6.6 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/context-policy.test.cjs` | 1.4 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/dispatch-fake-client.cjs` | 6.3 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/dispatch.test.cjs` | 69.2 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/fixtures/dispatch/R3-DISPATCH.json` | 4.7 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/hang-launch.md` | 0.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/t21-launch.md` | 0.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/usage/codex.log` | 0.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/usage/copilot.log` | 0.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/usage/kilo.log` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/usage/mimo.log` | 0.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/usage/negative.log` | 0.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/dispatch/usage/no-usage.log` | 0.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/DISPATCH.json` | 15.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r1-claude.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r1-deepseek.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r1-gemini.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r1-mistral.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r12-final-deepseek.md` | 3.5 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r12-gate-commit.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r2-kimi.md` | 1.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r2-mimo.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r3-claude.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r3-clean-gemini.md` | 0.8 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r3-plan-deepseek.md` | 1.5 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r4-mistral-review.md` | 0.7 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r5-kimi-critique.md` | 0.8 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r5-mimo-critique.md` | 0.7 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r6-claude-final.md` | 1.6 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r6-review-p-l0-008-0.3.md` | 1.6 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r7-precheck-deepseek.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r7-review-p-l0-008-0.4.md` | 1.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r7b-claude-fix.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r7c-deepseek-recheck.md` | 1.3 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8-cert-kimi.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8-cert-mimo.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8-exec-e1.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8-exec-e2.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8-review-deepseek.md` | 1.1 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8b-cont-e1.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8b-cont-e2.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8d-cert-kimi-pkg2.md` | 1.5 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8d-cert-mimo-pkg2.md` | 1.6 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8e-cert-kimi-pkg2.md` | 1.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r8e-cert-mimo-pkg2.md` | 1.8 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9-repair-gemini.md` | 1.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9-verify-codex.md` | 0.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9b-repair-pkg5.md` | 1.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9c-repair-hygiene.md` | 5.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9d-repair-pkg2.md` | 2.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9e-repair-pkg2-r3.md` | 2.3 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9f-repair-usage.md` | 3.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/prompts/run/r9g-freeze-candidate.md` | 3.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/resolver/fixture-dispatch.json` | 2.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/resolver/fixture-ladder.json` | 3.9 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/resolver/launch.md` | 0.0 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/resolver/real-ladder.json` | 0.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/runrecord/golden.jsonl` | 3.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/runrecord/golden.md` | 0.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/runrecord/pattern-test.jsonl` | 1.6 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/bad-cost.md` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/bad-date.md` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/bad-disposition.md` | 0.3 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/dotdot-path.md` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/extra-field.md` | 0.3 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/golden.md` | 0.8 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/immutable-field.md` | 0.4 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/missing-field.md` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/unknown-type.md` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/fixtures/signals/wrong-separator.md` | 0.2 KB | фикстура тестов (tests/ целиком, решение владельца 2026-09-28) |
+| `tests/gate.test.cjs` | 38.8 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/handoff-chain.test.cjs` | 24.0 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/handoff.test.cjs` | 31.7 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/helpers.cjs` | 5.7 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/hooks.test.cjs` | 21.7 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/index.test.cjs` | 3.3 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/installer.test.cjs` | 16.6 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/ledger.test.cjs` | 8.1 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/lock.test.cjs` | 18.9 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/manifest.test.cjs` | 14.2 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/operator.test.cjs` | 1.5 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/registry.test.cjs` | 7.1 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/resolver.test.cjs` | 13.0 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/review-findings.test.cjs` | 12.8 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/rulebook.test.cjs` | 63.5 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/runrecord.test.cjs` | 28.2 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/session.test.cjs` | 37.7 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/signals.test.cjs` | 17.6 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/upgrade.test.cjs` | 9.5 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/validator-decisions.test.cjs` | 12.3 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/validator-gate.test.cjs` | 11.6 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/validator-lightpath.test.cjs` | 11.8 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/validator-syntax.test.cjs` | 5.2 KB | tests (манифест протокола; без него validator FAIL) |
+| `tests/validator.test.cjs` | 8.4 KB | tests (манифест протокола; без него validator FAIL) |
+| `validate-protocol.ps1` | 62.6 KB | managed (манифест протокола) |
 
-Всего: 45 файлов, 1853.4 KB.
+Всего: 158 файлов, 2767.0 KB.
 
 ## Уходит (сводка по группам)
 
 | группа | файлов | размер | что это |
 |---|---|---|---|
-| `docs/research/` | 1386 | 3764.0 KB | исследовательские материалы (roadmap, autocycle) |
-| `docs/reviews/` | 269 | 2839.8 KB | ревью, аудиты и сертификаты |
-| `tests/` | 95 | 605.4 KB | регрессионный набор (source-роль) |
-| `.ai/` | 114 | 546.3 KB | состояние протокола (TASK/PLAN/DECISIONS/ARCHIVE) |
+| `docs/research/` | 1405 | 4230.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/reviews/` | 274 | 2888.0 KB | ревью, аудиты и сертификаты |
 | `docs/core-arch/` | 61 | 533.3 KB | материалы CORE-ARCH |
+| `.ai/` | 114 | 385.5 KB | журналы сессий (история работы) |
 | `OwnerIdeas/` | 11 | 339.8 KB | идеи владельца |
 | `tools/` | 10 | 58.2 KB | инструменты |
-| `docs/decisions/` | 1 | 41.2 KB | реестр решений |
-| `docs/ops/` | 5 | 28.6 KB | операционные материалы (экономика, бэклог, прогоны) |
-| `docs/specs/` | 4 | 26.7 KB | спецификации |
-| `(корень)` | 5 | 7.8 KB | настройки редактора |
-| `.github/` | 1 | 2.4 KB | CI и интеграционные файлы GitHub |
-| `.codex/` | 1 | 0.3 KB | настройки и хуки Codex |
+| `docs/ops/` | 4 | 25.4 KB | операционные материалы (экономика, бэклог, прогоны) |
+| `docs/specs/` | 1 | 11.9 KB | спецификации |
+| `(корень)` | 1 | 2.5 KB | служебный скрипт уборки |
 
-Всего уходит: 1963 файлов, 8793.7 KB.
+Всего уходит: 1881 файлов, 8474.9 KB.
 
 ## Отдельно отмечено: файлы из «уходит», на которые ссылается установщик/валидатор
 
-- `.codex/config.toml` — упомянут в: validate-protocol.ps1
-- `.editorconfig` — упомянут в: validate-protocol.ps1
-- `.github/workflows/protocol.yml` — упомянут в: validate-protocol.ps1
-- `docs/decisions/REGISTRY.md` — упомянут в: validate-protocol.ps1
-- `test-protocol.ps1` — упомянут в: validate-protocol.ps1
+Нет (полный текстовый поиск по `setup-ai-protocol.ps1` и `validate-protocol.ps1`).
+
 
 ## Полный список «уходит» (path, size, группа)
 
 | путь | размер | группа |
 |---|---|---|
-| `.ai/SIGNALS.md` | 19.9 KB | состояние протокола (TASK/PLAN/DECISIONS/ARCHIVE) |
-| `.ai/bin/protocol-dispatch.cjs` | 85.1 KB | инструменты протокола (source-роль) |
-| `.ai/bin/protocol-runrecord.cjs` | 37.5 KB | инструменты протокола (source-роль) |
-| `.ai/bin/protocol-signals.cjs` | 35.0 KB | инструменты протокола (source-роль) |
-| `.ai/docs/clients.json` | 9.6 KB | документация протокола для агентов |
-| `.ai/docs/dispatch/repair.md` | 0.2 KB | документация протокола для агентов |
-| `.ai/docs/dispatch/wake.md` | 0.1 KB | документация протокола для агентов |
+| `.ai/worklog/claude-0ff8b28052330de0.md` | 7.5 KB | журналы сессий (история работы) |
 | `.ai/worklog/claude-3fdb2418bfa55427.md` | 4.3 KB | журналы сессий (история работы) |
 | `.ai/worklog/claude-658029b20c3f1e69.md` | 3.8 KB | журналы сессий (история работы) |
 | `.ai/worklog/claude-7dcc4d0185595bcf.md` | 5.7 KB | журналы сессий (история работы) |
@@ -169,6 +240,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/codex-96801ade53c50a18.md` | 2.9 KB | журналы сессий (история работы) |
 | `.ai/worklog/codex-b21040e3f1a34b22.md` | 4.4 KB | журналы сессий (история работы) |
 | `.ai/worklog/codex-b256ad8b1a3d1e04.md` | 5.5 KB | журналы сессий (история работы) |
+| `.ai/worklog/codex-b6e9403e05549101.md` | 2.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/codex-ebacaa892db4dcce.md` | 4.7 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-08b98f3e57049e13.md` | 5.5 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-115f8847b115ec32.md` | 3.3 KB | журналы сессий (история работы) |
@@ -185,6 +257,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/deepseek-5bc361c5907ce179.md` | 3.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-617a575f50d1ad5e.md` | 3.4 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-6db5c8f69f491940.md` | 3.2 KB | журналы сессий (история работы) |
+| `.ai/worklog/deepseek-7673879ed0e8fc01.md` | 3.8 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-7ca79f41c34b762a.md` | 2.8 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-a271dafb79d5d421.md` | 3.7 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-a3813c0b8b1bb117.md` | 4.0 KB | журналы сессий (история работы) |
@@ -195,6 +268,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/deepseek-de4b5c30af414f21.md` | 6.3 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-e37eab7bb9169627.md` | 3.1 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-e3c0dd4948c00613.md` | 2.9 KB | журналы сессий (история работы) |
+| `.ai/worklog/deepseek-f1f2471eac81e95a.md` | 4.0 KB | журналы сессий (история работы) |
 | `.ai/worklog/deepseek-fdcb7c2e7af91ffb.md` | 4.7 KB | журналы сессий (история работы) |
 | `.ai/worklog/gemini-1b2cca790088eb8a.md` | 2.0 KB | журналы сессий (история работы) |
 | `.ai/worklog/gemini-30a714e7f0272d3f.md` | 5.5 KB | журналы сессий (история работы) |
@@ -212,7 +286,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/gemini-ce0485aa5fe54c98.md` | 2.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/gemini-d7d44e9eac34702c.md` | 4.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/gemini-ea64253888f6cae5.md` | 3.0 KB | журналы сессий (история работы) |
-| `.ai/worklog/kilo-2fec8d740dc73400.md` | 4.4 KB | журналы сессий (история работы) |
+| `.ai/worklog/kilo-2fec8d740dc73400.md` | 3.0 KB | журналы сессий (история работы) |
 | `.ai/worklog/kilo-70ef1574cc26c869.md` | 3.3 KB | журналы сессий (история работы) |
 | `.ai/worklog/kilo-9a9b18229cce57fd.md` | 9.3 KB | журналы сессий (история работы) |
 | `.ai/worklog/kilo-a5143d29cc7dd8ff.md` | 7.8 KB | журналы сессий (история работы) |
@@ -235,6 +309,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/mimo-0e0610cd95c1e83e.md` | 3.2 KB | журналы сессий (история работы) |
 | `.ai/worklog/mimo-370f15396465bd07.md` | 2.8 KB | журналы сессий (история работы) |
 | `.ai/worklog/mimo-3ab2dc556d959969.md` | 3.6 KB | журналы сессий (история работы) |
+| `.ai/worklog/mimo-4aeecec4ecf66249.md` | 2.2 KB | журналы сессий (история работы) |
 | `.ai/worklog/mimo-695fcfb3b47f3125.md` | 3.3 KB | журналы сессий (история работы) |
 | `.ai/worklog/mimo-6b87e681088760d6.md` | 3.5 KB | журналы сессий (история работы) |
 | `.ai/worklog/mimo-9ff25216f4c36caf.md` | 2.2 KB | журналы сессий (история работы) |
@@ -246,6 +321,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/mistral-31c0a7ec3787702f.md` | 2.9 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-31cf948c41b2498a.md` | 1.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-336cc83e64fea6b8.md` | 1.5 KB | журналы сессий (история работы) |
+| `.ai/worklog/mistral-385c3d2443b430ad.md` | 3.8 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-4df87b80d0841779.md` | 1.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-645fa37d2a969412.md` | 2.0 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-66840984467b96ee.md` | 3.0 KB | журналы сессий (история работы) |
@@ -256,10 +332,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `.ai/worklog/mistral-e5b0a7370dee2904.md` | 3.9 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-e67399c73e9dc26b.md` | 1.6 KB | журналы сессий (история работы) |
 | `.ai/worklog/mistral-verify-001.md` | 2.5 KB | журналы сессий (история работы) |
-| `.codex/config.toml` | 0.3 KB | настройки и хуки Codex |
-| `.editorconfig` | 0.2 KB | настройки редактора |
-| `.github/workflows/protocol.yml` | 2.4 KB | CI и интеграционные файлы GitHub |
-| `CONTRIBUTING.md` | 2.4 KB | правила контрибуции |
+| `.ai/worklog/vibe-f33286ea18020944.md` | 4.0 KB | журналы сессий (история работы) |
 | `OwnerIdeas/Google_AX.md` | 32.1 KB | идеи владельца |
 | `OwnerIdeas/H-AUTH-02.md` | 1.6 KB | идеи владельца |
 | `OwnerIdeas/H-PROMPT-DELIVERY-01_canonical-task-file-vs-orchestrator-loading.md` | 4.1 KB | идеи владельца |
@@ -271,7 +344,6 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `OwnerIdeas/performers.md` | 25.5 KB | идеи владельца |
 | `OwnerIdeas/scripts.md` | 31.7 KB | идеи владельца |
 | `OwnerIdeas/task_profife.md` | 38.6 KB | идеи владельца |
-| `SECURITY.md` | 1.3 KB | политика безопасности |
 | `cleanup-pilot-data.ps1` | 2.5 KB | служебный скрипт уборки |
 | `docs/core-arch/CORE-ARCH-1.md` | 40.2 KB | материалы CORE-ARCH |
 | `docs/core-arch/CORE-ARCH-2.md` | 38.6 KB | материалы CORE-ARCH |
@@ -334,12 +406,10 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `docs/core-arch/stage-4/kilo-routes.cjs` | 5.5 KB | материалы CORE-ARCH |
 | `docs/core-arch/stage-4/kilo-routes.json` | 15.3 KB | материалы CORE-ARCH |
 | `docs/core-arch/stage-4/workflowAI.md` | 9.9 KB | материалы CORE-ARCH |
-| `docs/decisions/REGISTRY.md` | 41.2 KB | реестр решений |
-| `docs/ops/BACKLOG.md` | 9.4 KB | операционные материалы (экономика, бэклог, прогоны) |
+| `docs/ops/BACKLOG.md` | 10.2 KB | операционные материалы (экономика, бэклог, прогоны) |
 | `docs/ops/MODEL-ECONOMICS.md` | 8.3 KB | операционные материалы (экономика, бэклог, прогоны) |
 | `docs/ops/PROBLEMS.md` | 2.7 KB | операционные материалы (экономика, бэклог, прогоны) |
 | `docs/ops/RUNS.jsonl` | 4.2 KB | операционные материалы (экономика, бэклог, прогоны) |
-| `docs/ops/model-ladder.json` | 4.0 KB | операционные материалы (экономика, бэклог, прогоны) |
 | `docs/research/2026-09-23-kernel-architecture/BRIEF.md` | 7.1 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-23-kernel-architecture/DISCUSSION.md` | 22.0 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-24-remediation-mapping/BRIEF.md` | 7.0 KB | исследовательские материалы (roadmap, autocycle) |
@@ -1519,26 +1589,45 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `docs/research/2026-09-27-roadmap-queue/W2A-REVIEW2-TASK.md` | 2.4 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/AUTOCYCLE-PROMPT.md` | 26.1 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/CLAUDE-FINALIZER-START.md` | 3.8 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/COMMUNITY-COMPOSITION.md` | 313.2 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/LAUNCH-A1.md` | 4.0 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/LAUNCH-H1.md` | 5.2 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/LAUNCH-REGISTRY-FIX-REVIEW.md` | 2.4 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/LAUNCH-REGISTRY-FIX.md` | 1.9 KB | исследовательские материалы (roadmap, autocycle) |
-| `docs/research/2026-09-28-autocycle/MEASUREMENTS.jsonl` | 34.8 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/M-2A-RES-CHECK.md` | 2.2 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/MEASUREMENTS.jsonl` | 42.6 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/OWNER-DRAFT.md` | 5.0 KB | исследовательские материалы (roadmap, autocycle) |
-| `docs/research/2026-09-28-autocycle/OWNER-QUEUE.md` | 7.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/OWNER-QUEUE.md` | 8.3 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/README.md` | 2.6 KB | исследовательские материалы (roadmap, autocycle) |
-| `docs/research/2026-09-28-autocycle/STATE.md` | 14.7 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/STATE.md` | 19.3 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/advisor/001-REPLY.md` | 15.2 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/advisor/001-REQUEST.md` | 6.6 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/advisor/002-REPLY.md` | 11.6 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/advisor/002-REQUEST.md` | 4.6 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/advisor/003-BRIEFING.md` | 4.2 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/advisor/ADVISOR-BRIEF.md` | 6.9 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/advisor/CHANNEL.md` | 4.5 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/cycles/C01/00-PROMPT.md` | 7.9 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/launch/LAUNCH-A1-CERT-MIMO.md` | 2.5 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/launch/LAUNCH-A1-CERT-SOL.md` | 2.5 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/launch/LAUNCH-A1-REVIEW.md` | 3.0 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/launch/LAUNCH-H1-CERT-LUNA.md` | 2.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/launch/LAUNCH-H1-CERT-MIMO.md` | 2.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-autocycle/launch/LAUNCH-H1-REVIEW.md` | 3.1 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-autocycle/tools/mailbox.cjs` | 7.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/CATALOG-A.jsonl` | 26.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/CATALOG-B.jsonl` | 23.7 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/CATALOG.jsonl` | 50.1 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/COVER-A.md` | 5.4 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/COVER-B.md` | 2.3 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/COVER-DUP.md` | 2.5 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/LAUNCH-COLLECTOR-A.md` | 1.9 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/LAUNCH-COLLECTOR-B.md` | 2.0 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/LAUNCH-F18-VERIFY.md` | 2.9 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/2026-09-28-bench-catalog/MERGE-NOTE.md` | 0.5 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/2026-09-28-bench-catalog/README.md` | 2.8 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/CLOSURES.jsonl` | 8.4 KB | исследовательские материалы (roadmap, autocycle) |
-| `docs/research/FRAMES.md` | 10.3 KB | исследовательские материалы (roadmap, autocycle) |
+| `docs/research/FRAMES.md` | 10.5 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/archive/2026-09-20-cycle-architecture/claude-final-decision.md` | 52.2 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/archive/2026-09-20-cycle-history/analyze.cjs` | 5.3 KB | исследовательские материалы (roadmap, autocycle) |
 | `docs/research/archive/2026-09-20-cycle-history/evidence.json` | 97.2 KB | исследовательские материалы (roadmap, autocycle) |
@@ -1834,8 +1923,13 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `docs/reviews/2026-09-27-round5-consensus-discussion.md` | 15.5 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-27-round6-consensus-inputs.md` | 22.9 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-27-round6-consensus-task.md` | 2.6 KB | ревью, аудиты и сертификаты |
+| `docs/reviews/2026-09-28-a1-adversarial-prompt.md` | 8.6 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-28-deepseek-2a-fix-review.md` | 12.2 KB | ревью, аудиты и сертификаты |
+| `docs/reviews/2026-09-28-deepseek-a1-fix-review.md` | 13.1 KB | ревью, аудиты и сертификаты |
+| `docs/reviews/2026-09-28-deepseek-h1-fix-review.md` | 11.1 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-28-deepseek-registry-fix-review.md` | 8.0 KB | ревью, аудиты и сертификаты |
+| `docs/reviews/2026-09-28-h1-adversarial-prompt.md` | 5.5 KB | ревью, аудиты и сертификаты |
+| `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md` | 9.9 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-28-mimo-wave2a-certification-r2.md` | 16.1 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-28-mimo-wave2a-certification.md` | 13.1 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/2026-09-28-sol-wave2a-certification-r2.md` | 8.0 KB | ревью, аудиты и сертификаты |
@@ -1995,106 +2089,7 @@ QUICKSTART.md, setup-ai-protocol.ps1 и читаемые им шаблоны (`t
 | `docs/reviews/archive/2026-09-21-codex-cycle-architecture-certification-round4.md` | 3.9 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/archive/2026-09-24-claude-core-arch-stage0-1-review-prompt.md` | 6.0 KB | ревью, аудиты и сертификаты |
 | `docs/reviews/archive/INDEX.md` | 24.2 KB | ревью, аудиты и сертификаты |
-| `docs/specs/2026-09-23-executable-rulebook-spec.md` | 11.5 KB | спецификации |
-| `docs/specs/bin-output-schema.md` | 2.4 KB | спецификации |
-| `docs/specs/run-record.schema.md` | 9.6 KB | спецификации |
-| `docs/specs/signals-ledger.md` | 3.2 KB | спецификации |
-| `test-protocol.ps1` | 1.4 KB | полный регрессионный набор (source) |
-| `tests/archive.test.cjs` | 16.1 KB | регрессионный набор (source-роль) |
-| `tests/codex.test.cjs` | 6.6 KB | регрессионный набор (source-роль) |
-| `tests/context-policy.test.cjs` | 1.4 KB | регрессионный набор (source-роль) |
-| `tests/dispatch-fake-client.cjs` | 6.3 KB | регрессионный набор (source-роль) |
-| `tests/dispatch.test.cjs` | 69.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/R3-DISPATCH.json` | 4.7 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/hang-launch.md` | 0.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/t21-launch.md` | 0.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/usage/codex.log` | 0.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/usage/copilot.log` | 0.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/usage/kilo.log` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/usage/mimo.log` | 0.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/usage/negative.log` | 0.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/dispatch/usage/no-usage.log` | 0.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/DISPATCH.json` | 15.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r1-claude.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r1-deepseek.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r1-gemini.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r1-mistral.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r12-final-deepseek.md` | 3.5 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r12-gate-commit.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r2-kimi.md` | 1.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r2-mimo.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r3-claude.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r3-clean-gemini.md` | 0.8 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r3-plan-deepseek.md` | 1.5 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r4-mistral-review.md` | 0.7 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r5-kimi-critique.md` | 0.8 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r5-mimo-critique.md` | 0.7 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r6-claude-final.md` | 1.6 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r6-review-p-l0-008-0.3.md` | 1.6 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r7-precheck-deepseek.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r7-review-p-l0-008-0.4.md` | 1.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r7b-claude-fix.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r7c-deepseek-recheck.md` | 1.3 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8-cert-kimi.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8-cert-mimo.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8-exec-e1.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8-exec-e2.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8-review-deepseek.md` | 1.1 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8b-cont-e1.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8b-cont-e2.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8d-cert-kimi-pkg2.md` | 1.5 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8d-cert-mimo-pkg2.md` | 1.6 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8e-cert-kimi-pkg2.md` | 1.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r8e-cert-mimo-pkg2.md` | 1.8 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9-repair-gemini.md` | 1.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9-verify-codex.md` | 0.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9b-repair-pkg5.md` | 1.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9c-repair-hygiene.md` | 5.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9d-repair-pkg2.md` | 2.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9e-repair-pkg2-r3.md` | 2.3 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9f-repair-usage.md` | 3.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/prompts/run/r9g-freeze-candidate.md` | 3.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/resolver/fixture-dispatch.json` | 2.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/resolver/fixture-ladder.json` | 3.9 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/resolver/launch.md` | 0.0 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/resolver/real-ladder.json` | 0.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/runrecord/golden.jsonl` | 3.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/runrecord/golden.md` | 0.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/runrecord/pattern-test.jsonl` | 1.6 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/bad-cost.md` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/bad-date.md` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/bad-disposition.md` | 0.3 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/dotdot-path.md` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/extra-field.md` | 0.3 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/golden.md` | 0.8 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/immutable-field.md` | 0.4 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/missing-field.md` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/unknown-type.md` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/fixtures/signals/wrong-separator.md` | 0.2 KB | регрессионный набор (source-роль) |
-| `tests/gate.test.cjs` | 38.8 KB | регрессионный набор (source-роль) |
-| `tests/handoff-chain.test.cjs` | 24.0 KB | регрессионный набор (source-роль) |
-| `tests/handoff.test.cjs` | 31.7 KB | регрессионный набор (source-роль) |
-| `tests/helpers.cjs` | 5.7 KB | регрессионный набор (source-роль) |
-| `tests/hooks.test.cjs` | 21.7 KB | регрессионный набор (source-роль) |
-| `tests/index.test.cjs` | 3.3 KB | регрессионный набор (source-роль) |
-| `tests/installer.test.cjs` | 16.6 KB | регрессионный набор (source-роль) |
-| `tests/ledger.test.cjs` | 8.1 KB | регрессионный набор (source-роль) |
-| `tests/lock.test.cjs` | 18.9 KB | регрессионный набор (source-роль) |
-| `tests/manifest.test.cjs` | 14.2 KB | регрессионный набор (source-роль) |
-| `tests/operator.test.cjs` | 1.5 KB | регрессионный набор (source-роль) |
-| `tests/registry.test.cjs` | 7.1 KB | регрессионный набор (source-роль) |
-| `tests/resolver.test.cjs` | 13.0 KB | регрессионный набор (source-роль) |
-| `tests/review-findings.test.cjs` | 12.8 KB | регрессионный набор (source-роль) |
-| `tests/rulebook.test.cjs` | 57.4 KB | регрессионный набор (source-роль) |
-| `tests/runrecord.test.cjs` | 28.2 KB | регрессионный набор (source-роль) |
-| `tests/session.test.cjs` | 37.7 KB | регрессионный набор (source-роль) |
-| `tests/signals.test.cjs` | 17.6 KB | регрессионный набор (source-роль) |
-| `tests/upgrade.test.cjs` | 9.5 KB | регрессионный набор (source-роль) |
-| `tests/validator-decisions.test.cjs` | 12.3 KB | регрессионный набор (source-роль) |
-| `tests/validator-gate.test.cjs` | 7.1 KB | регрессионный набор (source-роль) |
-| `tests/validator-lightpath.test.cjs` | 11.8 KB | регрессионный набор (source-роль) |
-| `tests/validator-syntax.test.cjs` | 5.2 KB | регрессионный набор (source-роль) |
-| `tests/validator.test.cjs` | 8.4 KB | регрессионный набор (source-роль) |
+| `docs/specs/2026-09-23-executable-rulebook-spec.md` | 11.9 KB | спецификации |
 | `tools/perf/README.md` | 2.9 KB | инструменты |
 | `tools/perf/baseline-2026-09-27.json` | 2.6 KB | инструменты |
 | `tools/perf/bench.cjs` | 7.0 KB | инструменты |
