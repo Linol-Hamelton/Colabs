@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { repoRoot, makeProtocolFixture, git, write, run } = require('./helpers.cjs');
+const { repoRoot, makeFixture, makeProtocolFixture, git, write, run, runPowerShell } = require('./helpers.cjs');
 const verdictTool = require('../.ai/bin/protocol-verdict.cjs');
 const scopeTool = require('../.ai/bin/protocol-scope.cjs');
 
@@ -1327,4 +1327,148 @@ test('Codex observations (C05): candidate journal fenced blocks and commit SHA o
   write(root, 'docs/reviews/rev-multi.md', revMulti);
   const resMulti = runTool('protocol-scope.cjs', ['--independence', 'docs/reviews/rev-multi.md', '--cwd', root]);
   assert.equal(resMulti.status, 1, 'actual entry outside fence must be parsed, catching reviewer == producer');
+});
+
+// ---------------------------------------------------------------------------
+// PROTO-DEC-0107 item 1 (H1): role-aware protected set, installed-role form
+// ---------------------------------------------------------------------------
+
+// A host-project fixture in the installer's manifest form (setup-ai-protocol.ps1):
+// role "installed", managed + integration + state, no source key.
+function makeInstalledFixture(t, manifestOverrides) {
+  const root = makeProtocolFixture(t);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'protocol-manifest.json'), 'utf8'));
+  const installed = {
+    comment: 'Installed copy. Fixture in the installer manifest form.',
+    protocolVersion: manifest.protocolVersion,
+    role: 'installed',
+    managed: [...manifest.managed],
+    integration: [...manifest.integration],
+    state: [...manifest.state],
+  };
+  Object.assign(installed, manifestOverrides || {});
+  write(root, 'protocol-manifest.json', JSON.stringify(installed, null, 2) + '\n');
+  return root;
+}
+
+// One-row neutral ledger, same shape as the ADV-001-2 probe.
+function h1LedgerRow(paths) {
+  return {
+    id: 'F-H1',
+    rootCause: 'RC-H1',
+    requirement: 'CLI check',
+    paths,
+    reproduction: 'node probe.cjs',
+    exit: '1',
+    severity: 'LOW',
+    disposition: 'confirmed',
+    attempt: '1',
+  };
+}
+
+// Runs the protocol-verdict.cjs installed inside the given root.
+function runVerdictAt(root, ledgerFile) {
+  const result = run('node', [path.join(root, '.ai', 'bin', 'protocol-verdict.cjs'), ledgerFile], root);
+  return {
+    status: result.status,
+    stdout: result.stdout.toString('utf8'),
+    stderr: result.stderr.toString('utf8'),
+  };
+}
+
+test('PROTO-DEC-0107 H1: host role - managed validate-protocol.ps1 yields FAIL (exit 1)', t => {
+  const root = makeInstalledFixture(t);
+  const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+  write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('validate-protocol.ps1')]));
+
+  const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+  assert.equal(res.status, 1);
+  assert.match(res.stdout, /Verdict: FAIL/);
+});
+
+test('PROTO-DEC-0107 H1: host role - managed protocol-manifest.json yields FAIL (exit 1)', t => {
+  const root = makeInstalledFixture(t);
+  const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+  write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('protocol-manifest.json')]));
+
+  const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+  assert.equal(res.status, 1);
+  assert.match(res.stdout, /Verdict: FAIL/);
+});
+
+test('PROTO-DEC-0107 H1: host role - .ai/bin prefix rule yields FAIL (exit 1)', t => {
+  const root = makeInstalledFixture(t);
+  const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+  write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('.ai/bin/protocol-verdict.cjs')]));
+
+  const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+  assert.equal(res.status, 1);
+  assert.match(res.stdout, /Verdict: FAIL/);
+});
+
+test('PROTO-DEC-0107 H1: control host - off-protected docs/x.md yields RECOMMENDATION (exit 0)', t => {
+  const root = makeInstalledFixture(t);
+  const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+  write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('docs/x.md')]));
+
+  const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+  assert.equal(res.status, 0);
+  assert.match(res.stdout, /Verdict: RECOMMENDATION/);
+});
+
+test('PROTO-DEC-0107 H1: host set excludes source - setup-ai-protocol.ps1 yields RECOMMENDATION (exit 0)', t => {
+  const root = makeInstalledFixture(t);
+  const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+  write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('setup-ai-protocol.ps1')]));
+
+  const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+  assert.equal(res.status, 0);
+  assert.match(res.stdout, /Verdict: RECOMMENDATION/);
+});
+
+test('PROTO-DEC-0107 H1: host manifest without managed or with empty managed exits 2', t => {
+  for (const overrides of [{ managed: undefined }, { managed: [] }]) {
+    const root = makeInstalledFixture(t, overrides);
+    const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+    write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('docs/x.md')]));
+
+    const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+    assert.equal(res.status, 2);
+    assert.match(res.stderr, /Cannot load protocol-manifest\.json/);
+  }
+});
+
+test('PROTO-DEC-0107 H1: host manifest with a present source key exits 2', t => {
+  const root = makeInstalledFixture(t, { source: ['setup-ai-protocol.ps1'] });
+  const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+  write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('docs/x.md')]));
+
+  const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+  assert.equal(res.status, 2);
+  assert.match(res.stderr, /Cannot load protocol-manifest\.json/);
+});
+
+test('PROTO-DEC-0107 H1: role "host" and role 42 exit 2', t => {
+  for (const role of ['host', 42]) {
+    const root = makeInstalledFixture(t, { role });
+    const ledgerFile = path.join(root, 'docs/reviews/test-findings.md');
+    write(root, 'docs/reviews/test-findings.md', makeLedgerTable([h1LedgerRow('docs/x.md')]));
+
+    const res = runTool('protocol-verdict.cjs', [ledgerFile], root);
+    assert.equal(res.status, 2);
+    assert.match(res.stderr, /Cannot load protocol-manifest\.json/);
+  }
+});
+
+test('PROTO-DEC-0107 H1: end-to-end real installer, installed verdict tool yields FAIL (exit 1)', t => {
+  const target = makeFixture(t);
+  const install = runPowerShell('setup-ai-protocol.ps1', ['-Target', target, '-InitGit']);
+  assert.equal(install.status, 0, `${install.stdout}\n${install.stderr}`);
+
+  const ledgerFile = path.join(target, 'docs/reviews/h1-findings.md');
+  write(target, 'docs/reviews/h1-findings.md', makeLedgerTable([h1LedgerRow('validate-protocol.ps1')]));
+
+  const res = runVerdictAt(target, ledgerFile);
+  assert.equal(res.status, 1);
+  assert.match(res.stdout, /Verdict: FAIL/);
 });
