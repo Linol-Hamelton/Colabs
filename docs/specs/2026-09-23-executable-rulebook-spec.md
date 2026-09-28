@@ -94,8 +94,13 @@ The preamble of a findings ledger allows only heading lines (`# ...`), optional 
 Command: `protocol-verdict.cjs <ledger-path>`
 
 Protected set: Check 1 executes PROTO-DEC-0041 item 4. The protected set is read at run
-time from repository state: every entry of `managed` and of `source` in
-`protocol-manifest.json`, plus anything under `.ai/`, `.claude/` and `.codex/`.
+time from repository state, by manifest role (PROTO-DEC-0107 item 1). With
+`role: "source"`, or with no `role` key (legacy), the set is every entry of `managed`
+and of `source` in `protocol-manifest.json`, plus anything under `.ai/`, `.claude/` and
+`.codex/`. With `role: "installed"` the set is `managed` plus `.ai/`, `.claude/` and
+`.codex/`: `managed` must be present and non-empty, a manifest that also carries a
+`source` key contradicts the installer form and the check exits `2` (BLOCKED), and any
+other `role` value exits `2` as well.
 `tests/` is excluded from the protected set (it stays protected for scope purposes by
 the standing default forbidden list in `.ai/docs/PROTOCOL.md`). Matching is on
 normalised whole paths and directory prefixes only; never a substring or a concept name

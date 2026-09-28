@@ -12,8 +12,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 // PROTO-DEC-0046 item 3: Protected set for check 1 (PROTO-DEC-0041 item 4).
-// Read at run time from repository state: every entry of `managed` and of `source`
-// in protocol-manifest.json, plus anything under .ai/, .claude/, .codex/.
+// Read at run time from repository state: for role "source" (or a legacy manifest
+// with no role key) every entry of `managed` and of `source` in
+// protocol-manifest.json; for role "installed" every entry of `managed` only
+// (PROTO-DEC-0107 item 1). Both roles add anything under .ai/, .claude/, .codex/.
 // Whole paths and directory prefixes only; never a substring or a concept name.
 // tests/ is not in the set.
 const BASE_PROTECTED_PREFIXES = [
@@ -83,10 +85,25 @@ function loadProtectedSet(manifestPathOrDir) {
     throw new Error('Cannot load protocol-manifest.json at run time: manifest must be a JSON object');
   }
 
+  // PROTO-DEC-0107 item 1: the protected set is role-aware. A manifest with no
+  // `role` key is legacy and keeps source-repository semantics. Any role value
+  // other than "source" or "installed" fails closed (PROTO-DEC-0047 item 8).
+  const role = Object.prototype.hasOwnProperty.call(manifest, 'role') ? manifest.role : 'source';
+  if (role !== 'source' && role !== 'installed') {
+    throw new Error(`Cannot load protocol-manifest.json at run time: role must be "source" or "installed", got ${JSON.stringify(role)}`);
+  }
+
   if (!Array.isArray(manifest.managed) || manifest.managed.length === 0) {
     throw new Error('Cannot load protocol-manifest.json at run time: managed must be a non-empty array');
   }
-  if (!Array.isArray(manifest.source) || manifest.source.length === 0) {
+  if (role === 'installed') {
+    // The installer never writes a source key for an installed project
+    // (setup-ai-protocol.ps1, Prepare-ManifestWrite). A present key contradicts
+    // that form, so fail closed instead of silently dropping the protection.
+    if (Object.prototype.hasOwnProperty.call(manifest, 'source')) {
+      throw new Error('Cannot load protocol-manifest.json at run time: role installed must not carry a source key');
+    }
+  } else if (!Array.isArray(manifest.source) || manifest.source.length === 0) {
     throw new Error('Cannot load protocol-manifest.json at run time: source must be a non-empty array');
   }
 
@@ -95,9 +112,11 @@ function loadProtectedSet(manifestPathOrDir) {
       throw new Error('Cannot load protocol-manifest.json at run time: managed entries must be non-empty strings');
     }
   }
-  for (const item of manifest.source) {
-    if (typeof item !== 'string' || !item.trim()) {
-      throw new Error('Cannot load protocol-manifest.json at run time: source entries must be non-empty strings');
+  if (role === 'source') {
+    for (const item of manifest.source) {
+      if (typeof item !== 'string' || !item.trim()) {
+        throw new Error('Cannot load protocol-manifest.json at run time: source entries must be non-empty strings');
+      }
     }
   }
 
@@ -122,8 +141,10 @@ function loadProtectedSet(manifestPathOrDir) {
   for (const e of manifest.managed) {
     addEntry(e);
   }
-  for (const e of manifest.source) {
-    addEntry(e);
+  if (role === 'source') {
+    for (const e of manifest.source) {
+      addEntry(e);
+    }
   }
 
   return {
