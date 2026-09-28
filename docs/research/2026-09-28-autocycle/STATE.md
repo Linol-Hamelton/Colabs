@@ -150,6 +150,11 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
    20:00Z only by the owner's word. (Autonomous brief: H1 candidate awaits the suite.)
 3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
    (`M-2A-RES-CHECK.md`); no code changes.
+   **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact
+   `CATALOG.jsonl` merged (48 rows, `a612bff`); MiMo verifier (20% sample) launched 18:52Z as
+   `bgp_0e959c1ae001mQ3JOFzDWHEmUs` (launch `LAUNCH-F18-VERIFY.md` `e31a31a`); result pending.
+   **Gate cadence:** 30-min gate lines (cron `wku_0e952e8bc001bOY0i80R1E8jwO`) to
+   `.ai/runtime/gate-autocycle.log`; kilo WS 3.16 GB at 18:42 (< 6 GB).
 4. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
 5. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
