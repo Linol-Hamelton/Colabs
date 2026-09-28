@@ -577,6 +577,33 @@ if (Test-Path -LiteralPath $taskPath -PathType Leaf) {
     }
 }
 
+# A-1 (PROTO-DEC-0087 item 4). AGENTS.md section 2: an advisory output carries
+# [MODE: READ-ONLY ADVISORY], is non-certifying, and cannot satisfy the
+# independent-review gate. Only an exact "Mode: ADVISORY" used to fail, so
+# "Mode: READ-ONLY ADVISORY" and the marker were certified wherever gate-check
+# did not catch them. Both gate paths ask this function, and it fails closed:
+# any Mode line of the header region (list, quote and emphasis forms too) whose
+# value names ADVISORY, or the marker anywhere in the header text outside HTML
+# comments. The review template quotes the marker in a header comment; Mode
+# lines keep being read inside comments, as the exact rule read them. The body
+# is not read, so a review may quote both forms below its header. Quantifiers
+# are bounded so that a hostile header cannot make the scan quadratic, and every
+# line start is tried on its own so that one Mode line cannot swallow the next.
+function Get-ProtocolAdvisoryReason {
+    param([string]$HeaderRegion)
+    if ([string]::IsNullOrEmpty($HeaderRegion)) { return $null }
+    $options = [System.Text.RegularExpressions.RegexOptions]'IgnoreCase, CultureInvariant, Multiline'
+    $modeLines = [regex]::Matches($HeaderRegion, '^(?=[ \t]*(?:(?:[-*+]|\d+[.)])[ \t]+|>[ \t]*)*[*_`]*Mode(?![a-z0-9])[*_`]*\s*:\s*([^\r\n]+))', $options)
+    foreach ($modeLine in $modeLines) {
+        $value = $modeLine.Groups[1].Value.Trim()
+        if ($value.ToUpperInvariant().Contains('ADVISORY')) { return ("has Mode: {0}" -f $value) }
+    }
+    $visible = [regex]::Replace($HeaderRegion, '(?s)<!--.{0,4000}?-->', '')
+    $marker = [regex]::Match($visible, '\[[ \t*_`]*MODE[ \t*_`]*:[^\]\r\n]{0,80}ADVISORY[^\]\r\n]{0,80}\]?', $options)
+    if ($marker.Success) { return ("carries the advisory marker {0}" -f $marker.Value) }
+    return $null
+}
+
 # A completed task must leave machine-checkable proof that the mandatory
 # adversarial review happened. In-progress work remains valid without the
 # artifacts, so this gate does not strand an active task. See AGENTS.md.
@@ -733,9 +760,9 @@ if ($taskStatus -match '^Completed(?:[ .;:-]|$)') {
                                 Write-Result "FAIL" ("independent review {0} is transcribed; transcribed reviews cannot satisfy the independent review gate" -f $relative)
                             }
                             else {
-                                $modeMatch = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)')
-                                if ($modeMatch.Success -and $modeMatch.Groups[1].Value.Trim().ToUpperInvariant() -eq 'ADVISORY') {
-                                    Write-Result "FAIL" ("independent review {0} has Mode: ADVISORY; advisory reviews cannot satisfy the independent review gate" -f $relative)
+                                $advisoryReason = Get-ProtocolAdvisoryReason $headerRegion
+                                if ($advisoryReason) {
+                                    Write-Result "FAIL" ("independent review {0} {1}; advisory reviews cannot satisfy the independent review gate" -f $relative, $advisoryReason)
                                 }
                                 else {
                                     $reviewer = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bReviewer\b(?:\*\*)?\s*:\s*([^\r\n]+)')
@@ -825,9 +852,9 @@ if ($taskStatus -match '^Completed(?:[ .;:-]|$)') {
                         Write-Result "FAIL" ("independent review {0} is transcribed; transcribed reviews cannot satisfy the independent review gate" -f $relative)
                     }
                     else {
-                        $modeMatch = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bMode\b(?:\*\*)?\s*:\s*([^\r\n]+)')
-                        if ($modeMatch.Success -and $modeMatch.Groups[1].Value.Trim().ToUpperInvariant() -eq 'ADVISORY') {
-                            Write-Result "FAIL" ("independent review {0} has Mode: ADVISORY; advisory reviews cannot satisfy the independent review gate" -f $relative)
+                        $advisoryReason = Get-ProtocolAdvisoryReason $headerRegion
+                        if ($advisoryReason) {
+                            Write-Result "FAIL" ("independent review {0} {1}; advisory reviews cannot satisfy the independent review gate" -f $relative, $advisoryReason)
                         }
                         else {
                             $reviewer = [regex]::Match($headerRegion, '(?mi)^[ \t]*(?:\*\*)?\bReviewer\b(?:\*\*)?\s*:\s*([^\r\n]+)')
