@@ -133,7 +133,7 @@
 | PROTO-DEC-0045 item 3 | described | .ai/DECISIONS.md:1916 | Jev advisory-only rule text |
 | PROTO-DEC-0045 item 4 | described | .ai/DECISIONS.md:1917 | legacy disposition recorded in text |
 | PROTO-DEC-0045 item 5 | described | .ai/DECISIONS.md:1918 | no-deletion statement, text only |
-| PROTO-DEC-0045 item 6 | built | docs/specs/2026-09-23-executable-rulebook-spec.md:28 | spec present; implemented as the rulebook checks (protocol-scope.cjs, protocol-verdict.cjs), F-01/F-02 CLOSED 2026-09-27 (.ai/TASK.md Current state) |
+| PROTO-DEC-0045 item 6 | built | .ai/bin/protocol-verdict.cjs:4, .ai/bin/protocol-scope.cjs:4 | spec checks 1-4 implemented (verdict arithmetic + stop rule; scope + independence); tests/rulebook.test.cjs:8,9 (54/54 pass, re-run 2026-09-28) |
 | PROTO-DEC-0046 item 1 | described | .ai/DECISIONS.md:1944 | premise-replacement statement, text only |
 | PROTO-DEC-0046 item 2 | built | docs/specs/2026-09-23-executable-rulebook-spec.md:79-81 | Ledger path contract with normalised paths |
 | PROTO-DEC-0046 item 3 | built | protocol-manifest.json:5-32, .ai/DECISIONS.md:1960-1962 | Protected set from manifest (managed+source lists) plus .ai/, .claude/, .codex/ |
@@ -155,7 +155,7 @@
 
 ## Correction log 2026-09-28
 
-Basis: `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md` (Mistral rejects) and the launch file `LAUNCH-DIG-FIX-MISTRAL.md` (PROTO-DEC-0096 item 2). Only rejected rows were changed. `described` = the item exists only as a written rule; `partial` = partly implemented. Header counts after correction: 129 total, 58 built, 11 partial, 60 described, 0 not built.
+Basis: `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md` (Mistral rejects) and the launch file `LAUNCH-DIG-FIX-MISTRAL.md` (PROTO-DEC-0096 item 2). Only rejected rows were changed. `described` = the item exists only as a written rule; `partial` = partly implemented. Header counts after correction: 129 total, 58 built, 11 partial, 60 described, 0 not built. Follow-up 2026-09-28 per `docs/reviews/2026-09-28-luna-dig-recheck.md` (single REJECT): the `PROTO-DEC-0045 item 6` proof was re-proofed; counts unchanged (built stays built).
 
 - PROTO-DEC-0025 item 1: built / "git tag v1.9.4" -> described / .ai/DECISIONS.md:1159 (process rule, no code or commit artefact)
 - PROTO-DEC-0025 item 2: built / .ai/bin/protocol-handoff.cjs -> built / .ai/bin/protocol-handoff.cjs:321,366
@@ -264,3 +264,4 @@ Basis: `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md` (Mistral rejec
 - PROTO-DEC-0047 item 10: partial / PROTO-DEC-0047:10 -> described / .ai/DECISIONS.md:1984 (CodeBurn not installed)
 - PROTO-DEC-0047 item 11: built / PROTO-DEC-0047 -> described / .ai/DECISIONS.md:1985
 - PROTO-DEC-0047 item 12: built / PROTO-DEC-0047 -> described / .ai/DECISIONS.md:1986
+- PROTO-DEC-0045 item 6 (Luna recheck REJECT 2026-09-28): built / docs/specs/2026-09-23-executable-rulebook-spec.md:28 -> built / .ai/bin/protocol-verdict.cjs:4, .ai/bin/protocol-scope.cjs:4 (spec line 28 is the section-1 boundary, not an implementation proof; checks 1-4 exist as code, regression-tested in tests/rulebook.test.cjs:8,9, 54/54)
