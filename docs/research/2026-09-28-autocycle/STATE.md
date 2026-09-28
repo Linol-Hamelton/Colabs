@@ -72,9 +72,15 @@ as facts change and pushes after every step.
   (134 lines, `STATUS: READY`, commit `9be670e`; only the prompt and the journal changed; `verify`
   matches; author `mistral-0d03d4481ac46858`, ran mistral-medium-3.5). Session caveat: it committed
   via a `node -e` wrapper because the approval callback denied git; reviewed by the operator.
-- 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certifiers MiMo-V2.6-Pro + GPT-5.6 Sol run in
-  parallel worktrees `cert-2a-mimo`/`cert-2a-sol` (pids 22732/32956; launch files in `5ce5219`).
-  Next: collect both reviews; both PASS/RECOMMENDATION -> delegated merge (section 6).
+- 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certification round 1 in parallel worktrees:
+  **Sol = FAIL** (`docs/reviews/2026-09-28-sol-wave2a-certification.md`, commit `d23d826` on
+  cert-2a-sol; CERTIFYING, 171 lines). Reproduced blockers: (B) W5 not hermetic while running -
+  the tests import `.ai/worklog/gemini-0123456789abcdef.md` into the tracked checkout
+  (`tests/dispatch.test.cjs:217,241-246`; F-2A-03, now blocking per PROTO-DEC-0041 item 4);
+  (E) S-7 bound is six, not four - two `own` watchdog scenarios start before the pool
+  (`launch-test.cjs:460-485`; instrumented probe `PROBE_MAX_ONE=6`). Per-item: A/C/F PASS,
+  B/E FAIL, D/G RECOMMENDATION. MiMo's certification still runs. Merge CLOSED for this candidate
+  (section 6 needs both PASS/RECOMMENDATION); the fix-round decision is in OWNER-QUEUE.
 - Then freeze -> certification MiMo-V2.6-Pro + GPT-5.6 Sol -> delegated merge (section 6). MiMo
   route: xiaomi verified; OpenRouter blocked by credits (OWNER-QUEUE).
 
@@ -89,7 +95,8 @@ as facts change and pushes after every step.
   on roadmap-wave3) and OPS-1 phase A `DESIGN.md` + `DECISION-DRAFTS.md` (`49164b7` on ops-1);
   both sessions were denied git by the approval callback, so the operator committed their files.
 - Wave 3: vibe drafts -> SUPERVISOR-PREREG table -> packet 2.
-- Benchmark catalog: vibe collectors.
+- Benchmark catalog (F-18): collector A DONE (`CATALOG-A.jsonl` 18 rows / 82 scores; `COVER-A.md`);
+  collector B finalizing (URL validation); then the MiMo verifier (20% sample).
 - kernel-batch-2: after the drafts; vibe executor (GLM on PASS else Mistral); DeepSeek review.
 - A-1: waits for the 2A merge. PROFILE-2 / V3: after the 2A merge in a quiet window; the V3 split
   line is the owner's.

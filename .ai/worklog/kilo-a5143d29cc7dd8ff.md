@@ -8,6 +8,46 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - 2A certification round 1: Sol FAIL (two blockers); MiMo pending; catalog A done
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collected Sol's certification (`docs/reviews/2026-09-28-sol-wave2a-certification.md`,
+171 lines, `Mode: CERTIFYING`, `Receipt-Owner: codex-96801ade53c50a18`, commit `d23d826` on
+`cert-2a-sol`): verdict **FAIL** with two reproduced blocking defects:
+- (B) W5 not hermetic while running - `tests/dispatch.test.cjs:217,241-246` imports
+  `.ai/worklog/gemini-0123456789abcdef.md` into the tracked checkout and deletes it only in
+  `finally`; F-2A-03 upgraded from LOW to blocking per PROTO-DEC-0041 item 4;
+- (E) S-7 bound is six, not four - two `own` watchdog scenarios start before the pool
+  (`launch-test.cjs:460-485`); the instrumented spawn probe measured `PROBE_MAX_ONE=6`.
+Per-item: A/C/F PASS, B/E FAIL, D/G RECOMMENDATION. MiMo's certification still runs (journal
+`mimo-370f15396465bd07`). Merge is closed for this candidate (section 6 requires both
+PASS/RECOMMENDATION). Catalog collector A finished: `CATALOG-A.jsonl` 18 rows / 82 scores, all with
+source URLs (access date 2026-09-28), `COVER-A.md`; collector B finalizing with URL validation.
+Updated STATE and OWNER-QUEUE with the FAIL and the proposed fix round; the gate line at 13:52Z read
+Nonpaged 1056.5 MB / Paged 952.4 MB (growth ~1.6 MB/min) - within the pool rule.
+
+Result: 2A round 1 closed on the Sol side as FAIL; no merge; the fix-round decision is queued to the
+owner. MiMo may still converge on the same frozen candidate; its report is collected next.
+
+Next step: collect MiMo's certification, report the round to the owner, and, if the fix round starts,
+repair W5 hermeticity and the S-7 bound on a new candidate and re-certify (Sol repeat allowed after
+FAIL, effort Medium).
+
+Open: 2A fix decision (owner); DIG packet decision (owner); MiMo result pending; collector B still
+running.
+
+Evidence:
+- anchor: d0b112062e8c5072f5e8e18760ad51d62b140ece, uncommitted changes present
+- digest: sha256:fa9c13ba94c65457210a623b6b084de374cbdec221439410726230c645ceb74b over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T13:32:40.464Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:658b5507b2906fdd3734861f69600c1af8d8e696991f1e7bc0021175d44e0d2f of this entry without this block
+- parent-entry: sha256:992f18b72f26caad2c9715fec17bd8edf226613c6313bfcd97ca96aa93a948a0
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - Recovery 3 done; 2A frozen; both certifiers running; DIG REJECT; drafts/OPS-1 committed
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
