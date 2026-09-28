@@ -8,6 +8,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - DIG corrections fully verified (Luna recheck2 PASS 15/15); SUPERVISOR-PREREG S2-S4 final
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collected Luna's second recheck (`docs/reviews/2026-09-28-luna-dig-recheck2.md`, committed by
+the session as `8f12e1c`): verdict PASS, 15/15 CONFIRM (DeepSeek 14/14 = 100%; Mistral 45/6 1/1),
+0 REJECT, 0 UNSURE. Updated the SUPERVISOR-PREREG observed rows: S2 (final not-built counts: Mistral
+0, Gemini 1, DeepSeek 9 - all kernel-internal as classified -> keep A), S3 (~3% -> keep), S4 (first
+pass 72.6% -> postponement applied -> after corrections 100% of corrected rows re-proven). Added the
+recheck measurement row (33 total). Gate line 15:06Z: Nonpaged 1171.1 MB, Paged 1187.4 MB, free
+7.32 GB - the pool rule holds; free RAM still below 8 GB, so heavy steps stay paused and only light
+steps have run. No owner decision yet on the DeepSeek reviewer route; the 2A freeze remains on hold.
+
+Result: The DIG side of the night is closed (corrections + independent rechecks all green); the 2A
+side waits only on the reviewer route decision (then the DeepSeek diff review, the freeze, and the
+MiMo + Sol re-certification).
+
+Next step: await the owner's route decision; keep the gate lines; collect any new instructions.
+
+Open: reviewer route (owner); Vercel balance (owner).
+
+Evidence:
+- anchor: fb8e1414ce4f23ff212ce29b32105019987c324d, uncommitted changes present
+- digest: sha256:728044ecdcf6ff872315936a3c7e78569259312039f314bdd511445276425d74 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T15:07:34.700Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:5cf2c618c71c2a90f971a1590d327b61b41e189a0529a6aecee6e0818456b6c6 of this entry without this block
+- parent-entry: sha256:458b5edb282b1185856693326929467f83b8ae711cd26cf81e2c641305ee646d
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - DIG 45/6 fixed and committed; Luna second recheck dispatched
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
