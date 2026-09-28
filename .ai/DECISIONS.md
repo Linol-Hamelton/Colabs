@@ -4298,3 +4298,68 @@ Decision:
    owner's separate word.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0094
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0093 item 1 (the DIG verifier: GLM on PASS, Luna until then); PROTO-DEC-0091 item (b)
+(the environment gate boundaries as recorded); PROTO-DEC-0084 item 9 (selection=owner for the vibe routes)
+
+Context:
+The owner issued a single instruction in chat on 2026-09-28 (AUTOCYCLE-1, extended): (A) the pool rule
+of AUTOCYCLE-PROMPT section 10 is replaced by absolute thresholds and a growth-rate rule; (B) vibe
+(Mistral subscription, marginal cost 0) becomes the default executor for the wave-3 drafts, the
+benchmark catalog, OPS-1 phase A and everything planned for agy, with kernel-batch-2 allowed under
+selection=owner (PROTO-DEC-0084 item 9); (C) the DIG verification starts immediately with GLM-5.3 on
+PASS, until PASS with GPT-5.6 Luna (codex XHigh); (D) after the owner's "VPN ok" one agy attempt for
+recovery 3, and on failure the agy line is FALLEN with vibe as the successor; (E) the certifiers, the
+finalizer and the A-1 merge stay as recorded.
+
+Decision:
+A. Environment gate (replaces the pool rule of AUTOCYCLE-PROMPT section 10):
+ 1. The baseline is re-taken now (warm system) and replaces the post-boot line in STATE; the
+    post-boot figures stay as a historical line.
+ 2. Nonpaged pool absolute thresholds: below 1.5 GB - heavy steps allowed; 1.5-2 GB - heavy steps
+    paused; 2 GB or more - heavy work stopped for the whole day and recorded in OWNER-QUEUE.
+    Growth over the last 30 minutes at 5 MB/min or more - heavy steps paused. The remaining checks
+    are unchanged: free RAM >= 8 GB, no process above 5% CPU, Committed below 80% of the limit.
+ 3. Step classes: light - remote models through CLI (codex Luna/Sol, vibe, OpenRouter, kilo to the
+    API); heavy - the full suite, measurements (PROFILE), local agent sessions (agy executor etc.).
+ 4. Every 30 minutes a journal line: nonpaged, paged, growth rate (MB/min). Sustained growth of
+    3 MB/min or more for two consecutive hours: a poolmon snapshot by tags (top 10) into the
+    journal; H-2 becomes "driver leak, suspects: VPN drivers".
+B. Vibe as the default executor (the Mistral subscription expires in two days, marginal cost 0):
+ 1. Model: GLM-5.3 when its probe PASSes, otherwise Mistral Medium 3.5, and it is recorded as used.
+    The GLM probe runs after the owner's "GLM chosen": read the alias and id in ~/.vibe/config.toml
+    (never copy keys); repeat the non-interactive launch with that alias; PASS means no
+    "falling back" in the log and the model confirmed by something other than self-report.
+ 2. Vibe takes over at once: the wave-3 drafts and the SUPERVISOR-PREREG table; the benchmark
+    catalog (collectors); OPS-1 phase A and the memos; the consensus-round participants and the
+    synthesizer; everything else that was planned for agy.
+ 3. Kernel code on vibe is allowed (selection=owner, PROTO-DEC-0084 item 9): kernel-batch-2 from
+    small DIG items, at most 5 items, each not larger than a 2A-sized change; executor GLM on PASS,
+    else Mistral Medium 3.5; DeepSeek review; the owner names the certifiers for kernel-batch-2.
+ 4. Up to 3 parallel vibe sessions while the gate is green; on a rate limit - reduce to 2 and record.
+ 5. Every vibe log is checked for "falling back" before its output is accepted. Measurements as
+    usual: cost_marginal = 0, cost_shadow at list price.
+ 6. Independence: the executor of a task neither votes on it nor verifies it; Mistral does not
+    verify DIG 0022-0047.
+C. DIG verification (light, starts immediately):
+ - Verifier GLM-5.3 on PASS; until PASS, GPT-5.6 Luna (codex, XHigh) as in PROTO-DEC-0093.
+ - Scope per DIG-VERIFY-TASK.md (commit ac754ba); disputed rows go to one short Sol call covering
+   only those rows.
+ - S4 in the SUPERVISOR-PREREG table is computed from the actual verifier; the 20% threshold stands.
+D. 2A recovery 3:
+ 1. After the owner's "VPN ok": ONE agy attempt (CLI or the Antigravity IDE as the owner's step).
+ 2. On failure the agy line is FALLEN with a record; the successor is vibe (GLM on PASS, else
+    Mistral Medium 3.5), with the narrow task: only the unified adversarial prompt <= 150 lines,
+    inputs the diff a4312e8..HEAD of kernel-batch-1, the DeepSeek review 5bc9940 and
+    W2A-EXECUTION.md; no code, no tests.
+ 3. Then freeze 2A -> certification MiMo-V2.6-Pro + GPT-5.6 Sol -> the delegated merge (section 6).
+E. Unchanged: 2A certifiers MiMo + Sol; A-1 certifiers Sol + MiMo; the finalizer Claude; the A-1
+   executor Claude Opus 5.5; the A-1 merge is the owner's; the four agy FAIL rows in
+   MEASUREMENTS.jsonl stay marked "infra: region/VPN, H-4".
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
