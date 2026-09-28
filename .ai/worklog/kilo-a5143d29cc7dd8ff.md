@@ -8,6 +8,44 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - PROTO-DEC-0093 recorded; DIG verifier Luna; agy retry gated on the owner's VPN
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Appended PROTO-DEC-0093 (owner instruction in chat) plus one REGISTRY row, commit `ec95d2f`,
+pushed: DIG verifier = GPT-5.6 Luna (codex, effort XHigh) instead of Sol (Sol preserved for the 2A
+and A-1 certification); rows where Luna is uncertain or disagrees with the collector on the evidence
+get one short Sol call; S4 is computed by Luna, the 20% threshold unchanged. After the owner's
+"VPN ok": exactly ONE recovery-3 agy retry; on failure the agy executor line is FALLEN and the
+successor is Gemini 3.8 Flash via another route (Gemini API through kilo/OpenRouter, `modelRan` from
+the response `model` field), same narrow task: only the unified adversarial prompt <= 150 lines over
+`a4312e8..HEAD` of `kernel-batch-1` with the diff, the DeepSeek review (`5bc9940`) and
+`W2A-EXECUTION.md` as inputs; no code, no tests. No route -> STOP to the owner (Codex Terra only with
+the owner's word). Annotated the four agy FAIL rows in MEASUREMENTS.jsonl with "infra: region/VPN
+(hypothesis H-4, verify)"; added H-4 to STATE hypotheses; updated the DIG pipeline (Luna) and the 2A
+status; updated OWNER-QUEUE.
+
+Result: Decisions and records are in place and pushed; no heavy sessions are running. Waiting for the
+owner's «VPN ок» before the single agy retry; then the DIG verification with Luna is the next heavy
+step.
+
+Next step: on «VPN ок» - one recovery-3 retry (success -> freeze and certify MiMo + Sol; failure ->
+FALLEN + the Gemini-via-API successor); meanwhile prepare the DIG task (cover-convention line in
+`drafts/COVER-DUP.md` and the Luna task file).
+
+Open: agy route (owner); Sonnet 5.5 id (owner); MiMo route (owner).
+
+Evidence:
+- anchor: ec95d2fe60892c201ef26a48fd1373d3cbfbbfc7, uncommitted changes present
+- digest: sha256:8cc7db65c353df705f88df132efa3745f830f7b0d2e4184fb2df73e836f9cce5 over 1869 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T12:45:29.407Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:265db41e2b4c78152d6826da081cba7d1898079a22db6bfd6e4da3df5d6969e5 of this entry without this block
+- parent-entry: sha256:c178c274744315e1e311f12498915e78a99ec8da88c85076323b39da47c7b508
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - agy unreachable: recovery-3 attempt 4 failed; retries stopped; blocker queued
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

@@ -10,7 +10,7 @@ as facts change and pushes after every step.
 - Mode: post-reboot (reboot confirmed: LastBootUpTime 2026-09-28T14:40:16+03:00, newer than the Part A
   snapshot 2026-09-28T00:58Z; NOT degraded).
 - NIGHT_END extended by the owner 2026-09-28 to 23:00 MSK (PROTO-DEC-0092); delegation valid until then with the same boundaries; MAX_CYCLES 8 and budget $5.00 unchanged.
-- Last update: 2026-09-28T12:17Z by kilo-a5143d29cc7dd8ff at a2db48c (this STATE commit follows it).
+- Last update: 2026-09-28T12:46Z by kilo-a5143d29cc7dd8ff at ec95d2f (this STATE commit follows it).
 
 ## Goals tonight (from AUTOCYCLE-PROMPT.md section 12)
 
@@ -58,6 +58,10 @@ as facts change and pushes after every step.
 - Owner note 2026-09-28T12:16Z: first cycle after the reboot strictly sequential (section 10); the
   merged-tree suite ran in parallel with this agy session (recorded in the operator journal for
   H-1); no new heavy steps until recovery 3 ends.
+- PROTO-DEC-0093 (owner, 2026-09-28): after the owner's "VPN ok" - exactly ONE agy retry; if it
+  fails, the agy line is FALLEN and the successor is Gemini 3.8 Flash via the Gemini API through
+  kilo/OpenRouter (modelRan from the `model` field), same narrow prompt-only task; no route ->
+  STOP to the owner. DIG verifier is Luna, not Sol.
 
 ## Pipelines (next step)
 
@@ -65,7 +69,9 @@ as facts change and pushes after every step.
 - perf-wave-1: second docs merge DONE - `a2db48c` on v2.0.0, pushed; range check + Addendum line
   `confirmed by report.cjs @ 22ff6a6` + perf1 `verify` matches; full suite on the merged tree green
   (420/420, validate 0 warnings, wall 192.9 s).
-- Wave 3 (F-17): COVER-DUP line -> Sol verification -> vibe advisory -> drafts -> packet 2 table.
+- Wave 3 (F-17): COVER-DUP line -> Luna verification (codex XHigh; PROTO-DEC-0093; uncertain or
+  disagreeing rows -> one short Sol call) -> vibe advisory -> drafts -> packet 2 table (S4 by Luna,
+  threshold 20%).
 - A-1: waits for the 2A merge.
 - PROFILE-2 / V3: wait for the 2A merge and a quiet window; V3 split line is the owner's.
 - core-landing-ia: frozen until stages 2-3 and the I-a certification.
@@ -121,6 +127,7 @@ as facts change and pushes after every step.
 | H-1 | agy session deaths ("waiting for task") come from memory pressure | owner memory report 2026-09-27 | deaths stop after the reboot under the memory gate | уточнить |
 | H-2 | kernel pools of 5.9 GB are a driver leak | owner memory report | pools regrow after the reboot; poolmon top tags | уточнить |
 | H-3 | vibe silently replaces an unresolved active_model | GLM-PROBE.md @ 6ff869d | log line "falling back" | подтверждено (6ff869d) |
+| H-4 | the agy failures are owner-side region/VPN, not memory | owner note 2026-09-28 + 4 dispatch failures | after the owner's VPN fix, one recovery-3 retry succeeds | уточнить |
 
 ## Owner queue pointer
 
