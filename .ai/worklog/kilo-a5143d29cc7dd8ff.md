@@ -8,6 +8,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - F-18 catalog collected and committed; MiMo still working; agy DIG attempt idles
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collector B exited cleanly; committed both collectors' outputs plus journals on
+`bench-catalog` (`c53e412`, pushed): `CATALOG-A.jsonl` 18 rows / 82 score entries, `CATALOG-B.jsonl`
+30 rows, `COVER-A.md`, `COVER-B.md`; both JSONL files parse (48 rows total, LF-only). Added the two
+collector measurement rows (now 22 data rows). Poll notes: MiMo's certification still runs
+(mimo PID 28112 at ~13% of one core, journal 147 B - actively working, no stall); the agy DIG attempt
+(pid 7468) idles at ~0.5% CPU with no output - the familiar pre-failure pattern, one attempt only;
+the Mistral DIG correction session has started (journal `mistral-e71babad8028741a`).
+
+Result: The catalog side of F-18 is ready for the MiMo verifier. The 2A fix round still waits for
+the MiMo verdict; the DIG corrections proceed (Mistral running, Gemini attempt pending its outcome,
+DeepSeek blocked on credits).
+
+Next step: collect MiMo when it lands; then dispatch the single 2A fix round; watch the DIG
+corrections and the agy attempt.
+
+Open: MiMo verdict; agy DIG attempt outcome; DeepSeek range route (owner).
+
+Evidence:
+- anchor: 356b8fa4ac8df8437bfe6b2b92543305e2bbc4c6, uncommitted changes present
+- digest: sha256:42bb76475af928bb56f658b744533358afa15efe7f874e921234214ed747980b over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T13:45:01.196Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:aed6c825a4e6e33f55263d902d7c35c8f748a8981923c8c61df3e9e9f765cd10 of this entry without this block
+- parent-entry: sha256:a7629182127a6df69ffabfee78da629b8fad36800e756339984b825c596eaaf5
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - DIG option (b) corrections dispatched; DeepSeek range blocked (kilo 402)
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

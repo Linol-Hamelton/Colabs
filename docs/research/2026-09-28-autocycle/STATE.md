@@ -108,8 +108,9 @@ as facts change and pushes after every step.
   on roadmap-wave3) and OPS-1 phase A `DESIGN.md` + `DECISION-DRAFTS.md` (`49164b7` on ops-1);
   both sessions were denied git by the approval callback, so the operator committed their files.
 - Wave 3: vibe drafts -> SUPERVISOR-PREREG table -> packet 2.
-- Benchmark catalog (F-18): collector A DONE (`CATALOG-A.jsonl` 18 rows / 82 scores; `COVER-A.md`);
-  collector B finalizing (URL validation); then the MiMo verifier (20% sample).
+- Benchmark catalog (F-18): collectors DONE - A (`CATALOG-A.jsonl` 18 rows / 82 scores) and B
+  (`CATALOG-B.jsonl` 30 rows, URL validation pass), covers included; operator-committed `c53e412`
+  on `bench-catalog` (not merged). Next: the MiMo verifier (20% sample).
 - kernel-batch-2: after the drafts; vibe executor (GLM on PASS else Mistral); DeepSeek review.
 - A-1: waits for the 2A merge. PROFILE-2 / V3: after the 2A merge in a quiet window; the V3 split
   line is the owner's.
