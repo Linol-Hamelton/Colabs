@@ -4724,3 +4724,85 @@ Decision:
 4. After the push the operator sends one line: "2A merged, push <SHA>", then continues with S6.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0105
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0099 item 1 (the packet-2 gate is satisfied: S1-S9 read under the SUPERVISOR-PREREG
+reading rule; no signal switches the variant); PROTO-DEC-0095 item 4 (Sol's call budget extended by
+one for A-1)
+
+Context:
+The owner read the packet-2 table (S1-S9) under the SUPERVISOR-PREREG reading rule - no signal
+switches the variant - and chose variant A' for Kernel v1. 2A is merged (`bb19cc3`); the
+registry-fixture fix preceded it; F-C01 and A-1 remain before the Kernel v1 freeze.
+
+Decision:
+1. Kernel v1 = the current kernel + the merged 2A (`bb19cc3`) + the F-C01 fix (the host review-path
+   contract) + A-1 (security semantics). The pilots start after the Kernel v1 freeze. 2B, CORE-ARCH
+   stage 3 and OPS-1 phases B/C continue after v1, in parallel with the pilots.
+2. A-1: executor Claude Opus (Claude Code, effort max); certifiers Sol + MiMo. Sol receives one
+   call beyond PROTO-DEC-0095 (effort Medium, prompt <= 150 lines, report <= 250 lines); a repeat
+   after a FAIL only by the owner's word. The A-1 merge is the owner's.
+3. F-C01: executor vibe (log checked for "falling back"); a failing test first; the review by
+   DeepSeek; the certifier candidates (the validator/gate path is high risk - two independent
+   certifiers) are proposed by the advisor and approved by the owner.
+4. The order and parallelism of F-C01 and A-1 are decided by the advisor (the channel, starting with
+   request 001); the Kernel v1 freeze happens after both are merged.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0106
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+
+Context:
+The owner decided the public/private split: Kernel v1 is the last public version under MIT as the
+Community Edition; everything after the Kernel v1 freeze lives only in a new closed repository,
+CoLabus (named after the owner's company Labus; the name is approved, no trademark check needed).
+This block records the decision and the plan; execution happens at the Kernel v1 freeze.
+
+Decision:
+5. The boundary: Kernel v1 is the LAST public version, under MIT, as the Community Edition.
+   Everything after the Kernel v1 freeze goes only to the new closed repository with a proprietary
+   license ("All rights reserved"; the paid terms come later, with the lawyer).
+6. The new project and the closed repository are named CoLabus.
+7. Until the split point everything stays as now: commits and pushes go to the public
+   linol-hamelton/colabs. The public history is NEVER rewritten (no force, rebase, filter-repo, no
+   deleting branches with history). The repository is never deleted.
+8. At the Kernel v1 freeze (each step reported to the owner in a separate line; the owner performs
+   the steps outside the repository):
+   a) tag the last public version on v2.0.0 - the tag name is proposed by the operator and approved
+      by the owner (current proposal: `kernel-v1.0.0`);
+   b) owner: Zenodo-GitHub integration BEFORE the release (DOI), release by the tag, Software
+      Heritage "Save code now";
+   c) owner: creates the closed CoLabus repository and grants the agents access;
+   d) operator: push the full history to CoLabus (v2.0.0 and the live branches from the list the
+      owner approves); verify ls-remote;
+   e) operator: in CoLabus - LICENSE "Copyright (c) 2026 Ruslan Fomenko. All rights reserved.";
+      the protocol-manifest role stays `source`;
+   f) operator: in the public repository - ONE commit: remove everything not in the public
+      composition (item 9) plus a README "Community Edition (MIT, frozen at <tag>); development
+      continues privately as CoLabus". Check: install the Community version from that tree into an
+      empty temporary folder and run the validator there - PASS; otherwise do not push, go to the
+      owner.
+9. Public-composition rule: only what appears in an EMPTY project when the protocol is installed
+   stays public - the "managed" and "integration" lists of protocol-manifest.json (and what the
+   installer creates from them) - plus the exceptions: LICENSE (the MIT requirement),
+   setup-ai-protocol.ps1 and the templates it reads, README.md, QUICKSTART.md. EVERYTHING else
+   (ideas and plans) leaves the public version: OwnerIdeas/, docs/** (research, reviews, ops,
+   decisions), .ai/DECISIONS.md, .ai/PLAN.md, .ai/TASK.md, .ai/ARCHIVE.md, journals, tests/,
+   test-protocol.ps1, tools/, the other `source` files of the manifest (including
+   protocol-dispatch.cjs and clients.json). The new session builds the lists mechanically (install
+   into an empty temp folder, compare with `git ls-files`) and sends the owner two tables "stays" /
+   "leaves" (path, size, one line of what it is). Nothing is deleted before the owner's word. A file
+   in "leaves" that the installer or the installed-project validator needs is marked separately.
+10. Once CoLabus exists, new ideas and plans are written only there; the old ones are already there
+    with the history (8d).
+11. OWNER-QUEUE: a license lawyer before the first sale; a draft of the authorship article.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
