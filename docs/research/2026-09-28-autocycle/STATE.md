@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T20:50Z - BOTH MERGES DONE AND PUSHED (A-1 `4d7081a`, H1 `ee0d9f1`);
-merged-tree suite 434/434 PASS; `verify` matches; `LAUNCH-*.md` relocated; **tag proposal
-`kernel-v1.0.0` awaits the owner's word**; F-18 closed; `v2.0.0` = `6b55688` + this commit.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T21:05Z - KERNEL v1 FROZEN: annotated tag `kernel-v1.0.0` on `22e066d`
+pushed (tag object `bf680c88`); PROTO-DEC-0108 recorded (2A + H1 + A-1; Zenodo enabled; SWH save
+accepted); WAITING for the owner's release/CoLabus lines; no new development in the public repo.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -188,12 +188,15 @@ merged-tree suite 434/434 PASS; `verify` matches; `LAUNCH-*.md` relocated; **tag
    `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md` (CERTIFYING, receipt
    mimo-4aeecec4ecf66249) @ `81cab28` (pushed). **Owner ACCEPT 2026-09-28; frame CLOSED in FRAMES;
    merged `c554d17`; suite 423/423 on the merged tree; row 20 recheck in BACKLOG.**
-   **Gate cadence:** 30-min gate lines (cron `wku_0e952e8bc001bOY0i80R1E8jwO`) to
-   `.ai/runtime/gate-autocycle.log`; kilo WS 3.16 GB at 18:42 (< 6 GB).
-4. **Kernel v1 freeze: both merges are in; merged-tree suite 434/434 PASS (278.9 s), `verify`
-   matches, pushed. PROPOSAL to the owner: tag `kernel-v1.0.0` on the tip of v2.0.0 at this commit
-   (the tag goes on only on the owner's word). Then the Community/CoLabus steps (PROTO-DEC-0106
-   item 8); the five state files reset to the installer's empty-project skeletons (ADV-003 item 7).**
+   **Gate cadence:** the 30-min gate cron was stopped at 21:05Z in waiting mode (no development;
+   re-enable on the owner's word); the log stays at `.ai/runtime/gate-autocycle.log`.
+4. **Kernel v1 FROZEN 2026-09-28T21:02Z: annotated tag `kernel-v1.0.0` on `22e066d` pushed (tag
+   object `bf680c88`); PROTO-DEC-0108 recorded under the lock (Zenodo integration enabled; Software
+   Heritage save request accepted). WAITING for the owner's two lines ("релиз опубликован, DOI
+   <...>", "CoLabus создан, доступ выдан"), then PROTO-DEC-0106 steps d-f one by one.** The five
+   state files reset to the installer's empty-project skeletons (ADV-003 item 7); the five
+   validator-referenced leaves are analyzed in `COMMUNITY-COMPOSITION.md` (owner decides; operator
+   recommends keeping the four config/CI/test files and treating REGISTRY.md as the owner's call).
 5. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
    installer/validator needs) to the owner; nothing deleted before the owner's word; the tag-name

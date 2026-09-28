@@ -4838,3 +4838,26 @@ Decision:
 4. A-1: one DeepSeek review before the freeze, if the balance is >= $3.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-2fec8d740dc73400)
+
+### PROTO-DEC-0108
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0105 (the Kernel v1 freeze); PROTO-DEC-0106 item 8 step (a) (the tag)
+
+Context:
+The owner approved the Kernel v1 freeze on 2026-09-28: Zenodo integration is enabled and the
+Software Heritage save request has been accepted. The frozen artifacts are the public `v2.0.0` tip
+that contains 2A, H1 and A-1 (merged; merged-tree suite 434/434 PASS, `verify` matches).
+
+Decision:
+1. Kernel v1 is frozen at `22e066d2e4894052efabed5defd5711336658458`.
+2. The annotated tag `kernel-v1.0.0` is placed on it (message "Kernel v1 (PROTO-DEC-0105): 2A + H1 +
+   A-1; last public MIT version") and pushed; the tag object is
+   `bf680c882f0f52c8c3027ff4117011222ba46004`.
+3. Zenodo GitHub integration is enabled; the Software Heritage save request is accepted.
+4. After the freeze no new development starts in the public repository; new ideas, 2B, CORE-ARCH
+   stage 3 and OPS-1 phases B/C wait for the CoLabus repository (PROTO-DEC-0106 item 8 d-f).
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-2fec8d740dc73400)
