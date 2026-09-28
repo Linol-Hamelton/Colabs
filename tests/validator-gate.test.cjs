@@ -144,3 +144,83 @@ test('F-5: PowerShell validator review with header terminator on line 0 does not
 
   fails(root, /independent review must name a Reviewer/);
 });
+
+// A-1, PROTO-DEC-0087 item 4. AGENTS.md section 2: an advisory output carries
+// `[MODE: READ-ONLY ADVISORY]`, is non-certifying, and cannot satisfy the independent-review gate.
+// The validator refused only an exact `Mode: ADVISORY`, and the installed role runs no gate-check.
+const A1_PROMPT = 'docs/reviews/2026-09-28-a1-prompt.md';
+const A1_REVIEW = 'docs/reviews/2026-09-28-a1-review.md';
+const A1_FORMS = ['Mode: READ-ONLY ADVISORY', '[MODE: READ-ONLY ADVISORY]'];
+const ADVISORY_REFUSED = /advisory reviews cannot satisfy the independent review gate/;
+
+function a1Review(header, body = '') {
+  return `# Independent review\n\nDate: 2026-09-28\nReviewer: opposing-agent\n${header}\nVerdict: PASS\n${body}`;
+}
+
+// Commits the role into a fresh baseline, since a changed manifest would force the strict path,
+// then leaves one docs change for the light path. Returns the TASK.md text for both paths.
+function a1Baseline(root, role) {
+  const manifestPath = path.join(root, 'protocol-manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.role = role;
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  git(root, ['add', '-A']);
+  git(root, ['commit', '-m', `A-1 ${role} baseline`]);
+  const baseline = git(root, ['rev-parse', 'HEAD']).stdout.trim();
+  write(root, 'docs/user-guide.md', `# User Guide\n\nChanged after the ${role} baseline.\n`);
+  write(root, A1_PROMPT, '# Unified Adversarial Audit Prompt\n\nPrompt content.\n');
+  const task = gate => `# Current Task\n\nStatus: Completed.\n\n## Completion gate\n\n${gate}`;
+  return {
+    strict: task(`- Adversarial review prompt: ${A1_PROMPT}\n- Independent review: ${A1_REVIEW}\n`),
+    light: task(`- Scope: docs\n- Baseline: ${baseline}\n- Independent review: ${A1_REVIEW}\n`),
+  };
+}
+
+// Validates each review in turn and names every one the gate did not refuse as advisory. A
+// light-path task that fell to the strict path fails on its missing prompt; that is no refusal.
+function a1NotRefused(root, reviews) {
+  const missed = [];
+  for (const [label, review] of reviews) {
+    write(root, A1_REVIEW, review);
+    const { status, output } = validate(root);
+    if (status !== 1 || !ADVISORY_REFUSED.test(output) || /missing its adversarial review prompt field/.test(output)) {
+      missed.push(`${label} -> exit ${status}`);
+    }
+  }
+  return missed;
+}
+
+test('A-1: a READ-ONLY ADVISORY review fails the completion gate in both roles and on both paths', t => {
+  const root = makeProtocolFixture(t);
+  const missed = [];
+  for (const role of ['installed', 'source']) {
+    const tasks = a1Baseline(root, role);
+    for (const [route, task] of Object.entries(tasks)) {
+      write(root, '.ai/TASK.md', task);
+      missed.push(...a1NotRefused(root, A1_FORMS.map(form => [`${role}/${route}/${form}`, a1Review(form)])));
+      if (role === 'installed') {
+        // Control: the same fixture with a certifying header passes, so the refusal is the form's.
+        write(root, A1_REVIEW, a1Review('Mode: CERTIFYING'));
+        succeeds(root);
+      }
+    }
+  }
+  assert.deepEqual(missed, []);
+});
+
+test('A-1: advisory Mode values and markers are refused in any spelling, in the review header only', t => {
+  const root = makeProtocolFixture(t);
+  write(root, '.ai/TASK.md', a1Baseline(root, 'installed').strict);
+  const missed = a1NotRefused(root, [
+    '- Mode: read-only advisory (owner-requested audit; certifies nothing)',
+    '**Mode:** READ-ONLY ADVISORY',
+    'Mode: CERTIFYING\nMode: READ-ONLY ADVISORY',
+    '> [Mode: Read-Only Advisory]',
+  ].map(header => [JSON.stringify(header), a1Review(header)]));
+  assert.deepEqual(missed, []);
+  // The header region ends at the first `---` line. A certifying review that quotes both forms in
+  // its body, as a review of this fix will, still passes.
+  write(root, A1_REVIEW, a1Review('Mode: CERTIFYING',
+    '\n---\n\nMode: READ-ONLY ADVISORY and [MODE: READ-ONLY ADVISORY] now fail the gate.\n'));
+  succeeds(root);
+});
