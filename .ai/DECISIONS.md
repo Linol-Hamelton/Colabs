@@ -4363,3 +4363,46 @@ E. Unchanged: 2A certifiers MiMo + Sol; A-1 certifiers Sol + MiMo; the finalizer
    MEASUREMENTS.jsonl stay marked "infra: region/VPN, H-4".
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0095
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0094 part C third bullet and PROTO-DEC-0093 item 1 as to the escalation target only (now MiMo-V2.6-Pro, or GLM-5.3 on PASS; not Sol)
+Refines: PROTO-DEC-0091 items 6d/6i/6j (the Sol slots: two calls, effort Medium); PROTO-DEC-0094 part D (the agy retry executes now)
+
+Context:
+The owner confirmed "VPN ok" (`agy models` responds) and updated the unified instruction of
+2026-09-28. The environment-gate block and the vibe-as-executor block are unchanged and stay as
+recorded in PROTO-DEC-0094. The changes: the single agy attempt for 2A recovery 3 starts now under a
+fixed watcher; the DIG escalation target is MiMo-V2.6-Pro (or GLM-5.3 on PASS), not Sol; Sol is
+limited to exactly two certification calls; the Claude and GPT-OSS entries in the agy model list are
+not added to the pool.
+
+Decision:
+1. 2A recovery 3 on agy starts now: agy, `gemini-3.8-flash-high`, worktree kb1, task
+   `LAUNCH-2A-RECOVERY3.md`. Narrow task: only the unified adversarial prompt <= 150 lines plus
+   journal and record; no code, no tests; the DeepSeek review (`5bc9940`) findings are known items.
+   Watcher: no new files or output for 15 minutes, or any network/region error (400 location, EOF,
+   502), means the attempt FAILED and there are no retries; the agy executor line is FALLEN with a
+   record; the successor is vibe (GLM-5.3 on PASS, else Mistral Medium 3.5) with the same narrow
+   task and the inputs diff `a4312e8..HEAD` of `kernel-batch-1`, the `5bc9940` review and
+   `W2A-EXECUTION.md`.
+2. On success: verify that only the prompt file and the journal changed; `verify` must give
+   "matches"; commit per item; then freeze 2A -> certification MiMo-V2.6-Pro + GPT-5.6 Sol ->
+   delegated merge (AUTOCYCLE section 6). No other agy runs today (H-4: the CLI is unstable). H-4
+   becomes "confirmed: region/VPN" if the attempt completes; otherwise it stays "to verify".
+3. DIG verification escalation: rows where the verifier is unsure or disagrees with the collector
+   go to MiMo-V2.6-Pro (or GLM-5.3 on PASS), not to Sol.
+4. Sol economy: GPT-5.6 Sol is used exactly twice - the 2A certification and the A-1 certification;
+   effort Medium; prompt <= 150 lines; report <= 250 lines; one round; a repeat only after a FAIL,
+   also at Medium. Sol is not used anywhere else.
+5. The Claude and GPT-OSS entries in the agy model list are not added to the pool (unverified; a
+   separate decision).
+6. Everything else in PROTO-DEC-0094 stands unchanged, including the certifiers, the Claude
+   finalizer, the A-1 executor Claude Opus 5.5 and the owner's A-1 merge, and the four agy FAIL rows
+   marked "infra: region/VPN, H-4".
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1, "VPN ok";
+transcribed by kilo-a5143d29cc7dd8ff)
