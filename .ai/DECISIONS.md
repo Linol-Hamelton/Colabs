@@ -4806,3 +4806,35 @@ Decision:
 11. OWNER-QUEUE: a license lawyer before the first sale; a draft of the authorship article.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0107
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0105 items 2-4 (the F-C01 target and certifiers, the A-1 review, the end of the
+night); PROTO-DEC-0102 item 3 (the reserved items answered by the owner directly)
+
+Context:
+The owner answered the four questions ADV-001 put to him (OWNER-QUEUE Q-A..Q-D) in chat on
+2026-09-28: the F-C01 target, its certifiers, NIGHT_END and the A-1 review. The advisor's finding
+(ADV-001): the 2026-09-23 F-C01 form is closed in code; what remains open is the host path - H1 (the
+installed manifest has no `source`, so `.ai/bin/protocol-verdict.cjs` exits 2 in every host project)
+and H2 (no host consumer-path declaration). H1 was reproduced by the operator's light probe on
+2026-09-28: in a fresh installed fixture the installed tool exits 2, `source must be a non-empty
+array`, and the installed manifest has `hasSource=false`.
+
+Decision:
+1. F-C01: the original 2026-09-23 form is CLOSED with reference to PROTO-DEC-0046 item 3,
+   PROTO-DEC-0048 item 2 and `tests/rulebook.test.cjs:270,293`. The remaining work is H1 only: for
+   `role=installed` the protected set is `managed` + `.ai/`, `.claude/`, `.codex/`; `source` is
+   required only for `role=source`. H1 is part of Kernel v1 (a fresh install must pass the
+   validator - the same condition as freeze step (f) of PROTO-DEC-0106). H2 goes to 2B.
+2. Certifiers of the H1 fix (two independent; the validator/gate path is high risk): GPT-5.6 Luna
+   (codex, xhigh) + MiMo-V2.6-Pro (xiaomi route). Reserve: Gemini 3.8 Flash high (agy) after a
+   probe, only in place of MiMo; GPT-5.6 Terra (codex) only in place of Luna.
+3. NIGHT_END is not extended. After 2026-09-28 23:00 MSK the work continues; merges only by the
+   owner's word.
+4. A-1: one DeepSeek review before the freeze, if the balance is >= $3.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-2fec8d740dc73400)

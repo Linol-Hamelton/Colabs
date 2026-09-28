@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T18:12Z - ADV-001 DONE: A-1 FIRST AND LAUNCHED; F-C01 target and certifiers
-wait for the owner (Q-A/Q-B); the light F-C01 probe confirmed the host gap H1; the Kernel v1 freeze
-after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T18:20Z - OWNER ANSWERED Q-A..Q-D (PROTO-DEC-0107): remaining F-C01 work =
+H1 only, part of Kernel v1; A-1 RUNNING; H1 certifiers named (Luna + MiMo); NIGHT_END not extended;
+the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -24,8 +24,8 @@ after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, th
   `tests/rulebook.test.cjs:270,293`); what is really open is the host path - H1 (the installed
   manifest has no `source`, so `protocol-verdict` check 1 exits 2 in every host project) and H2 (no
   host consumer-path declaration). Both were inferred from code; H1 is now reproduced.
-- Next advisor call (002): after the owner's Q-A/Q-B answers plus the probe output; later calls at
-  the A-1 freeze and the A-1 verdicts.
+- Next advisor call (002): sent now with the probe output and the owner's answers (PROTO-DEC-0107);
+  later calls at the A-1 freeze and the A-1 verdicts.
 
 ## Kernel v1 (PROTO-DEC-0105, owner decision)
 
@@ -38,12 +38,14 @@ after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, th
   `docs/research/2026-09-28-autocycle/LAUNCH-A1.md`; certifiers Sol + MiMo (Sol Medium, one call
   beyond PROTO-DEC-0095; repeat only by the owner's word); the A-1 merge is the owner's; a DeepSeek
   review before the freeze only if the owner approves Q-D.
-- F-C01: executor vibe (falling-back check), failing test first, DeepSeek review, certifier
-  candidates from the advisor approved by the owner (Q-B). Probe (ADV-001-2): (a) on HEAD both
-  neutral requirements (`validate-protocol.ps1`, `protocol-manifest.json`) return **FAIL/1**; (b) in
-  a fresh installed fixture the installed tool exits **2** (BLOCKED `source must be a non-empty
-  array`) and the installed manifest has `hasSource=false` (H1 confirmed). Raw outputs: operator
-  journal 2026-09-28.
+- F-C01 = H1 fix (owner, PROTO-DEC-0107): for `role=installed` the protected set = `managed` +
+  `.ai/`, `.claude/`, `.codex/`; `source` is required only for `role=source`; H2 -> 2B. Executor
+  vibe (falling-back check), failing test first, DeepSeek review; certifiers **GPT-5.6 Luna (codex,
+  xhigh) + MiMo-V2.6-Pro (xiaomi)** (reserve Gemini 3.8 Flash only instead of MiMo; Terra only
+  instead of Luna). Probe (ADV-001-2): (a) on HEAD both neutral requirements return **FAIL/1**;
+  (b) in a fresh installed fixture the installed tool exits **2** (BLOCKED `source must be a
+  non-empty array`) and the installed manifest has `hasSource=false` (H1 confirmed). Raw outputs:
+  operator journal 2026-09-28.
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
@@ -71,6 +73,8 @@ after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, th
 ## What just happened
 
 - ADV-001 exchange: request `118f932`, reply + advisor journal `f6b9fe8`.
+- Owner answered Q-A..Q-D; **PROTO-DEC-0107** appended under the lock + REGISTRY row (transcribed by
+  kilo-2fec8d740dc73400); OWNER-QUEUE Q-A..Q-D resolved.
 - Under the lock: the `.ai/TASK.md` F-C01 line corrected (ADV-001-7); OWNER-QUEUE +Q-A..Q-D.
 - `LAUNCH-A1.md` `74b46ff`; A-1 worktree + branch created from it; executor session started.
 - F-C01 probe, light, no tree changes (details in the Kernel v1 section above).
@@ -97,12 +101,14 @@ after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, th
 ## Next actions (in order)
 
 1. **A-1**: watch the executor (a stall is 15 min without a tree write or journal update;
-   PROTO-DEC-0047 item 6); on the candidate: the DeepSeek review if Q-D is approved (balance >= $3),
-   then freeze, then Sol (Medium, prompt <= 150, report <= 250) + MiMo in parallel on one SHA; FAIL
-   -> STOP to the owner, a repeat only by the owner's word; the merge is the owner's.
-2. **F-C01**: after the owner answers Q-A/Q-B, send advisor 002 with the probe output; then execute
-   per ADV-001-3/4 (branch from v2.0.0; vibe with the falling-back check; failing test first;
-   DeepSeek review; the two approved certifiers).
+   PROTO-DEC-0047 item 6); on the candidate: the DeepSeek review per Q-D (approved: one call if the
+   balance >= $3), then freeze, then Sol (Medium, prompt <= 150, report <= 250) + MiMo in parallel on
+   one SHA; FAIL -> STOP to the owner, a repeat only by the owner's word; the merge is the owner's.
+2. **H1 fix (the F-C01 remainder)**: advisor 002 now; after its reply - branch from v2.0.0 + LAUNCH
+   file; the vibe executor starts only after A-1 completes (heavy steps serial, ADV-001-4); failing
+   test first; DeepSeek review; certifiers Luna + MiMo on the frozen SHA (owner-approved,
+   PROTO-DEC-0107); merge per the delegated rule (not a reserved category) unless it falls after
+   NIGHT_END - after 23:00 MSK merges only by the owner's word.
 3. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
 4. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
@@ -133,9 +139,10 @@ after both merges.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, th
 
 ## Standing rules (short)
 
-- Owner decisions: `.ai/DECISIONS.md` 0091-0106. Advisor: PROTO-DEC-0102 + `advisor/CHANNEL.md`
+- Owner decisions: `.ai/DECISIONS.md` 0091-0107. Advisor: PROTO-DEC-0102 + `advisor/CHANNEL.md`
   (ADV-NNN records; independence). Delegated merge: the six conditions of AUTOCYCLE section 6.
   Budget: paid DeepSeek API (operator + reviewer share; < $3 no reviewer + light steps only; < $1
-  STOP). vibe policy: PROTO-DEC-0094 (check logs for "falling back"). NIGHT_END question open (Q-C).
+  STOP). vibe policy: PROTO-DEC-0094 (check logs for "falling back"). NIGHT_END not extended; after
+  23:00 MSK merges only by the owner's word (PROTO-DEC-0107 item 3).
 - Operator: DeepSeek Flash via Kilo (paid API). No secrets anywhere. The MCP cluster and `bot.js`
   belong to the owner's other windows (leave alone).
