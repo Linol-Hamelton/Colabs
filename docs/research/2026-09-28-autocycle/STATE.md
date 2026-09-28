@@ -83,6 +83,8 @@ the Kernel v1 freeze after both merges.** Read it first, then `.ai/DECISIONS.md`
   above ~5% after that (msmpeng 4.5%, transient).
 - Earlier today: 2A merged `bb19cc3`, registry fix `b04e0d9`, S6 green (2 valid RUNS rows: one
   `tokens.source="none"`, one full usage 127656/37257, 0.093511 USD); pushed `v2.0.0` to `74b46ff`.
+- 18:25Z section-10 gate FAIL before advisor 002: Available 7.7 -> 7.2 GB (< 8; A-1 holds ~2 GB).
+  The call is deferred until the gate recovers; advisor 002 request is pushed (`1688372`).
 
 ## Packet-2 table (S1-S9, value + source; the owner chose the Kernel v1 variant: A')
 
