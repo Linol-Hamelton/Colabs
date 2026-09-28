@@ -16,10 +16,13 @@ Row format (one row per numbered item of every decision in the range):
 ```
 | Item | Status | Proof (path or commit) | Note |
 |---|---|---|---|
-| PROTO-DEC-0022 item 3 | built / partial / not built | `path:line` or commit sha, `-` if not built | optional |
+| PROTO-DEC-0022 item 3 | built / partial / not built / described | `path:line` or commit sha, `-` if not built | optional |
 ```
 
-Every file starts with counts: total items, built, partial, not built. No verdicts, no
-certification. The operator runs `protocol-ledger.cjs cover` and `dup` over this directory after
-all three producers finish; the GPT-5.6 Sol verifier then checks a 20% sample plus every
-"not built" row.
+Statuses: `described` means the decision exists only as a written rule (no code, test or validator
+artefact); added 2026-09-28 by PROTO-DEC-0096 item 2 for the targeted correction. Every file starts
+with counts: total items, built, partial, described, not built. No verdicts, no certification. The
+operator runs `protocol-ledger.cjs cover` and `dup` over this directory after all three producers
+finish; the GPT-5.6 Luna verifier checked a 20% sample plus every "not built" row (2026-09-28), and
+after the PROTO-DEC-0096 correction re-checks only the corrected rows. Mistral never verifies the
+Mistral range (PROTO-DEC-0095 item 6).
