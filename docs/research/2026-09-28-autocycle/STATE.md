@@ -36,8 +36,18 @@ ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read
   sessions. Owner clarification (selection=owner): advisor calls are LIGHT (like codex/vibe remote
   calls; the 8 GB gate does not block them; wait only under Available < 4 GB); heavy = full suite,
   measurements, local code-working sessions.
-- Next advisor call (003): at the first freeze or the first verdicts, or on an ambiguity. It carries
-  the owner's parallel-candidate ruling (below) for the record.
+- ADV-003 (selection=owner, 2026-09-28T20:39Z): the owner answered the briefing himself to save the
+  Claude limit: the A-1 blacklist is sufficient for v1 (whitelist -> BACKLOG); H1 accepted; hosts
+  `D:\Block-Puzzle` and `D:\VPN` checked (both `role=installed`, no `source` -> no re-install);
+  freeze diffs are docs-only (checked for both); **A-1 merge GRANTED**; **H1 merge granted only on
+  a MiMo-H1 PASS/RECOMMENDATION, otherwise STOP**; F-001 left unfixed; after both merges - full
+  suite + `verify` + push, then a separate `git mv` of `LAUNCH-*.md` to
+  `docs/research/2026-09-28-autocycle/launch/`; after a green merged tree - propose tag
+  `kernel-v1.0.0` + SHA (tag on the owner's word only); Community state skeletons = exactly the
+  installer's empty-project skeletons (OWNER-QUEUE line closed); DeepSeek balance = owner base
+  $21.9 (15:08Z) minus usage (reviewers $0.080118 by usage so far; operator calls unmeasured).
+- Next advisor call: only on a FAIL/BLOCKED verdict or a new risk; otherwise the owner answers
+  directly.
 - Owner ruling on parallel candidates (selection=owner, 2026-09-28): the overlap check
   `git diff --name-only v2.0.0...a1-installed-advisory` (tests/validator-gate.test.cjs + uncommitted
   validate-protocol.ps1) vs `...h1-installed-protected-set` (tests/rulebook.test.cjs + uncommitted
@@ -165,12 +175,12 @@ ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read
    Branch suite 425/425 (304.5 s).    Certifiers: **CERTIFIED - Sol PASS** (`a9a2443`, CERTIFYING, receipt `codex-518a4936ada98c03`)
    **+ MiMo RECOMMENDATION** (`d11b430`, CERTIFYING, receipt `mimo-d473022df037297a`); both cert
    branches pushed (`cert-a1-sol`, `cert-a1-mimo`); R2-R4/R2-R3 blacklist limits judged
-   pre-existing and non-blocking. **A-1 is ready to merge; only the owner's word is pending.**
+   pre-existing and non-blocking. **A-1 is ready to merge; the owner GRANTED the merge
+   (ADV-003 item 4); merging locally now (H1 follows after its MiMo verdict).**
 2. **H1 fix (the F-C01 remainder)**: FROZEN `476b488`. DeepSeek review PASS. Branch suite 432/432.
-   Certifiers: **Luna PASS** (report written 20:28:44Z, CERTIFYING, receipt
-   `codex-e7ed7431f3ebf38f`; commit/push pending) + **MiMo-H1 RUNNING**
-   (`bgp_0e9b62f64001yT6V6NLiubGVbZ`, since 20:33Z). Merge: the owner's word (after 20:00Z any
-   merge).
+   Certifiers: **Luna PASS** (`e13adf3`, CERTIFYING, receipt `codex-e7ed7431f3ebf38f`; pushed) +
+   **MiMo-H1 RUNNING** (`bgp_0e9b62f64001yT6V6NLiubGVbZ`, since 20:33Z). **Its verdict gates the
+   H1 merge (owner: PASS/RECOMMENDATION -> merge; else STOP).**
 3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
    (`M-2A-RES-CHECK.md`); no code changes.
    **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact

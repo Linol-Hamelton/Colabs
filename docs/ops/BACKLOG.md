@@ -69,6 +69,11 @@
   `datacamp.com` source returned HTTP 403 in the MiMo verification); stays marked unverified,
   recheck at the next catalog touch. Source: `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md`
   (`81cab28`); owner instruction 2026-09-28. Open (low).
+- Validator/gate advisory-detection **whitelist**: replace the A-1 blacklist (residual escapes R2/R3:
+  a marker split across a newline, table-cell declarations, exotic prefixes) with a whitelist; both
+  A-1 certifiers and the DeepSeek review call it a follow-up, not part of the frozen fix. Sources:
+  `docs/reviews/2026-09-28-sol-a1-certification.md`, `...-mimo-a1-certification.md`,
+  `...-deepseek-a1-fix-review.md`; owner ADV-003 item 1 (separate task, next wave). Open.
 - M-1: a transient `.git/index.lock` can raise a spurious SCOPE_STOP. Policy: bounded retry with
   backoff; never delete a lock another git process holds. Source: F-3P-5. Open, L correction pass.
 - M-2: the `launch.cjs` job table (models, routes, outputs) is in code. Move it to a file.
