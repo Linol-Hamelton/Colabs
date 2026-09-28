@@ -9,7 +9,7 @@ as facts change and pushes after every step.
 - Cycle: C00/C01 (Part A done; C01 work in progress). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
 - Mode: post-reboot (reboot 2026-09-28T14:40:16+03:00; not degraded).
 - NIGHT_END 2026-09-28 23:00 MSK (PROTO-DEC-0092); delegation valid until then; MAX_CYCLES 8 and budget $5.00.
-- Last update: 2026-09-28T13:06Z by kilo-a5143d29cc7dd8ff at d2e199a (this STATE commit follows it).
+- Last update: 2026-09-28T13:28Z by kilo-a5143d29cc7dd8ff at 7d17420 (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
 
@@ -24,12 +24,12 @@ as facts change and pushes after every step.
 ## Goals tonight (section 12, as amended by PROTO-DEC-0094)
 
 1. Part A - DONE (reboot confirmed; warm baseline taken).
-2. 2A: the single agy attempt is RUNNING now (VPN ok, PROTO-DEC-0095); on failure agy FALLEN + vibe
-   successor; then freeze, MiMo + Sol certification, delegated merge.
-3. DIG verification starts now: Luna (codex XHigh) until GLM PASS; escalation rows -> MiMo (or GLM
-   on PASS), not Sol.
+2. 2A: recovery 3 done on the vibe successor; FROZEN at `5ce5219`; MiMo + Sol certifiers running;
+   then the delegated merge.
+3. DIG: Luna advisory REJECT (S4 72.6%); an owner decision on the packet is needed; the vibe
+   advisory waits on it.
 4. perf-wave-1 second (docs) merge - DONE (a2db48c).
-5. Wave-3 drafts and the SUPERVISOR-PREREG table on vibe (S4 by the actual verifier, 20%).
+5. Wave-3 drafts and OPS-1 phase A DONE; the SUPERVISOR-PREREG fill and packet 2 follow.
 6. Probes done; benchmark catalog on vibe; measurements for every call.
 7. A-1 after 2A (the merge is the owner's); PROFILE-2 after 2A in a quiet window.
 8. kernel-batch-2 on vibe: at most 5 small DIG items, each <= 2A size; DeepSeek review; the owner
@@ -66,19 +66,28 @@ as facts change and pushes after every step.
 
 - Candidate `5bc9940` on `kernel-batch-1`; recovery-3 launch committed (`670f520`).
 - agy line FALLEN (2026-09-28): five infra failures including the PROTO-DEC-0095 single attempt after
-  the owner's "VPN ok" (`loadCodeAssist` EOF at 13:05Z; diagnostics at 13:11Z show Bad Gateway 502
-  on the same endpoint). FALLEN record `2A-RECOVERY3-FALLEN.md` (43612b8, pushed on kernel-batch-1).
-  Successor vibe dispatched 13:12Z (bg pid 35524, `LAUNCH-2A-RECOVERY3-VIBE.md`, Mistral Medium 3.5)
-  with the same narrow task. H-4 stays "to verify": the route failed again right after the fix.
+  the owner's "VPN ok" (`loadCodeAssist` EOF at 13:05Z; diagnostics at 13:11Z show Bad Gateway 502).
+  FALLEN record `2A-RECOVERY3-FALLEN.md` (43612b8). H-4 stays "to verify".
+- Recovery 3 DONE on the vibe successor: `docs/reviews/2026-09-28-vibe-wave2a-adversarial-prompt.md`
+  (134 lines, `STATUS: READY`, commit `9be670e`; only the prompt and the journal changed; `verify`
+  matches; author `mistral-0d03d4481ac46858`, ran mistral-medium-3.5). Session caveat: it committed
+  via a `node -e` wrapper because the approval callback denied git; reviewed by the operator.
+- 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certifiers MiMo-V2.6-Pro + GPT-5.6 Sol run in
+  parallel worktrees `cert-2a-mimo`/`cert-2a-sol` (pids 22732/32956; launch files in `5ce5219`).
+  Next: collect both reviews; both PASS/RECOMMENDATION -> delegated merge (section 6).
 - Then freeze -> certification MiMo-V2.6-Pro + GPT-5.6 Sol -> delegated merge (section 6). MiMo
   route: xiaomi verified; OpenRouter blocked by credits (OWNER-QUEUE).
 
 ## Pipelines (next step)
 
-- DIG: `DIG-VERIFY-TASK.md` (ac754ba) -> Luna (codex XHigh) now; GLM takes over on PASS; escalation
-  rows -> MiMo-V2.6-Pro (or GLM on PASS); then the vibe advisory.
-- vibe sessions running: wave-3 drafts (`LAUNCH-W3-DRAFTS-VIBE.md`, c2a843b; bg pid 17476) and
-  OPS-1 phase A (`LAUNCH-PHASE-A.md`, 3b3b56e on ops-1; bg pid 29928).
+- DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
+  Main cause: producer proofs are path-only / decision-id / section-only where the task required
+  `path:line` or a commit; plus a corpus finding: DIG-GEMINI has 94 rows, not the advertised 91
+  (cover/dup stale). The full escalation is a packet-quality decision -> OWNER-QUEUE; the vibe
+  advisory is pending that decision.
+- vibe work DONE and committed: wave-3 drafts `KERNEL-V1-SCOPE.md` + `K-LAUNCH-MEMO.md` (`e8181ec`
+  on roadmap-wave3) and OPS-1 phase A `DESIGN.md` + `DECISION-DRAFTS.md` (`49164b7` on ops-1);
+  both sessions were denied git by the approval callback, so the operator committed their files.
 - Wave 3: vibe drafts -> SUPERVISOR-PREREG table -> packet 2.
 - Benchmark catalog: vibe collectors.
 - kernel-batch-2: after the drafts; vibe executor (GLM on PASS else Mistral); DeepSeek review.
@@ -135,3 +144,6 @@ leftover; w3 untracked dir; gate line updated by PROTO-DEC-0094).
 - Gate line 13:10Z: Nonpaged 1006.5 MB, Paged 901.9 MB, growth ~0.6 MB/min since 12:54Z, free
   7.99 GB, committed 52.6%. Pool rule OK; free RAM marginally under 8 GB: heavy steps stay paused in
   general, but the owner ordered the single agy attempt explicitly (PROTO-DEC-0095).
+- Gate line 13:25Z: Nonpaged 1013.7 MB, Paged 917.5 MB, growth ~0.5 MB/min since 13:10Z, free
+  7.23 GB, committed 54.4%. Pool rule OK; free RAM still below 8 GB, so heavy steps stay paused
+  (the two 2A certifiers are remote-CLI light steps).
