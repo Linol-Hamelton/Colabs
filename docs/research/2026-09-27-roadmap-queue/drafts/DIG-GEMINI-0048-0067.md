@@ -3,16 +3,26 @@
 Frame F-17 (advisory audit; no verdict, no certification). Baseline commit at audit time: `48194bd`
 (branch `roadmap-wave3`). Working tree: dirty (untracked session journals only).
 
-Scope: every numbered item of PROTO-DEC-0048..0067 (91 items) = 91 rows.
+**Corrected:** 2026-09-28, session mistral-62800d81552e48a5 (vibe, Mistral Medium 3.5), per
+`docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md` (PROTO-DEC-0096 item 2; range reassigned
+to vibe after the agy dispatch failed). Rows Luna rejected or marked UNSURE were re-proofed or
+downgraded to `described` (exists only as a written rule) / `partial`; the range was recounted;
+see the correction log at the end.
+
+Scope: every numbered item of PROTO-DEC-0048..0067 (94 items) = 94 rows.
 Method: each row was checked against the working tree, not against a report; proofs are `path:line`
 or a commit sha; `-` means no implementation artifact was found.
 
 ## Counts
 
-- Total items: **91**
-- Built: **87**
+- Total items: **94**
+- Built: **89**
 - Partial: **3**
+- Described: **1**
 - Not built: **1**
+
+`described` is the status the correction launch file (PROTO-DEC-0096 item 2) defines for a decision
+item that exists only as a written rule with no code, test, validator or commit artefact.
 
 ## PROTO-DEC-0048..0067
 
@@ -23,7 +33,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0048 item 3 | partial | `docs/core-arch/CORE-ARCH-7.md:35` | closed scale grammar specified in `CORE-ARCH-7.md:35` and `gemini-z1-grammar.md:51`; manual enforcement per decision; automated tool (`TOOL-protocol-agree`) not built |
 | PROTO-DEC-0048 item 4 | built | `docs/core-arch/stage-2/roles/ROLE-auditor.md:51` | R3-C05 exception accepted; `ROLE-auditor.md:51` triggers on `budget-exhausted`; immutability test in `tests/validator.test.cjs:728` |
 | PROTO-DEC-0048 item 5 | built | `.ai/bin/protocol-handoff.cjs:452` | candidate anchor Evidence enforced by `checkOwnerReceipt` (`protocol-handoff.cjs:452`); ledger reproductions must resolve in repo |
-| PROTO-DEC-0048 item 6 | built | `docs/core-arch/CORE-ARCH-1.md:1` | critical fixes first, then research/design skeleton realized as CORE-ARCH program |
+| PROTO-DEC-0048 item 6 | built | `docs/core-arch/CORE-ARCH-1.md:260` | design-with-skeleton stages 1-6 (`:260`); critical-first exception quotes item 6 verbatim (`:280`); realized as the CORE-ARCH program before any kernel rebuild |
 | PROTO-DEC-0048 item 7 | built | `.ai/TASK.md:46` | 1 coordinator and max 2 active code/kernel edit streams; separate documents for research |
 | PROTO-DEC-0048 item 8 | built | `.ai/DECISIONS.md:2027` | binding governance rule; single agent, backup, journal entry, folder record (`docs/research/archive/2026-09-26-ownerideas-revision/round6/packages/PKG-5.md:310`) |
 | PROTO-DEC-0049 item 1 | built | `.ai/bin/protocol-handoff.cjs:980` | baseline-diff gate check in `protocol-handoff.cjs:980`; review template header in `templates/reviews/REVIEW.md:4` |
@@ -33,7 +43,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0049 item 5 | built | `.ai/docs/CLI-AGENTS.md:131` | PreToolUse gate `protocol-gate.cjs` authorizes bypass without interactive CLI prompts (`CLI-AGENTS.md:131`, `.ai/ARCHIVE.md:7422`) |
 | PROTO-DEC-0050 item 1 | built | `docs/core-arch/stage-1/L0-ROOT.md:104` | R-L0-13: failure closed by changing its procedure; workarounds temporary; signals recorded |
 | PROTO-DEC-0050 item 2 | built | `.ai/bin/protocol-dispatch.cjs:18` | prompt file in repo; fixed line "Read and follow the file <path>" (`protocol-dispatch.cjs:18`); script-assembled command; verified flags |
-| PROTO-DEC-0050 item 3 | built | `.ai/docs/clients.json:1` | client registry with command templates, environment (e.g. `PYTHONUTF8=1`), and flags |
+| PROTO-DEC-0050 item 3 | built | `.ai/docs/clients.json:2` | client registry with command templates, verified flags and environment (vibe `PYTHONUTF8=1` at `:260`) and failure modes with countermeasures (`:278`) |
 | PROTO-DEC-0050 item 4 | built | `.ai/bin/protocol-dispatch.cjs:1` | dispatch procedure in `CLI-AGENTS.md:145`; registry in `clients.json`; generalised dispatch script in `.ai/bin/protocol-dispatch.cjs` |
 | PROTO-DEC-0051 item 1 | built | `docs/specs/signals-ledger.md:10` | append-only ledger `.ai/SIGNALS.md` specified in `signals-ledger.md:10`; managed by `.ai/bin/protocol-signals.cjs` |
 | PROTO-DEC-0051 item 2 | built | `docs/specs/signals-ledger.md:23` | `procedure-gap` signal type for operational failures, repeated workarounds, missing rules (`protocol-signals.cjs:150`) |
@@ -48,7 +58,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0053 item 1 | built | `docs/core-arch/stage-1/trial/S-003-research-cycle.md:40` | 3 independent syntheses, draft decision, 2 critiques, final plan; roles in `ROLE-drafter.md:4`, `ROLE-critic.md:4` |
 | PROTO-DEC-0053 item 2 | built | `docs/core-arch/stage-1/trial/S-003-research-cycle.md:42` | rule R-L2-S003.5: owner adopts, amends or rejects |
 | PROTO-DEC-0053 item 3 | built | `docs/core-arch/CORE-ARCH-1.md:300` | CORE-ARCH-1 is step (b) draft; critiques re-assigned to DeepSeek and Gemini by PROTO-DEC-0055 item 2 |
-| PROTO-DEC-0053 item 4 | built | `docs/core-arch/stage-1/trial/S-003-research-cycle.md:1` | Scenario S-003 front matter and rules formalize the 4-step closing |
+| PROTO-DEC-0053 item 4 | built | `docs/core-arch/stage-1/trial/S-003-research-cycle.md:40` | R-L2-S003.4: draft (b) followed by two independent critiques (c); four-step closing flow `(a) -> (b) -> (c) -> (d) -> owner` at `:61` |
 | PROTO-DEC-0054 item 1 | built | `docs/core-arch/CORE-ARCH-1.md:1` | layer-by-layer evolution plan in `CORE-ARCH-<n>.md` |
 | PROTO-DEC-0054 item 2 | built | `.ai/TASK.md:17` | exception for CORE-ARCH kernel edits recorded in Constraints; product hold stands |
 | PROTO-DEC-0054 item 3 | built | `.ai/TASK.md:46` | role assigned per task; Claude implementer, DeepSeek reviewer; max 2 streams stands |
@@ -58,7 +68,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0055 item 1 | built | `docs/core-arch/CORE-ARCH-1.md:213` | remediation items mapped into CORE-ARCH stages; critical items in package I |
 | PROTO-DEC-0055 item 2 | built | `docs/core-arch/CORE-ARCH-1.md:300` | CORE-ARCH-1 accepted as step (b); Gemini and DeepSeek assigned step (c) critiques |
 | PROTO-DEC-0055 item 3 | built | `.ai/TASK.md:46` | parallel independent certifiers of packages I-III; Claude and DeepSeek certify none |
-| PROTO-DEC-0055 item 4 | built | `docs/core-arch/stage-1/L0-ROOT.md:1` | L0 rule-making procedure executed as stage 1 under DeepSeek review |
+| PROTO-DEC-0055 item 4 | built | `docs/core-arch/stage-1/L0-ROOT.md:39` | R-L0-02: L0 is the root the ten layers load from, so L0 is the base layer; stage 1 proceeded under DeepSeek's control (recheck verdict `docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck.md:9`) |
 | PROTO-DEC-0055 item 5 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:89` | model and effort chosen before session and fixed at launch; no switching inside session |
 | PROTO-DEC-0056 item 1 | built | `docs/core-arch/CORE-ARCH-1.md:300` | closing CA-12 confirmed in decision text and draft |
 | PROTO-DEC-0056 item 2 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:30` | rule R-L2-002.2: one model does not hold two roles within one task frame |
@@ -68,7 +78,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0057 item 1 | built | `.ai/DECISIONS.md:2333` | confirmed CORE-ARCH proposals bind only on owner decision; model/effort fixed at launch |
 | PROTO-DEC-0057 item 2 | built | `AGENTS.md:65` | stage review order specific to kernel; standard cycle gives certifier PASS approval authority |
 | PROTO-DEC-0057 item 3 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:32` | `scope-id` bounds task boundary for one-role-per-model rule |
-| PROTO-DEC-0057 item 4 | built | `AGENTS.md:80` | PROTO-DEC-0041 item 1 stands in full across task boundaries |
+| PROTO-DEC-0057 item 4 | described | `.ai/DECISIONS.md:2336` | author/executor/controller never certifies, restating PROTO-DEC-0041 item 1; written rule only, no code, test or validator artefact |
 | PROTO-DEC-0057 item 5 | partial | `validate-protocol.ps1:298` | caps (200 files / 2 MB, 100 journals) built in `validate-protocol.ps1:298` and `AGENTS.md:215`; navigation index over reviews/journals (A-7) not built |
 | PROTO-DEC-0058 item 1 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:28` | rules R-L2-002.1 to R-L2-002.5 confirmed |
 | PROTO-DEC-0058 item 2 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:55` | author-suggested cells removed; discovery procedure required |
@@ -78,7 +88,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0059 item 2 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:77` | score to tier conversion and mandatory floors codified in P-L2-002 step 3 |
 | PROTO-DEC-0059 item 3 | built | `docs/core-arch/stage-4/P-L3-002-model-discovery.md:44` | middle is upper of two central levels (e.g. a,b,c,d -> b,c,d) |
 | PROTO-DEC-0059 item 4 | built | `docs/core-arch/stage-4/P-L3-002-model-discovery.md:45` | 1 level fills all 3 slots; 2 levels repeat upper for mid/max |
-| PROTO-DEC-0060 item 1 | built | `docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck.md:1` | re-checks executed and verified before stage 1 approval |
+| PROTO-DEC-0060 item 1 | built | `docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck.md:9` | re-check executed: verdict RECOMMENDATION, all four last-pass fixes (CA-32..CA-35) hold, PROTO-DEC-0060 holds item by item |
 | PROTO-DEC-0060 item 2 | built | `docs/core-arch/stage-1/P-L0-006-retire-or-improve-candidates.md:1` | procedures P-L0-006 and P-L0-007 written; A/B/C test in `CORE-ARCH-7.md:180` |
 | PROTO-DEC-0060 item 3 | not built | `-` | `.ai/core/` directory does not exist in working tree; physical landing deferred to Package I-a per PROTO-DEC-0061 item 2 |
 | PROTO-DEC-0060 item 4 | built | `docs/research/2026-09-24-remediation-mapping/external-synthesis.md:1` | transcribed with required non-certifying advisory header |
@@ -88,7 +98,7 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0062 item 1 | built | `docs/core-arch/stage-4/MODEL-MATRIX.md:1` | P-L3-002 executed on workstation, creating `MODEL-MATRIX.md` |
 | PROTO-DEC-0062 item 2 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:1` | no separate complexity layer added; L2/L3 retained |
 | PROTO-DEC-0062 item 3 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:86` | delegation rules codified in P-L2-002 step 5 |
-| PROTO-DEC-0062 item 4 | built | `.ai/DECISIONS.md:2137` | implementer designs stage N+1 while stage N under review; max 2 stages under review |
+| PROTO-DEC-0062 item 4 | built | `docs/core-arch/stage-2/WORK-CYCLE.md:25` | guardrail 8: implementer designs the next stage while one is under review, lands nothing, at most two stages in review; recorded as "pilot running (PROTO-DEC-0062 item 4)" |
 | PROTO-DEC-0063 item 1 | built | `docs/core-arch/stage-4/P-L3-003-model-ranking.md:37` | R-L3-003.1: official provider docs and pricing pages only; leaderboards/memory excluded |
 | PROTO-DEC-0063 item 2 | built | `docs/core-arch/stage-4/P-L3-003-model-ranking.md:41` | R-L3-003.3: model bound to maker; clients like copilot/agy are routes |
 | PROTO-DEC-0063 item 3 | built | `docs/core-arch/stage-4/MODEL-MATRIX.md:1` | `MODEL-MATRIX.md` completed with provider URLs and dates |
@@ -98,17 +108,34 @@ or a commit sha; `-` means no implementation artifact was found.
 | PROTO-DEC-0064 item 4 | built | `docs/core-arch/stage-4/MODEL-MATRIX.md:83` | ranked in `MODEL-MATRIX.md` lines 83-106 |
 | PROTO-DEC-0065 item 1 | built | `docs/core-arch/stage-4/MODEL-MATRIX.md:72` | v4-pro marked not used; deepseek-flash 4.1 repeated across all three ranks |
 | PROTO-DEC-0065 item 2 | built | `docs/core-arch/stage-4/P-L3-005-client-model-effort.md:1` | procedure P-L3-005 drafted with post-launch instructions referencing `clients.json` |
-| PROTO-DEC-0065 item 3 | built | `docs/core-arch/stage-2/P-L2-002-model-selection.md:1` | stage 2 roles drafted in `docs/core-arch/stage-2/roles/` |
+| PROTO-DEC-0065 item 3 | built | `docs/reviews/2026-09-25-deepseek-core-arch-stage2-review.md:12` | stage 2 executed and under adversarial review (three passes; 14 role files in `docs/core-arch/stage-2/roles/`); opened under the asynchronous-review pilot (`docs/core-arch/stage-2/WORK-CYCLE.md:9`) |
 | PROTO-DEC-0066 item 1 | built | `docs/research/2026-09-25-improvement-research/BRIEF.md:25` | study briefs and prompts drafted in `docs/research/2026-09-25-improvement-research/` |
 | PROTO-DEC-0066 item 2 | built | `docs/research/2026-09-25-improvement-research/BRIEF.md:46` | 10 hypothesis sources and novelty taxonomy codified in `BRIEF.md` section O-03 |
 | PROTO-DEC-0066 item 3 | built | `docs/research/2026-09-25-improvement-research/BRIEF.md:65` | multi-stage funnel specified in `BRIEF.md` section O-04 and prompt files |
 | PROTO-DEC-0066 item 4 | built | `docs/research/2026-09-25-improvement-research/prompts/jobs.json:1` | job table configured with 8 distinct jobs across makers (`README.md:15`) |
-| PROTO-DEC-0066 item 5 | built | `docs/research/2026-09-25-improvement-research/BRIEF.md:95` | read-only constraint enforced in `A-research.md:25` and `B-research.md:25` |
-| PROTO-DEC-0066 item 6 | partial | `docs/research/FRAMES.md:28` | results planned as C/D candidates; stage 3 triage waited for Study B, but studies A & B were later suspended under F-04/F-05 |
+| PROTO-DEC-0066 item 5 | built | `docs/research/2026-09-25-improvement-research/prompts/A-research.md:51` | researchers write only their own files and journal, no edit to the kernel or `.ai/`; same constraint in `B-research.md:53`; measurement limited to non-writing commands (`A-research.md:56`) |
+| PROTO-DEC-0066 item 6 | partial | `docs/research/FRAMES.md:28` | stage-3 triage waits for Study B (F-03, `:28`); studies A and B SUSPENDED under F-04/F-05 (`:29-30`, resume after K-launch), so no results have entered as C/D candidates; the rest of stage 3 proceeds |
 | PROTO-DEC-0067 item 1 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:40` | rules R-L3-004.1-2 in P-L3-004; later suspended by PROTO-DEC-0076 item 1 |
 | PROTO-DEC-0067 item 2 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:61` | hard failures trigger fallback; codified in P-L3-004:61 and `launch.cjs:410` |
 | PROTO-DEC-0067 item 3 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:70` | progress-based silence detection in P-L3-004:70 and `launch.cjs:38`; supersedes PROTO-DEC-0049 item 3 fixed bound |
 | PROTO-DEC-0067 item 4 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:67` | rule R-L3-004.5 in P-L3-004:67 |
 | PROTO-DEC-0067 item 5 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:63` | 1 automatic fallback attempt in P-L3-004 (later revised to ladder by PROTO-DEC-0075 item 3) |
 | PROTO-DEC-0067 item 6 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:75` | rule R-L3-004.7: process tree cleanup and mutual exclusion |
-| PROTO-DEC-0067 item 7 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:1` | P-L3-004 drafted; trialed in `docs/research/2026-09-25-improvement-research/prompts/launch.cjs` |
+| PROTO-DEC-0067 item 7 | built | `docs/core-arch/stage-4/P-L3-004-route-failover.md:158` | state machine and liveness-signal state table recorded (`:158-197`); on trial in the research launcher (`docs/research/2026-09-25-improvement-research/prompts/launch.cjs:4`) |
+
+## Correction log 2026-09-28
+
+Basis: `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md` (Gemini section and the corpus finding) and the launch file `LAUNCH-DIG-FIX-GEMINI-VIBE.md` (PROTO-DEC-0096 item 2). Only rows Luna rejected or marked UNSURE were changed, plus the header counts. No verdicts, no decisions, no edits to other producers' files.
+
+- Range recount: the file holds 94 physical rows, and `.ai/DECISIONS.md` PROTO-DEC-0048..0067 holds exactly 94 numbered items (8,5,4,5,5,4,6,5,5,5,4,4,4,3,4,3,4,3,6,7 per decision); the rows map 1:1 onto those items, with no duplicates and no extras. No row was removed. The header's "91 items" was wrong and is corrected to 94; the 91 in `drafts/COVER-DUP.md` (operator record, left untouched here) is stale on this count. Header counts after correction: 94 total, 89 built, 3 partial, 1 described, 1 not built.
+- PROTO-DEC-0048 item 6: built / `docs/core-arch/CORE-ARCH-1.md:1` -> built / `docs/core-arch/CORE-ARCH-1.md:260` (heading-only proof replaced; `:260` design-with-skeleton stages, `:280` quotes item 6's critical-first rule)
+- PROTO-DEC-0050 item 3: built / `.ai/docs/clients.json:1` -> built / `.ai/docs/clients.json:2` (the registry exists; `:2` schema, `:260` vibe `PYTHONUTF8` environment, `:278` failure-mode countermeasure)
+- PROTO-DEC-0053 item 4: built / `docs/core-arch/stage-1/trial/S-003-research-cycle.md:1` -> built / `docs/core-arch/stage-1/trial/S-003-research-cycle.md:40` (front-matter proof replaced; R-L2-S003.4 two independent critiques, four-step flow at `:61`)
+- PROTO-DEC-0055 item 4: built / `docs/core-arch/stage-1/L0-ROOT.md:1` -> built / `docs/core-arch/stage-1/L0-ROOT.md:39` (front-matter proof replaced; R-L0-02 makes L0 the root of the ten layers; DeepSeek's stage-1 control shown by the recheck verdict)
+- PROTO-DEC-0057 item 4: built / `AGENTS.md:80` -> described / `.ai/DECISIONS.md:2336` (`:80` is blank; the rule exists only as written text, no code, test or validator artefact)
+- PROTO-DEC-0060 item 1: built / `docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck.md:1` -> built / `docs/reviews/2026-09-24-deepseek-core-arch-stage1-recheck.md:9` (title line replaced by the verdict line proving execution: RECOMMENDATION, CA-32..CA-35 hold, PROTO-DEC-0060 holds item by item)
+- PROTO-DEC-0062 item 4: built / `.ai/DECISIONS.md:2137` -> built / `docs/core-arch/stage-2/WORK-CYCLE.md:25` (old proof pointed into another decision's item; guardrail 8 records the pipelined review with "pilot running")
+- PROTO-DEC-0065 item 3: built / `docs/core-arch/stage-2/P-L2-002-model-selection.md:1` -> built / `docs/reviews/2026-09-25-deepseek-core-arch-stage2-review.md:12` (front-matter proof replaced; stage 2 executed and reviewed in three passes; pilot named at `WORK-CYCLE.md:9`)
+- PROTO-DEC-0066 item 5: built / `docs/research/2026-09-25-improvement-research/BRIEF.md:95` -> built / `docs/research/2026-09-25-improvement-research/prompts/A-research.md:51` (post-mortem label replaced by the write-own-files constraint; `B-research.md:53`, measurement-only at `A-research.md:56`)
+- PROTO-DEC-0066 item 6 (UNSURE): partial / `docs/research/FRAMES.md:28` -> partial / `docs/research/FRAMES.md:28-30` (F-03 at `:28` records stage-3 triage waiting for Study B; `:29-30` record F-04/F-05 studies A and B SUSPENDED, which establishes the suspension Luna found unproved; status stays partial: no results have entered as C/D candidates, the rest of stage 3 proceeds)
+- PROTO-DEC-0067 item 7: built / `docs/core-arch/stage-4/P-L3-004-route-failover.md:1` -> built / `docs/core-arch/stage-4/P-L3-004-route-failover.md:158` (front-matter proof replaced; state table and liveness signals at `:158-197`; trial in the research launcher at `prompts/launch.cjs:4`)
