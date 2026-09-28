@@ -6,6 +6,40 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - AUTOCYCLE-1 post-reboot: baseline recorded (C00)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: The owner rebooted; verified LastBootUpTime 2026-09-28T14:40:16+03:00 (newer than the Part A
+snapshot 2026-09-28T00:58Z; not degraded). Took the post-reboot memory baseline and updated
+`docs/research/2026-09-28-autocycle/STATE.md` (Meta, Part A record, Memory). Repo checked: fetch
+clean, v2.0.0 = da07f78 = origin; untracked: the codex journal, an empty
+`.ai/worklog/glm-0c700cdaec6cefde.md` stub (appeared after Part A; not mine, not touched), and the
+round-6 leftover file (not committed).
+
+Result: free RAM 17.83 GB; Pool Nonpaged 690.63 MB, Pool Paged 499.77 MB (6162.40 MB before the
+reboot - consistent with H-2); Committed 17577.29 MB of 65229.49 MB (27%). TextInputHost fresh
+PID 15084 (62.9 MB, 0.9 s CPU). 5 s CPU sample of key processes: max 0.93% of total capacity
+(Code PID 11076; 32 logical processors); TextInputHost below the threshold. Silence gate: free
+>= 8 GB OK; no process above 5% OK; pools recorded; 2-3 clean sessions still pending.
+
+Next step: cycle work is formally stopped at NIGHT_END (AUTOCYCLE section 11); on the owner's
+direction, resume with the probes (MiMo via OpenRouter, new capability models, GLM-vibe route) and
+the C01 pipeline (recovery 3 prompt-only -> freeze -> MiMo + Sol -> delegated merge).
+
+Open: empty glm journal stub - not mine; possibly started by the owner.
+
+Evidence:
+- anchor: da07f78be5beac14b02ff4a39e5161a1a01aa174, uncommitted changes present
+- digest: sha256:c367473a258075eff9ad99747236d67fc536886a71878e2b9b7378bfbc779fb6 over 780 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T11:49:40.224Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:8d0cef26a598bfda6ce929b4f610c68df3f3e5e80282c0c234ed37b89fcda49a of this entry without this block
+- parent-entry: sha256:68af04b4c629399807f86c5c77105a1ff5827e0ccefb39c8b5e8fb8f509acd71
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 16s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - AUTOCYCLE-1 Part A: state saved, PROTO-DEC-0091, memory snapshot
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

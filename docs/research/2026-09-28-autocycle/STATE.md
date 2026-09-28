@@ -6,14 +6,15 @@ as facts change and pushes after every step.
 
 ## Meta
 
-- Cycle: C00 (Part A complete; awaiting reboot). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
-- Mode: pending reboot; degraded mode applies only if the post-reboot boot time is not newer than the
-  Part A snapshot time 2026-09-28T00:58Z (boot seen before reboot: 2026-09-23T05:11:23+03:00).
-- Last update: 2026-09-28T01:02Z by kilo-a5143d29cc7dd8ff at c9ad966 (this STATE commit follows it).
+- Cycle: C00 (Part A complete; post-reboot baseline recorded). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
+- Mode: post-reboot (reboot confirmed: LastBootUpTime 2026-09-28T14:40:16+03:00, newer than the Part A
+  snapshot 2026-09-28T00:58Z; NOT degraded). NIGHT_END has passed; cycles stop per AUTOCYCLE
+  section 11 unless the owner directs continuation.
+- Last update: 2026-09-28T11:48Z by kilo-a5143d29cc7dd8ff at da07f78 (this STATE commit follows it).
 
 ## Goals tonight (from AUTOCYCLE-PROMPT.md section 12)
 
-1. Save state, delegation block, memory snapshot, reboot (Part A) - DONE except the reboot.
+1. Save state, delegation block, memory snapshot, reboot (Part A) - DONE; reboot confirmed 2026-09-28T14:40:16+03:00.
 2. 2A: recovery 3 prompt-only, freeze, MiMo + Sol, delegated merge.
 3. DIG verification (Sol primary) and vibe advisory.
 4. perf-wave-1 second (docs) merge.
@@ -68,6 +69,8 @@ as facts change and pushes after every step.
   logged in OWNER-QUEUE.
 - GLM provenance reattribution to mistral-medium-3.5 written in the operator journal
   `.ai/worklog/kilo-a5143d29cc7dd8ff.md` (round-6 item 2).
+- Reboot confirmed 2026-09-28T14:40:16+03:00 (LastBootUpTime newer than the Part A snapshot); the
+  post-reboot memory baseline is in Memory below. Cycle work has not resumed (NIGHT_END passed).
 
 ## Accepted tonight (by delegation)
 
@@ -99,4 +102,8 @@ See `OWNER-QUEUE.md` (new 2026-09-28: round-6 leftover file; Kilo PID 42968; w3 
   Committed 52052.07 MB of 65229.49 MB, free 8.12 GB.
 - After TextInputHost stop (2026-09-28T01:00Z): Nonpaged 2102.89 MB, Paged 6174.94 MB,
   Committed 41475.92 MB, free 9.49 GB.
-- Baseline after reboot: (pending).
+- Baseline after reboot (2026-09-28T11:47Z, uptime 7.6 min; reboot 2026-09-28T14:40:16+03:00):
+  Nonpaged 690.63 MB, Paged 499.77 MB, Committed 17577.29 MB of 65229.49 MB (27%), free 17.83 GB.
+  TextInputHost fresh (PID 15084, 62.9 MB, 0.9 s CPU); a 5 s CPU sample shows no process above 1%
+  of total capacity (max Code 0.93%; 32 logical processors).
+  Pools returned to ~0.7/0.5 GB (was 5.9 GB paged before reboot) - consistent with H-2.
