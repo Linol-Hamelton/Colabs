@@ -93,7 +93,11 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
 - ADV-002 exchange: request `1688372`, reply `ca4f9fc`; owner gate clarification (advisor calls are
   light); `LAUNCH-H1.md` `606fcc5`; H1 worktree + vibe executor started in parallel with A-1.
 - A-1 progress: failing regression committed `6f44903` (advisory must fail the gate); the fix to
-  `validate-protocol.ps1` is in progress.
+  `validate-protocol.ps1` is in progress (+28/-6).
+- H1 vibe session crashed ~25 s in on a Windows console-encoding error (`charmap` cannot encode
+  `→`) before any edit; restarted with `PYTHONUTF8=1`/`PYTHONIOENCODING=utf-8` resuming the same
+  session (`6c2b087c-bfe1-a031-6783-64b20d34298b`, wrapper pid 28096); model = mistral-medium-3.5
+  (GLM alias unresolved; vibe.log evidence 18:30:41Z).
 - Under the lock: the `.ai/TASK.md` F-C01 line corrected (ADV-001-7); OWNER-QUEUE +Q-A..Q-D.
 - `LAUNCH-A1.md` `74b46ff`; A-1 worktree + branch created from it; executor session started.
 - F-C01 probe, light, no tree changes (details in the Kernel v1 section above).
