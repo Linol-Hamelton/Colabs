@@ -1,0 +1,1 @@
+{"who":"protocol-session.cjs","depth":2,"pid":30992,"kinds":{"git:rev-parse":{"n":1,"ms":291.1234},"git:ls-files":{"n":3,"ms":932.7423},"git:status":{"n":2,"ms":926.8095000000002},"git:config":{"n":1,"ms":1257.7318},"git:hash-object":{"n":1,"ms":151.41330000000016},"git:log":{"n":1,"ms":122.8089}},"fs":{},"helpers":{},"samples":{},"lifeMs":3734}

@@ -1,0 +1,1 @@
+{"who":"resolver.test.cjs","depth":1,"pid":44784,"kinds":{"node:protocol-dispatch.cjs":{"n":3,"ms":1712.0837999999999}},"fs":{"mkdtemp:disp-ladder-stale-":{"n":1,"ms":1.1355000000000075},"rmSync-recursive":{"n":2,"ms":3.7942999999999074},"mkdtemp:resolver-ac5-":{"n":1,"ms":0.8519000000000005}},"helpers":{},"samples":{"rmSync-recursive":[2,1]},"lifeMs":1870}
