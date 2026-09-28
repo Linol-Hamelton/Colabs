@@ -4560,3 +4560,45 @@ Decision:
       the top by E compares only within one role (reviewer with reviewer, collector with collector).
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0100
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0099 item 6 (the q formula now includes misses); PROTO-DEC-0098 items 2-3 (full
+call logs for cost)
+
+Context:
+The owner reviewed the freeze, the q recomputation and the cost accounting on 2026-09-28: the frozen
+SHA `9bf15ae` must be verified against the reviewed SHA `149b19a`; the q must account for misses
+(real defects found by others); the full output of every call must be kept for cost; S5 has explicit
+conditions, and N-3 is queued as a forward-artifact item.
+
+Decision:
+1. Freeze verification (done): `git diff --stat 149b19a..9bf15ae` lists only documentation - the Sol
+   and MiMo certification reports (byte-identical to their cert-branch originals: `git hash-object`
+   `ca6674f...` and `adb49bf...`), the DeepSeek fix review, three session journals and the fix-review
+   launch file; no code, test or tooling file. The DeepSeek review therefore covers the frozen
+   candidate's code.
+2. q (replacing PROTO-DEC-0099 item 6a; old rows are not edited, new rows carry the values):
+   `q = (confirmed/claimed) x (found/(found + missed))`, where missed = real defects found by someone
+   else (the second certifier, the reviewer, the next round); with zero claims and zero misses
+   q = 1.0. Round 1 with id lists: Sol claimed and confirmed B (W5 tracked-tree import, = F-2A-03)
+   and E (S-7 bound) -> 2/2; found {F-2A-03, S-7}, missed {} -> q = 1.0. MiMo claimed F-2A-03 (as
+   LOW), F-2A-01, F-2A-05; confirmed later: F-2A-03 only -> 1/3; found {F-2A-03}, missed {S-7} ->
+   q = 1/3 x 1/2 = 0.167. (The owner's sketch assumed Sol missed F-2A-03; the reports show Sol's
+   item B names it explicitly, so the computed values differ and are recorded as measured.)
+3. Cost logging: from now on every call's full output (including step_finish/usage) is kept in a
+   log file under `.ai/runtime/` for the whole call; cost = the sum over all steps, not a window.
+   The DeepSeek fix-review cost stays ">= $0.0217, lower bound" (its full output was not captured;
+   the window held 27 of ~65 steps).
+4. S5: run the full suite on `9bf15ae` only after BOTH round-2 certifiers finish, in a quiet window
+   with no process above 5% CPU; a wall time above 15 minutes or WMI timeouts goes into the packet-2
+   table and does not block the merge.
+5. Round 2: both PASS/RECOMMENDATION -> the delegated merge under the six conditions; otherwise
+   STOP and to the owner (round 3 under S1 means variant B).
+6. N-3 (`PROTOCOL_JOURNAL_IMPORT_ROOT` documentation) is recorded in OWNER-QUEUE as an item of the
+   next forward artifact. S9 still waits for the owner's answer.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
