@@ -76,6 +76,8 @@ as facts change and pushes after every step.
   covers all blockers from both certifiers (W5 test hermeticity; S-7 bound 4; plus MiMo's if any),
   each with a failing test first; executor vibe (Mistral until GLM PASS); DeepSeek reviews the fix
   diff only; then a new frozen SHA and a repeat certification by MiMo + Sol (Sol Medium).
+  PROTO-DEC-0097 item 3: the freeze waits for the MiMo verdict (it exists: RECOMMENDATION, no
+  blockers; residuals F-2A-01/03/05 LOW); the report states the MiMo verdict verbatim.
 - 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certification round 1 in parallel worktrees:
   **Sol = FAIL** (`docs/reviews/2026-09-28-sol-wave2a-certification.md`, commit `d23d826` on
   cert-2a-sol; CERTIFYING, 171 lines). Reproduced blockers: (B) W5 not hermetic while running -
@@ -104,8 +106,11 @@ as facts change and pushes after every step.
   `streamGenerateContent` Bad Gateway): recount to 94 items (no extras/duplicates), 11 rows fixed
   (9 kept built with `path:line`, 1 described, 1 partial), counts 94 / 89 / 3 / 1 / 1, correction
   log; committed `e13cb36` on roadmap-wave3; cover mirror 3/0/0. Luna's re-check of ONLY the
-  corrected rows runs now (bg pid 27148). DeepSeek range BLOCKED - the kilo CLI gateway answers
-  `402 Add credits` (OWNER-QUEUE). The drafts README documents the `described` status.
+  corrected rows runs now (bg pid 27148). DeepSeek range: REASSIGNED to vibe by the owner
+  (PROTO-DEC-0097 item 1; the kilo CLI answers `402 Add credits`); the correction runs
+  (bg pid 8768); Luna re-checks all three ranges' corrected rows afterwards. The operator session
+  itself runs on the Vercel AI Gateway and does NOT depend on the kilo balance (verified). The
+  drafts README documents the `described` status.
 - DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
   Main cause: producer proofs are path-only / decision-id / section-only where the task required
   `path:line` or a commit; plus a corpus finding: DIG-GEMINI has 94 rows, not the advertised 91
