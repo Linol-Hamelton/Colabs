@@ -4406,3 +4406,39 @@ Decision:
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1, "VPN ok";
 transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0096
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0095 items 1-3 (the round-2 path for 2A and the DIG correction); PROTO-DEC-0090 item 4 (the repeat certification pair)
+
+Context:
+After the 2A certification round 1 (Sol FAIL on two reproduced blockers; MiMo pending) and the DIG
+verification REJECT (S4 = 72.6% > 20%), the owner decided in chat on 2026-09-28: (1) ONE fix round
+for 2A after the MiMo verdict, covering all blockers from both certifiers, with a failing test per
+blocker first, a DeepSeek review of the fix diff only, a new frozen SHA and a repeat certification
+by MiMo + Sol (Sol at Medium); (2) DIG option (b): one targeted correction of the rejected rows with
+`path:line` or commit proofs, otherwise "described"/"partial"; recompute the DIG-GEMINI range
+(94 rows vs the advertised 91); the executors keep their own ranges; Luna re-checks only the
+corrected rows; a range still below 80% proven goes to the owner.
+
+Decision:
+1. 2A: after the MiMo verdict, one fix round (round 2 of 3, PROTO-DEC-0047 item 5) on
+   `kernel-batch-1` fixes every blocker named by Sol (W5 test hermeticity - the tests must not
+   import a journal into the tracked tree; the S-7 concurrency bound of four) and by MiMo if any.
+   Executor vibe (GLM-5.3 on PASS, else Mistral Medium 3.5; selection=owner). Each blocker gets a
+   failing test first, then the fix. DeepSeek reviews the fix diff only. Then a new frozen SHA and a
+   repeat certification by MiMo-V2.6-Pro + GPT-5.6 Sol (Sol: effort Medium, one round).
+   SUPERVISOR-PREREG carries S1 with the actual data.
+2. DIG: option (b), one targeted correction. Only the rejected/unsure rows are corrected: the proof
+   becomes `path:line` (code, test or validator) or a commit; where neither exists the row's status
+   becomes `described` or `partial`. The DIG-GEMINI range is recomputed (94 physical rows vs the
+   advertised 91; extras/duplicates removed with a record). Executors: Mistral - PROTO-DEC-0022..0047
+   (vibe); DeepSeek - PROTO-DEC-0068..0086 + A-1..A-14 (kilo); Gemini - PROTO-DEC-0048..0067, one
+   agy attempt, otherwise reassigned to vibe. Then Luna re-checks only the corrected rows. A range
+   still below 80% proven goes to the owner.
+3. The SUPERVISOR-PREREG rule applies: S4 above 20% postpones the Kernel v1 decision by one round.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
