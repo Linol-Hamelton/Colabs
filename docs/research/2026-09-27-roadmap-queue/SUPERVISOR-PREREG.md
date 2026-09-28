@@ -58,6 +58,20 @@ This is the standing argument for **C** when S1-S2 are ambiguous rather than fai
 3. If no row switches, choose A (or A' by the known F-C01 item).
 4. Record the table in the packet-2 message, so the choice cites evidence, not this note.
 
+## Observed values, 2026-09-28 (operator; in progress; sources named)
+
+| # | Observed | Source |
+|---|---|---|
+| S1 | 2A certification round 1: Sol FAIL with two reproduced blockers (W5 test hermeticity - a journal import into the tracked tree; S-7 bound measured 6 vs 4); MiMo pending; round 2 of 3 starts after the MiMo verdict and covers both certifiers' blockers. | `docs/reviews/2026-09-28-sol-wave2a-certification.md` (`d23d826`); PROTO-DEC-0096 item 1 |
+| S2 | Pending the DIG correction. From the collector drafts: Mistral range 0 not built; DeepSeek 9 not built, all kernel-internal (none on the pilot path); Gemini range under recomputation (94 vs 91 rows). | `drafts/DIG-*-*.md`; this file, early reading; PROTO-DEC-0096 item 2 |
+| S3 | Not-built share from the Luna check: 10 confirmed not-built rows (Gemini 0060/3; DeepSeek 0079/3, 0084/5, 0085/9, 0085/10, A-4, A-7, A-8, A-9, A-11) over roughly 335 rows -> about 3% (< 30%, keep); recompute after the correction. | `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md` (`71e1987`) |
+| S4 | Luna rejection rate 130/179 = 72.6% > 20% -> per the rule no variant switch; the Kernel v1 decision is postponed by one correction round (owner chose option (b)). | `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md`; PROTO-DEC-0096 item 2 |
+| S5 | The 2A owner-lane suite has not run (candidate unmerged); the merged-tree docs suite of the perf merge ran 192.9 s with no WMI timeouts. | `.ai/runtime/merged-suite.log`; pending the 2A owner lane |
+| S6 | `docs/ops/RUNS.jsonl` on `kernel-batch-1` holds 2 valid records; on `v2.0.0` the file is still empty (the fix sits in the 2A candidate). Usage-or-marker coverage is pending the 2A merge. | 2A candidate; `docs/ops/RUNS.jsonl` |
+| S7 | No quota stop: Sol used 1 of its 2 reserved calls (round 1); MiMo's run in progress; Luna's DIG verification completed. | journals; PROTO-DEC-0095 item 4 |
+| S8 | Operator incidents so far: 1 (a new decision block initially placed out of order; fixed before commit and push, recorded in the operator journal). | `.ai/worklog/kilo-a5143d29cc7dd8ff.md` |
+| S9 | No cloud pilot sessions have been stated by the owner; local Windows only is assumed so far. | owner statements 2026-09-28 |
+
 ## Early reading, 2026-09-27 evening (collector drafts, not yet verified by Sol)
 
 - DeepSeek, 0068-0086 + A-1..A-14: 111 rows, 87 built / 15 partial / 9 not built; 101 `path:line`

@@ -8,6 +8,43 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - PROTO-DEC-0096 recorded; SUPERVISOR-PREREG S1/S4 filled
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Appended PROTO-DEC-0096 under the lock plus one REGISTRY row (`78c5acb`, pushed):
+(1) after the MiMo verdict, ONE 2A fix round (round 2 of 3) covering all blockers from both
+certifiers (W5 test hermeticity; the S-7 bound of four), each with a failing test first, executed on
+vibe (Mistral until GLM PASS), DeepSeek reviewing the fix diff only, then a new frozen SHA and a
+repeat certification by MiMo + Sol (Sol Medium); (2) DIG option (b): one targeted correction of the
+rejected/unsure rows to `path:line`/commit proofs, otherwise `described`/`partial`; DIG-GEMINI
+recomputed (94 vs 91); executors keep their ranges (Mistral via vibe; DeepSeek via kilo; Gemini one
+agy attempt else reassigned to vibe); Luna re-checks only the corrected rows; a range under 80%
+proven goes to the owner. Filled the new "Observed values, 2026-09-28" table in
+`docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md` (S1: Sol FAIL with two reproduced
+blockers, MiMo pending, round 2/3 next; S3 ~3% not-built; S4 72.6% -> v1 decision postponed one
+round; S5-S9 partial observations) and updated STATE.
+
+Result: The owner's two decisions are recorded and pushed; the SUPERVISOR-PREREG now carries the
+actual S1/S4 data. The 2A fix round waits only for the MiMo verdict; the DIG correction tasks are
+ready to dispatch.
+
+Next step: collect the MiMo certification (wakeup at 13:47Z); then dispatch the single 2A fix round
+(vibe) and the three DIG correction tasks (Mistral/vibe, DeepSeek/kilo, Gemini/one agy attempt).
+
+Open: MiMo verdict; DIG correction dispatch; collector B finalization.
+
+Evidence:
+- anchor: 78c5acb92ca2ad2b3de8572d8084a0ddfa892e58, uncommitted changes present
+- digest: sha256:ad8dc104a92b244af0114fdebf41f245f883cdb4d1d9440da038f9710462d607 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T13:40:30.851Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:bf7ce25e937d26561148c6d804042a449f469390e413630790828a6d658553c6 of this entry without this block
+- parent-entry: sha256:658b5507b2906fdd3734861f69600c1af8d8e696991f1e7bc0021175d44e0d2f
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - 2A certification round 1: Sol FAIL (two blockers); MiMo pending; catalog A done
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

@@ -9,7 +9,7 @@ as facts change and pushes after every step.
 - Cycle: C00/C01 (Part A done; C01 work in progress). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
 - Mode: post-reboot (reboot 2026-09-28T14:40:16+03:00; not degraded).
 - NIGHT_END 2026-09-28 23:00 MSK (PROTO-DEC-0092); delegation valid until then; MAX_CYCLES 8 and budget $5.00.
-- Last update: 2026-09-28T13:28Z by kilo-a5143d29cc7dd8ff at 7d17420 (this STATE commit follows it).
+- Last update: 2026-09-28T13:42Z by kilo-a5143d29cc7dd8ff at 78c5acb (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
 
@@ -72,6 +72,10 @@ as facts change and pushes after every step.
   (134 lines, `STATUS: READY`, commit `9be670e`; only the prompt and the journal changed; `verify`
   matches; author `mistral-0d03d4481ac46858`, ran mistral-medium-3.5). Session caveat: it committed
   via a `node -e` wrapper because the approval callback denied git; reviewed by the operator.
+- PROTO-DEC-0096 item 1: after the MiMo verdict, ONE fix round (round 2 of 3, PROTO-DEC-0047 item 5)
+  covers all blockers from both certifiers (W5 test hermeticity; S-7 bound 4; plus MiMo's if any),
+  each with a failing test first; executor vibe (Mistral until GLM PASS); DeepSeek reviews the fix
+  diff only; then a new frozen SHA and a repeat certification by MiMo + Sol (Sol Medium).
 - 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certification round 1 in parallel worktrees:
   **Sol = FAIL** (`docs/reviews/2026-09-28-sol-wave2a-certification.md`, commit `d23d826` on
   cert-2a-sol; CERTIFYING, 171 lines). Reproduced blockers: (B) W5 not hermetic while running -
@@ -86,6 +90,11 @@ as facts change and pushes after every step.
 
 ## Pipelines (next step)
 
+- PROTO-DEC-0096 item 2 (DIG option (b), one targeted correction): rejected/unsure rows only, proof
+  becomes `path:line` (code/test/validator) or a commit, else the row becomes `described`/`partial`;
+  DIG-GEMINI recomputed (94 vs 91, extras/duplicates removed with a record); executors Mistral=vibe,
+  DeepSeek=kilo, Gemini=one agy attempt else reassigned to vibe; Luna re-checks only corrected rows;
+  a range < 80% proven goes to the owner. SUPERVISOR-PREREG now carries the observed S1/S4 values.
 - DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
   Main cause: producer proofs are path-only / decision-id / section-only where the task required
   `path:line` or a commit; plus a corpus finding: DIG-GEMINI has 94 rows, not the advertised 91
