@@ -126,8 +126,10 @@ as facts change and pushes after every step.
   (bg pid 8768) - now DONE: 14 rows corrected (12 re-proofed with `path:line`/commit, 2 to
   `described`; counts 111 / 86 built / 14 partial / 2 described / 9 not built), committed `bc590f4`.
   Luna recheck 1 DONE: 117/118 CONFIRM (Mistral 106/107 = 99.1%, Gemini 11/11 = 100%); the single
-  reject (PROTO-DEC-0045 item 6) has a follow-up fix running; Luna's second recheck
-  (`LAUNCH-DIG-RECHECK2-LUNA.md`) covers the DeepSeek rows and that follow-up row. The operator
+  reject (PROTO-DEC-0045 item 6) is FIXED - real code proof (`protocol-verdict.cjs:4`,
+  `protocol-scope.cjs:4`, `tests/rulebook.test.cjs:8,9`; 54/54), committed `34e9b9f`; Luna's second
+  recheck runs now (`LAUNCH-DIG-RECHECK2-LUNA.md`, bg pid 38660) over the DeepSeek rows and that
+  row. The operator
   session runs on the Vercel AI Gateway (paid; see Meta) and does NOT depend on the kilo balance.
   The drafts README documents the `described` status.
 - DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
