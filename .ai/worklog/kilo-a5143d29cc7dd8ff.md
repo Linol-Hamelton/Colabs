@@ -4,132 +4,40 @@ Session journal. Owned by this session. No other session writes here.
 
 Newest entry first. Limit 150 lines.
 
-<!-- archived-parent: sha256:ffd2f0223e7b042fb854a8066d3068ccb51734fedf935a5c39a4819f29175632 -->
+<!-- archived-parent: sha256:bf7ce25e937d26561148c6d804042a449f469390e413630790828a6d658553c6 -->
 
 ---
 
-## 2026-09-28 - PROTO-DEC-0096 recorded; SUPERVISOR-PREREG S1/S4 filled
+## 2026-09-28 - DIG option (b) corrections dispatched; DeepSeek range blocked (kilo 402)
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
 
-Action: Appended PROTO-DEC-0096 under the lock plus one REGISTRY row (`78c5acb`, pushed):
-(1) after the MiMo verdict, ONE 2A fix round (round 2 of 3) covering all blockers from both
-certifiers (W5 test hermeticity; the S-7 bound of four), each with a failing test first, executed on
-vibe (Mistral until GLM PASS), DeepSeek reviewing the fix diff only, then a new frozen SHA and a
-repeat certification by MiMo + Sol (Sol Medium); (2) DIG option (b): one targeted correction of the
-rejected/unsure rows to `path:line`/commit proofs, otherwise `described`/`partial`; DIG-GEMINI
-recomputed (94 vs 91); executors keep their ranges (Mistral via vibe; DeepSeek via kilo; Gemini one
-agy attempt else reassigned to vibe); Luna re-checks only the corrected rows; a range under 80%
-proven goes to the owner. Filled the new "Observed values, 2026-09-28" table in
-`docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md` (S1: Sol FAIL with two reproduced
-blockers, MiMo pending, round 2/3 next; S3 ~3% not-built; S4 72.6% -> v1 decision postponed one
-round; S5-S9 partial observations) and updated STATE.
+Action: Committed the three DIG correction launch files on `roadmap-wave3` (`8ced954`, pushed) and
+dispatched: the Mistral range (PROTO-DEC-0022..0047) to vibe (bg `bgp_0e840b8840014rPxC9tJOcFvF8`,
+pid 18808) and the Gemini range (0048..0067, recompute + corrections) to the single agy attempt
+(bg `bgp_0e840ba1a001OVMWt5kHPBqxTo`, pid 37864). The DeepSeek range (0068-0086 + A-1..A-14) could
+NOT be dispatched: the kilo CLI gateway returns `402 Add credits to continue` for
+`kilo/deepseek/deepseek-v4.1-flash` and for the `~deepseek/deepseek-v4-flash-latest` route (both
+probed; two MEASUREMENTS rows added). Logged to OWNER-QUEUE with options. Repaired a concatenation
+defect in MEASUREMENTS rows 19-20 (the previous append lacked a trailing newline, so the next
+append merged two JSON objects): the file now parses 20/20 and holds only LF endings.
 
-Result: The owner's two decisions are recorded and pushed; the SUPERVISOR-PREREG now carries the
-actual S1/S4 data. The 2A fix round waits only for the MiMo verdict; the DIG correction tasks are
-ready to dispatch.
+Result: Two of the three DIG correction executors run; the DeepSeek range waits on the owner
+(credits or a reassignment). The 2A fix round still waits for the MiMo verdict; MiMo is running.
 
-Next step: collect the MiMo certification (wakeup at 13:47Z); then dispatch the single 2A fix round
-(vibe) and the three DIG correction tasks (Mistral/vibe, DeepSeek/kilo, Gemini/one agy attempt).
+Next step: collect MiMo; dispatch the 2A fix round when its verdict lands; watch the two DIG
+correction sessions; Luna re-check afterwards.
 
-Open: MiMo verdict; DIG correction dispatch; collector B finalization.
+Open: MiMo verdict; DeepSeek range route (owner); collector B finalization.
 
 Evidence:
-- anchor: 78c5acb92ca2ad2b3de8572d8084a0ddfa892e58, uncommitted changes present
-- digest: sha256:ad8dc104a92b244af0114fdebf41f245f883cdb4d1d9440da038f9710462d607 over 1870 tracked and untracked files
+- anchor: 077c5d34b252300af655ad486ec7cdb34f1dd7bf, uncommitted changes present
+- digest: sha256:7aee4f49fc2eb7d4bbf8c2b9d3bfb7b919a762d02b4323ef14cb95b2c83836f3 over 1870 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-28T13:40:30.851Z by kilo-a5143d29cc7dd8ff
+- recorded: 2026-09-28T13:43:23.889Z by kilo-a5143d29cc7dd8ff
 - entry hash format: 2
-- entry: sha256:bf7ce25e937d26561148c6d804042a449f469390e413630790828a6d658553c6 of this entry without this block
-- parent-entry: sha256:658b5507b2906fdd3734861f69600c1af8d8e696991f1e7bc0021175d44e0d2f
+- entry: sha256:a7629182127a6df69ffabfee78da629b8fad36800e756339984b825c596eaaf5 of this entry without this block
+- parent-entry: sha256:bf7ce25e937d26561148c6d804042a449f469390e413630790828a6d658553c6
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 5s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-## 2026-09-28 - 2A certification round 1: Sol FAIL (two blockers); MiMo pending; catalog A done
-
-Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
-
-Action: Collected Sol's certification (`docs/reviews/2026-09-28-sol-wave2a-certification.md`,
-171 lines, `Mode: CERTIFYING`, `Receipt-Owner: codex-96801ade53c50a18`, commit `d23d826` on
-`cert-2a-sol`): verdict **FAIL** with two reproduced blocking defects:
-- (B) W5 not hermetic while running - `tests/dispatch.test.cjs:217,241-246` imports
-  `.ai/worklog/gemini-0123456789abcdef.md` into the tracked checkout and deletes it only in
-  `finally`; F-2A-03 upgraded from LOW to blocking per PROTO-DEC-0041 item 4;
-- (E) S-7 bound is six, not four - two `own` watchdog scenarios start before the pool
-  (`launch-test.cjs:460-485`); the instrumented spawn probe measured `PROBE_MAX_ONE=6`.
-Per-item: A/C/F PASS, B/E FAIL, D/G RECOMMENDATION. MiMo's certification still runs (journal
-`mimo-370f15396465bd07`). Merge is closed for this candidate (section 6 requires both
-PASS/RECOMMENDATION). Catalog collector A finished: `CATALOG-A.jsonl` 18 rows / 82 scores, all with
-source URLs (access date 2026-09-28), `COVER-A.md`; collector B finalizing with URL validation.
-Updated STATE and OWNER-QUEUE with the FAIL and the proposed fix round; the gate line at 13:52Z read
-Nonpaged 1056.5 MB / Paged 952.4 MB (growth ~1.6 MB/min) - within the pool rule.
-
-Result: 2A round 1 closed on the Sol side as FAIL; no merge; the fix-round decision is queued to the
-owner. MiMo may still converge on the same frozen candidate; its report is collected next.
-
-Next step: collect MiMo's certification, report the round to the owner, and, if the fix round starts,
-repair W5 hermeticity and the S-7 bound on a new candidate and re-certify (Sol repeat allowed after
-FAIL, effort Medium).
-
-Open: 2A fix decision (owner); DIG packet decision (owner); MiMo result pending; collector B still
-running.
-
-Evidence:
-- anchor: d0b112062e8c5072f5e8e18760ad51d62b140ece, uncommitted changes present
-- digest: sha256:fa9c13ba94c65457210a623b6b084de374cbdec221439410726230c645ceb74b over 1870 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-28T13:32:40.464Z by kilo-a5143d29cc7dd8ff
-- entry hash format: 2
-- entry: sha256:658b5507b2906fdd3734861f69600c1af8d8e696991f1e7bc0021175d44e0d2f of this entry without this block
-- parent-entry: sha256:992f18b72f26caad2c9715fec17bd8edf226613c6313bfcd97ca96aa93a948a0
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 5s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-## 2026-09-28 - Recovery 3 done; 2A frozen; both certifiers running; DIG REJECT; drafts/OPS-1 committed
-
-Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
-
-Action: Collected the completed sessions and advanced wave 2A:
-- Recovery 3 (vibe successor, `mistral-0d03d4481ac46858`): produced
-  `docs/reviews/2026-09-28-vibe-wave2a-adversarial-prompt.md` (134 lines, `STATUS: READY`), committed
-  `9be670e`; the diff `43612b8..9be670e` is exactly the prompt plus the journal; `verify` matches.
-  Committed its final journal note (`432e2e1`); pushed `kernel-batch-1`. Session caveat recorded: it
-  staged/committed through a `node -e` wrapper because the approval callback denied git.
-- Froze 2A at `5ce5219` (candidate code `5bc9940`) and dispatched the two certifiers in parallel
-  worktrees: MiMo-V2.6-Pro (`cert-2a-mimo`, bg pid 22732, xiaomi route) and GPT-5.6 Sol
-  (`cert-2a-sol`, bg pid 32956, effort Medium per PROTO-DEC-0095). Launch files committed in
-  `5ce5219`.
-- DIG: Luna's advisory verification is a REJECT - S4 = 130/179 = 72.6% (review
-  `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md`, commit `71e1987`); the dominant cause
-  is the proof-standard mismatch (path-only / decision-id / section-only vs the required
-  `path:line` or commit), plus a corpus finding (DIG-GEMINI 94 rows vs 91 advertised). Logged to
-  OWNER-QUEUE as a packet-quality decision.
-- Wave-3 drafts and OPS-1 phase A were delivered by the two vibe sessions (both denied git); the
-  operator committed their files with explicit paths and pushed: `e8181ec` on `roadmap-wave3`
-  (KERNEL-V1-SCOPE.md, K-LAUNCH-MEMO.md, journal) and `49164b7` on `ops-1` (DESIGN.md,
-  DECISION-DRAFTS.md, journal).
-- Added measurement rows 15-18 (Luna verifier; three vibe sessions; marginal cost 0). Gate lines:
-  13:10Z nonpaged 1006.5 MB; 13:25Z nonpaged 1013.7 MB, paged 917.5 MB, growth ~0.5 MB/min, free
-  7.23 GB, committed 54.4%; the certifiers are remote-CLI light steps.
-
-Result: 2A is in certification; DIG is REJECT (owner decision queued); drafts and OPS-1 A are in the
-repository; the packet-2 material is nearly complete (SUPERVISOR-PREREG fill and packet 2 remain).
-
-Next step: collect the two certifier reviews from `cert-2a-mimo`/`cert-2a-sol`; on both
-PASS/RECOMMENDATION merge via the delegated docs/kernel merge path (section 6) after the operator
-checks; otherwise OWNER-QUEUE.
-
-Open: DIG packet decision (owner); MiMo route for the escalation if any; GLM probe waits for the
-owner's word; VPN still unstable.
-
-Evidence:
-- anchor: 7d17420f664004cb3c7e2b3b285763dc60f8d900, uncommitted changes present
-- digest: sha256:c2e43988c15536abf03a25d1b924e9d5929699d78ffc03ebe3bbfbffda9c2501 over 1869 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-28T13:15:37.232Z by kilo-a5143d29cc7dd8ff
-- entry hash format: 2
-- entry: sha256:992f18b72f26caad2c9715fec17bd8edf226613c6313bfcd97ca96aa93a948a0 of this entry without this block
-- parent-entry: sha256:ffd2f0223e7b042fb854a8066d3068ccb51734fedf935a5c39a4819f29175632
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 4s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
