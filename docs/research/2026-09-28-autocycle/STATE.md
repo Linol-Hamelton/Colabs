@@ -92,6 +92,9 @@ ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read
   (the freeze commits carry the certifier launch docs). Four certifier worktrees created
   (`cert-a1-sol`, `cert-a1-mimo`, `cert-h1-luna`, `cert-h1-mimo`); wave 1 (Sol + MiMo for A-1)
   dispatched 20:03Z.
+- `advisor/003-BRIEFING.md` (for Claude when its limits reset) updated to the certified state at
+  this commit: A-1 certified (Sol PASS + MiMo REC) and H1 (Luna PASS, MiMo-H1 running) plus seven
+  risk points to check; the MiMo-H1 verdict will be appended in a follow-up commit.
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
