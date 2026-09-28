@@ -8,6 +8,41 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - DIG: Mistral correction done and committed; Gemini range reassigned to vibe; agy failed again
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: The agy attempt on the Gemini DIG range failed with `streamGenerateContent Bad Gateway`
+(grpc code 2, retryable false) - the single attempt is spent; per PROTO-DEC-0096 the range moved to
+vibe: wrote and committed `LAUNCH-DIG-FIX-GEMINI-VIBE.md`, dispatched the session (bg pid 18744).
+The Mistral DIG correction finished cleanly: all 107 rejected rows re-proofed with `path:line` or
+commit evidence or downgraded to `described`/`partial`; header counts synced (129 / 58 built /
+11 partial / 60 described / 0 not built); a `## Correction log 2026-09-28` section appended; the
+session recorded evidence and stopped cleanly. Operator-committed the file, its journal and the
+README's new `described` vocabulary plus the Gemini vibe launch on `roadmap-wave3` (`f3c5314`,
+pushed). Added the agy failure and the Mistral correction measurement rows (26 data rows).
+
+Result: The Mistral range is ready for Luna's re-check once the other two ranges are corrected; the
+Gemini range is running on vibe; the DeepSeek range still waits on the owner (kilo credits or a
+reassignment). The 2A fix round continues in kb1 (three files modified: `protocol-dispatch.cjs`,
+`launch-test.cjs`, `tests/dispatch.test.cjs`; not yet committed).
+
+Next step: watch the Gemini-range session and the 2A fix round; collect their commits; then Luna's
+targeted re-check and the DeepSeek-range decision.
+
+Open: DeepSeek range route (owner); 2A fix commits; Luna re-check scope.
+
+Evidence:
+- anchor: 26f19987291f4a98caeb8d8dfa7b047f8ee5c318, uncommitted changes present
+- digest: sha256:35f69cc43d5673307ad99a6e826839a8f987823fb586e1f881bafee3c20ae0bd over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T14:11:28.650Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:8de8479e20b491b456f33af469e5d60b6ba49b6d30260126371712489adbadc9 of this entry without this block
+- parent-entry: sha256:f36e8d11b216c97cdf73ed878f383795488f0b222edbeaaaf0dd5d9eb901095f
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - 2A cert round 1 CLOSED (Sol FAIL, MiMo RECOMMENDATION); round-2 fix dispatched
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

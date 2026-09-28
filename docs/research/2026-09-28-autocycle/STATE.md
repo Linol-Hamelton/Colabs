@@ -99,10 +99,13 @@ as facts change and pushes after every step.
   DIG-GEMINI recomputed (94 vs 91, extras/duplicates removed with a record); executors Mistral=vibe,
   DeepSeek=kilo, Gemini=one agy attempt else reassigned to vibe; Luna re-checks only corrected rows;
   a range < 80% proven goes to the owner. SUPERVISOR-PREREG now carries the observed S1/S4 values.
-- DIG correction dispatched 2026-09-28: Mistral range -> vibe (bg pid 18808); Gemini range -> one agy
-  attempt (bg pid 37864), else vibe; DeepSeek range BLOCKED - the kilo CLI gateway answers `402 Add
-  credits` on both tested routes (OWNER-QUEUE). After the corrections, Luna re-checks only the
-  changed rows.
+- DIG correction 2026-09-28: Mistral range DONE - 107 rejected rows re-proofed or downgraded;
+  counts 129 total / 58 built / 11 partial / 60 described / 0 not built; correction log appended;
+  committed `f3c5314` on roadmap-wave3. Gemini range: the single agy attempt failed
+  (`streamGenerateContent` Bad Gateway); reassigned to vibe and running (bg pid 18744).
+  DeepSeek range BLOCKED - the kilo CLI gateway answers `402 Add credits` on both tested routes
+  (OWNER-QUEUE). After the corrections, Luna re-checks only the changed rows. The drafts README now
+  documents the `described` status (PROTO-DEC-0096 item 2).
 - DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
   Main cause: producer proofs are path-only / decision-id / section-only where the task required
   `path:line` or a commit; plus a corpus finding: DIG-GEMINI has 94 rows, not the advertised 91
