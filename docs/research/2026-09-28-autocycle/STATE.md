@@ -13,6 +13,16 @@ as facts change and pushes after every step.
   account balance (the key lives in the extension's store and is never copied), so its cost_marginal
   is unmeasured rather than zero; the night budget must reserve for it; the owner checks the balance
   (report to the owner if it is below $1).
+- CORRECTION (owner, 2026-09-28, PROTO-DEC-0098 item 7; the line above is superseded and kept as
+  history): the operator runs on the PAID DeepSeek API (balance platform.deepseek.com/usage; owner
+  baseline at 15:08Z ~ $21.9 total; owner reconciles the balance). Vercel is a BONUS route only and
+  currently returns 401. Thresholds: below $3 - no DeepSeek reviewer and light steps only
+  (OWNER-QUEUE line); below $1 - STOP and a one-line report.
+- Reviewer route: route=deepseek-native, selection=owner, 2026-09-28 (PROTO-DEC-0098 item 1); the
+  session runs with model `deepseek/deepseek-flash` via the CLI's native route (call log:
+  providerID=deepseek modelID=deepseek-flash; cost/tokens from the client step_finish).
+- DeepSeek: spent ~ $0.000125 tracked (reviewer-route probe 2026-09-28T15:09Z); operator calls are
+  cost=unmeasured (no saved usage); owner reconciles against the $21.9 baseline.
 - Last update: 2026-09-28T14:30Z by kilo-a5143d29cc7dd8ff at d174714 (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)

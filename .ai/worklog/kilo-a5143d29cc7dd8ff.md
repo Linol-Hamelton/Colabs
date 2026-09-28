@@ -8,6 +8,46 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - PROTO-DEC-0098; native reviewer route live; DeepSeek fix review dispatched
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Appended PROTO-DEC-0098 under the lock plus one REGISTRY row (`ee72107`, pushed): paid
+DeepSeek accounting (one shared balance; owner reconciles; thresholds below $3 = no reviewer and
+light steps only with an OWNER-QUEUE line, below $1 = STOP and one line); the reviewer route is the
+CLI's native `deepseek` (route=deepseek-native, selection=owner); `modelRan`/`provider` only from
+the API `model` field or the call log (else `unverified`); `cost` from `usage` x tariffs for every
+DeepSeek call (past operator calls: unmeasured); the post-review order (findings fix -> freeze ->
+MiMo + Sol round 2 of 3 -> delegated merge or owner; then A-1). Recorded the owner's correction as
+NEW lines (old kept as history): the operator runs on the PAID DeepSeek API; Vercel is a bonus route
+only and currently 401. Tested the native route: `kilo run -m deepseek/deepseek-flash` -> PONG; the
+call log shows `providerID=deepseek modelID=deepseek-flash`; the step_finish reports tokens total
+25884 (input 271, output 3, reasoning 10, cache read 25600) and cost $0.00012525 -> MEASUREMENTS
+row 34 and the STATE line "DeepSeek: spent ~ $0.000125 tracked (reviewer-route probe 15:09Z)".
+Wrote and committed the fix-review task (`LAUNCH-2A-FIX-REVIEW.md`, `9512e40`) and dispatched the
+separate DeepSeek reviewer session (bg `bgp_0e89135e5001dMq4y25fk7ENHa`, pid 37016) over
+`git diff 5ce5219..149b19a` against Sol's round-1 FAIL findings and MiMo's RECOMMENDATION; on a
+route failure: one retry after >= 5 min, then STOP, no substitution.
+
+Result: The fix review runs on the owner-approved route; the freeze waits for it. The DIG side is
+closed (Luna recheck2 PASS 15/15; S2-S4 updated in SUPERVISOR-PREREG).
+
+Next step: collect the DeepSeek review; then the findings fix (if any), the freeze, and the MiMo +
+Sol repeat certification; packet 2 goes to the owner with the filled PREREG table.
+
+Open: reviewer result; DeepSeek spend tracking (owner reconciles the balance).
+
+Evidence:
+- anchor: ee721073fa22d303ff8cf86f9985f3ce117de4b9, uncommitted changes present
+- digest: sha256:689bcf4f91214b47b086fb93c3da2e7090ae05a35b60c574cb99dd3547942bd1 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T15:10:55.695Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:baaa59d4a3181299e574d37e3a12cb777ae1f75afe3b7830c7e7377a0e6666d0 of this entry without this block
+- parent-entry: sha256:5cf2c618c71c2a90f971a1590d327b61b41e189a0529a6aecee6e0818456b6c6
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - DIG corrections fully verified (Luna recheck2 PASS 15/15); SUPERVISOR-PREREG S2-S4 final
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
