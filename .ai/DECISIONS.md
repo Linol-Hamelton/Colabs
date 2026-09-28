@@ -4241,3 +4241,26 @@ This covers tonight:
   `{round, maxRounds, points:[{id, blocker, reserved, history:[{round, support, n}]}]}`.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0092
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Supersedes: PROTO-DEC-0091 as to the NIGHT_END value only (2026-09-28 09:00 MSK -> 2026-09-28 23:00 MSK)
+Refines: PROTO-DEC-0091 (the delegation window; AUTOCYCLE-1 is extended)
+
+Context:
+The owner extended AUTOCYCLE-1 in chat on 2026-09-28 after the Part A reboot: the night window is
+extended to 23:00 MSK the same day, the delegation of AUTOCYCLE-PROMPT.md section 6 keeps its
+boundaries, and MAX_CYCLES = 8 and NIGHT_BUDGET_USD = $5.00 are unchanged, with the spend counter
+continuing.
+
+Decision:
+1. NIGHT_END for AUTOCYCLE-1 is 2026-09-28 23:00 MSK.
+2. The standing delegation recorded by PROTO-DEC-0091 item (b) (AUTOCYCLE-PROMPT.md section 6) is
+   valid until the new NIGHT_END, with the same limits and reserved items; MAX_CYCLES stays 8 and
+   NIGHT_BUDGET_USD stays $5.00 (the spend counter continues).
+3. Everything else in PROTO-DEC-0091 stands unchanged.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
