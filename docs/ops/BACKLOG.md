@@ -65,6 +65,10 @@
   edit) and F-2A-05 (T30 does not exercise the bare default `docs/ops/RUNS.jsonl` path); both LOW,
   unverified, carried by MiMo's certifier reports. Sources: `docs/reviews/2026-09-28-mimo-wave2a-certification.md`
   (`2440fcc`), `...-certification-r2.md` (`0d87aff`); PROTO-DEC-0100 item 2. Open, next wave.
+- F-18 row 20 (`swe-bench-pro`): the score `Gemini 3.8 Flash 61.6%` is unverified (the cited
+  `datacamp.com` source returned HTTP 403 in the MiMo verification); stays marked unverified,
+  recheck at the next catalog touch. Source: `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md`
+  (`81cab28`); owner instruction 2026-09-28. Open (low).
 - M-1: a transient `.git/index.lock` can raise a spurious SCOPE_STOP. Policy: bounded retry with
   backoff; never delete a lock another git process holds. Source: F-3P-5. Open, L correction pass.
 - M-2: the `launch.cjs` job table (models, routes, outputs) is in code. Move it to a file.

@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T18:35Z - A-1 AND H1 RUN IN PARALLEL (ADV-002); advisor calls are light
-(owner clarification); H1 = the installed protected set (PROTO-DEC-0107 item 1); certifiers: A-1
-Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T19:30Z - F-18 CLOSED (owner ACCEPT; merged `c554d17`, suite 423/423 on the
+merged tree); A-1 DELIVERED (`7e51b89`) - its full suite next, then the DeepSeek review, freeze,
+Sol+MiMo; H1 candidate waits behind it; NIGHT_END not extended.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -75,6 +75,18 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
   `PROTO-DEC-0107 H1:` cases) + `d31ebb6` fix/spec/prompt(96)/journal; only the ADV-002-2 allowed
   files; 63/63 on the branch; working tree clean. The operator full suite is queued until the A-1
   session exits (ADV-002-5).**
+- **A-1 candidate DELIVERED 19:03Z (Claude Opus 5.5, effort max; executor session ended
+  `A1_DONE ok=True`, wall 57.6 min, shadow cost 14.28 USD): `6f44903` failing regression +
+  `7e51b89` fix + adversarial prompt (129 lines) + journal; working tree clean; branch
+  `a1-installed-advisory` tip `7e51b89`; no push/merge by the executor.**
+- **F-18 CLOSED (owner ACCEPT 2026-09-28): catalog accepted @ `81cab28` (MiMo verifier
+  RECOMMENDATION 9/0/1), merged into `v2.0.0` as `c554d17` (docs-only range, 14 files); full suite on
+  the merged tree 423/423 PASS (297.3 s, Available 10.28 GB); frame row CLOSED; row 20
+  (swe-bench-pro) stays unverified (HTTP 403) with a BACKLOG recheck line.**
+- Both candidate suites GREEN on their branches (A-1 425/425 in 304.5 s; H1 432/432 in 311.2 s;
+  validators exit 0; Available 10.34 -> 9.74 -> 9.63 GB). DeepSeek fix reviews dispatched for both
+  at 19:39Z (balance recorded before the paid calls: documented snapshot $11.92 + ¥155.41, live
+  balance not observable from this session).
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
@@ -139,15 +151,19 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
 
 ## Next actions (in order)
 
-1. **A-1**: watch the executor (stall = 15 min; PROTO-DEC-0047 item 6); on the candidate: gate, then
-   the operator's full suite on `a1-installed-advisory` (quiet window; time/pass/Available into the
-   journal), then the DeepSeek review per Q-D (record the balance first; one call if >= $3), a fix
-   loop on a blocking finding, then freeze (SHA into STATE, push the branch), then Sol (Medium,
-   <=150/<=250) + MiMo in parallel on one SHA; FAIL -> STOP; the merge is the owner's.
-2. **H1 fix (the F-C01 remainder)**: candidate DELIVERED (`28d13cc`, `d31ebb6`); on A-1 exit: gate,
-   then the full suite (never simultaneous with the A-1 suite), DeepSeek review (balance first,
-   >= $3), freeze, Luna (codex, xhigh) + MiMo on one SHA; merge per the delegated rule, but after
-   20:00Z only by the owner's word. (Autonomous brief: H1 candidate awaits the suite.)
+1. **A-1**: candidate DELIVERED (`7e51b89`); branch suite GREEN - `validate-protocol.ps1` exit 0,
+   `test-protocol.ps1` **425/425 PASS** (304.5 s; 19:27:46-19:32:57Z; log `.ai/runtime/a1-suite.log`).
+   DeepSeek review dispatched 19:39Z (`bgp_0e987995f001ldikevSL7vEXh3`, kilo deepseek-flash high,
+   launch `LAUNCH-A1-REVIEW.md` `05726f3`); balance recorded before the call (documented snapshot
+   $11.92 + ¥155.41, MODEL-ECONOMICS.md line 79, 2026-09-25 15:30Z; live balance not observable).
+   On PASS/RECOMMENDATION: freeze (push branch, SHA into STATE), then Sol (Medium, <=150/<=250) +
+   MiMo in parallel on one SHA; FAIL with reproduction -> fix loop; the merge is the owner's.
+2. **H1 fix (the F-C01 remainder)**: candidate DELIVERED (`28d13cc`, `d31ebb6`); branch suite GREEN -
+   `validate-protocol.ps1` exit 0, `test-protocol.ps1` **432/432 PASS** (311.2 s;
+   19:33:13-19:38:36Z; log `.ai/runtime/h1-suite.log`). DeepSeek review dispatched 19:39Z
+   (`bgp_0e987a13d001qedq16XyzGRykO`; launch `LAUNCH-H1-REVIEW.md` `0c2b36a`). On
+   PASS/RECOMMENDATION: freeze, then Luna (codex, xhigh) + MiMo on one SHA; merge per the delegated
+   rule, but after 20:00Z only by the owner's word.
 3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
    (`M-2A-RES-CHECK.md`); no code changes.
    **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact
@@ -156,7 +172,8 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
    **F-18 verifier DONE 18:58Z: RECOMMENDATION - 9 CONFIRM / 0 REJECT / 1 UNSURE (row 20
    swe-bench-pro: datacamp.com HTTP 403 for one of four scores); review
    `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md` (CERTIFYING, receipt
-   mimo-4aeecec4ecf66249) @ `81cab28` (pushed). Exit condition met; owner acceptance pending.**
+   mimo-4aeecec4ecf66249) @ `81cab28` (pushed). **Owner ACCEPT 2026-09-28; frame CLOSED in FRAMES;
+   merged `c554d17`; suite 423/423 on the merged tree; row 20 recheck in BACKLOG.**
    **Gate cadence:** 30-min gate lines (cron `wku_0e952e8bc001bOY0i80R1E8jwO`) to
    `.ai/runtime/gate-autocycle.log`; kilo WS 3.16 GB at 18:42 (< 6 GB).
 4. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).

@@ -15450,3 +15450,400 @@ Evidence:
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 5s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-2fec8d740dc73400.md, archived 2026-09-28
+
+## 2026-09-28 - ADV-002: H1 runs in parallel with A-1; advisor calls are light (owner clarification)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: Owner clarification (selection=owner): advisor calls (`claude -p`, short, reads files and
+writes one reply) are LIGHT steps like codex/vibe remote model calls; the 8 GB memory gate does not
+block them; wait only under Available < 4 GB; heavy steps unchanged (full suite, measurements, local
+code-working agent sessions like A-1). Gate reading at the call: Available 8.88 GB, nonpaged
+1190.3 MB. Called advisor 002 (`--resume`, Opus, effort high; wall 147.5 s; call-level tokens
+26/13731; call shadow delta 0.9956194 USD, JSON cumulative total 3.5731158 over the resumed
+session). ADV-002 (selection=advisor) recorded: names (branch `h1-installed-protected-set`, worktree
+`.ai/runtime/h1`, `LAUNCH-H1.md`, certifier prompt `docs/reviews/2026-09-28-h1-adversarial-prompt.md`);
+H1 allowed files (`.ai/bin/protocol-verdict.cjs`, `tests/rulebook.test.cjs`, the spec protected-set
+paragraph, the prompt, the journal; NOT `tests/validator-gate.test.cjs` - A-1 edits it; not
+`validate-protocol.ps1`, `setup-ai-protocol.ps1`, the manifest); semantics (source/missing role
+unchanged; installed = `managed` + `.ai/`, `.claude/`, `.codex/`, with a `source` key present ->
+exit 2; other role -> exit 2); a 9-case test matrix with prefix `PROTO-DEC-0107 H1:`; H1 starts NOW
+in parallel with A-1 (vibe light, files disjoint; vibe runs only `node --test
+tests/rulebook.test.cjs`; the full suite stays operator-serial in a quiet window; the falling-back
+check is mandatory); the A-1 flow gains an operator full suite on the branch before the DeepSeek
+review; MiMo certifies both candidates in separate sequential sessions. Executed: committed the
+reply + advisor journal (`ca4f9fc`); wrote and committed `LAUNCH-H1.md` (`606fcc5`, pushed); created
+worktree + branch `h1-installed-protected-set`; launched the vibe executor (background
+`bgp_0e94889cc001d6qaazaxD8B6oV`, pid 31832, max-turns 150, registered minimal tool list); appended
+the advisor MEASUREMENTS row (45 rows).
+
+Result: A-1 and H1 run in parallel on different clients with disjoint files; both launch files are
+on `v2.0.0`; ADV-002 is recorded; A-1 already committed its failing regression (`6f44903`) and is
+editing `validate-protocol.ps1`.
+
+Next step: watch both executors; on the A-1 candidate - gate, operator full suite, DeepSeek review
+(balance recorded first), freeze, Sol + MiMo; on H1 delivery - diff check, full suite, review,
+freeze, Luna + MiMo; advisor 003 at the first freeze/verdict.
+
+Open: A-1 candidate; H1 candidate; the DeepSeek balance reading before the review calls; merges
+after 20:00Z only by the owner's word.
+
+Evidence:
+- anchor: 606fcc530c57dd1c4254035ce353dc21a6069976, uncommitted changes present
+- digest: sha256:d90a183d0cb453862b1a75e725a50bb6963674c7a509c297ce9902809a368602 over 1900 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:32:13.041Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:cad09ada93788da0e2407b644c0d04a13941ce14b8aada861677033a6d786cf8 of this entry without this block
+- parent-entry: legacy
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - Section-10 gate FAIL before advisor 002 (Available 7.7 GB); the call is deferred
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: After PROTO-DEC-0107 and the pushed 002 request (`1688372`), checked the section-10 gate
+before the advisor call: Available 7.68-7.73 GB (< 8 GB), Committed 38.2/65.2 GB = 58.6% (< 80%),
+nonpaged 1.18 GB. The A-1 executor holds ~2 GB (Available was 9.89 GB before its launch). Per
+section 10 reaction ("one check fails: no new heavy step") the advisor call does not start; it is
+deferred until the gate recovers, likely after A-1 completes.
+
+Result: gate failure recorded; no heavy step started; advisor 002 stays queued.
+
+Next step: re-check the gate; call advisor 002 when Available >= 8 GB, otherwise after the A-1
+executor exits.
+
+Open: A-1 candidate; advisor 002; H1 execution prep.
+
+---
+
+## 2026-09-28 - ADV-001 advisor channel: A-1 first and launched; F-C01 probe; owner questions Q-A..Q-D
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: Continued AUTOCYCLE-1 from `STATE.md` @ `b0bf238` (session start: TASK.md, DECISIONS
+0090-0106, PREREG, operator journal). Checked `claude --help`: the `--effort` option exists
+(low|medium|high|xhigh|max) - per CHANNEL.md and the owner update `fe1c11d` the advisor call used
+`--effort high` and MEASUREMENTS records `effort=high`. Wrote `advisor/001-REQUEST.md` per the
+CHANNEL template: state `b0bf238`, the packet-2 table S1-S9, the two owner-assigned questions (the
+F-C01/A-1 order and parallelism; the F-C01 certifier candidates), reserved flags; committed
+`118f932` and pushed BEFORE the call. Gate before the call: Free 9.47 GB, Committed 54.4%,
+nonpaged 1.22 GB, TextInputHost 208% of a 30-core total -> stopped per the standing memory steps;
+after: Free 9.89 GB, no process above ~5% (msmpeng 4.5% transient). First advisor call (Opus,
+effort high): session `4fa0a406-0c18-4641-a85f-265e69fa9fce`, wall 322.4 s, total_cost 2.5774964
+USD (subscription, marginal 0), modelUsage `claude-opus-5-5`; full JSON saved to
+`.ai/runtime/advisor-001.json`; reply `advisor/001-REPLY.md` accepted (last line `STATUS: READY`).
+Committed the reply and the advisor journal (`claude-7dcc4d0185595bcf`) as `f6b9fe8`, pushed.
+Appended the MEASUREMENTS row `role=advisor`. Recorded ADV-001 (selection=advisor) in this journal
+and STATE; added Q-A..Q-D to OWNER-QUEUE; under `protocol-lock.cjs` corrected the stale F-C01 line
+in `.ai/TASK.md` (ADV-001-7). Wrote `LAUNCH-A1.md` (A-1: installed-role READ-ONLY ADVISORY fix per
+PROTO-DEC-0087 item 4), committed `74b46ff`, pushed, created worktree `.ai/runtime/a1` + branch
+`a1-installed-advisory` from it, and launched the executor: background process
+`bgp_0e93210cb0017xfa8CSWlkTlsi` (pid 9664), Claude Code, Opus, `--effort max`, narrow
+`--allowedTools`, cwd = the worktree. Ran the light F-C01 probe (ADV-001-2, writes only to
+`.ai/runtime/` and a temp folder): (a) on HEAD both neutral requirements (validate-protocol.ps1,
+protocol-manifest.json) -> `Verdict: FAIL`, exit 1 both; (b) fresh temp install (`-Target ...
+-InitGit`), installed `protocol-verdict.cjs` on the same ledger -> exit 2, stderr `BLOCKED: Cannot
+load protocol-manifest.json at run time: source must be a non-empty array`; installed manifest
+`role=installed`, `hasSource=false`. Both raw outputs above are verbatim.
+
+Result: The advisor channel is open and ADV-001 is recorded; A-1 runs first as the only heavy
+session; F-C01 execution and its certifiers wait for the owner (Q-A/Q-B); the H1 host gap is
+reproduced; `v2.0.0` = `74b46ff` pushed (request, reply, launch file).
+
+Next step: watch A-1 (stall = 15 min without a write); after the owner answers Q-A/Q-B send advisor
+002 with the probe output; then the A-1 review/freeze/certification flow.
+
+Open: Q-A (F-C01 target; recommendation H1 only), Q-B (certifiers; recommendation Luna + MiMo),
+Q-C (NIGHT_END 23:00 MSK; recommendation: continue with owner-side merges), Q-D (DeepSeek review of
+A-1; recommendation yes if balance >= $3); A-1 candidate; advisor 002; the Kernel v1 freeze.
+
+Evidence:
+- anchor: 74b46ffa5071ed53d1d870c7c8d41830fd4262c5, uncommitted changes present
+- digest: sha256:0e82ba9e946b312b5670e356d4beafaa9b386cc78ca36bd9e204850f851afeaa over 1897 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:07:15.712Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:7867c85aa866fba8bfdd9ef71d18ec7a5f9e610f3cce95d05886e6e0ce26003f of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-2fec8d740dc73400.md, archived 2026-09-28
+
+## 2026-09-28 - Item 3a: Community composition tables built mechanically (45 stay / 1963 leave)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: Per the owner's autonomous brief item 3a and PROTO-DEC-0106 item 9, installed the protocol
+into a fresh empty temp folder (`setup-ai-protocol.ps1 -Target ...\community-composition -InitGit`,
+34 files) and compared it with `git ls-files` of `D:\Colabs` @ `63de030`. Generated
+`docs/research/2026-09-28-autocycle/COMMUNITY-COMPOSITION.md` mechanically (script
+`.ai/runtime/community-tables.cjs`): "stays" = 45 files / 1853.4 KB (29 manifest managed+integration
++ 4 installer-created state files + 7 `templates/**` + LICENSE, README.md, QUICKSTART.md,
+setup-ai-protocol.ps1); "leaves" = 1963 files with a group summary (docs/research 1386, docs/reviews
+269, tests 95, .ai 114, docs/core-arch 61, OwnerIdeas 11, tools 10, docs/decisions 1, docs/ops 5, ...)
+and a full per-file list. Marked separately the five "leaves" referenced by `validate-protocol.ps1`
+(`.editorconfig`, `.github/workflows/protocol.yml`, `.codex/config.toml`,
+`docs/decisions/REGISTRY.md`, `test-protocol.ps1`). Added a boundary-case section: the five
+installer-created state files (`.ai/TASK.md`, `PLAN.md`, `DECISIONS.md`, `ARCHIVE.md`,
+`worklog/README.md`) exist as skeletons in an empty install while PROTO-DEC-0106 item 9 names their
+accumulated content as leaving - the freeze form is the owner's question (OWNER-QUEUE line added).
+Nothing was deleted; `.ai/runtime/**` and untracked files are out of scope.
+
+Result: the two tables are built and persisted; the only open points are owner decisions (state-file
+freeze form; the five validator-referenced leaves at step (f)).
+
+Next step: commit and push the tables + the OWNER-QUEUE line; continue watching A-1/H1; M-2A-res
+check next while they run.
+
+Open: the state-file freeze form (owner); validator-referenced leaves (owner, at the freeze); A-1
+and H1 candidates.
+
+Evidence:
+- anchor: 63de03058521b921011e86520c468acd510731bb, uncommitted changes present
+- digest: sha256:27aa8b0e8a27fccf811ac77a9b42747c3d4bb670715d2da3e3c346e1307320fa over 1901 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:43:51.348Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:b93d98d8881c3f92248f25a4e6d9c247b6677232e33bc974cee6e68437f8fbc5 of this entry without this block
+- parent-entry: sha256:1e620687d49e2c0690b0ca65f9741c48b9f65e224f706f78aafaba60e897fe7e
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - Owner: parallel-candidate protocol; overlap check shows no common files
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: On the owner's instruction ran the overlap check. `git diff --name-only
+v2.0.0...a1-installed-advisory` = `tests/validator-gate.test.cjs` (plus uncommitted
+`validate-protocol.ps1` in its worktree); `git diff --name-only v2.0.0...h1-installed-protected-set`
+= `tests/rulebook.test.cjs` (plus uncommitted `.ai/bin/protocol-verdict.cjs`). Intersection: none.
+H1 already committed its failing matrix tests and is fixing `protocol-verdict.cjs`; A-1 committed
+its failing regression (`6f44903`) and is fixing `validate-protocol.ps1`. Recorded the owner's
+ruling (selection=owner) in STATE: item 2 (second candidate merges the updated `v2.0.0` before its
+freeze, no rebase; conflicts by its executor with a failing test first, then the operator full
+suite; the merged SHA is frozen/certified; the DeepSeek review covers the diff against the updated
+`v2.0.0`) triggers only if an overlap appears at freeze time; today's check shows none, so the
+ADV-002 order stands; the full suite on the merged tree after the second merge is mandatory either
+way; to be passed to the advisor in request 003.
+
+Result: no common files between the two candidates; both executors work on disjoint files.
+
+Next step: watch both; on delivery - gate, operator full suite, DeepSeek review (balance >= $3),
+freeze, certifications (A-1: Sol+MiMo; H1: Luna+MiMo).
+
+Open: both candidates; the balance reading; advisor 003 carries the owner's ruling.
+
+Evidence:
+- anchor: 3a3cbb1c340cfea17aeb4064ce90646642365346, uncommitted changes present
+- digest: sha256:7d39fab82b4f6b739b8aeceade154813c0d2e41ac97ecfdca923fd8b5458ef87 over 1900 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:37:10.354Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:1e620687d49e2c0690b0ca65f9741c48b9f65e224f706f78aafaba60e897fe7e of this entry without this block
+- parent-entry: sha256:e44fd1b23d9181f80decfb502dacec3f8691b9cacb335561e3406ceb25737317
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - H1 vibe crash on console encoding; restarted with UTF-8
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: The first H1 vibe session (`6c2b087c-bfe1-a031-6783-64b20d34298b`) crashed about 25 s in
+with `'charmap' codec can't encode character '\u2192'` while streaming its output (the Russian
+Windows codepage cannot encode `->` arrows); it had only read `LAUNCH-H1.md`, `tests/helpers.cjs`
+and its own logs - no tree writes. The vibe log records the model fallback at 18:30:41Z: `Active
+model 'glm-5-3' is not in your configured models; falling back to default model
+'mistral-medium-3.5'`. Restarted the wrapper with `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8`,
+resuming the same vibe session; background `bgp_0e94889cc001d6qaazaxD8B6oV` restarted (pid 28096);
+its output will land in `.ai/runtime/h1-call2.txt`. A-1 continues in parallel (its
+`validate-protocol.ps1` fix is in progress, +28/-6).
+
+Result: H1 continues from the same session; no work was lost; the fallback model is recorded.
+
+Next step: watch both executors; when H1 exits, check `h1-call2.txt`, the vibe log and the worktree
+diff; add the role=executor MEASUREMENTS row with the actual model.
+
+Open: H1 candidate; A-1 candidate; the DeepSeek balance reading before the review calls.
+
+Evidence:
+- anchor: 071d4d383a3e339dfa6f36d25b9bd0bc37176caf, uncommitted changes present
+- digest: sha256:764d21aa2fde8b13c7a169594ffdd298c221af95b4c088b53a2ba4416b1c0ed4 over 1900 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:35:13.122Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:e44fd1b23d9181f80decfb502dacec3f8691b9cacb335561e3406ceb25737317 of this entry without this block
+- parent-entry: sha256:cad09ada93788da0e2407b644c0d04a13941ce14b8aada861677033a6d786cf8
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 7s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-2fec8d740dc73400.md, archived 2026-09-28
+
+## 2026-09-28 - Owner accepted F-18; frame CLOSED and merged (c554d17); A-1 delivered (7e51b89)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: The owner accepted the F-18 catalog (MiMo RECOMMENDATION @ `81cab28`); row 20
+(`swe-bench-pro`, cited source HTTP 403) stays marked unverified for the next catalog touch. Range
+check `v2.0.0...bench-catalog`: 14 files, `docs/research/2026-09-28-bench-catalog/**` + three
+journals only (no code, no `.ps1`). Merged `--no-ff` into `v2.0.0` as **`c554d17`** (docs-only,
+owner's word); validator exit 0 (1 warning); full suite on the merged tree **423/423 PASS,
+297.3 s**, Available 10.28 GB at start; pushed. Closed frame **F-18 in `FRAMES.md`** under the lock
+(ACTIVE -> CLOSED, owner ACCEPT note, merge SHA) and added the row-20 recheck line to
+`docs/ops/BACKLOG.md`. Separately: the A-1 executor session finished (`A1_DONE ok=True`, wall
+3455 s = 57.6 min, shadow cost 14.28 USD, session `7a494e74-fc13-4d28-8267-1cac6c0c84f7`);
+delivery on `a1-installed-advisory`: `6f44903` failing regression + `7e51b89` fix + adversarial
+prompt (129 lines) + journal, tree clean, tip `7e51b89`; no push/merge by the executor.
+
+Result: F-18 is closed and public on `v2.0.0`; the A-1 candidate is ready; H1 waits its turn behind
+the serial suites.
+
+Next step: A-1 full suite on the branch (quiet window, now), then the DeepSeek review per Q-D with
+the balance recorded first, then freeze and the Sol + MiMo certifications.
+
+Open: A-1 review/freeze/certs; H1 suite/review/freeze/Luna + MiMo; the DeepSeek balance reading.
+
+---
+
+## 2026-09-28 - F-18 verifier done: RECOMMENDATION (9 CONFIRM / 0 REJECT / 1 UNSURE)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: The MiMo verifier session finished (background `bgp_0e959c1ae001mQ3JOFzDWHEmUs` exited,
+`F18_VERIFY_DONE`; wall ~377 s). It verified the deterministic 20% sample (10 of 48 rows:
+5,10,...,45,48) of `CATALOG.jsonl` by opening each row URL and every `scores[].source_url` live:
+**9 CONFIRM, 0 REJECT, 1 UNSURE** (row 20 `swe-bench-pro`: `datacamp.com` returned HTTP 403 for one
+of four scores; the other three scores and the benchmark identity confirmed). Overall
+**RECOMMENDATION**. Review `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md` (168 lines,
+Mode CERTIFYING, Receipt-Owner `mimo-4aeecec4ecf66249`) + its journal were committed as `81cab28` on
+`bench-catalog` (reviewer did not push per instructions; the operator pushed). Appended the
+MEASUREMENTS row `role=verifier` (mimo, xiaomi/mimo-v2.6-pro, variant high, cost 0.098641 = sum of
+13 per-step cost entries, q=0.8, v=10). F-18 exit condition (CATALOG.jsonl + cover + independent
+verifier) is met; the frame stays ACTIVE until the owner accepts it; the frame deadline is NIGHT_END
+20:00Z.
+
+Result: F-18 is substantively complete pending the owner's acceptance; nothing was deleted or
+rewritten.
+
+Next step: A-1 still running (its adversarial prompt was written 19:00:02Z); on its exit - gate,
+full suite, DeepSeek review, freeze, then certifiers; H1 suite queued behind it.
+
+Open: A-1 candidate; H1 suite; owner acceptance of F-18; the DeepSeek balance reading.
+
+Evidence:
+- anchor: 32e9f03a34fac9636e1fd817591b5c1068adc371, uncommitted changes present
+- digest: sha256:21e06d256f975290f65e06a1931a9cbfd45bc5a39e87b891c6490372f4fbd6d9 over 1902 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T19:01:54.966Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:37b8309d9a27a00772d0ebd7165ed4e39e7d29b526be7512897062ad2e50a940 of this entry without this block
+- parent-entry: sha256:1465f14c2c591873d63dd8776d792bfafd9580c7982d0a9c1463e401b2afb1f1
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - Item 3c: F-18 cover/dup check, CATALOG.jsonl merged, MiMo verifier launched
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: Continued frame F-18 (autonomous brief item 3c) on branch `bench-catalog` at
+`.ai/runtime/catalog`. Mechanical checks (script `.ai/runtime/f18-cover-dup.cjs`, output committed as
+`6f2673b` -> `COVER-DUP.md`): required-field completeness for all 48 rows (no absent fields; empty
+`scores[]` counts A 1 / B 22 - informational, "unknown stays unknown"); duplicates: 0 by id, 0 by
+normalized benchmark name, files not byte-identical; scope coverage against the collector split in
+`README.md`: every scope item matched (no NOT FOUND); the literal `protocol-ledger.cjs cover`
+convention (one record file per corpus unit) does not fit an aggregate JSONL catalog - recorded in
+the check. Merged the two producer files mechanically into the exit artifact `CATALOG.jsonl`
+(48 rows, sorted by dimension+benchmark; `MERGE-NOTE.md`; nothing deleted) - commit `a612bff`.
+Wrote and pushed the verifier launch `LAUNCH-F18-VERIFY.md` (`e31a31a`): MiMo-V2.6-Pro, 20% sample =
+10 deterministic rows (5,10,...,45,48), per-row CONFIRM/REJECT/UNSURE with counter-evidence for
+REJECT, review file `docs/reviews/2026-09-28-mimo-bench-catalog-verification.md`, journal + record,
+no push; registered command `mimo run ... -m xiaomi/mimo-v2.6-pro --variant high --yolo --format
+json` per the client registry (PROTO-DEC-0047 item 9) in the disposable worktree, auto-approval per
+the owner's standing instruction of 2026-09-26. Dispatched the verifier as background
+`bgp_0e959c1ae001mQ3JOFzDWHEmUs` (pid 12036).
+
+Result: F-18 has its mandatory cover/dup checks and the merged exit artifact; the independent
+verifier runs; A-1 continues in parallel (its last journal write 18:43Z; active).
+
+Next step: when A-1 exits - gate, full suite on `a1-installed-advisory`, then the H1 suite, then the
+DeepSeek reviews (record the balance first), freezes, certifiers (A-1: Sol+MiMo; H1: Luna+MiMo).
+
+Open: A-1 candidate; H1 suite; MiMo verifier result; the DeepSeek balance reading.
+
+Evidence:
+- anchor: ec33cbabf3d7d7156655a194d0c5c2b9b83f9f65, uncommitted changes present
+- digest: sha256:cba9543031071ef0e217ad55370f374f433cffd1f49c40d75b7e613c4026d8fd over 1902 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:49:53.690Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:1465f14c2c591873d63dd8776d792bfafd9580c7982d0a9c1463e401b2afb1f1 of this entry without this block
+- parent-entry: sha256:bff69948a8580adc0b7a5489926b50d941d1ec7e6674b705315fe28af9cbc158
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - H1 candidate delivered by vibe; M-2A-res check (both residuals confirmed)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: The H1 vibe executor finished (background `bgp_0e94889cc001d6qaazaxD8B6oV` exited; wrapper
+`H1_DONE2`). Delivered on `h1-installed-protected-set`: `28d13cc` (tests alone, nine
+`PROTO-DEC-0107 H1:` cases) and `d31ebb6` (fix + spec paragraph + adversarial prompt 96 lines +
+journal); exactly the ADV-002-2 allowed files, working tree clean; the executor reports 63/63
+`node --test tests/rulebook.test.cjs` and `verify` matches. The vibe log confirms the fallback
+`glm-5-3` -> `mistral-medium-3.5` (18:33:14Z); the first session (18:30:41-18:31:19) crashed on the
+console-encoding bug, the resumed session ran 18:33:14-18:39:43. Per ADV-002-5 the operator full
+suite stays queued until the A-1 session exits (A-1 still running, its `validate-protocol.ps1` +
+`tests/validator-gate.test.cjs` edits in progress). Added the role=executor MEASUREMENTS row (46).
+Item 3b (M-2A-res): F-2A-01 CONFIRMED - `W2A-EXECUTION.md:42` still says "line 16 (CR-F01-1)" while
+`git show 61c7159` adds only the `CR-W5-1` row (INDEX.md:17 unchanged); F-2A-05 CONFIRMED - T30
+(`tests/dispatch.test.cjs:1609`) exercises the configured `runsFile` (`:1624`), and the bare default
+`docs/ops/RUNS.jsonl` has no assertion. Report:
+`docs/research/2026-09-28-autocycle/M-2A-RES-CHECK.md`; no code changes.
+
+Result: the H1 candidate is ready for the suite/review/freeze flow; both M-2A residuals are
+confirmed LOW and still open; no code touched by the check.
+
+Next step: when A-1 exits - gate, A-1 full suite, H1 full suite (serial, quiet window), then the
+DeepSeek reviews (balance recorded first), freezes, then certifiers (A-1: Sol+MiMo; H1: Luna+MiMo).
+
+Open: A-1 candidate; the DeepSeek balance reading; H1's suite; the owner's state-file freeze-form
+decision.
+
+Evidence:
+- anchor: 1f15b5f4ee43d6410eafa0d484fe2ca29adacbb9, uncommitted changes present
+- digest: sha256:e698ee5d6ead84a5fe8599760ce1c4ed5358c4ee433bf64bf7bc79cc170ea558 over 1902 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T18:45:58.332Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:bff69948a8580adc0b7a5489926b50d941d1ec7e6674b705315fe28af9cbc158 of this entry without this block
+- parent-entry: sha256:b93d98d8881c3f92248f25a4e6d9c247b6677232e33bc974cee6e68437f8fbc5
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
