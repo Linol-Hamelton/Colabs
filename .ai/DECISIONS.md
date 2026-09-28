@@ -4264,3 +4264,37 @@ Decision:
 3. Everything else in PROTO-DEC-0091 stands unchanged.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0093
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0091 item (a) items 6f and 6c (the DIG verifier and the recovery-3 executor route)
+
+Context:
+The owner instructed in chat on 2026-09-28 (AUTOCYCLE-1, extended): (i) the DIG verifier is
+GPT-5.6 Luna (codex, effort XHigh) instead of GPT-5.6 Sol, to preserve Sol's quota for the 2A and
+A-1 certification; (ii) the owner checks the VPN after the reboot (the agy failures look like the
+owner-side route: "location not supported", googleapis EOF/502), and after the owner's "VPN ok" the
+operator makes exactly ONE retry of the 2A recovery-3 session on agy; if agy still fails, the
+successor executor is Gemini 3.8 Flash via another route (the Gemini API through kilo/OpenRouter)
+with `modelRan` taken from the response `model` field.
+
+Decision:
+1. DIG verification (C01 item 6f as amended): the verifier is GPT-5.6 Luna (codex, effort XHigh).
+   Scope unchanged: first the cover-convention line in `drafts/COVER-DUP.md` (4/4/5), then a 20%
+   sample plus every "not built" and "partial" row and "built" rows with prose-only proof. Rows
+   where Luna is uncertain or disagrees with the collector on the evidence receive one short Sol
+   call covering only those rows. In the SUPERVISOR-PREREG table, signal S4 is computed from Luna's
+   rejection rate; the 20% threshold is unchanged. Measurements as usual.
+2. After the owner reports "VPN ok": exactly ONE retry of the recovery-3 agy session. If it fails,
+   the agy executor line is FALLEN (recorded in that session's journal), and the successor is
+   Gemini 3.8 Flash via another route (Gemini API through kilo/OpenRouter; `modelRan` from the
+   response `model` field), with the same narrow task: ONLY the unified adversarial audit prompt
+   <= 150 lines bound to `a4312e8..HEAD` of `kernel-batch-1`, with the diff, the DeepSeek review
+   (`5bc9940`) and `W2A-EXECUTION.md` as inputs; no code, no tests.
+3. If no Gemini route exists, STOP and return to the owner; the fallback (Codex Terra) requires the
+   owner's separate word.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
