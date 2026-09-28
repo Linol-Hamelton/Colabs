@@ -4442,3 +4442,30 @@ Decision:
 3. The SUPERVISOR-PREREG rule applies: S4 above 20% postpones the Kernel v1 decision by one round.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0097
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0096 item 2 (the DIG correction executors); PROTO-DEC-0095 item 4 and PROTO-DEC-0096 item 1 (the 2A freeze and reporting rules)
+
+Context:
+The DeepSeek DIG range (PROTO-DEC-0068..0086 + A-1..A-14) could not be corrected via the kilo CLI
+because its gateway answers `402 Add credits` (two probe rows in MEASUREMENTS.jsonl). The owner
+exercised the SUPERVISOR-PREREG right and reassigned the range to vibe; the same targeted correction
+applies, followed by Luna's re-check. The owner also required: no new 2A freeze until the MiMo
+verdict exists (it now does: RECOMMENDATION), the same fix round carries MiMo's blockers if any,
+each with a failing test first, and the report states the MiMo verdict verbatim.
+
+Decision:
+1. The DeepSeek DIG range is reassigned to vibe (GLM-5.3 on PASS, else Mistral Medium 3.5): the
+   same targeted correction (only the rejected/unsure rows; `path:line` or a commit, otherwise
+   `described`/`partial`; a correction log; counts synced), then Luna re-checks the corrected rows.
+2. The kilo CLI `402` is recorded in MEASUREMENTS.jsonl and in OWNER-QUEUE as a route-balance item;
+   whether the operator's own session depends on the same balance is checked and reported.
+3. The 2A freeze waits for the MiMo verdict (now RECOMMENDATION); the round-2 fix carries MiMo's
+   blockers if any, each with a failing test first. The report states the MiMo verdict verbatim
+   (PASS/RECOMMENDATION/FAIL and its blockers).
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
