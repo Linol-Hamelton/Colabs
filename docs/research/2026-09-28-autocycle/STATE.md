@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T20:35Z - A-1 CERTIFIED (Sol PASS + MiMo RECOMMENDATION; both cert
-branches pushed) - ready to merge by the owner; H1 Luna PASS (commit pending) + MiMo-H1 running;
-ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T20:50Z - BOTH MERGES DONE AND PUSHED (A-1 `4d7081a`, H1 `ee0d9f1`);
+merged-tree suite 434/434 PASS; `verify` matches; `LAUNCH-*.md` relocated; **tag proposal
+`kernel-v1.0.0` awaits the owner's word**; F-18 closed; `v2.0.0` = `6b55688` + this commit.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -104,7 +104,10 @@ ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read
   dispatched 20:03Z.
 - `advisor/003-BRIEFING.md` (for Claude when its limits reset) updated to the certified state at
   this commit: A-1 certified (Sol PASS + MiMo REC) and H1 (Luna PASS, MiMo-H1 running) plus seven
-  risk points to check; the MiMo-H1 verdict will be appended in a follow-up commit.
+  risk points to check; the MiMo-H1 verdict followed as `26b9e5b`.
+- **Merges: A-1 `4d7081a`, H1 `ee0d9f1`; merged-tree suite 434/434 PASS (278.9 s), `verify` matches,
+  pushed. `LAUNCH-*.md` relocated to `docs/research/2026-09-28-autocycle/launch/` (`6b55688`).
+  MiMo-H1 PASS committed `26b9e5b` (branch `cert-h1-mimo` pushed). MEASUREMENTS: 54 rows.**
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
@@ -169,18 +172,12 @@ ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read
 
 ## Next actions (in order)
 
-1. **A-1**: FROZEN `8b74e41` (branch `a1-installed-advisory`, pushed). DeepSeek review RECOMMENDATION
-   (`docs/reviews/2026-09-28-deepseek-a1-fix-review.md`, session `deepseek-7673879ed0e8fc01`; residuals
-   R2/R3 = pre-existing blacklist limits, no candidate regression; suggests a future whitelist).
-   Branch suite 425/425 (304.5 s).    Certifiers: **CERTIFIED - Sol PASS** (`a9a2443`, CERTIFYING, receipt `codex-518a4936ada98c03`)
-   **+ MiMo RECOMMENDATION** (`d11b430`, CERTIFYING, receipt `mimo-d473022df037297a`); both cert
-   branches pushed (`cert-a1-sol`, `cert-a1-mimo`); R2-R4/R2-R3 blacklist limits judged
-   pre-existing and non-blocking. **A-1 is ready to merge; the owner GRANTED the merge
-   (ADV-003 item 4); merging locally now (H1 follows after its MiMo verdict).**
-2. **H1 fix (the F-C01 remainder)**: FROZEN `476b488`. DeepSeek review PASS. Branch suite 432/432.
-   Certifiers: **Luna PASS** (`e13adf3`, CERTIFYING, receipt `codex-e7ed7431f3ebf38f`; pushed) +
-   **MiMo-H1 RUNNING** (`bgp_0e9b62f64001yT6V6NLiubGVbZ`, since 20:33Z). **Its verdict gates the
-   H1 merge (owner: PASS/RECOMMENDATION -> merge; else STOP).**
+1. **A-1: MERGED into v2.0.0 `4d7081a`** (certified: Sol PASS `a9a2443` + MiMo RECOMMENDATION
+   `d11b430`, cert branches `cert-a1-sol`/`cert-a1-mimo` pushed; DeepSeek review RECOMMENDATION;
+   branch suite 425/425; owner-granted per ADV-003 item 4).
+2. **H1: MERGED into v2.0.0 `ee0d9f1`** (certified: Luna PASS `e13adf3` + MiMo PASS `26b9e5b`,
+   cert branches `cert-h1-luna`/`cert-h1-mimo` pushed; DeepSeek review PASS; branch suite 432/432;
+   merged after the MiMo-H1 PASS satisfied the owner's condition).
 3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
    (`M-2A-RES-CHECK.md`); no code changes.
    **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact
@@ -193,7 +190,10 @@ ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read
    merged `c554d17`; suite 423/423 on the merged tree; row 20 recheck in BACKLOG.**
    **Gate cadence:** 30-min gate lines (cron `wku_0e952e8bc001bOY0i80R1E8jwO`) to
    `.ai/runtime/gate-autocycle.log`; kilo WS 3.16 GB at 18:42 (< 6 GB).
-4. The Kernel v1 freeze after BOTH merges; then the Community/CoLabus steps (PROTO-DEC-0106 item 8).
+4. **Kernel v1 freeze: both merges are in; merged-tree suite 434/434 PASS (278.9 s), `verify`
+   matches, pushed. PROPOSAL to the owner: tag `kernel-v1.0.0` on the tip of v2.0.0 at this commit
+   (the tag goes on only on the owner's word). Then the Community/CoLabus steps (PROTO-DEC-0106
+   item 8); the five state files reset to the installer's empty-project skeletons (ADV-003 item 7).**
 5. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
    installer/validator needs) to the owner; nothing deleted before the owner's word; the tag-name
