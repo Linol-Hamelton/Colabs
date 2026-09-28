@@ -8,6 +8,42 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Registry fixture fixed on a branch; DeepSeek review dispatched
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Per the owner's plan: created the worktree `.ai/runtime/fixreg` (branch
+`fix-registry-fixture` from `ad14a14`), wrote and committed the fix task (`268e4fe`), dispatched the
+vibe fix session, and - after the first attempt exited before writing its journal - a second
+bookkeeping session that completed the five-label entry and `record --quick` (Evidence anchor
+`268e4fe`, validator exit 0). Verified the fix myself: `node --test tests/registry.test.cjs` ->
+8/8 PASS. Inspected the diff: exactly the owner's spec - `nextDecId = max(PROTO-DEC-NNNN in
+validDecisionsContent) + 1`, padded to four digits, used in the synthetic block, the registry row and
+`assert.match` for checks 6 and 7; nothing else changed. Committed the fix and the journal as
+`0e0d6a7`, then the DeepSeek fix-review task (`2b28a2a`) and dispatched the native-route reviewer
+(bg `bgp_0e8fc20cc001OmjyDyP1Z9ke6b`, pid 32944). Gate at 17:07Z: Available 4.03 GB, committed
+79.9% - too tight; the merged run waits for a better reading (the machine oscillates 4-9 GB).
+Added the BACKLOG line about tests not hardcoding live-corpus ids.
+
+Result: The fix is committed on `fix-registry-fixture` and under DeepSeek review; the merged run
+repeats after PASS/RECOMMENDATION; the earlier STOP remains recorded.
+
+Next step: collect the DeepSeek review; then gate -> ff the fix into v2.0.0 -> local merge
+`kernel-batch-1` -> full suite -> verify -> push both -> S6 -> packet 2 -> STATE checkpoint.
+
+Open: the review verdict.
+
+Evidence:
+- anchor: ad14a14e79b2191002e6c8c18edc831ac2b6b4f1, uncommitted changes present
+- digest: sha256:5b4e3c743b088f4e48f68a5d78debd4e95eb29bb8d43be1f0c9b731cafbb9e34 over 1872 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T17:07:46.183Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:c69bec55dce9fa6dd4fb6bbc5a2f7669f4b3d89519dfc46d3f1f006d4047fa04 of this entry without this block
+- parent-entry: sha256:a4f279970db9414dca7f5b79982e06ccb1f770db2a631ba823cdd9686b154b0f
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - STOP: merged-tree suite RED on 2 pre-existing v2.0.0 fixture failures; merge rolled back
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
