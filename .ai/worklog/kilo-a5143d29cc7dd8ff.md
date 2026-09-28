@@ -8,6 +8,45 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Candidate 79670de verified; certifier processes exited; F-2A residuals to BACKLOG
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Verified the merge candidate per the owner's item 1: `git diff --stat 9bf15ae..79670de`
+lists six documentation files only - the two r2 reports (byte-identical to their cert-branch
+originals: `git hash-object` `41bec66...` = `41bec66...` (Sol) and `6cd7c24...` = `6cd7c24...`
+(MiMo)), the two journals, and the two r2 launch files; no code/test/tooling file. The r2 launch
+files sit under `docs/research/`, beyond the letter of "docs/reviews/ and .ai/worklog only", and are
+recorded as a documentation deviation. Process check (item 2): pids 36560 (MiMo r2) and 28368
+(Sol r2) have EXITED; all operator background sessions are exited or failed; live orphans without a
+task (for the owner to close, not killed by the operator): codex PID 29928 plus ~12 `node` helpers
+started 15:55:30-34Z, and `node` PID 36724 (15:18Z). Top-5 by memory: kilo#2940 3.98 GB,
+kilo#28144 0.89, MsMpEng#6088 0.82, Code#3668 0.75, kilo#7388 0.64. Backlog (item 6): added the
+line M-2A-res with the F-2A-01/F-2A-05 residuals for the next wave. Gate at 16:02Z: the S5 window
+remains closed; the single merged-tree run will serve as S5 and condition (c) once the window opens.
+
+Result: The candidate is verified as documentation-only above the frozen SHA; no STOP needed on
+that basis. Processes are clean; the memory list went to the owner.
+
+Next step: watch the gate; when the window opens (free >= 8 GB, no > 5% CPU, pools normal): merge
+`--no-ff` `kernel-batch-1` into `v2.0.0` locally WITHOUT push, run the full suite on the merged tree
+(this run = S5 + condition (c)), and on green + `verify` matches + no conflict push; on red roll the
+local merge back and STOP. Deadline: a window must open by 19:30Z, else the merge goes to
+OWNER-QUEUE. Then S6, the packet-2 table, and advisor request 001.
+
+Open: the S5 window; then the merge.
+
+Evidence:
+- anchor: 7f38984af12d68f6a54195447931b3c4095a5f01, uncommitted changes present
+- digest: sha256:5e7faa144090b55f8bbb04f49306600d4a578bba6bb0e7a473df824dfada2545 over 1872 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T16:03:18.175Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:acedf418da55d7eafbca94b911323ee2127e478cfd8a6d2d4e3201df877f1e8d of this entry without this block
+- parent-entry: sha256:b25eb9abd7f65b3ad3d10dc23a97ff1b9b7e74882bc51846a4795eb2ef472d33
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - 2A round 2: both RECOMMENDATION; PROTO-DEC-0102 advisor channel; S5 window closed
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
