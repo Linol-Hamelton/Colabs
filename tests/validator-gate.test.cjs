@@ -216,11 +216,19 @@ test('A-1: advisory Mode values and markers are refused in any spelling, in the 
     '**Mode:** READ-ONLY ADVISORY',
     'Mode: CERTIFYING\nMode: READ-ONLY ADVISORY',
     '> [Mode: Read-Only Advisory]',
+    // The exact rule refused this; a scan that consumed the first line would skip the second.
+    '- Mode:\nMode:\nADVISORY',
   ].map(header => [JSON.stringify(header), a1Review(header)]));
   assert.deepEqual(missed, []);
   // The header region ends at the first `---` line. A certifying review that quotes both forms in
   // its body, as a review of this fix will, still passes.
   write(root, A1_REVIEW, a1Review('Mode: CERTIFYING',
     '\n---\n\nMode: READ-ONLY ADVISORY and [MODE: READ-ONLY ADVISORY] now fail the gate.\n'));
+  succeeds(root);
+  // The review template explains the modes in an HTML comment above its first `---` and quotes the
+  // marker there. A certifying review filled in from it, comments kept, still passes.
+  const template = fs.readFileSync(path.join(root, 'templates', 'reviews', 'REVIEW.md'), 'utf8');
+  write(root, A1_REVIEW, template.replace('**Mode**: CERTIFYING | ADVISORY', '**Mode**: CERTIFYING')
+    .replace(/\*\*Verdict\*\*: \[[^\]\r\n]*\]/, '**Verdict**: PASS'));
   succeeds(root);
 });
