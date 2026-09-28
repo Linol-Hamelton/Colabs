@@ -4672,3 +4672,31 @@ Decision:
    call the owner sets effort High in the local Claude Code.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0103
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0101 item 3 (the S5 quiet-window condition for THIS single run only)
+
+Context:
+The owner re-measured the machine: Available ~10 GB (the operator's earlier 4.7 GB reading predated
+the memory release); Available >= 8 GB satisfies the threshold, which does not change. For this ONE
+merged-tree run the owner allows a relaxed CPU condition: processes above 5% CPU are acceptable when
+they are not protocol sessions (the owner's agents in other windows, MCP servers, bot.js), with the
+non-protocol processes listed with their % CPU and with Available before/after in the S5 record.
+Pools normal and the absence of parallel protocol heavy sessions remain mandatory.
+
+Decision:
+1. This single run (local merge + full suite on the merged tree) may start when Available >= 8 GB,
+   nonpaged < 1.5 GB, committed < 80%, no parallel protocol heavy session is running, and any
+   process above 5% CPU is non-protocol (recorded by name, PID, % CPU, with Available before and
+   after).
+2. TextInputHost is terminated (it respawns on demand); MCP servers and bot.js are left alone.
+3. The Sol round-2 log check is read-only: no MCP calls found (0), so the merge is not stopped on
+   that ground.
+4. Everything else in PROTO-DEC-0101 item 3 stands, including the 19:30Z deadline after which the
+   merge goes to OWNER-QUEUE.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
