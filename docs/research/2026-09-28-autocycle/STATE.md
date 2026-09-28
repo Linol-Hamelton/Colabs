@@ -9,7 +9,7 @@ as facts change and pushes after every step.
 - Cycle: C00/C01 (Part A done; C01 work in progress). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
 - Mode: post-reboot (reboot 2026-09-28T14:40:16+03:00; not degraded).
 - NIGHT_END 2026-09-28 23:00 MSK (PROTO-DEC-0092); delegation valid until then; MAX_CYCLES 8 and budget $5.00.
-- Last update: 2026-09-28T13:42Z by kilo-a5143d29cc7dd8ff at 78c5acb (this STATE commit follows it).
+- Last update: 2026-09-28T14:30Z by kilo-a5143d29cc7dd8ff at d174714 (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
 
@@ -99,13 +99,13 @@ as facts change and pushes after every step.
   DIG-GEMINI recomputed (94 vs 91, extras/duplicates removed with a record); executors Mistral=vibe,
   DeepSeek=kilo, Gemini=one agy attempt else reassigned to vibe; Luna re-checks only corrected rows;
   a range < 80% proven goes to the owner. SUPERVISOR-PREREG now carries the observed S1/S4 values.
-- DIG correction 2026-09-28: Mistral range DONE - 107 rejected rows re-proofed or downgraded;
-  counts 129 total / 58 built / 11 partial / 60 described / 0 not built; correction log appended;
-  committed `f3c5314` on roadmap-wave3. Gemini range: the single agy attempt failed
-  (`streamGenerateContent` Bad Gateway); reassigned to vibe and running (bg pid 18744).
-  DeepSeek range BLOCKED - the kilo CLI gateway answers `402 Add credits` on both tested routes
-  (OWNER-QUEUE). After the corrections, Luna re-checks only the changed rows. The drafts README now
-  documents the `described` status (PROTO-DEC-0096 item 2).
+- DIG correction 2026-09-28: Mistral range DONE (`f3c5314`; 129 / 58 built / 11 partial /
+  60 described / 0 not built). Gemini range DONE on the vibe successor (the agy attempt failed with
+  `streamGenerateContent` Bad Gateway): recount to 94 items (no extras/duplicates), 11 rows fixed
+  (9 kept built with `path:line`, 1 described, 1 partial), counts 94 / 89 / 3 / 1 / 1, correction
+  log; committed `e13cb36` on roadmap-wave3; cover mirror 3/0/0. Luna's re-check of ONLY the
+  corrected rows runs now (bg pid 27148). DeepSeek range BLOCKED - the kilo CLI gateway answers
+  `402 Add credits` (OWNER-QUEUE). The drafts README documents the `described` status.
 - DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
   Main cause: producer proofs are path-only / decision-id / section-only where the task required
   `path:line` or a commit; plus a corpus finding: DIG-GEMINI has 94 rows, not the advertised 91
