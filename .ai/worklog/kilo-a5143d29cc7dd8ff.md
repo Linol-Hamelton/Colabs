@@ -8,6 +8,42 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - agy line FALLEN; vibe successor dispatched for recovery 3
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: The PROTO-DEC-0095 single agy attempt failed at 13:05Z with `loadCodeAssist: EOF`; a
+diagnostic `agy models` at 13:11Z returned `Bad Gateway` (502) on the same endpoint, despite the
+owner's VPN-ok check at 13:02Z. Per PROTO-DEC-0095 item 1: no retries; the agy executor line is
+FALLEN, recorded in `docs/research/2026-09-27-roadmap-queue/2A-RECOVERY3-FALLEN.md` (`43612b8`,
+pushed on `kernel-batch-1`); the successor is vibe with the same narrow task. Wrote
+`LAUNCH-2A-RECOVERY3-VIBE.md` (same commit) and dispatched the vibe session at 13:12Z
+(bg `bgp_0e8224781001khn9W314c3h8qr`, pid 35524; Mistral Medium 3.5; worktree kb1; max-turns 80).
+Added the failed attempt to MEASUREMENTS.jsonl (row 14) and updated STATE and OWNER-QUEUE.
+
+Result: Recovery 3 is on the vibe successor; the agy line is closed as FALLEN for today (no further
+agy runs). H-4 stays "to verify": the route failed again immediately after the fix, now with a 502.
+Vibe now runs three parallel sessions (wave-3 drafts, OPS-1 phase A, the recovery-3 successor) - the
+allowed maximum; watch for rate limits and drop to 2 if they appear. Luna's DIG verification
+continues in w3.
+
+Next step: watch the vibe successor for `docs/reviews/2026-09-28-vibe-wave2a-adversarial-prompt.md`
+plus its journal and commit; keep the 30-min gate lines; poll the drafts/ops/Luna sessions.
+
+Open: VPN route unstable (fresh 502 evidence); MiMo escalation route (xiaomi verified); the GLM probe
+waits for the owner's "GLM chosen".
+
+Evidence:
+- anchor: 68138fa284995ec5acc0c1d23ffb7220515b6766, uncommitted changes present
+- digest: sha256:cecc4109ed5faeaa9d3519184a56357ae8bedf15b6513c0c2128bb4e7ab87c12 over 1869 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T13:09:44.434Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:ffd2f0223e7b042fb854a8066d3068ccb51734fedf935a5c39a4819f29175632 of this entry without this block
+- parent-entry: sha256:6740ce8a324cbd076fdf28cd59fae6b817fa46a7e1994943625c722878c89b51
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - PROTO-DEC-0095; VPN ok; final agy attempt for recovery 3; vibe sessions live
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

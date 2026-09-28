@@ -65,11 +65,11 @@ as facts change and pushes after every step.
 ## 2A status (C01 item 6c)
 
 - Candidate `5bc9940` on `kernel-batch-1`; recovery-3 launch committed (`670f520`).
-- agy DOWN until now: four infra failures (400 region; `loadCodeAssist` EOF; `streamGenerateContent`
-  EOF; model list unrecognized). Owner confirmed "VPN ok" 13:02Z; PROTO-DEC-0095: the single attempt
-  runs NOW (bg pid 7932, 13:05Z). Watcher: no new files/output for 15 min or a network/region error
-  = FAILED, no retries; agy FALLEN with a record; successor vibe (same narrow task). On success:
-  freeze -> MiMo + Sol -> delegated merge; H-4 becomes "confirmed: region/VPN".
+- agy line FALLEN (2026-09-28): five infra failures including the PROTO-DEC-0095 single attempt after
+  the owner's "VPN ok" (`loadCodeAssist` EOF at 13:05Z; diagnostics at 13:11Z show Bad Gateway 502
+  on the same endpoint). FALLEN record `2A-RECOVERY3-FALLEN.md` (43612b8, pushed on kernel-batch-1).
+  Successor vibe dispatched 13:12Z (bg pid 35524, `LAUNCH-2A-RECOVERY3-VIBE.md`, Mistral Medium 3.5)
+  with the same narrow task. H-4 stays "to verify": the route failed again right after the fix.
 - Then freeze -> certification MiMo-V2.6-Pro + GPT-5.6 Sol -> delegated merge (section 6). MiMo
   route: xiaomi verified; OpenRouter blocked by credits (OWNER-QUEUE).
 
