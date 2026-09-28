@@ -101,7 +101,12 @@ as facts change and pushes after every step.
   native `deepseek` route, or another route. No freeze before the review.
 - 2A FROZEN at `9bf15ae` (2026-09-28): code = `5bc9940` + fixes `6364322`/`b26b177` + docs; the two
   certifier reports and the DeepSeek fix review are in the tree (N-1 satisfied); the follow-up docs
-  commit `9eb8643` adds only the round-2 launch files. Round-2 certification by MiMo-V2.6-Pro +
+  commit `9eb8643` adds only the round-2 launch files. FREEZE VERIFIED (PROTO-DEC-0100 item 1):
+  `git diff --stat 149b19a..9bf15ae` = the Sol/MiMo reports (byte-identical to the cert-branch
+  originals, hashes `ca6674f...`/`adb49bf...`), the DeepSeek review, three journals, the fix-review
+  launch; no code/test/tooling file. Cost logging: full call output to `.ai/runtime/` from now on
+  (PROTO-DEC-0100 item 3). S5: after both round-2 certifiers, quiet window, no process >5% CPU; a
+  wall time > 15 min or WMI timeouts go into packet 2 without blocking the merge. Round-2 certification by MiMo-V2.6-Pro +
   GPT-5.6 Sol (Medium) runs in parallel worktrees `cert-2a-mimo-r2`/`cert-2a-sol-r2` (bg pids
   36560/28368). On no double PASS/RECOMMENDATION -> STOP (round 3 under S1 = variant B).
 - Round-2 fix DONE (session `mistral-e5b0a7370dee2904`; failing test first, journal evidence):

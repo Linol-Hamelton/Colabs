@@ -8,6 +8,44 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - PROTO-DEC-0100; freeze verified; q with misses (Sol 1.0 / MiMo 0.167); N-3 queued
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Verified the freeze per the owner's item 1: `git diff --stat 149b19a..9bf15ae` lists seven
+documentation files only - `docs/reviews/2026-09-28-sol-wave2a-certification.md` and
+`...-mimo-...` (byte-identical to their cert-branch originals: `git hash-object` `ca6674f...` =
+`ca6674f...`, `adb49bf...` = `adb49bf...`), `docs/reviews/2026-09-28-deepseek-2a-fix-review.md`,
+three session journals (`.ai/worklog/...`) and `LAUNCH-2A-FIX-REVIEW.md`; zero code/test/tooling
+changes. The DeepSeek review therefore covers the frozen candidate's code; no STOP taken on that
+basis, and the deviation from the letter of item 1 (journals and the launch also in the diff) is
+recorded for the owner's judgement. Appended PROTO-DEC-0100 (freeze-verified note; the q formula
+including misses; full per-call log capture under `.ai/runtime/`; the S5 conditions; the round-2
+merge rule; N-3 queued) plus the REGISTRY row (`9380314`, pushed). Recomputed the round-1 q with
+explicit id lists as NEW rows (old kept): Sol claimed {F-2A-03, S-7}, confirmed 2/2, found 2, missed
+0 -> q = 1.0; MiMo claimed {F-2A-03, F-2A-01, F-2A-05}, confirmed {F-2A-03} -> 1/3, found
+{F-2A-03}, missed {S-7} -> q = 0.167. (The owner's sketch assumed Sol missed F-2A-03; Sol's item B
+names it explicitly.) Added the N-3 line to OWNER-QUEUE; noted the log-capture rule in STATE.
+
+Result: Freeze stands and is verified; q rows corrected; N-3 queued; S9 still with the owner.
+Round-2 certifiers run (journals `mimo-695fcfb3b47f3125`, `codex-2386381c48088cee`).
+
+Next step: collect the round-2 verdicts; both PASS/RECOMMENDATION -> quiet-window S5 -> S6 after the
+merge -> delegated merge; else STOP.
+
+Open: round-2 verdicts; S9 (owner); the letter-vs-intent note on the freeze diff (journals/launch).
+
+Evidence:
+- anchor: 93803145cddeb08131fac0f56f6ccadbe97727c7, uncommitted changes present
+- digest: sha256:7f6ff3d66a5e3b6dcb6e8f2264a426864ed03ba5de7df34f2227539375ad6113 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T15:33:11.771Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:7564c1d2e1bcbed464b75ef4c0e9d192a419372e904cc7d858b354e0a2b76098 of this entry without this block
+- parent-entry: sha256:74ff04e7ed7e47fbe2fdacd588f8c7d2a698956dace1a88124e03415ab777787
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 7s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - Gate 15:27Z (idle watch; cert round 2 running)
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
