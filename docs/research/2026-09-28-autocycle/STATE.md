@@ -9,7 +9,7 @@ as facts change and pushes after every step.
 - Cycle: C00/C01 (Part A done; C01 work in progress). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
 - Mode: post-reboot (reboot 2026-09-28T14:40:16+03:00; not degraded).
 - NIGHT_END 2026-09-28 23:00 MSK (PROTO-DEC-0092); delegation valid until then; MAX_CYCLES 8 and budget $5.00.
-- Last update: 2026-09-28T13:00Z by kilo-a5143d29cc7dd8ff at e54b726 (this STATE commit follows it).
+- Last update: 2026-09-28T13:06Z by kilo-a5143d29cc7dd8ff at d2e199a (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
 
@@ -24,9 +24,10 @@ as facts change and pushes after every step.
 ## Goals tonight (section 12, as amended by PROTO-DEC-0094)
 
 1. Part A - DONE (reboot confirmed; warm baseline taken).
-2. 2A: one agy retry after "VPN ok"; on failure agy FALLEN + vibe successor; then freeze, MiMo + Sol
-   certification, delegated merge.
-3. DIG verification starts now: Luna (codex XHigh) until GLM PASS; disputed rows -> one short Sol call.
+2. 2A: the single agy attempt is RUNNING now (VPN ok, PROTO-DEC-0095); on failure agy FALLEN + vibe
+   successor; then freeze, MiMo + Sol certification, delegated merge.
+3. DIG verification starts now: Luna (codex XHigh) until GLM PASS; escalation rows -> MiMo (or GLM
+   on PASS), not Sol.
 4. perf-wave-1 second (docs) merge - DONE (a2db48c).
 5. Wave-3 drafts and the SUPERVISOR-PREREG table on vibe (S4 by the actual verifier, 20%).
 6. Probes done; benchmark catalog on vibe; measurements for every call.
@@ -49,8 +50,11 @@ as facts change and pushes after every step.
 
 - 2A certifiers: MiMo-V2.6-Pro + GPT-5.6 Sol (PROTO-DEC-0090).
 - A-1: executor Claude Opus 5.5 (effort max); certifiers Sol + MiMo; the merge is the owner's.
-- DIG verifier: GLM-5.3 on PASS, until then GPT-5.6 Luna (codex XHigh); Mistral does not verify DIG
+- DIG verifier: GLM-5.3 on PASS, until then GPT-5.6 Luna (codex XHigh); escalation rows (verifier
+  unsure or disagrees) go to MiMo-V2.6-Pro (or GLM on PASS), NOT Sol; Mistral does not verify DIG
   0022-0047.
+- Sol economy (PROTO-DEC-0095): exactly two calls - the 2A and A-1 certifications; effort Medium;
+  prompt <= 150 lines; report <= 250; one round; a repeat only after FAIL.
 - vibe: default executor (wave-3 drafts, SUPERVISOR-PREREG, benchmark catalog, OPS-1 phase A,
   consensus participants/synthesizer, everything planned for agy); model GLM-5.3 on PASS else
   Mistral Medium 3.5; up to 3 parallel sessions on a green gate; every log checked for
@@ -61,16 +65,20 @@ as facts change and pushes after every step.
 ## 2A status (C01 item 6c)
 
 - Candidate `5bc9940` on `kernel-batch-1`; recovery-3 launch committed (`670f520`).
-- agy DOWN: four infra failures (400 region; `loadCodeAssist` EOF; `streamGenerateContent` EOF;
-  model list unrecognized). ONE retry after the owner's "VPN ok"; on failure FALLEN with a record and
-  the successor is vibe (same narrow prompt-only task, PROTO-DEC-0094 D).
+- agy DOWN until now: four infra failures (400 region; `loadCodeAssist` EOF; `streamGenerateContent`
+  EOF; model list unrecognized). Owner confirmed "VPN ok" 13:02Z; PROTO-DEC-0095: the single attempt
+  runs NOW (bg pid 7932, 13:05Z). Watcher: no new files/output for 15 min or a network/region error
+  = FAILED, no retries; agy FALLEN with a record; successor vibe (same narrow task). On success:
+  freeze -> MiMo + Sol -> delegated merge; H-4 becomes "confirmed: region/VPN".
 - Then freeze -> certification MiMo-V2.6-Pro + GPT-5.6 Sol -> delegated merge (section 6). MiMo
   route: xiaomi verified; OpenRouter blocked by credits (OWNER-QUEUE).
 
 ## Pipelines (next step)
 
-- DIG: `DIG-VERIFY-TASK.md` (ac754ba) -> Luna (codex XHigh) now; GLM takes over on PASS; disputed
-  rows -> one short Sol call; then the vibe advisory.
+- DIG: `DIG-VERIFY-TASK.md` (ac754ba) -> Luna (codex XHigh) now; GLM takes over on PASS; escalation
+  rows -> MiMo-V2.6-Pro (or GLM on PASS); then the vibe advisory.
+- vibe sessions running: wave-3 drafts (`LAUNCH-W3-DRAFTS-VIBE.md`, c2a843b; bg pid 17476) and
+  OPS-1 phase A (`LAUNCH-PHASE-A.md`, 3b3b56e on ops-1; bg pid 29928).
 - Wave 3: vibe drafts -> SUPERVISOR-PREREG table -> packet 2.
 - Benchmark catalog: vibe collectors.
 - kernel-batch-2: after the drafts; vibe executor (GLM on PASS else Mistral); DeepSeek review.
@@ -124,3 +132,6 @@ leftover; w3 untracked dir; gate line updated by PROTO-DEC-0094).
 - Warm baseline (12:54Z): Nonpaged 997.3 MB, Paged 883.3 MB, Committed 35305.7/65229.5 MB (54.1%),
   free 7.43 GB.
 - Growth: 11:47->12:54 average ~4.6 MB/min; recent 2-min sample ~5 MB/min. 30-min journal line due.
+- Gate line 13:10Z: Nonpaged 1006.5 MB, Paged 901.9 MB, growth ~0.6 MB/min since 12:54Z, free
+  7.99 GB, committed 52.6%. Pool rule OK; free RAM marginally under 8 GB: heavy steps stay paused in
+  general, but the owner ordered the single agy attempt explicitly (PROTO-DEC-0095).

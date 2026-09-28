@@ -8,6 +8,47 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - PROTO-DEC-0095; VPN ok; final agy attempt for recovery 3; vibe sessions live
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: The owner re-sent the unified decision twice (duplicate; PROTO-DEC-0094 already recorded) and
+then updated it: "VPN ok" confirmed; one agy attempt for recovery 3 runs now; DIG escalation rows go
+to MiMo-V2.6-Pro (or GLM on PASS), not Sol; Sol is limited to exactly two calls (2A and A-1
+certification, effort Medium, one round); the Claude and GPT-OSS entries in the agy model list are
+not added to the pool. Appended PROTO-DEC-0095 under the lock plus one REGISTRY row (`d2e199a`,
+pushed); fixed the block order after an edit landed it before 0094. Updated STATE (2A status, DIG
+escalation, Sol economy, vibe sessions, gate line 13:10Z: Nonpaged 1006.5 MB, Paged 901.9 MB,
+growth ~0.6 MB/min since 12:54Z, free 7.99 GB, committed 52.6%). Dispatched the single agy attempt
+at 13:05Z (bg `bgp_0e81dc59a00159yt6CjFsoptR6`, pid 7932, worktree kb1, task
+`LAUNCH-2A-RECOVERY3.md`) with the 15-minute watcher. Earlier in this period: two vibe sessions were
+dispatched as light work - wave-3 drafts (bg pid 17476, `LAUNCH-W3-DRAFTS-VIBE.md` c2a843b) and
+OPS-1 phase A (bg pid 29928, `LAUNCH-PHASE-A.md` 3b3b56e on `ops-1`); Luna's DIG verification
+(codex XHigh) is running in w3.
+
+Result: Recovery 3 is in its one allowed attempt; the vibe draft/ops sessions and the Luna DIG run
+in parallel as ordered (DIG is explicitly parallel to B). The agy watcher is active; the failure
+path is prepared (FALLEN + vibe successor). Gate note: free RAM 7.99 GB is marginally under 8 GB;
+the agy attempt is heavy, and it runs because the owner ordered it explicitly in PROTO-DEC-0095.
+
+Next step: watch agy for the prompt file `docs/reviews/2026-09-28-gemini-wave2a-adversarial-prompt.md`
+and the gemini journal; 15 min without new files/output or a network/region error = FAILED; poll the
+two vibe sessions and Luna at the same time.
+
+Open: agy route (attempt running); vibe rate limits (2 sessions now, up to 3 allowed); MiMo route
+for the DIG escalation (xiaomi verified).
+
+Evidence:
+- anchor: d2e199a2851fe06d494d6759c95fe5857df525b8, uncommitted changes present
+- digest: sha256:d144d05c3aef496547cf1366d6660733926edc619ee341e0b036fb0ba6592aba over 1869 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T13:05:06.924Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:6740ce8a324cbd076fdf28cd59fae6b817fa46a7e1994943625c722878c89b51 of this entry without this block
+- parent-entry: sha256:f3a0230fe1f06347533087162c98ff85653a6d741f31d102a53140deec32be4f
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - PROTO-DEC-0094 recorded; warm baseline; DIG verification dispatched (Luna)
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
