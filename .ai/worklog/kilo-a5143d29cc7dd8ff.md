@@ -8,6 +8,42 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - 2A recovery 3 dispatched; agy location failure and owner fix
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Committed the recovery-3 launch file on `kernel-batch-1`
+(`docs/research/2026-09-27-roadmap-queue/LAUNCH-2A-RECOVERY3.md`, commit `670f520`, pushed; the
+candidate stays `5bc9940`). Dispatched `agy -p "Read and follow ..."` in the kb1 worktree
+(bg `bgp_0e7e6656b001gebbhrE2NoviAT`, pid 26432): it failed after ~90 s with
+`FAILED_PRECONDITION (code 400): User location is not supported for the API use` (retryable false);
+`agy models` timed out at the same moment. Reported the blocker in chat; the owner restored agy;
+`agy models` lists again; the session was relaunched 2026-09-28T12:07Z
+(bg `bgp_0e7e9e108001C63tE3nOEOeAOM`, pid 8724). Added the failed attempt to MEASUREMENTS.jsonl
+(row 10, outcome FAIL) and a 2A status section to STATE.md.
+
+Result: Recovery 3 is running; its deliverable is the unified adversarial audit prompt
+`docs/reviews/2026-09-28-gemini-wave2a-adversarial-prompt.md` (<= 150 lines, bound to `5bc9940`,
+DeepSeek findings F-2A-01..F-2A-06 as known items), plus a journal entry and `record --quick`, and a
+commit on `kernel-batch-1` without push.
+
+Next step: poll the agy session (120 s cadence) until the prompt file plus a journal update, or
+process exit; then freeze the candidate and certify with MiMo + Sol.
+
+Open: MiMo route (OWNER-QUEUE: OpenRouter blocked by credits, xiaomi route verified); a fall of
+this session is FALLEN and goes to the owner.
+
+Evidence:
+- anchor: a58fe602f2d4f2f75313d23f55fd40e2219d8afd, uncommitted changes present
+- digest: sha256:22657804d1223187cbec329527fa93fd16a6f117490d70a39f7ace0e7b3dcd63 over 780 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T12:08:02.997Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:670547b6d17315b8b36670519741cf6df56788096ca046ec33ebac9fddd27773 of this entry without this block
+- parent-entry: sha256:1b670e6a21c9dc2d4862aaf2f045ef2217bb21b7144730f81bb6d285aee04dda
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - AUTOCYCLE-1 Part B: probes (MiMo, codex Sol/Luna, Sonnet 5.5, GLM-vibe), measurements
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

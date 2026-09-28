@@ -44,6 +44,17 @@ as facts change and pushes after every step.
 - Operator: DeepSeek Flash (kilo). Finalizer: Claude Opus 5.5 effort High.
 - Not in the consensus pool tonight: Sol, MiMo, Claude. Unavailable: copilot, kimi.
 
+## 2A status (C01 item 6c)
+
+- Recovery-3 launch file committed on `kernel-batch-1`: `LAUNCH-2A-RECOVERY3.md`, commit `670f520`
+  (pushed). Candidate stays `5bc9940`.
+- First dispatch 2026-09-28T12:02Z FAILED: agy 400 `User location is not supported` (retryable
+  false). Owner restored agy at ~12:06Z; the session was relaunched 12:07Z (bgp pid 8724) and is
+  running. Awaiting the unified adversarial audit prompt (deliverable
+  `docs/reviews/2026-09-28-gemini-wave2a-adversarial-prompt.md`).
+- After the prompt lands: freeze the candidate, then MiMo + Sol certification. The MiMo route
+  question is in OWNER-QUEUE (OpenRouter blocked by credits; xiaomi route verified).
+
 ## Pipelines (next step)
 
 - 2A kernel-batch-1: pushed -> recovery 3 (prompt only) -> freeze -> MiMo + Sol -> delegated merge.
