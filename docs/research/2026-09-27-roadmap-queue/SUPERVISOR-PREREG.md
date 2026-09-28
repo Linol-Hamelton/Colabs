@@ -74,10 +74,14 @@ This is the standing argument for **C** when S1-S2 are ambiguous rather than fai
 | S2 (corrected, PROTO-DEC-0099 item 2) | **S2 = A'**, not A: F-C01 (the host review-path contract; its probes return RECOMMENDATION/0 instead of FAIL/1) lies on the pilot path. The single Gemini "not built" row is PROTO-DEC-0060 item 3 (`.ai/core/` absent, landing deferred to package I-a) - kernel-internal, NOT on the host/install path. | owner correction 2026-09-28; `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md`; `drafts/DIG-GEMINI-0048-0067.md` |
 | S9 (awaiting) | S9 waits for the owner's answer; the operator does not fill it (PROTO-DEC-0099 item 4). | PROTO-DEC-0099 |
 
-Packet 2 gate (PROTO-DEC-0099 item 1): the Kernel v1 choice goes to the owner only after S1 (MiMo +
-Sol round-2 verdicts), S5 (full suite on the frozen 2A candidate in a quiet window, strictly
-sequential) and S6 (`docs/ops/RUNS.jsonl` after the 2A merge: usage or a not-exposed marker on every
-dispatch row); then the whole table ships.
+Packet 2 gate (PROTO-DEC-0099 item 1, ordered by PROTO-DEC-0101 item 3): the Kernel v1 choice goes to
+the owner only after S1 (MiMo + Sol round-2 verdicts), S5 (full suite on the frozen 2A candidate in a
+quiet window, strictly sequential) and S6 (`docs/ops/RUNS.jsonl` read AFTER the 2A merge only: usage
+or a not-exposed marker on every dispatch row); then the whole table ships. No quiet window (free
+RAM < 8 GB): wait, log the gate every 30 min; one line to the owner after 60 min without a window.
+
+S9 mapping (PROTO-DEC-0101 item 4; the owner picks): local Windows only -> keep; cloud planned ->
+v1 includes the 2B cloud Evidence slice (B-lite). The operator does not fill S9.
 
 ### S8 corrections list (operator; the count is the owner's; PROTO-DEC-0099 item 3)
 
