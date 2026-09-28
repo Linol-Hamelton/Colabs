@@ -81,7 +81,11 @@ or a not-exposed marker on every dispatch row); then the whole table ships. No q
 RAM < 8 GB): wait, log the gate every 30 min; one line to the owner after 60 min without a window.
 
 S9 mapping (PROTO-DEC-0101 item 4; the owner picks): local Windows only -> keep; cloud planned ->
-v1 includes the 2B cloud Evidence slice (B-lite). The operator does not fill S9.
+v1 includes the 2B cloud Evidence slice (B-lite).
+
+S9 (owner answer, 2026-09-28T15:42Z): **local Windows only** - pilot sessions run on the owner's
+machine, no cloud is planned; **S9 = keep**; the cloud/B-lite branch is dropped. Source:
+owner instruction in chat 2026-09-28. The operator does not choose the Kernel v1 variant.
 
 ### S8 corrections list (operator; the count is the owner's; PROTO-DEC-0099 item 3)
 

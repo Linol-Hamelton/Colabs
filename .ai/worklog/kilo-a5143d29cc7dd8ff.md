@@ -8,6 +8,32 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - S9 answered by the owner: local Windows only -> keep
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Recorded the owner's S9 answer in SUPERVISOR-PREREG: pilot sessions run only on the owner's
+Windows machine, no cloud is planned, S9 = keep; the cloud/B-lite branch is dropped. The packet-2
+table now carries S9 with its source (owner instruction 2026-09-28T15:42Z).
+
+Result: S9 is settled; packet 2 still waits for S1 (round-2 verdicts), S5 and S6.
+
+Next step: collect the round-2 verdicts; both PASS/RECOMMENDATION -> quiet-window S5 -> the merge ->
+S6 -> the full packet-2 table.
+
+Open: round-2 verdicts.
+
+Evidence:
+- anchor: 22bf6d01ca3d0a102727525b689562f5979fa3a5, uncommitted changes present
+- digest: sha256:f7b2e3e657fdb0fc0f7cc8cbe5dc9681e1470f6368099120aafec10c81880531 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T15:43:07.683Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:b263d8f11382cfbfcb9b2422884557770fdf1e57599e9476208933bf27647a78 of this entry without this block
+- parent-entry: sha256:4f3d5aca943c69f9762ed835b958badbd532d292c3fd1e612dd838884ea900d1
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 9s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - Freeze 9bf15ae ACCEPTED by the owner; PROTO-DEC-0101; MiMo q=0.5
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
