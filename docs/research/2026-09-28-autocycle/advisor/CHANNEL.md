@@ -37,7 +37,9 @@ First call (creates the advisor session), from `D:\Colabs`:
 claude -p "Ты - советник владельца. Прочитай docs/research/2026-09-28-autocycle/advisor/ADVISOR-BRIEF.md целиком, затем advisor/001-REQUEST.md, и ответь по формату брифа." --model opus --output-format json --allowedTools "Read,Grep,Glob,Edit(docs/research/2026-09-28-autocycle/advisor/**),Edit(.ai/worklog/**),Bash(git status:*),Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git ls-files:*),Bash(node .ai/bin/protocol-handoff.cjs:*),Bash(node docs/research/2026-09-28-autocycle/tools/mailbox.cjs:*)"
 ```
 
-- Effort High is set by the owner in Claude Code before the first call; the operator does not change it.
+- Effort High: before the first call, check `claude --help` for an effort option. If it exists, add it with
+  the value `high` to every call (first and resumed) and record it in MEASUREMENTS `effort`. If it does not,
+  the owner sets High once in Claude Code settings and the operator records `effort=owner-setting`.
 - Save `session_id` from the JSON output into `STATE.md` as `advisor_session=<id>` (not a secret).
 - Later calls: the same command with `--resume <advisor_session>` and the prompt
   «Прочитай advisor/NNN-REQUEST.md и ответь по формату брифа.»
