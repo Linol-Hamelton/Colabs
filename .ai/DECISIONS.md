@@ -4051,3 +4051,193 @@ Decision:
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-27, round-5 consensus with
 the owner's choices; transcribed by kilo-e1b4dd4a82b08b8e)
+
+### PROTO-DEC-0091
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0090 item 4 (A-1 certifiers: the MiMo reserve activates on the failed GLM route); PROTO-DEC-0089 item 4 (the activation cause is the negative GLM probe)
+
+Context:
+The owner approved AUTOCYCLE-1 (the night-cycle operator prompt, `docs/research/2026-09-28-autocycle/AUTOCYCLE-PROMPT.md`)
+by sending it on 2026-09-28 and instructed one append-only block (AUTOCYCLE-PROMPT.md section 3 item 2).
+The round-6 decision is `docs/research/2026-09-28-autocycle/cycles/C01/00-PROMPT.md`; the changes to it are
+listed in AUTOCYCLE-PROMPT.md section 6. Referenced inputs: `docs/reviews/2026-09-27-round6-consensus-inputs.md`,
+`docs/reviews/2026-09-27-round6-consensus-task.md` (not edited), and
+`docs/research/2026-09-27-roadmap-queue/drafts/GLM-PROBE.md` @ `6ff869d`. NIGHT_END = 2026-09-28 09:00 MSK.
+
+Decision:
+(a) The round-6 decision (`cycles/C01/00-PROMPT.md`), items 1-8 as written, with the section-6 changes:
+
+1. GLM-5.3 через текущую сборку vibe — UNAVAILABLE, probe FAIL для этого маршрута (не для модели GLM-5.3 вообще).
+   Факт: «Active model 'glm-5-3' is not in your configured models; falling back to default model 'mistral-medium-3.5'»;
+   --model не поддерживается. Все прежние «GLM»-запуски через vibe считаются mistral-medium-3.5.
+   Самоотчёт модели о себе больше нигде не считается доказательством.
+2. Провенанс: новой строкой в журнале оператора (старые записи не правятся) перечислить все артефакты,
+   помеченные как GLM через vibe, и переатрибутировать их на mistral-medium-3.5. Сюда входят:
+   - сессия владельца 9b54336c;
+   - источники раундов 4–6 с меткой «GLM»;
+   - «советник GLM» из inputs раунда 6.
+   Мнения остаются в силе как мнения; меняется только метка модели.
+3. Находка в docs/ops/BACKLOG.md: vibe молча подменяет модель при нерезолвленном active_model.
+   До исправления профиля клиента в clients.json (в следующем пакете ядра) каждый лог vibe проверяется
+   на «falling back» до того, как вывод принимается за работу заявленной модели.
+4. Гейт среды — без изменений:
+   - ШАГ 0: push kernel-batch-1 (5bc9940) и perf-wave-1 (f8e20b2), проверка ls-remote, git status всех worktree;
+   - снимок памяти → TextInputHost → Kilo PID 42968 → «готово к перезагрузке» → перезагружаю я → baseline памяти;
+   - до чистого baseline — никаких perf-замеров и тяжёлых параллельных сессий.
+   Чек-лист тишины:
+   - свободно ≥ 8 ГБ;
+   - нет фоновых процессов > 5% CPU;
+   - пулы записаны;
+   - 2–3 сессии без роста.
+5. Синтез раунда 6 очередь не блокирует. По моему отдельному слову — после перезагрузки, на Mistral Medium 3.5 через vibe,
+   как явную замену с разрешения владельца и с проверкой лога на «falling back».
+   Это advisory, результат пишется в docs/reviews/2026-09-27-round6-consensus-discussion.md.
+   Упавшие прогоны не используются. round6-consensus-task.md не правится; к нему добавляется
+   addendum о смене синтезатора.
+6. После перезагрузки — один последовательный цикл:
+   a) ls-remote = ожидаемые головы;
+   b) probe MiMo через OpenRouter (поле model → modelRan);
+   c) recovery 3 того же Gemini-исполнителя — ТОЛЬКО единый адверсариальный промпт ≤ 150 строк, привязанный
+      к SHA кандидата, плюс журнал и record; ни кода, ни тестов; падение → FALLEN → ко мне;
+      рекомендации DeepSeek (5bc9940) — записанные заметки, в промпт как известные пункты;
+   d) заморозка 2A → сертификация MiMo-V2.6-Pro + GPT-5.6 Sol (PROTO-DEC-0090), параллельно и независимо;
+   e) оба разрешают → доклад мне → слияние kernel-batch-1 только по моему слову (merge --no-ff, полный прогон, push);
+   f) верификация DIG: GPT-5.6 Sol основной (20% выборки + все «not built» и «partial» + «built» с прозаическим доказательством);
+      при лимите Sol — MiMo-V2.6-Pro после probe. До неё — строка в COVER-DUP.md о конвенции cover (4/4/5);
+   g) Mistral advisory по диапазонам Gemini и DeepSeek;
+   h) второе слияние perf-wave-1: в Addendum есть строка «подтверждено report.cjs @ <SHA>»;
+      диапазон 64043a3..perf-wave-1 — только docs/research/2026-09-27-perf/*, ревью DeepSeek и журналы волны;
+      иначе СТОП; доклад → merge --no-ff по моему слову;
+   i) A-1: исполнитель Claude Opus 5.5 (Claude Code), effort max; сертификаторы GPT-5.6 Sol + MiMo-V2.6-Pro;
+   j) после слияния 2A и выполненного чек-листа тишины — контрольный прогон (PROTO-DEC-0089 п.3), затем V3.
+7. Маршрут GLM — отдельная техническая задача после перезагрузки:
+   - ID модели и формат записи models — из документации или API провайдера (список моделей), не со слов модели;
+   - PASS = в логе нет «falling back» и провайдер вернул ID модели.
+   Если маршрут пройдёт до начала сертификации A-1, я могу вернуть GLM вместо MiMo отдельной записью. Без неё — MiMo.
+8. Mistral как синтезатор не становится сертификатором и лестницу моделей не меняет.
+
+Правила — прежние:
+- git add явными путями; fetch перед push; без force, rebase, amend, PR, тегов, merge в main;
+- слияния только по моему слову;
+- Evidence только через record, в окнах тишины record запрещён;
+- ключи из config.toml никуда не копировать; ничего из D:\mcp-stack.
+
+Дополнения экспертов — рабочие гипотезы, не решения. Каждую записывай в журнал одной строкой: формулировка, источник,
+способ проверки, статус (подтверждено / отвергнуто / уточнить) и доказательство (лог, SHA, вывод).
+Уточнения исполнения применяй сразу с записью. Всё, что меняет утверждённое (сертификаторов, порядок, гейты, слияния),
+приносишь мне одной строкой — решаю я. «Уточнить» — вопрос в ближайшем отчёте без остановки, кроме вопросов
+безопасности, данных и независимости сертификации: по ним СТОП.
+
+Отчёт мне: после ШАГА 0 и снимка памяти — «готово к перезагрузке»; затем по рубежам a–j.
+
+Changes made by AUTOCYCLE-PROMPT.md section 6 to the text above:
+- the sentence «слияния только по моему слову» (item 6e and the closing rules) is replaced by the
+  delegated-merge rule in (b) below;
+- «перезагружаю я» happens in Part A;
+- the optional round-6 synthesis (item 5) is not run tonight;
+- the V3 author paragraph plus the owner line (item 6j) stays with the owner.
+
+(b) Standing delegation (AUTOCYCLE-PROMPT.md section 6, verbatim):
+
+**Rule.** Points ACCEPTED under section 5 become decisions without the owner.
+- One block per cycle, with provenance:
+  `Approved by: RuslanFomenko (standing delegation PROTO-DEC-<this night's block>, consensus rule; cycle C<NN>, rounds, support; transcribed by <operator session>)`.
+- The finalizer puts them into the next prompt.
+- Valid until NIGHT_END or until the owner revokes it.
+
+**Delegated merge** into `v2.0.0` is allowed only when ALL of these hold. Otherwise the merge goes
+to `OWNER-QUEUE.md`.
+- (a) The candidate's scope is already approved.
+- (b) Two independent certifications exist on the frozen SHA, both PASS or RECOMMENDATION, with no
+  blocking finding.
+- (c) The full suite passes on the merged tree on Windows, on a clean tree.
+- (d) `protocol-handoff.cjs verify` gives «matches».
+- (e) There is no conflict.
+- (f) The candidate is not reserved (below).
+Use `merge --no-ff`, then push.
+
+This covers tonight:
+- `kernel-batch-1` (2A), after MiMo + Sol;
+- the second merge of `perf-wave-1`, which is docs only: its range check replaces (b), and it
+  needs the Addendum line «подтверждено report.cjs @ <SHA>».
+
+**Reserved.** These are never delegated; they always go to `OWNER-QUEUE.md`, even at 100%:
+1. certifier slots, independence rules, any certification verdict;
+2. editing or superseding a written decision block, `AGENTS.md`, `CLAUDE.md`, this rule, the
+   budget or NIGHT_END;
+3. merging security-semantics changes (A-1) or `core-landing-ia` (PROTO-DEC-0061/0087 order);
+   `main`, tags, PR, force, rebase or amend of pushed history;
+4. anything outside the repository (system settings, installs, `D:\mcp-stack`, keys), except the
+   memory steps named in sections 3 and 10;
+5. spending beyond NIGHT_BUDGET_USD;
+6. product work (PROTO-DEC-0048);
+7. DELETE dispositions;
+8. the Kernel v1 choice (packet 2).
+
+(c) Consensus rule (AUTOCYCLE-PROMPT.md section 5, verbatim):
+
+- **Points.**
+  - One point is one decision, with id `P-C<NN>-<n>`.
+  - An editorial rewording keeps the id; the synthesizer justifies it in one line.
+  - A change of substance creates a new id, and its counters start from zero.
+  - Points proposed by different participants with the same substance are merged into one point.
+- **Voting.** From round 2 on, every participant gives every OPEN point one stance from the closed
+  scale of PROTO-DEC-0048 item 3:
+  - категорически не согласен;
+  - не согласен;
+  - частично согласен;
+  - согласен с оговорками;
+  - полностью согласен;
+  - абсолютно согласен (с подтверждением).
+  **Support** means one of the last three stances. A reservation that adds a condition splits the
+  point into P and P' (a new id). A participant that does not answer counts as not supporting.
+  The denominator is always all participants of the round.
+- **Rule.** Percent = support / N. Only voting rounds count: round 1, where points are born, is
+  not one.
+  - 100% in one round: ACCEPTED automatically.
+  - 80-99% in two consecutive rounds: ACCEPTED automatically.
+  - 60-79% (or more) in three consecutive rounds: ACCEPTED automatically.
+  - 40-59%: moved to HYPOTHESES for further research and removed from the decision list (a blocker
+    goes to the owner).
+  - Under 40% at or after the point's second voting round: dropped (a blocker goes to the owner).
+  - Round limit reached while still open: 60% or more goes to OWNER-QUEUE as a majority
+    recommendation, not executed; lower bands as above.
+  `tools/mailbox.cjs tally` implements exactly this rule; its output is binding.
+- **Arithmetic note.** With N = 2-4 the possible percentages are 100, 75, 67, 50, 33, 25 and 0,
+  so the 80-99% band cannot occur. Effectively:
+  - 100% accepts at once;
+  - 67-75% accepts after three consecutive rounds;
+  - 50% becomes a hypothesis;
+  - 25-33% is dropped at the second voting round.
+  This is expected and is not a defect.
+- **Importance classes** (fixed by the operator in the report):
+
+  | Class | Scope | Participants | Round limit |
+  |---|---|---|---|
+  | A | merges, certification, kernel, security, independence, budget | 4 | 4 |
+  | B | plan, order, process | 3 | 3 |
+  | C | operations detail | 2 | 2 |
+  | - | already approved work | none | 0 (no consensus) |
+
+- **Proposal template.** Each proposal file contains, in this order:
+  - header: model, client, effort, and what was read (`STATE.md @ <sha>`, report, previous
+    synthesis);
+  - `Mode: ADVISORY`;
+  - `## Votes` (from round 2): P-id | stance | one-line reason;
+  - `## Proposals`: each with text (one decision), why, cost, importance class, blocker yes/no;
+  - `## Hypotheses`: text | how to verify;
+  - last line `STATUS: READY`.
+  No quoting of another participant's text (PROTO-DEC-0048 item 3); agreement uses the scale.
+- **Synthesis template.** Each synthesis file contains, in this order:
+  - participants and N;
+  - the points table: id, canonical text, support/N, %, band, voting rounds, status;
+  - merges and splits with the reason for each;
+  - blockers;
+  - last line `STATUS: READY`.
+  `04-TALLY-r<k>.json` has the shape
+  `{round, maxRounds, points:[{id, blocker, reserved, history:[{round, support, n}]}]}`.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
