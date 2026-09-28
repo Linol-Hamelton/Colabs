@@ -8,6 +8,54 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Kernel v1 = A' (0105), Community/CoLabus split (0106), final checkpoint
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Item 0 answer (recorded): the pre-repeat-run `git status --short` held 6 entries - 4 foreign
+untracked (two `claude-*` stubs, the codex journal, the round-6 leftover) and 2 of the operator's
+own tracked modifications pending commit (`.ai/ARCHIVE.md` auto-archive from the previous record;
+`docs/ops/BACKLOG.md` with the pending line), both committed later (`67b2c2a`, `bb19cc3`); no
+foreign M/A/D. Then, under the lock, appended two blocks plus REGISTRY rows: **PROTO-DEC-0105**
+(Kernel v1 = variant A': current kernel + merged 2A `bb19cc3` + F-C01 + A-1; pilots after the freeze;
+2B/CORE-ARCH-3/OPS-1 B-C after v1 in parallel with pilots; A-1 executor Claude Opus max, certifiers
+Sol + MiMo, Sol +1 call beyond 0095 Medium, repeat only by the owner's word, A-1 merge is the
+owner's; F-C01 executor vibe with the falling-back check, failing test first, DeepSeek review,
+certifier candidates from the advisor and approved by the owner; F-C01/A-1 order via advisor request
+001; the Kernel v1 freeze after both merges) and **PROTO-DEC-0106** (the public/private split:
+Kernel v1 the last public version under MIT as the Community Edition; everything after the freeze
+only in the closed CoLabus repo, proprietary; the name approved; the public history is never
+rewritten and the repo never deleted; the freeze order a-f including the tag proposal
+`kernel-v1.0.0`, Zenodo/Software Heritage on the owner's side, the CoLabus push and LICENSE, and the
+one public commit with the composition rule and the install-into-empty-folder validator check; the
+public composition = install-managed + integration + LICENSE + installer + templates + README +
+QUICKSTART, everything else leaves; the new session builds both tables mechanically; new
+ideas/plans after CoLabus go only there; OWNER-QUEUE: license lawyer and authorship article).
+Commit `7323e2f`; origin had moved (`fe1c11d`, the owner's CHANNEL.md effort update) - merged with
+`--no-ff` and pushed as **`f252467`**. Updated OWNER-QUEUE (lawyer/article; the tag-name approval
+item; the item-0 transparency note) and rewrote the STATE checkpoint: Kernel v1 = A', the CoLabus
+plan and order, the packet-2 table, next actions (the advisor 001 with the F-C01/A-1 order and the
+F-C01 certifier candidates; the CHANNEL effort rule per `fe1c11d`), the key SHAs.
+
+Result: Kernel v1 is decided and recorded; the split plan is recorded; the checkpoint tells a new
+session everything; the one line "готово к перезапуску, STATE <SHA>" goes to the owner.
+
+Next step: the owner restarts the window; the new session opens advisor request 001.
+
+Open: advisor 001; F-C01 + A-1 execution per its order; the v1 freeze steps; the composition tables;
+the tag approval.
+
+Evidence:
+- anchor: f252467ddea877d09f374d3a3eea879d09512123, uncommitted changes present
+- digest: sha256:73e57e7b11ecb38ae23eb6449c4dbc1741e3e91d2d108282160b673bd72c7801 over 1894 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T17:46:53.254Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:329df7cd6582ac34d1a4b409007acbc7e2514b2a9ed69a4327c029312da86a43 of this entry without this block
+- parent-entry: sha256:3ff181c08d0df8f632c22c951f0f7070e063bc6761df0a9f3928fb4019e2f83a
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - 2A MERGED AND PUSHED (bb19cc3); S6 green; STATE checkpoint for restart
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
