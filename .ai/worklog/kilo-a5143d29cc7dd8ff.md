@@ -6,6 +6,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - AUTOCYCLE-1 extension (PROTO-DEC-0092), empty-journal prune, Part B start
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Per the owner's instruction in chat: appended PROTO-DEC-0092 (AUTOCYCLE-1 extended, NIGHT_END
+2026-09-28 23:00 MSK, delegation valid until then with the same boundaries, MAX_CYCLES 8 and
+NIGHT_BUDGET_USD $5.00 unchanged with the spend counter continuing) plus one REGISTRY row, commit
+0fb4e24; one line in STATE.md. Pruned empty journals: `claude-b68b3491ee12ebd9.md` (old empty,
+tracked) was quarantined on the first run; the glm stub was skipped as recent, then quarantined with
+`prune --force` once the owner confirmed the glm session is not theirs; both moved to
+`.ai/runtime/pruned/` (disposable). The tracked claude journal deletion goes into this commit.
+Part B starts; B0 is not repeated (fetch/pull clean at 3c25639).
+
+Result: The extension decision, registry row and STATE line are recorded and pushed; no empty
+journals remain; the codex journal and the round-6 leftover stay untouched.
+
+Next step: Part B work-queue item 2 (section 12): probes (MiMo via OpenRouter; the new capability
+models; the GLM-vibe route) before the 2A recovery-3 session.
+
+Open: none new.
+
+Evidence:
+- anchor: 0fb4e2437f73cb23841ffde64fd3e09e7bd7c76e, uncommitted changes present
+- digest: sha256:ad83ac0192b897890f99b1fe9da6cb74c967615554c79bc2dc196bd4a3b402f9 over 780 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T11:54:20.630Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:0331233172e3af7001e34510d03e9af3818ab299375c4fd0a94fce98707d441f of this entry without this block
+- parent-entry: sha256:8d0cef26a598bfda6ce929b4f610c68df3f3e5e80282c0c234ed37b89fcda49a
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 13s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - AUTOCYCLE-1 post-reboot: baseline recorded (C00)
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

@@ -8,9 +8,9 @@ as facts change and pushes after every step.
 
 - Cycle: C00 (Part A complete; post-reboot baseline recorded). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
 - Mode: post-reboot (reboot confirmed: LastBootUpTime 2026-09-28T14:40:16+03:00, newer than the Part A
-  snapshot 2026-09-28T00:58Z; NOT degraded). NIGHT_END has passed; cycles stop per AUTOCYCLE
-  section 11 unless the owner directs continuation.
-- Last update: 2026-09-28T11:48Z by kilo-a5143d29cc7dd8ff at da07f78 (this STATE commit follows it).
+  snapshot 2026-09-28T00:58Z; NOT degraded).
+- NIGHT_END extended by the owner 2026-09-28 to 23:00 MSK (PROTO-DEC-0092); delegation valid until then with the same boundaries; MAX_CYCLES 8 and budget $5.00 unchanged.
+- Last update: 2026-09-28T11:55Z by kilo-a5143d29cc7dd8ff at 0fb4e24 (this STATE commit follows it).
 
 ## Goals tonight (from AUTOCYCLE-PROMPT.md section 12)
 
