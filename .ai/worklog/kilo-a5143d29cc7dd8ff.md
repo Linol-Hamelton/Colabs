@@ -4,114 +4,52 @@ Session journal. Owned by this session. No other session writes here.
 
 Newest entry first. Limit 150 lines.
 
-<!-- archived-parent: sha256:acedf418da55d7eafbca94b911323ee2127e478cfd8a6d2d4e3201df877f1e8d -->
+<!-- archived-parent: sha256:323c55ced5d07bdb6acf870f2826484c98cef4c9f436e3503227f3d6ab945ed7 -->
 
 ---
 
-## 2026-09-28 - kilo#2940 growth sampled; STATE checkpoint ad55b9b; window re-opened; holding per owner
+## 2026-09-28 - STOP: merged-tree suite RED on 2 pre-existing v2.0.0 fixture failures; merge rolled back
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
 
-Action: Inspected `kilo` PID 2940: `kilo.exe serve --port 0` of the VS Code extension
-`kilocode.kilo-code-7.8.1`, parent `Code.exe` (this window's utility process); its only listed child
-was the operator's own shell - it hosts this session and no other session tree is visible under it.
-Growth samples 5 min apart: WS 8.24 GB (16:23:45Z) -> 3.81 (16:27:23Z) -> 3.66 (16:32:23Z); private
-memory 8.24 -> 8.33 GB over the last interval (~+1.1 GB/h), earlier peak private 12.26 GB; the WS
-spike trimmed back on its own. At 16:32:35Z Available recovered to 9.26 GB (FreePhysical 9.29) -
-the window condition is met again, but per the owner's "wait" I am holding and not starting the
-merged run. Wrote the self-contained STATE checkpoint (candidate `79670de`, frozen `9bf15ae`, both
-RECOMMENDATION x2, the merge plan and its red path, the 19:30Z deadline, 0101/0103, the open items
-S6/packet-2/advisor 001/M-2A-res/N-3, the signal table and the key SHAs) and pushed it (`ad55b9b`).
-Added the Kilo-client finding line to `docs/ops/BACKLOG.md` with the protocol consequence (restart
-the operator by STATE.md at checkpoints).
+Action: Started the single merged run on the owner's explicit instruction (Available at the
+pre-start gate 7.1-7.6 GB, i.e. below the 8 GB letter; started anyway per "запускай СЕЙЧАС", with
+this deviation recorded). `git merge --no-ff kernel-batch-1` -> `bdfacf9`, no conflicts. Suite on
+the merged tree: `validate-protocol.ps1` exit 0 (5 s, 1 warning); `test-protocol.ps1` exit 1 -
+421 pass / **2 fail**, wall 284.7 s. Available during the run: start 5.93 GB (the merge checkout),
+minimum 3.63 GB, recovering to 8.48 GB by 16:43Z; the run was NOT interrupted (owner item 2); no
+actual WMI timeouts (the grep hits are test names like "busy lock timeout"). The 2 failures are
+`tests/registry.test.cjs` tests 6 and 7 ("new decision block without Reopen-trigger / with unknown
+Reopen-trigger emits WARN"). Attribution: they PASS on the frozen `kernel-batch-1` tree, and FAIL
+identically on the rolled-back clean `v2.0.0` `7ecef0f` WITHOUT the merge - so the red is a
+PRE-EXISTING v2.0.0-side defect, not caused by the candidate. Root cause (captured from the
+validator output): the fixture `validate(root)` resolves `.ai/DECISIONS.md` from the REAL repository
+root, and the real corpus now contains `PROTO-DEC-0099` (my night-1 block), so the tests'
+synthetic `PROTO-DEC-0099` yields `[FAIL] duplicate decision: PROTO-DEC-0099` and `[FAIL]
+PROTO-DEC-0099 was edited after it was written` -> `res.status != 0`. The suite was green (420/420)
+at `a2db48c` (12:15Z) when the real corpus ended at 0090; the breakage began as the night's own
+blocks reached 0099. Rolled the local merge back (`git reset --hard 7ecef0f`; nothing pushed, nothing
+pushed rewritten). Stopped the gate sampler (log `.ai/runtime/gate-s5.log`, 18 samples).
+S5 record fragment: start Available 5.93 GB (pre-merge 7.1-7.6), min 3.63 GB, finish ~8.5 GB; suite
+wall 284.7 s; the 2 failures pre-existing; no WMI timeouts.
 
-Result: The one-line report goes to the owner; the run is on hold awaiting the owner's word; the
-window is open as of 16:32Z.
+Result: Merge NOT pushed; STOP sent to the owner with the diagnosis and the proposed fix (renumber
+the synthetic ids in `tests/registry.test.cjs` to a reserved range far above the live corpus, e.g.
+PROTO-DEC-9998/9999, or make the fixture read its own root). The candidate `79670de` and the frozen
+`9bf15ae` remain valid; `v2.0.0` is untouched at `7ecef0f`.
 
-Next step: await the owner; keep the gate cadence; the merge deadline is 19:30Z.
+Next step: await the owner's decision; after the test fix and a green suite, repeat the single run.
 
-Open: the owner's go/no-go for the merged run while the window holds.
+Open: the v2.0.0 fixture fix (owner decision); then re-merge + suite + push + S6 + packet 2.
 
 Evidence:
-- anchor: ad55b9b6e1225484e82d127939a5d9ce3d9c4ecd, uncommitted changes present
-- digest: sha256:9cf911a319bbd01232289a46806b5ddaeb95736cbbda04184b8eb077f77d361e over 1872 tracked and untracked files
+- anchor: 7ecef0fd396b74b557fbd81b91e162345053ea97, uncommitted changes present
+- digest: sha256:f782970720dd3cedff7786888e91bbdc303b631a227f7a8b57a2b795efd5b0ed over 1872 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-28T16:33:03.609Z by kilo-a5143d29cc7dd8ff
+- recorded: 2026-09-28T16:46:34.747Z by kilo-a5143d29cc7dd8ff
 - entry hash format: 2
-- entry: sha256:323c55ced5d07bdb6acf870f2826484c98cef4c9f436e3503227f3d6ab945ed7 of this entry without this block
-- parent-entry: sha256:cff36cda48d61088fe75e2868105755f05956df383adb87502444c34c3ce6af7
+- entry: sha256:a4f279970db9414dca7f5b79982e06ccb1f770db2a631ba823cdd9686b154b0f of this entry without this block
+- parent-entry: sha256:323c55ced5d07bdb6acf870f2826484c98cef4c9f436e3503227f3d6ab945ed7
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 5s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-## 2026-09-28 - Gate re-measured: Available fell to ~7.0 GB; single merged run on hold; MCP=0 in Sol r2
-
-Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
-
-Action: Re-measured the gate per the owner: first reading Available 9.18 GB (FreePhysical 9.14,
-nonpaged 1209.6 MB, committed 68.8%); a minute later it fell and stabilized over four 15-second
-samples at 6.8-7.1 GB (Available 7.06 / 7.08 / 6.79 / 6.99). The dominant consumer is `kilo`
-PID 2940 at 6.17 GB (it was 3.98 GB at 16:02Z and grows); next: kilo#28144 0.82, MsMpEng#6088
-0.82, Memory Compression#4256 0.73. Since Available < 8 GB, the mandatory condition of
-PROTO-DEC-0103 item 1 is not met and the single merged run is ON HOLD; gate lines continue.
-Terminated `TextInputHost` PID 15084 - Windows respawned it immediately (new PID 36856, 0.7 s CPU).
-Read-only MCP check on the Sol round-2 session log
-(`rollout-2026-09-28T18-26-09-01a0e89f-9c8e-7c71-ad86-620d85497ffd.jsonl`): 85 tool calls total -
-84 `exec` + 1 `wait`, **0 MCP calls**; the merge is not stopped on that ground (recorded per the
-owner's item 5). CPU: the 5-second sample shows no process above 5% (max Antigravity IDE 3.07%),
-so CPU is not the blocker; RAM is. Recorded PROTO-DEC-0103 under the lock (+REGISTRY, `8aa2fc3`,
-pushed) with the owner's relaxed CPU condition for this run and the read-only MCP clause.
-
-Result: The run waits for Available >= 8 GB; deadline for the window is 19:30Z, else the merge goes
-to OWNER-QUEUE.
-
-Next step: keep logging the gate; when Available >= 8 GB (and pools/committed fine, no parallel
-protocol heavy sessions): local merge --no-ff kernel-batch-1 into v2.0.0 without push -> suite on
-the merged tree (S5 + condition (c)) -> verify -> push; red -> local rollback and STOP.
-
-Open: the RAM window; the kilo#2940 growth is the thing to watch.
-
-Evidence:
-- anchor: 8aa2fc38c298691a67032241fe33b1d3c90400fe, uncommitted changes present
-- digest: sha256:22bd0af1bbbb5fef646beaeb292fb529540647873f692cbaa855268f810c9af2 over 1872 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-28T16:19:45.332Z by kilo-a5143d29cc7dd8ff
-- entry hash format: 2
-- entry: sha256:cff36cda48d61088fe75e2868105755f05956df383adb87502444c34c3ce6af7 of this entry without this block
-- parent-entry: sha256:e50808f6151cf22fb90d51a9529ffe6c5a1219edc46e05a8bcbd9b7942d70eeb
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 7s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-## 2026-09-28 - RAM/process detail for the owner (gate counter, TextInputHost, MCP cluster)
-
-Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
-
-Action: Answered the owner's window questions. RAM: total 31.7 GB; `\Memory\Available MBytes`
-4712 MB; Standby Cache sum 4229 MB (normal 3328 + reserve 789 + core 112); `\Memory\Free & Zero
-Page List` 245 MB. The gate ("free >= 8 GB") uses `Win32_OperatingSystem.FreePhysicalMemory`
-(= available memory including standby, currently 4.91 GB), NOT the raw free+zero list - stated
-plainly, threshold unchanged. The 13% CPU process is `TextInputHost` PID 15084 (not MsMpEng; the
-fresh post-reboot instance has become busy). Process provenance: codex PID 29928 has exited; `node`
-PID 36724 = `product/bot/bot.js` (parent 32840) - not a protocol session, a separate bot; the
-node cluster started ~15:55Z is MCP servers (chrome-devtools, firecrawl, playwright, perplexity,
-glif, shadcn, design-md, better-design, context7, brandsystem) - not protocol sessions, ownership
-unknown/foreign; none killed by the operator.
-
-Result: The owner has the data; the single merged run still waits for the quiet window (deadline
-19:30Z for the merge, else OWNER-QUEUE).
-
-Next step: watch the gate; when open - merge locally, suite on the merged tree (S5 + condition c),
-green -> push -> S6 -> packet 2 + advisor 001.
-
-Open: the window.
-
-Evidence:
-- anchor: 46c9500c0c82371c40a00eb23042358b35b57ed3, uncommitted changes present
-- digest: sha256:5e7faa144090b55f8bbb04f49306600d4a578bba6bb0e7a473df824dfada2545 over 1872 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-28T16:09:17.927Z by kilo-a5143d29cc7dd8ff
-- entry hash format: 2
-- entry: sha256:e50808f6151cf22fb90d51a9529ffe6c5a1219edc46e05a8bcbd9b7942d70eeb of this entry without this block
-- parent-entry: sha256:acedf418da55d7eafbca94b911323ee2127e478cfd8a6d2d4e3201df877f1e8d
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 6s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
