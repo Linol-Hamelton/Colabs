@@ -8,6 +8,37 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Registry fix review PASS; merged re-run waits for the 8 GB window
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collected the DeepSeek fix review (`docs/reviews/2026-09-28-deepseek-registry-fix-review.md`,
+145 lines, `Mode: ADVISORY`, `Receipt-Owner: deepseek-7ca79f41c34b762a`, committed by the session as
+`c69d019` with its journal): **PASS** - the fix is minimal and correct; the pre-fix failure
+reproduces; one optional forward-looking recommendation; provider recorded from the session context
+(no separate call log exposed). Gate series 17:13-17:22Z: Available oscillates 7.1-7.9 GB (below the
+8 GB start threshold, with committed 72-74%), so the merged re-run is on hold; readings are logged
+and the run starts the moment the threshold is met (deadline 19:30Z; a line to the owner if no
+window by ~17:50Z).
+
+Result: Fix branch ready (`0e0d6a7` + `2b28a2a` + `c69d019`); awaiting the RAM window for the repeat
+run (gate -> ff fix into v2.0.0 -> local merge `kernel-batch-1` -> suite -> verify -> push both).
+
+Next step: on Available >= 8 GB run the full sequence; else continue logging.
+
+Open: the RAM window.
+
+Evidence:
+- anchor: 0dd8bc8aea65b60467a887b9fa4be8709674c702, uncommitted changes present
+- digest: sha256:5b4e3c743b088f4e48f68a5d78debd4e95eb29bb8d43be1f0c9b731cafbb9e34 over 1872 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T17:15:40.550Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:c3b01f2124801876443e5744fccb520191f517518a8edaa4615562fc63739cb3 of this entry without this block
+- parent-entry: sha256:c69bec55dce9fa6dd4fb6bbc5a2f7669f4b3d89519dfc46d3f1f006d4047fa04
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - Registry fixture fixed on a branch; DeepSeek review dispatched
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
