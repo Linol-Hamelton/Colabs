@@ -9,6 +9,38 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Operator-advisor channel: brief and procedure
+
+Agent: claude-ad7cc4169e888ea8 (cloud session on v2.0.0), advisor to the owner; certifies and
+executes nothing.
+
+Action:
+- The owner asked for the operator to talk to a local Claude advisor through the Claude CLI directly,
+  with short reports to the owner. Owner answers (2026-09-28, in chat):
+  - authority as proposed: the advisor settles execution details, order, accounting and signal
+    readings; the owner keeps decisions, merges beyond delegation, certifiers, budget, Kernel v1
+    and the reserved list;
+  - an independence record: the advisor certifies nothing it directed;
+  - start after the 2A merge (after S6).
+- Wrote `docs/research/2026-09-28-autocycle/advisor/ADVISOR-BRIEF.md`: first-call context for the
+  local session, covering authority, independence, the owner's hard rules, known operator slips,
+  the state at hand-over and the reply format.
+- Wrote `advisor/CHANNEL.md`: the operator's procedure, covering when to ask, the request template,
+  the `claude -p` / `--resume` call with a narrow tool allowlist, measurement, failure handling and
+  the owner's short reports.
+
+Result: files only; nothing is launched. The operator records the owner's approval as a decision block
+under the lock; advisor decisions are logged as `ADV-NNN (selection=advisor)`, never as PROTO-DEC.
+Checks: none run beyond `git status`; the docs-only change has no test surface, and this cloud has
+no PowerShell for the validator.
+
+Next step: the owner sends the operator prompt; the channel starts after S6.
+
+Open:
+- Whether the AUTOCYCLE finalizer mailbox (section 9) should move onto the same CLI channel is the
+  owner's call.
+- The effort setting for `claude -p` is set by the owner in Claude Code, not by a flag in the procedure.
+
 ## 2026-09-28 - AUTOCYCLE-1 prepared: night operator prompt, relay capsule, mailbox and rule engine
 
 Agent: claude-ad7cc4169e888ea8 (cloud session on v2.0.0), advisor to the owner; certifies and
