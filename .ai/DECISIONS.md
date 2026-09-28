@@ -4636,3 +4636,39 @@ Decision:
    does not choose the variant.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0102
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0098 item 1 (the relay through the owner) - after the 2A merge and S6 the
+operator talks to the local Claude advisor directly
+
+Context:
+`docs/research/2026-09-28-autocycle/advisor/ADVISOR-BRIEF.md` and `advisor/CHANNEL.md` @ `937c3a5`
+define the operator <-> advisor channel. The owner approved it in chat on 2026-09-28.
+
+Decision:
+1. After the 2A merge and S6 the operator talks to the local Claude advisor directly through the
+   Claude CLI per `advisor/CHANNEL.md`; until then everything goes through the owner.
+2. Advisor authority: the order of steps, execution details, accounting and measurements,
+   corrections of how the operator reads a signal, and fixes inside already approved scope. The
+   advisor's decisions are executed and recorded in the journal and STATE as `ADV-NNN
+   (selection=advisor)` - never as a PROTO-DEC block, never with `Approved by:`.
+3. Owner-only: new PROTO-DEC blocks and their supersession, merges beyond the delegated rule,
+   certifiers/reviewers, budget and thresholds, the Kernel v1 choice, questions such as S9, and the
+   whole reserved list of AUTOCYCLE-PROMPT section 6. Such items go "К владельцу": the branch stops,
+   an OWNER-QUEUE line is written, and the owner receives a separate message.
+4. Independence (PROTO-DEC-0079 item 6): the advisor session certifies nothing it directed - 2A,
+   A-1 and Kernel v1; the Claude slot in certifying those works goes to other models.
+5. Owner reporting: after each exchange 3-5 lines per the template of CHANNEL.md section 5; every
+   STOP and every "К владельцу" item as a separate message; once per cycle one request->reply pair
+   is named for the owner to read in full.
+6. Every advisor call gets a MEASUREMENTS row (`role=advisor`, cost_shadow from the JSON, marginal
+   0); the full JSON is saved to `.ai/runtime/advisor-NNN.json`.
+7. The first call happens right after S6 with request 001 carrying the packet-2 table (S1-S9); the
+   same table goes to the owner in parallel - the Kernel v1 choice is the owner's. Before the first
+   call the owner sets effort High in the local Claude Code.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28; transcribed by kilo-a5143d29cc7dd8ff)
