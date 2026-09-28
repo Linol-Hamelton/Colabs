@@ -8,6 +8,41 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - kilo#2940 growth sampled; STATE checkpoint ad55b9b; window re-opened; holding per owner
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Inspected `kilo` PID 2940: `kilo.exe serve --port 0` of the VS Code extension
+`kilocode.kilo-code-7.8.1`, parent `Code.exe` (this window's utility process); its only listed child
+was the operator's own shell - it hosts this session and no other session tree is visible under it.
+Growth samples 5 min apart: WS 8.24 GB (16:23:45Z) -> 3.81 (16:27:23Z) -> 3.66 (16:32:23Z); private
+memory 8.24 -> 8.33 GB over the last interval (~+1.1 GB/h), earlier peak private 12.26 GB; the WS
+spike trimmed back on its own. At 16:32:35Z Available recovered to 9.26 GB (FreePhysical 9.29) -
+the window condition is met again, but per the owner's "wait" I am holding and not starting the
+merged run. Wrote the self-contained STATE checkpoint (candidate `79670de`, frozen `9bf15ae`, both
+RECOMMENDATION x2, the merge plan and its red path, the 19:30Z deadline, 0101/0103, the open items
+S6/packet-2/advisor 001/M-2A-res/N-3, the signal table and the key SHAs) and pushed it (`ad55b9b`).
+Added the Kilo-client finding line to `docs/ops/BACKLOG.md` with the protocol consequence (restart
+the operator by STATE.md at checkpoints).
+
+Result: The one-line report goes to the owner; the run is on hold awaiting the owner's word; the
+window is open as of 16:32Z.
+
+Next step: await the owner; keep the gate cadence; the merge deadline is 19:30Z.
+
+Open: the owner's go/no-go for the merged run while the window holds.
+
+Evidence:
+- anchor: ad55b9b6e1225484e82d127939a5d9ce3d9c4ecd, uncommitted changes present
+- digest: sha256:9cf911a319bbd01232289a46806b5ddaeb95736cbbda04184b8eb077f77d361e over 1872 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T16:33:03.609Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:323c55ced5d07bdb6acf870f2826484c98cef4c9f436e3503227f3d6ab945ed7 of this entry without this block
+- parent-entry: sha256:cff36cda48d61088fe75e2868105755f05956df383adb87502444c34c3ce6af7
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - Gate re-measured: Available fell to ~7.0 GB; single merged run on hold; MCP=0 in Sol r2
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

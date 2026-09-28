@@ -51,6 +51,11 @@
 
 ## Medium
 
+- Kilo client: `kilo.exe serve` (VS Code extension `kilocode.kilo-code-7.8.1`) grows its Working Set
+  over a long operator session (16:02Z 3.98 GB -> 16:20Z 6.17 -> 16:23Z 8.24 GB peak; trimmed back
+  to 3.7-4.0 GB by 16:27-16:32Z) while private memory holds ~8.3-8.6 GB; the spike pushed Available
+  below the 8 GB gate for ~30 min on 2026-09-28. Source: operator samples during PROTO-DEC-0103.
+  Protocol consequence: restart the operator by `STATE.md` at checkpoints.
 - M-2A-res: wave-2A residuals F-2A-01 (the `W2A-EXECUTION.md` report sentence misdescribes the INDEX
   edit) and F-2A-05 (T30 does not exercise the bare default `docs/ops/RUNS.jsonl` path); both LOW,
   unverified, carried by MiMo's certifier reports. Sources: `docs/reviews/2026-09-28-mimo-wave2a-certification.md`
