@@ -8,6 +8,45 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - 2A round 2: both RECOMMENDATION; PROTO-DEC-0102 advisor channel; S5 window closed
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collected the round-2 certification: Sol RECOMMENDATION (CERTIFYING, receipt
+`codex-2386381c48088cee`; B/E closed with independent reproductions - 29/29 dispatch, 98 clean
+in-run samples, `EXTERNAL_PROBE_MAX_ONE=4`; integration/INFO notes only) and MiMo RECOMMENDATION
+(CERTIFYING, receipt `mimo-695fcfb3b47f3125`; A-G PASS; residuals F-2A-01/05 LOW, non-blocking;
+theoretical declared-output note). Committed both branches and cherry-picked the two r2 commits onto
+`kernel-batch-1` (`d2b3c56`, `79670de`, pushed). Recorded PROTO-DEC-0102 under the lock (+REGISTRY,
+`79285e7`): the operator <-> Claude advisor channel after the 2A merge and S6, the advisor's
+authority, the owner-only list, independence (the advisor certifies nothing it directed), the
+reporting template, the advisor MEASUREMENTS rows and `.ai/runtime/advisor-NNN.json`, and request
+001 with the packet-2 table; the owner sets effort High before the first call. Added the two r2
+certifier MEASUREMENTS rows (42 total; q=1.0 provisional for both). Gate at 15:58Z: free 4.87 GB,
+max process 13.38% of total -> the S5 quiet window is CLOSED; the gate will be logged every 30 min
+and one line goes to the owner if no window opens by ~16:54Z. Noted ADVISOR-BRIEF section 6 (the
+operator failure patterns): order and preconditions are checked first on each step.
+
+Result: 2A is merge-ready with double RECOMMENDATION; S5 waits for a quiet window; the advisor
+channel is recorded; packet 2 goes after S6.
+
+Next step: watch the gate; when the window opens (free >= 8 GB, no > 5% CPU, pools normal) run S5
+(validate + test-protocol on the frozen `9bf15ae`, strictly sequential) -> the delegated merge ->
+the post-merge suite -> S6 -> the packet-2 table -> advisor request 001 and the owner copy.
+
+Open: the S5 window; then the merge conditions (d) verify and (e) conflicts.
+
+Evidence:
+- anchor: 79285e7f8543b6190ec1ddc9154d72c654e9c51d, uncommitted changes present
+- digest: sha256:67d53c0ce3ffe1ccc938f03404d86b64fc61778ad4af3fe974216eb20a70b966 over 1872 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T15:56:53.022Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:b25eb9abd7f65b3ad3d10dc23a97ff1b9b7e74882bc51846a4795eb2ef472d33 of this entry without this block
+- parent-entry: sha256:b263d8f11382cfbfcb9b2422884557770fdf1e57599e9476208933bf27647a78
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - S9 answered by the owner: local Windows only -> keep
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)

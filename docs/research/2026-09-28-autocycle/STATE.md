@@ -25,7 +25,10 @@ as facts change and pushes after every step.
   $0.021655 measured over the retained 27-step window - a lower bound, the full session output was
   not retained); operator calls are cost=unmeasured (no saved usage); owner reconciles against the
   $21.9 baseline. Thresholds: < $3 no DeepSeek reviewer + light steps only; < $1 STOP.
-- Last update: 2026-09-28T15:33Z by kilo-a5143d29cc7dd8ff at 4898332 (this STATE commit follows it).
+- Advisor channel (PROTO-DEC-0102; `advisor/ADVISOR-BRIEF.md` + `CHANNEL.md` @ 937c3a5): direct
+  operator <-> Claude advisor after the 2A merge and S6; ADV-NNN records, never PROTO-DEC; the
+  owner sets effort High before the first call; first request 001 carries the packet-2 table.
+- Last update: 2026-09-28T15:58Z by kilo-a5143d29cc7dd8ff at 79285e7 (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
 
@@ -99,6 +102,13 @@ as facts change and pushes after every step.
   the kilo CLI fails 401 (the key is not in the CLI environment or auth.json; providers there:
   deepseek, kilo, openai). Options for the owner: supply the key/env for the CLI, approve the CLI's
   native `deepseek` route, or another route. No freeze before the review.
+- 2A cert ROUND 2 CLOSED: **Sol RECOMMENDATION** (`...-sol-...-r2.md`, `ca55d02`, CERTIFYING, receipt
+  codex-2386381c48088cee; B/E closed with reproductions) + **MiMo RECOMMENDATION**
+  (`...-mimo-...-r2.md`, `0d87aff`, CERTIFYING, receipt mimo-695fcfb3b47f3125; residuals F-2A-01/05
+  LOW). Both r2 reports + journals are in `kernel-batch-1` (`d2b3c56`, `79670de`, pushed; branch
+  head = frozen `9bf15ae` + docs). Next: S5 (quiet window) -> delegated merge -> S6.
+- S5 window CLOSED at 15:58Z: free 4.87 GB (< 8), max process 13.38% of total (> 5%); gate logged
+  every 30 min; one line to the owner if no window by ~16:54Z. The candidate branch is merge-ready.
 - 2A FROZEN at `9bf15ae` (2026-09-28): code = `5bc9940` + fixes `6364322`/`b26b177` + docs; the two
   certifier reports and the DeepSeek fix review are in the tree (N-1 satisfied); the follow-up docs
   commit `9eb8643` adds only the round-2 launch files. FREEZE VERIFIED (PROTO-DEC-0100 item 1):
