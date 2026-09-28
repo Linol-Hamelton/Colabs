@@ -36,7 +36,17 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
   sessions. Owner clarification (selection=owner): advisor calls are LIGHT (like codex/vibe remote
   calls; the 8 GB gate does not block them; wait only under Available < 4 GB); heavy = full suite,
   measurements, local code-working sessions.
-- Next advisor call (003): at the first freeze or the first verdicts, or on an ambiguity.
+- Next advisor call (003): at the first freeze or the first verdicts, or on an ambiguity. It carries
+  the owner's parallel-candidate ruling (below) for the record.
+- Owner ruling on parallel candidates (selection=owner, 2026-09-28): the overlap check
+  `git diff --name-only v2.0.0...a1-installed-advisory` (tests/validator-gate.test.cjs + uncommitted
+  validate-protocol.ps1) vs `...h1-installed-protected-set` (tests/rulebook.test.cjs + uncommitted
+  .ai/bin/protocol-verdict.cjs) shows **no common files**. If one delivers first and the other's diff
+  then overlaps: the second merges the updated v2.0.0 before its freeze (plain merge, no rebase;
+  conflicts resolved by its executor with a failing test first, then the operator full suite) and
+  freezes/certifies the merged SHA; its DeepSeek review covers the diff against the updated v2.0.0.
+  If there is no overlap, the ADV-002 order stands; the full suite on the merged tree after the
+  second merge is mandatory either way.
 
 ## Kernel v1 (PROTO-DEC-0105, owner decision)
 
