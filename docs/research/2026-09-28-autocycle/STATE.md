@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T19:30Z - F-18 CLOSED (owner ACCEPT; merged `c554d17`, suite 423/423 on the
-merged tree); A-1 DELIVERED (`7e51b89`) - its full suite next, then the DeepSeek review, freeze,
-Sol+MiMo; H1 candidate waits behind it; NIGHT_END not extended.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T20:05Z - BOTH CANDIDATES FROZEN AND PUSHED (A-1 `8b74e41`, H1 `476b488`);
+DeepSeek reviews: A-1 RECOMMENDATION, H1 PASS; certification wave 1 running (A-1: Sol + MiMo);
+wave 2 (H1: Luna + MiMo) next; merges await the owner; F-18 closed and merged `c554d17`.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -87,6 +87,11 @@ Sol+MiMo; H1 candidate waits behind it; NIGHT_END not extended.** Read it first,
   validators exit 0; Available 10.34 -> 9.74 -> 9.63 GB). DeepSeek fix reviews dispatched for both
   at 19:39Z (balance recorded before the paid calls: documented snapshot $11.92 + ¥155.41, live
   balance not observable from this session).
+- DeepSeek fix reviews delivered: **A-1 RECOMMENDATION** (`0e1f947`), **H1 PASS** (`411f7dd`); both
+  Mode ADVISORY (fix reviews, not certificates). Frozen and pushed: A-1 `8b74e41`, H1 `476b488`
+  (the freeze commits carry the certifier launch docs). Four certifier worktrees created
+  (`cert-a1-sol`, `cert-a1-mimo`, `cert-h1-luna`, `cert-h1-mimo`); wave 1 (Sol + MiMo for A-1)
+  dispatched 20:03Z.
 
 ## Community / CoLabus split (PROTO-DEC-0106, record + plan; execution at the v1 freeze)
 
@@ -151,19 +156,19 @@ Sol+MiMo; H1 candidate waits behind it; NIGHT_END not extended.** Read it first,
 
 ## Next actions (in order)
 
-1. **A-1**: candidate DELIVERED (`7e51b89`); branch suite GREEN - `validate-protocol.ps1` exit 0,
-   `test-protocol.ps1` **425/425 PASS** (304.5 s; 19:27:46-19:32:57Z; log `.ai/runtime/a1-suite.log`).
-   DeepSeek review dispatched 19:39Z (`bgp_0e987995f001ldikevSL7vEXh3`, kilo deepseek-flash high,
-   launch `LAUNCH-A1-REVIEW.md` `05726f3`); balance recorded before the call (documented snapshot
-   $11.92 + ¥155.41, MODEL-ECONOMICS.md line 79, 2026-09-25 15:30Z; live balance not observable).
-   On PASS/RECOMMENDATION: freeze (push branch, SHA into STATE), then Sol (Medium, <=150/<=250) +
-   MiMo in parallel on one SHA; FAIL with reproduction -> fix loop; the merge is the owner's.
-2. **H1 fix (the F-C01 remainder)**: candidate DELIVERED (`28d13cc`, `d31ebb6`); branch suite GREEN -
-   `validate-protocol.ps1` exit 0, `test-protocol.ps1` **432/432 PASS** (311.2 s;
-   19:33:13-19:38:36Z; log `.ai/runtime/h1-suite.log`). DeepSeek review dispatched 19:39Z
-   (`bgp_0e987a13d001qedq16XyzGRykO`; launch `LAUNCH-H1-REVIEW.md` `0c2b36a`). On
-   PASS/RECOMMENDATION: freeze, then Luna (codex, xhigh) + MiMo on one SHA; merge per the delegated
-   rule, but after 20:00Z only by the owner's word.
+1. **A-1**: FROZEN `8b74e41` (branch `a1-installed-advisory`, pushed). DeepSeek review RECOMMENDATION
+   (`docs/reviews/2026-09-28-deepseek-a1-fix-review.md`, session `deepseek-7673879ed0e8fc01`; residuals
+   R2/R3 = pre-existing blacklist limits, no candidate regression; suggests a future whitelist).
+   Branch suite 425/425 (304.5 s). Certifiers RUNNING (wave 1, dispatched 20:03Z): Sol
+   `bgp_0e99c2d6c001197rc0DI0toQ1P` (codex, gpt-5.6-sol, medium) + MiMo
+   `bgp_0e99c2f25001qaMgbtuqsmZa1G` (xiaomi/mimo-v2.6-pro, high); reviews will land in
+   `docs/reviews/2026-09-28-{sol,mimo}-a1-certification.md`. The merge is the owner's (always).
+2. **H1 fix (the F-C01 remainder)**: FROZEN `476b488` (branch `h1-installed-protected-set`, pushed).
+   DeepSeek review PASS (`docs/reviews/2026-09-28-deepseek-h1-fix-review.md`, session
+   `deepseek-f1f2471eac81e95a`). Branch suite 432/432 (311.2 s). Certifiers wave 2 (start after
+   wave 1): Luna (codex, gpt-5.6-luna, xhigh) + MiMo (xiaomi/mimo-v2.6-pro, high), separate
+   worktrees `cert-h1-luna` / `cert-h1-mimo` ready; MiMo runs H1 after its A-1 session. Merge: the
+   owner's word (after 20:00Z any merge).
 3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
    (`M-2A-RES-CHECK.md`); no code changes.
    **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact
