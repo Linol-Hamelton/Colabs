@@ -10,7 +10,7 @@ as facts change and pushes after every step.
 - Mode: post-reboot (reboot confirmed: LastBootUpTime 2026-09-28T14:40:16+03:00, newer than the Part A
   snapshot 2026-09-28T00:58Z; NOT degraded).
 - NIGHT_END extended by the owner 2026-09-28 to 23:00 MSK (PROTO-DEC-0092); delegation valid until then with the same boundaries; MAX_CYCLES 8 and budget $5.00 unchanged.
-- Last update: 2026-09-28T12:05Z by kilo-a5143d29cc7dd8ff at 01e6304 (this STATE commit follows it).
+- Last update: 2026-09-28T12:17Z by kilo-a5143d29cc7dd8ff at a2db48c (this STATE commit follows it).
 
 ## Goals tonight (from AUTOCYCLE-PROMPT.md section 12)
 
@@ -54,11 +54,16 @@ as facts change and pushes after every step.
   `docs/reviews/2026-09-28-gemini-wave2a-adversarial-prompt.md`).
 - After the prompt lands: freeze the candidate, then MiMo + Sol certification. The MiMo route
   question is in OWNER-QUEUE (OpenRouter blocked by credits; xiaomi route verified).
+- Owner note 2026-09-28T12:16Z: first cycle after the reboot strictly sequential (section 10); the
+  merged-tree suite ran in parallel with this agy session (recorded in the operator journal for
+  H-1); no new heavy steps until recovery 3 ends.
 
 ## Pipelines (next step)
 
 - 2A kernel-batch-1: pushed -> recovery 3 (prompt only) -> freeze -> MiMo + Sol -> delegated merge.
-- perf-wave-1: pushed -> Addendum script-confirmation line present? -> range check -> docs merge.
+- perf-wave-1: second docs merge DONE - `a2db48c` on v2.0.0, pushed; range check + Addendum line
+  `confirmed by report.cjs @ 22ff6a6` + perf1 `verify` matches; full suite on the merged tree green
+  (420/420, validate 0 warnings, wall 192.9 s).
 - Wave 3 (F-17): COVER-DUP line -> Sol verification -> vibe advisory -> drafts -> packet 2 table.
 - A-1: waits for the 2A merge.
 - PROFILE-2 / V3: wait for the 2A merge and a quiet window; V3 split line is the owner's.

@@ -8,6 +8,47 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - perf-wave-1 second (docs) merge pushed after a green suite; sequencing note
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Per work-queue item 5 and the delegated docs merge (AUTOCYCLE section 6): verified the range
+`64043a3..f8e20b2` (only `docs/research/2026-09-27-perf/*`, `docs/reviews/2026-09-27-deepseek-perf-wave1-review.md`,
+and the two wave journals), the Addendum line `confirmed by report.cjs @ 22ff6a6`, and
+`protocol-handoff.cjs verify` in perf1 for `gemini-051c812cc4522295` -> "evidence matches the current
+tree". `git merge --no-ff f8e20b2` into `v2.0.0` -> merge `a2db48c`, no conflicts (1091 files, docs
+only). Full suite on the merged tree: `validate-protocol.ps1` exit 0, 0 warnings;
+`test-protocol.ps1` exit 0, 420/420 pass, wall 192.9 s (log `.ai/runtime/merged-suite.log`); pushed
+`a2db48c` to origin/v2.0.0.
+
+Owner note 2026-09-28T12:16Z: the first cycle after the reboot is strictly sequential (AUTOCYCLE
+section 10). The merged-tree suite nevertheless ran while the agy recovery-3 session was alive
+(parallel, different clients) - recorded here for H-1 purity: suite wall 192.9 s under that parallel
+load; no new heavy steps are started while recovery 3 runs. The owner also stated the
+`claude-4b1d13a32b483a80.md` and `claude-e2d8e7aac1f5cbd9.md` journals are likely finalizer start
+stubs: not touched, not committed.
+
+Result: The second perf-wave-1 docs merge is on `v2.0.0` (`a2db48c`, pushed); suite green. The 2A
+recovery-3 session (bg `bgp_0e7ede6d4001IYSfcNcjPcabp9`, pid 17736) is still running, no output yet.
+
+Next step: wait for recovery 3 (the audit prompt file plus its journal), then freeze the candidate
+and certify with MiMo + Sol; no new heavy steps meanwhile.
+
+Open: MiMo route decision (OWNER-QUEUE); agy reliability (two early failures today, third attempt
+running); the perf1 untracked `gemini-051c812cc4522295.md` journal (wave evidence, not mine, left
+untracked).
+
+Evidence:
+- anchor: a2db48c2c0b7deccb5dad978df08fb2125d97156, uncommitted changes present
+- digest: sha256:f0eee54c47383e87b151b96171409a9cada762ad06036da01cb94432e8a43b02 over 1869 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T12:17:00.446Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:3c50c3e4e582786a9d94b04bb4801854e394f6f0e8ae4034c6ea6ff75f7272c2 of this entry without this block
+- parent-entry: sha256:670547b6d17315b8b36670519741cf6df56788096ca046ec33ebac9fddd27773
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 4s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - 2A recovery 3 dispatched; agy location failure and owner fix
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
