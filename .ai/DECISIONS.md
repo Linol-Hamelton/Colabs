@@ -4469,3 +4469,49 @@ Decision:
    (PASS/RECOMMENDATION/FAIL and its blockers).
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0098
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0097 items 2 and 3 (the reviewer route and the cost accounting); PROTO-DEC-0095 item 4 (the Sol calls unchanged)
+
+Context:
+The owner corrected the route and the cost model on 2026-09-28: the operator runs on the PAID
+DeepSeek API (balance at platform.deepseek.com/usage; at the message time $11.92 + 71.97 CNY
+~ $21.9 total; baseline Cost 245.42 CNY / 12,083 requests). Vercel is only a source of free bonus
+limits, and the kilo->Vercel route returns 401. The DeepSeek reviewer runs on the CLI's native
+`deepseek` route (route=deepseek-native, selection=owner). Costs come from the API `usage` field
+times the platform.deepseek.com tariffs; operator calls without saved usage are cost=unmeasured.
+
+Decision:
+1. Accounting: the operator and the reviewer share one DeepSeek balance. Thresholds measured from the
+   owner's last balance minus the operator's tracked spend: below $3 - no DeepSeek reviewer and
+   light steps only, with a line in OWNER-QUEUE; below $1 - STOP and a one-line report. The owner
+   reconciles the balance; the operator never reads, copies or prints the key and never queries the
+   balance.
+2. Route and provenance: the DeepSeek reviewer runs on the CLI's native deepseek route. `modelRan`
+   and `provider` come only from the API response `model` field or the call log; when absent,
+   `modelRan=unverified` (recorded in the review and MEASUREMENTS). `cost` comes from `usage` (tokens
+   x tariffs) for every DeepSeek call, operator and reviewer alike; past operator calls without
+   saved usage: cost=unmeasured. STATE keeps the line "DeepSeek: spent ~ $X by usage since <time>".
+3. The reviewer is a separate DeepSeek session, never the operator session. Scope: only the 2A fix
+   range `6364322`, `b26b177`, `149b19a` (`git diff <fix base>..149b19a`) against Sol's round-1 FAIL
+   findings and MiMo's RECOMMENDATION. One unified adversarial prompt <= 150 lines bound to
+   `149b19a`; a report in its own `docs/reviews/` file, a journal with the five labels, and `record`.
+   The MiMo and Sol reports are not edited.
+4. Native route failure (error, 401/402, fallback): one retry after >= 5 minutes, then STOP and one
+   line to the owner; the operator does not substitute the reviewer.
+5. After the review, strictly in order: fix the review findings (if any) -> freeze the SHA -> repeat
+   certification by MiMo + Sol (effort Medium), parallel and independent, round 2 of 3; both
+   PASS/RECOMMENDATION -> the delegated merge under the six conditions of AUTOCYCLE section 6,
+   otherwise the owner. Then A-1 per plan (executor Claude Opus 5.5 max; certifiers Sol + MiMo; the
+   merge by the owner's word).
+6. DIG: Luna's recheck 2 is done (PASS 15/15) -> compute S4 per SUPERVISOR-PREREG (rejection share;
+   evidence only `path:line` or a commit) -> fill the PREREG table -> packet 2 (the Kernel v1 choice)
+   goes to the owner; the operator does not choose the variant.
+7. The old Vercel line is corrected by a NEW line in the journal and STATE (old entries are not
+   edited): operator = DeepSeek API (paid); Vercel = bonus route, currently 401.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
