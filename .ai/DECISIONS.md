@@ -4602,3 +4602,37 @@ Decision:
    next forward artifact. S9 still waits for the owner's answer.
 
 Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
+
+### PROTO-DEC-0101
+
+Status: Accepted
+Date: 2026-09-28
+Reopen-trigger: owner-directive
+Refines: PROTO-DEC-0100 items 2-4 (the q statuses, the S5/merge/S6 order, the S9 branches)
+
+Context:
+The owner accepted the freeze `9bf15ae` as-is (the diff from `149b19a` holds documentation only; the
+code is identical to the reviewed one) and refined the q accounting, the post-round-2 order and the
+S9 mapping.
+
+Decision:
+1. The freeze `9bf15ae` is accepted; no rebuild. One journal line records the acceptance.
+2. q statuses: for each claimed finding that is neither confirmed nor refuted, the row carries an
+   explicit `unverified` status; unverified claims leave the PRECISION denominator until checked,
+   while refuted claims stay in it. Recompute MiMo's round-1 q with the statuses of F-2A-01 and
+   F-2A-05 (both unverified: no path:line, run or commit settles them yet) as a new row (old rows
+   are not edited); recompute again when the round-2 reports settle them.
+3. Order after round 2, strictly: both PASS/RECOMMENDATION -> S5 (the full suite on `9bf15ae` in a
+   quiet window only: free RAM >= 8 GB, no process above 5% CPU, pools normal) -> the delegated
+   merge under the six conditions -> S6 (`docs/ops/RUNS.jsonl` is read AFTER the merge; never
+   before). If no quiet window opens (free RAM below 8 GB): wait, log the gate every 30 minutes,
+   and after 60 minutes without a window send one line to the owner. If either certifier returns
+   anything other than PASS/RECOMMENDATION: STOP and one line to the owner (round 3 under S1 means
+   variant B).
+4. S9 mapping (two branches; the owner picks): local Windows only (pilot sessions on the owner's
+   machine, no cloud) -> keep; cloud planned (pilot sessions also in the cloud) -> v1 includes the
+   cloud Evidence slice from 2B (B-lite).
+5. After S6 the whole packet-2 table (S1-S9, value + source path) goes to the owner; the operator
+   does not choose the variant.
+
+Approved by: RuslanFomenko (direct owner instruction in chat, 2026-09-28, AUTOCYCLE-1; transcribed by kilo-a5143d29cc7dd8ff)
