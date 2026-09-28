@@ -10,7 +10,7 @@ as facts change and pushes after every step.
 - Mode: post-reboot (reboot confirmed: LastBootUpTime 2026-09-28T14:40:16+03:00, newer than the Part A
   snapshot 2026-09-28T00:58Z; NOT degraded).
 - NIGHT_END extended by the owner 2026-09-28 to 23:00 MSK (PROTO-DEC-0092); delegation valid until then with the same boundaries; MAX_CYCLES 8 and budget $5.00 unchanged.
-- Last update: 2026-09-28T11:55Z by kilo-a5143d29cc7dd8ff at 0fb4e24 (this STATE commit follows it).
+- Last update: 2026-09-28T12:05Z by kilo-a5143d29cc7dd8ff at 01e6304 (this STATE commit follows it).
 
 ## Goals tonight (from AUTOCYCLE-PROMPT.md section 12)
 
@@ -19,7 +19,7 @@ as facts change and pushes after every step.
 3. DIG verification (Sol primary) and vibe advisory.
 4. perf-wave-1 second (docs) merge.
 5. Wave-3 drafts and the filled SUPERVISOR-PREREG table for packet 2.
-6. Probes and the benchmark catalog; measurements for every call.
+6. Probes DONE (results below); benchmark catalog pending; measurements recorded (9 rows).
 7. A-1 after 2A (merge is the owner's). PROFILE-2 after 2A in a quiet window.
 
 ## Branch heads (origin) - operator verifies with git ls-remote
@@ -72,6 +72,23 @@ as facts change and pushes after every step.
 - Reboot confirmed 2026-09-28T14:40:16+03:00 (LastBootUpTime newer than the Part A snapshot); the
   post-reboot memory baseline is in Memory below. Cycle work has not resumed (NIGHT_END passed).
 
+## Probes (2026-09-28 after reboot; 9 rows in MEASUREMENTS.jsonl)
+
+- MiMo via OpenRouter BLOCKED by credits: HTTP 402, the account affords ~27065 tokens; kilo requests
+  32000, mimo requests 128000 (artifacts `.ai/runtime/probe-mimo-openrouter.txt`,
+  `.ai/runtime/probe-mimo-OR-mimo.txt`). Owner item.
+- MiMo via the xiaomi provider (mimo CLI): READY, PONG/PONG2; identity from the log
+  `providerID=xiaomi modelID=mimo-v2.6-pro`; first call $0.022708305 for 52169 in / 4 out
+  (~$0.435/M in, derived from the client cost field).
+- codex `gpt-6-sol` and `gpt-6-luna`: READY (PONG); identity from the rollout turn_context.model;
+  subscription, no marginal cost; usage 22465/6 and 21947/6.
+- claude: id `claude-sonnet-5-5` is unrecognized; the alias `sonnet` resolves to `claude-sonnet-5`
+  (canonicalModel in the JSON result). Owner item.
+- GLM via vibe: still FAIL - fresh 2026-09-28T11:59:58Z warning "falling back to default model
+  'mistral-medium-3.5'"; the config models array holds only mistral-medium-3.5.
+- Pool now: DeepSeek Flash (kilo), Gemini 3.8 (agy), codex Sol/Luna/Terra, vibe = Mistral,
+  MiMo via the xiaomi route (OpenRouter blocked).
+
 ## Accepted tonight (by delegation)
 
 (none yet)
@@ -90,11 +107,12 @@ as facts change and pushes after every step.
 
 ## Owner queue pointer
 
-See `OWNER-QUEUE.md` (new 2026-09-28: round-6 leftover file; Kilo PID 42968; w3 untracked dir).
+See `OWNER-QUEUE.md` (new 2026-09-28: round-6 leftover file; Kilo PID 42968; w3 untracked dir;
+OpenRouter credits for MiMo; Sonnet 5.5 id unconfirmed).
 
 ## Measurements summary (top 10 by E)
 
-(no rows yet)
+9 probe rows recorded 2026-09-28; the top-10 by E is computed at cycle close.
 
 ## Memory
 

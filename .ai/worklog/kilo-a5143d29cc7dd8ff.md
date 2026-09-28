@@ -4,135 +4,51 @@ Session journal. Owned by this session. No other session writes here.
 
 Newest entry first. Limit 150 lines.
 
+<!-- archived-parent: sha256:0331233172e3af7001e34510d03e9af3818ab299375c4fd0a94fce98707d441f -->
+
 ---
 
-## 2026-09-28 - AUTOCYCLE-1 extension (PROTO-DEC-0092), empty-journal prune, Part B start
+## 2026-09-28 - AUTOCYCLE-1 Part B: probes (MiMo, codex Sol/Luna, Sonnet 5.5, GLM-vibe), measurements
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
 
-Action: Per the owner's instruction in chat: appended PROTO-DEC-0092 (AUTOCYCLE-1 extended, NIGHT_END
-2026-09-28 23:00 MSK, delegation valid until then with the same boundaries, MAX_CYCLES 8 and
-NIGHT_BUDGET_USD $5.00 unchanged with the spend counter continuing) plus one REGISTRY row, commit
-0fb4e24; one line in STATE.md. Pruned empty journals: `claude-b68b3491ee12ebd9.md` (old empty,
-tracked) was quarantined on the first run; the glm stub was skipped as recent, then quarantined with
-`prune --force` once the owner confirmed the glm session is not theirs; both moved to
-`.ai/runtime/pruned/` (disposable). The tracked claude journal deletion goes into this commit.
-Part B starts; B0 is not repeated (fetch/pull clean at 3c25639).
+Action: Ran work-queue item 2 (probes) serially after the reboot gate; appended 9 rows to
+`docs/research/2026-09-28-autocycle/MEASUREMENTS.jsonl`; updated STATE.md (Probes section, goals,
+measurements summary) and OWNER-QUEUE.md (OpenRouter credits; Sonnet 5.5 id). Probe calls:
+- `kilo run -m openrouter/xiaomi/mimo-v2.6-pro` -> HTTP 402, afford 27065 of 32000 max_tokens
+  (`.ai/runtime/probe-mimo-openrouter.txt`);
+- `mimo run -m openrouter/xiaomi/mimo-v2.6-pro` -> HTTP 402, afford 27065 of 128000
+  (`.ai/runtime/probe-mimo-OR-mimo.txt`);
+- `mimo run -m xiaomi/mimo-v2.6-pro` x2 -> READY PONG/PONG2; identity from `--print-logs`:
+  `service=llm providerID=xiaomi modelID=mimo-v2.6-pro`; first call $0.022708305, 52169 in / 4 out,
+  second 74 in / 5 out with 52096 cache-read, $0.0002493156;
+- `codex exec -m gpt-6-sol` -> READY PONG; rollout `turn_context.model=gpt-6-sol`; 22465 in / 6 out;
+- `codex exec -m gpt-6-luna` -> READY PONG; rollout `turn_context.model=gpt-6-luna`; 21947 in / 6 out;
+- `claude -p --model claude-sonnet-5-5` -> `[claude-code:unrecognized_model]`;
+- `claude -p --model sonnet` -> READY PONG; `modelUsage.canonicalModel=claude-sonnet-5`;
+- `vibe -p` -> READY PONG; fresh warning 2026-09-28T11:59:58Z "Active model 'glm-5-3' is not in your
+  configured models; falling back to default model 'mistral-medium-3.5'"; config models array holds
+  only mistral-medium-3.5.
 
-Result: The extension decision, registry row and STATE line are recorded and pushed; no empty
-journals remain; the codex journal and the round-6 leftover stay untouched.
+Result: Probes complete; pool confirmed: DeepSeek Flash (kilo), Gemini 3.8 (agy), codex
+Sol/Luna/Terra, vibe = Mistral, MiMo via the xiaomi route only (OpenRouter blocked by credits).
+Marginal probe spend $0.02296. OWNER-QUEUE gained the OpenRouter credit item and the Sonnet 5.5 id
+item; the cycle-level package is sent at the cycle close, not now.
 
-Next step: Part B work-queue item 2 (section 12): probes (MiMo via OpenRouter; the new capability
-models; the GLM-vibe route) before the 2A recovery-3 session.
+Next step: work-queue item 3 - 2A recovery 3 (prompt-only unified adversarial audit by the Gemini
+executor on `kernel-batch-1` @ 5bc9940), then the freeze and the MiMo + Sol certification; the MiMo
+route decision sits in OWNER-QUEUE and does not block the audit session.
 
-Open: none new.
-
-Evidence:
-- anchor: 0fb4e2437f73cb23841ffde64fd3e09e7bd7c76e, uncommitted changes present
-- digest: sha256:ad83ac0192b897890f99b1fe9da6cb74c967615554c79bc2dc196bd4a3b402f9 over 780 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-28T11:54:20.630Z by kilo-a5143d29cc7dd8ff
-- entry hash format: 2
-- entry: sha256:0331233172e3af7001e34510d03e9af3818ab299375c4fd0a94fce98707d441f of this entry without this block
-- parent-entry: sha256:8d0cef26a598bfda6ce929b4f610c68df3f3e5e80282c0c234ed37b89fcda49a
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 13s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-## 2026-09-28 - AUTOCYCLE-1 post-reboot: baseline recorded (C00)
-
-Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
-
-Action: The owner rebooted; verified LastBootUpTime 2026-09-28T14:40:16+03:00 (newer than the Part A
-snapshot 2026-09-28T00:58Z; not degraded). Took the post-reboot memory baseline and updated
-`docs/research/2026-09-28-autocycle/STATE.md` (Meta, Part A record, Memory). Repo checked: fetch
-clean, v2.0.0 = da07f78 = origin; untracked: the codex journal, an empty
-`.ai/worklog/glm-0c700cdaec6cefde.md` stub (appeared after Part A; not mine, not touched), and the
-round-6 leftover file (not committed).
-
-Result: free RAM 17.83 GB; Pool Nonpaged 690.63 MB, Pool Paged 499.77 MB (6162.40 MB before the
-reboot - consistent with H-2); Committed 17577.29 MB of 65229.49 MB (27%). TextInputHost fresh
-PID 15084 (62.9 MB, 0.9 s CPU). 5 s CPU sample of key processes: max 0.93% of total capacity
-(Code PID 11076; 32 logical processors); TextInputHost below the threshold. Silence gate: free
->= 8 GB OK; no process above 5% OK; pools recorded; 2-3 clean sessions still pending.
-
-Next step: cycle work is formally stopped at NIGHT_END (AUTOCYCLE section 11); on the owner's
-direction, resume with the probes (MiMo via OpenRouter, new capability models, GLM-vibe route) and
-the C01 pipeline (recovery 3 prompt-only -> freeze -> MiMo + Sol -> delegated merge).
-
-Open: empty glm journal stub - not mine; possibly started by the owner.
+Open: OpenRouter credits (owner); Sonnet 5.5 id (owner).
 
 Evidence:
-- anchor: da07f78be5beac14b02ff4a39e5161a1a01aa174, uncommitted changes present
-- digest: sha256:c367473a258075eff9ad99747236d67fc536886a71878e2b9b7378bfbc779fb6 over 780 tracked and untracked files
+- anchor: 01e6304f425e14f702aa82e5a752e3fb2ba8d922, uncommitted changes present
+- digest: sha256:cda25400e61c6beeb8e3550961a0bd221887be91d8208d318c5d538e99df3475 over 780 tracked and untracked files
 - digest format: 4
-- recorded: 2026-09-28T11:49:40.224Z by kilo-a5143d29cc7dd8ff
+- recorded: 2026-09-28T12:01:34.952Z by kilo-a5143d29cc7dd8ff
 - entry hash format: 2
-- entry: sha256:8d0cef26a598bfda6ce929b4f610c68df3f3e5e80282c0c234ed37b89fcda49a of this entry without this block
-- parent-entry: sha256:68af04b4c629399807f86c5c77105a1ff5827e0ccefb39c8b5e8fb8f509acd71
+- entry: sha256:1b670e6a21c9dc2d4862aaf2f045ef2217bb21b7144730f81bb6d285aee04dda of this entry without this block
+- parent-entry: sha256:0331233172e3af7001e34510d03e9af3818ab299375c4fd0a94fce98707d441f
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 16s
-- reproduce: node .ai/bin/protocol-handoff.cjs verify
-## 2026-09-28 - AUTOCYCLE-1 Part A: state saved, PROTO-DEC-0091, memory snapshot
-
-Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
-
-Action:
-- Session start verified: toplevel D:/Colabs, branch v2.0.0, HEAD contains cb60b49; fetch and
-  `pull --ff-only origin v2.0.0` clean.
-- Part A step 1: local heads descend from origin (kernel-batch-1 5bc9940, perf-wave-1 f8e20b2);
-  pushed both. `git ls-remote` matches: kernel-batch-1 5bc9940, perf-wave-1 f8e20b2,
-  roadmap-wave3 6ff869d, v2.0.0 cb60b49. Worktree statuses: core-ia clean (0c03775), kb1 clean
-  (5bc9940), perf1 clean (f8e20b2), perf1a clean detached (e752c0c), w3 clean except untracked
-  `docs/research/2026-09-27-roadmap-queue/drafts/.ai/` (not mine; not touched),
-  .kilo/worktrees/screeching-silk clean detached (d38d2f2).
-- Round-5 record committed separately: `docs/reviews/2026-09-27-round5-consensus-discussion.md`
-  in 635ad4e, pushed.
-- Part A step 2: under lock `kilo-a5143d29cc7dd8ff` appended one block PROTO-DEC-0091 to
-  `.ai/DECISIONS.md` (round-6 items 1-8 as written with the AUTOCYCLE-PROMPT section-6 changes;
-  standing delegation section 6 verbatim; consensus rule section 5 verbatim) and one REGISTRY row;
-  commit c9ad966, pushed.
-- Part A step 3, memory before cleanup (2026-09-28T00:58Z): Pool Nonpaged 2133.84 MB, Pool Paged
-  6162.40 MB, Committed 52052.07 MB of 65229.49 MB limit, free 8.12 GB. Top private bytes:
-  TextInputHost PID 37004 10198 MB (CPU 263113 s), kilo PID 42968 2687 MB (CPU 3826 s), Code
-  14760 1195 MB, chrome 12292 1171 MB. `Stop-Process -Name TextInputHost -Force` done; after 65 s:
-  Nonpaged 2102.89 MB, Paged 6174.94 MB, Committed 41475.92 MB, free 9.49 GB.
-- Kilo PID 42968 NOT killed: it is the live `kilo.exe serve` tree hosting this session (my shell
-  runs as its child) and it holds two live agy background runners (perf1 M1-LAUNCH.md, w3
-  LAUNCH-W3-GEMINI.md). Killing it would kill this session and those tasks. Logged to OWNER-QUEUE.
-- Round-6 decision item 2 provenance line (GLM via vibe -> mistral-medium-3.5). Every artifact
-  previously labeled GLM through vibe is reattributed to mistral-medium-3.5; the opinions stand as
-  opinions, only the model label changes:
-  - owner manual vibe session 9b54336c;
-  - `docs/reviews/2026-09-27-round4-consensus-discussion.md` - expert I1, "семейство GLM";
-  - `docs/reviews/2026-09-27-round6-consensus-inputs.md` - the "советник GLM" input and the notes
-    "verbatim, for the GLM synthesizer session";
-  - `docs/reviews/2026-09-27-round6-consensus-task.md` - the round-6 synthesis task addressed to
-    GLM via vibe; its runs failed and are not used (the leftover output file is not committed).
-  Round-5 sources carry GLM only as a planned certifier name (PROTO-DEC-0090/0091), not as a
-  session label; no reattribution needed there.
-- The reattribution changes no decision text: PROTO-DEC blocks keep their wording; only the model
-  label of the listed artifacts changes.
-
-Result: Part A complete except the owner's reboot. STATE.md updated and pushed. Last boot before
-reboot: 2026-09-23T05:11:23+03:00 (degraded mode applies only if the post-reboot boot time is not
-newer than the Part A snapshot).
-
-Next step: owner reboots and restarts the operator with "Продолжай AUTOCYCLE-1 с Части B"
-(B0: fetch, pull --ff-only, read STATE/00-PROMPT/OWNER-QUEUE, memory and budget checks).
-
-Open: (1) untracked `drafts/.ai/` in the w3 worktree - not mine, owner decision; (2) Kilo PID
-42968 kept alive - owner decision if it must die; (3) `docs/reviews/2026-09-27-round6-consensus-discussion.md`
-leftover is not used and not committed - owner item in OWNER-QUEUE.
-
-Evidence:
-- anchor: c9ad966f854d4b43651f8b6a754c432839969799, uncommitted changes present
-- digest: sha256:4a37caaf4ebb78962dce4b4d6acaa17401ffda8e5e829c196fcee4f479eb1d9b over 780 tracked and untracked files
-- digest format: 4
-- recorded: 2026-09-28T01:01:58.607Z by kilo-a5143d29cc7dd8ff
-- entry hash format: 2
-- entry: sha256:68af04b4c629399807f86c5c77105a1ff5827e0ccefb39c8b5e8fb8f509acd71 of this entry without this block
-- parent-entry: root
-- scope: validator only; the regression suite was NOT run; host-project tests run separately
-- validate-protocol.ps1: exit 0 in 14s
-- sanitized: 2026-09-28T01:02:30.833Z reason: wording fix in the operator journal entry (ambiguous sentence); no factual change, no secret
+- validate-protocol.ps1: exit 0 in 4s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
