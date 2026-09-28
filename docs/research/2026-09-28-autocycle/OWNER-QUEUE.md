@@ -10,3 +10,6 @@ One line per item: what, why it needs the owner, options, since when (ISO), cycl
 - GLM route: a separate technical task (provider documentation or API for the model id; PASS = log without "falling back"). Since 2026-09-28.
 - F-C01 host review-path contract (TASK.md open question): on the pilot path. Since 2026-09-23.
 - Optional round-6 synthesis (C01 item 5): not run tonight. Since 2026-09-28.
+- Round-6 leftover `docs/reviews/2026-09-27-round6-consensus-discussion.md`: remainder of the failed synthesis; not used and not committed (per the owner's instruction); options: redo as a Mistral advisory after the reboot or discard. Since 2026-09-28.
+- Kilo PID 42968 kept alive in Part A: live `kilo.exe serve` tree hosting the operator session, with two live agy background runners (perf1 M1-LAUNCH.md, w3 LAUNCH-W3-GEMINI.md); the kill condition ("no live task and not your own tree") was not met; owner to decide if it must be stopped. Since 2026-09-28.
+- w3 worktree untracked `docs/research/2026-09-27-roadmap-queue/drafts/.ai/`: uncommitted, not the operator's; options: ignore, commit, or delete. Since 2026-09-28.

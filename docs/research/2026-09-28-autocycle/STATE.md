@@ -6,13 +6,14 @@ as facts change and pushes after every step.
 
 ## Meta
 
-- Cycle: C00 (setup; Part A pending). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
-- Mode: pending reboot (degraded mode if no reboot after the snapshot).
-- Last update: <ISO> by <operator session> at <sha>.
+- Cycle: C00 (Part A complete; awaiting reboot). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
+- Mode: pending reboot; degraded mode applies only if the post-reboot boot time is not newer than the
+  Part A snapshot time 2026-09-28T00:58Z (boot seen before reboot: 2026-09-23T05:11:23+03:00).
+- Last update: 2026-09-28T01:02Z by kilo-a5143d29cc7dd8ff at c9ad966 (this STATE commit follows it).
 
 ## Goals tonight (from AUTOCYCLE-PROMPT.md section 12)
 
-1. Save state, delegation block, memory snapshot, reboot (Part A).
+1. Save state, delegation block, memory snapshot, reboot (Part A) - DONE except the reboot.
 2. 2A: recovery 3 prompt-only, freeze, MiMo + Sol, delegated merge.
 3. DIG verification (Sol primary) and vibe advisory.
 4. perf-wave-1 second (docs) merge.
@@ -24,9 +25,9 @@ as facts change and pushes after every step.
 
 | Branch | Expected | Note |
 |---|---|---|
-| v2.0.0 | 18a7e4b or newer | round-6 inputs committed |
-| kernel-batch-1 | origin 5a6cad1; local 5bc9940 UNPUSHED | 2A review RECOMMENDATION is in 5bc9940 |
-| perf-wave-1 | origin 4c25741; local f8e20b2 UNPUSHED | Addendum is in f8e20b2 |
+| v2.0.0 | c9ad966 + STATE commit | PROTO-DEC-0091 is in c9ad966; round-5 record is 635ad4e |
+| kernel-batch-1 | origin 5bc9940 = local 5bc9940 | pushed in Part A (was local-only, ahead 1) |
+| perf-wave-1 | origin f8e20b2 = local f8e20b2 | pushed in Part A (was local-only, ahead 2) |
 | roadmap-wave3 | 6ff869d | DIG drafts, COVER-DUP, GLM-PROBE |
 | core-landing-ia | 0c03775 | frozen candidate (PROTO-DEC-0087); do not touch |
 | autocycle-claude | (created by the finalizer) | Claude's mailbox answers |
@@ -34,7 +35,8 @@ as facts change and pushes after every step.
 ## Standing assignments (unchanged tonight)
 
 - 2A certifiers: MiMo-V2.6-Pro + GPT-5.6 Sol (PROTO-DEC-0090).
-- A-1: executor Claude Opus 5.5 (effort max); certifiers GPT-5.6 Sol + MiMo-V2.6-Pro.
+- A-1: executor Claude Opus 5.5 (effort max); certifiers GPT-5.6 Sol + MiMo-V2.6-Pro (PROTO-DEC-0091
+  item 6i; the GLM route FAILED, so the MiMo reserve is active).
 - DIG verifier: GPT-5.6 Sol; fallback MiMo-V2.6-Pro after its probe.
 - vibe: GLM-5.3 route FAIL (silent fallback to mistral-medium-3.5); vibe rows are Mistral unless a
   probe PASSes.
@@ -43,13 +45,29 @@ as facts change and pushes after every step.
 
 ## Pipelines (next step)
 
-- 2A kernel-batch-1: push 5bc9940 -> recovery 3 (prompt only) -> freeze -> MiMo + Sol -> merge.
-- perf-wave-1: push f8e20b2 -> Addendum script-confirmation line present? -> range check -> docs merge.
+- 2A kernel-batch-1: pushed -> recovery 3 (prompt only) -> freeze -> MiMo + Sol -> delegated merge.
+- perf-wave-1: pushed -> Addendum script-confirmation line present? -> range check -> docs merge.
 - Wave 3 (F-17): COVER-DUP line -> Sol verification -> vibe advisory -> drafts -> packet 2 table.
 - A-1: waits for the 2A merge.
 - PROFILE-2 / V3: wait for the 2A merge and a quiet window; V3 split line is the owner's.
 - core-landing-ia: frozen until stages 2-3 and the I-a certification.
 - 2B Node validator: after 2A, only if the final-plan-2 section AC conditions are verified.
+
+## Part A record (2026-09-28)
+
+- Step 1: local heads descend from origin; pushed kernel-batch-1 5bc9940 and perf-wave-1 f8e20b2;
+  ls-remote matches (kb1 5bc9940, perf1 f8e20b2, w3 6ff869d, v2.0.0 cb60b49 at the time).
+- Step 2: PROTO-DEC-0091 appended under lock (round-6 items 1-8 with the section-6 changes, standing
+  delegation verbatim, consensus rule verbatim) + one REGISTRY row; commit c9ad966, pushed.
+- Step 3 memory before: Nonpaged 2133.84 MB, Paged 6162.40 MB, Committed 52052.07 MB of 65229.49 MB,
+  free 8.12 GB; TextInputHost PID 37004 killed (10198 MB private, CPU 263113 s); after 65 s:
+  Nonpaged 2102.89 MB, Paged 6174.94 MB, Committed 41475.92 MB, free 9.49 GB.
+- Kilo PID 42968 NOT killed: live `kilo.exe serve` tree hosting the operator session plus two live
+  agy background runners (perf1, w3); logged in OWNER-QUEUE.
+- Uncommitted not ours: w3 worktree untracked `docs/research/2026-09-27-roadmap-queue/drafts/.ai/`;
+  logged in OWNER-QUEUE.
+- GLM provenance reattribution to mistral-medium-3.5 written in the operator journal
+  `.ai/worklog/kilo-a5143d29cc7dd8ff.md` (round-6 item 2).
 
 ## Accepted tonight (by delegation)
 
@@ -69,7 +87,7 @@ as facts change and pushes after every step.
 
 ## Owner queue pointer
 
-See `OWNER-QUEUE.md`.
+See `OWNER-QUEUE.md` (new 2026-09-28: round-6 leftover file; Kilo PID 42968; w3 untracked dir).
 
 ## Measurements summary (top 10 by E)
 
@@ -77,4 +95,8 @@ See `OWNER-QUEUE.md`.
 
 ## Memory
 
-- Snapshot before reboot: (pending). Baseline after reboot: (pending).
+- Snapshot before reboot (2026-09-28T00:58Z): Nonpaged 2133.84 MB, Paged 6162.40 MB,
+  Committed 52052.07 MB of 65229.49 MB, free 8.12 GB.
+- After TextInputHost stop (2026-09-28T01:00Z): Nonpaged 2102.89 MB, Paged 6174.94 MB,
+  Committed 41475.92 MB, free 9.49 GB.
+- Baseline after reboot: (pending).
