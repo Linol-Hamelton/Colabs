@@ -21,6 +21,11 @@ const expectedEntries = validRegistryContent
 
 const validDecisionsPath = path.join(repoRoot, '.ai/DECISIONS.md');
 const validDecisionsContent = fs.readFileSync(validDecisionsPath, 'utf8');
+const nextDecId = (() => {
+  const ids = [...validDecisionsContent.matchAll(/PROTO-DEC-(\d{4})/g)].map(m => Number(m[1]));
+  const max = ids.length ? Math.max(...ids) : 0;
+  return `PROTO-DEC-${String(max + 1).padStart(4, '0')}`;
+})();
 
 test('registry check 1: complete valid registry passes with 0 warnings', t => {
   const root = makeProtocolFixture(t, { realValidator: true });
@@ -96,15 +101,15 @@ test('registry check 6: new decision block without Reopen-trigger: emits WARN', 
   git(root, ['add', '.ai/DECISIONS.md', 'docs/decisions/REGISTRY.md']);
   git(root, ['commit', '-m', 'Baseline commit']);
 
-  const newDecBlock = `\n### PROTO-DEC-0099 New Feature\nStatus: Accepted\nDate: 2026-09-19\nApproved by: Test Owner\n\nContext:\nNew test feature.\n`;
+  const newDecBlock = `\n### ${nextDecId} New Feature\nStatus: Accepted\nDate: 2026-09-19\nApproved by: Test Owner\n\nContext:\nNew test feature.\n`;
   write(root, '.ai/DECISIONS.md', validDecisionsContent + newDecBlock);
 
-  const regWithNew = validRegistryContent + '| PROTO-DEC-0099 | accepted | none | | | |\n';
+  const regWithNew = validRegistryContent + `| ${nextDecId} | accepted | none | | | |\n`;
   write(root, 'docs/decisions/REGISTRY.md', regWithNew);
 
   const res = validate(root);
   assert.equal(res.status, 0, res.output);
-  assert.match(res.output, /\[WARN\] new decision block PROTO-DEC-0099 missing Reopen-trigger field/);
+  assert.match(res.output, new RegExp(`\\[WARN\\] new decision block ${nextDecId} missing Reopen-trigger field`));
 });
 
 test('registry check 7: new decision block with unknown Reopen-trigger emits WARN', t => {
@@ -114,15 +119,15 @@ test('registry check 7: new decision block with unknown Reopen-trigger emits WAR
   git(root, ['add', '.ai/DECISIONS.md', 'docs/decisions/REGISTRY.md']);
   git(root, ['commit', '-m', 'Baseline commit']);
 
-  const newDecBlock = `\n### PROTO-DEC-0099 New Feature\nStatus: Accepted\nDate: 2026-09-19\nApproved by: Test Owner\nReopen-trigger: invalid-trigger-name\n\nContext:\nNew test feature.\n`;
+  const newDecBlock = `\n### ${nextDecId} New Feature\nStatus: Accepted\nDate: 2026-09-19\nApproved by: Test Owner\nReopen-trigger: invalid-trigger-name\n\nContext:\nNew test feature.\n`;
   write(root, '.ai/DECISIONS.md', validDecisionsContent + newDecBlock);
 
-  const regWithNew = validRegistryContent + '| PROTO-DEC-0099 | accepted | none | | | |\n';
+  const regWithNew = validRegistryContent + `| ${nextDecId} | accepted | none | | | |\n`;
   write(root, 'docs/decisions/REGISTRY.md', regWithNew);
 
   const res = validate(root);
   assert.equal(res.status, 0, res.output);
-  assert.match(res.output, /\[WARN\] new decision block PROTO-DEC-0099 has unknown Reopen-trigger: invalid-trigger-name/);
+  assert.match(res.output, new RegExp(`\\[WARN\\] new decision block ${nextDecId} has unknown Reopen-trigger: invalid-trigger-name`));
 });
 
 test('registry check 8: case-mutated row vs HEAD emits immutability and unknown-id WARN', t => {
