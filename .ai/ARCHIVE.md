@@ -15847,3 +15847,268 @@ Evidence:
 - scope: validator only; the regression suite was NOT run; host-project tests run separately
 - validate-protocol.ps1: exit 0 in 6s
 - reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-2fec8d740dc73400.md, archived 2026-09-28
+
+## 2026-09-28 - Owner checks: session health, Claude limit, effort levels, MEASUREMENTS rows completed
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: On the owner's request verified that no dispatched session aborted and identified the
+Claude-effort levels. All completed sessions ended with their success markers and `is_error=false`:
+ADV-001 and ADV-002 (advisor) `subtype=success`, A-1 executor `subtype=success`, 149 turns; the
+DeepSeek fix reviews and the F-18 verifier also stopped with `reason=stop`. Wave 1 certifiers were
+alive at the check (codex pid 38076 running probes; mimo pid 7604 CPU-active). Two live
+`claude.exe` processes belong to the VS Code extension panels (started 12:19Z and 17:52Z), not to
+AUTOCYCLE tasks; left untouched. Effort evidence: the advisor calls ran with the explicit
+`--effort high` flag (MEASUREMENTS role=advisor, effort=high; model `claude-opus-5-5` from the API
+field); the A-1 executor ran at `--effort max` (wrapper `.ai/runtime/a1-launch.ps1`; 212,259 output
+tokens, 57.6 min, shadow cost 14.28 USD) - it is the heavy consumer of the Claude quota. The
+fallback to High (ADV-001-5 / PROTO-DEC-0090 item 10) therefore applies to future heavy Claude
+re-runs, not to the advisor, which already reasons at High. Completed the MEASUREMENTS ledger with
+the missing rows: role=executor for the A-1 Claude session, role=reviewer for both DeepSeek fix
+reviews (costs 0.044326 and 0.035792 USD from the client streams). Gate at 20:12Z: Available
+7.99 -> 8.53 GB (transient), nonpaged 1307 MB, kilo WS 2.53 GB.
+
+Result: no aborted sessions; effort levels recorded; 50 MEASUREMENTS rows; cert wave 1 unaffected
+by the Claude limit (codex + mimo).
+
+Next step: 20:20Z check of wave 1 -> wave 2 (Luna + MiMo for H1), then the owner's summary.
+
+Open: wave-1 verdicts; wave 2; owner merges of the frozen candidates.
+
+Evidence:
+- anchor: d2d04deb876b91659ed2410600d04847413f4ccd, uncommitted changes present
+- digest: sha256:7d33cc53564959528c55ed00ecab09947904648670c4cb07a1ed6e9c8d8005f8 over 1913 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T20:18:12.967Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:555351001909f4a1486f2172890eda95e4efb26c1f36ed4f7bb2f9d1c44636de of this entry without this block
+- parent-entry: sha256:3437b7e673e27512187b4d70b5daf7a3fb62fb1c62ac0769c2651de1789cae50
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - A-1/H1 frozen; DeepSeek reviews (RECOMMENDATION / PASS); certification wave 1 running
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: The two DeepSeek fix reviews finished. A-1: **RECOMMENDATION** (`0e1f947`;
+`docs/reviews/2026-09-28-deepseek-a1-fix-review.md`, session `deepseek-7673879ed0e8fc01`, 201 lines,
+Mode ADVISORY): both parsers refuse the advisory forms in both roles; no candidate regression; the
+residual marker-splitting/table-cell escapes are pre-existing blacklist limits (R2/R3), not
+introduced, and it recommends a future whitelist, not a change. H1: **PASS** (`411f7dd`;
+`docs/reviews/2026-09-28-deepseek-h1-fix-review.md`, session `deepseek-f1f2471eac81e95a`, 184 lines):
+the role-aware `loadProtectedSet` matches PROTO-DEC-0107 item 1 exactly, nine tests red pre-fix and
+green now, the end-to-end probe fails as required, no mandatory defect. Froze both branches: wrote
+the four certifier launches and committed them as the freeze commits - A-1 `8b74e41`
+(`a1-installed-advisory`), H1 `476b488` (`h1-installed-protected-set`); both pushed (new origin
+branches). Created four worktrees (`cert-a1-sol`, `cert-a1-mimo`, `cert-h1-luna`, `cert-h1-mimo`)
+and dispatched **wave 1**: Sol-A1 (codex, `gpt-5.6-sol`, medium) `bgp_0e99c2d6c001197rc0DI0toQ1P`
+and MiMo-A1 (`xiaomi/mimo-v2.6-pro`, high) `bgp_0e99c2f25001qaMgbtuqsmZa1G` at 20:03Z. Wave 2
+(Luna xhigh + MiMo for H1) starts after wave 1; MiMo is sequential by ADV-002-8.
+
+Result: A-1 and H1 are frozen, pushed, and under their two independent certifiers; merges await the
+owner (after 20:00Z any merge is his word).
+
+Next step: process wave-1 verdicts; dispatch wave 2; collect verdicts into STATE; the owner's final
+summary at his return.
+
+Open: four certifier verdicts; owner merges of A-1 (always his) and H1.
+
+Evidence:
+- anchor: a00f98bbd6764f218251de695f8a9ffcfce4ebe7, uncommitted changes present
+- digest: sha256:cd83104c57b04024c03ce279ce9df783c1c81c34aa72b33c06a73c8edb0db8c0 over 1913 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T20:02:40.588Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:3437b7e673e27512187b4d70b5daf7a3fb62fb1c62ac0769c2651de1789cae50 of this entry without this block
+- parent-entry: sha256:ceea8c3381bfd985d862b1919730cdf0b5d2a471a939531bf7ad91d9e5c9360e
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 7s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - Both candidate suites green; DeepSeek fix reviews dispatched (balance recorded)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: Ran the two candidate full suites serially in the quiet window (gate read before each;
+Available 10.34 -> 9.74 -> 9.63 GB, nonpaged 1244 MB at 19:33, kilo WS 3.09 GB). A-1
+(`a1-installed-advisory` @ `7e51b89`): `validate-protocol.ps1` exit 0; `test-protocol.ps1` 425/425
+PASS, 304.5 s (19:27:46-19:32:57Z); log `.ai/runtime/a1-suite.log`. H1 (`h1-installed-protected-set`
+@ `d31ebb6`): validator exit 0; suite 432/432 PASS, 311.2 s (19:33:13-19:38:36Z); log
+`.ai/runtime/h1-suite.log`. Wrote the fix-review launches (`LAUNCH-A1-REVIEW.md` committed `05726f3`;
+`LAUNCH-H1-REVIEW.md` `0c2b36a`), recorded the DeepSeek balance before the paid calls per Q-D:
+documented snapshot $11.92 + ¥155.41 (`docs/ops/MODEL-ECONOMICS.md:79`, 2026-09-25 15:30Z); the live
+balance is not observable from this session (established gap); threshold >= $3 holds on the
+snapshot. Dispatched both reviews as separate kilo sessions (deepseek/deepseek-flash, variant high,
+`--auto`, registered command): A-1 `bgp_0e987995f001ldikevSL7vEXh3` (pid 11764), H1
+`bgp_0e987a13d001qedq16XyzGRykO` (pid 16452), both at 19:39Z.
+
+Result: both candidates are suite-green and under independent review; on PASS/RECOMMENDATION the
+branches freeze and the certifiers run (A-1: Sol + MiMo; H1: Luna + MiMo).
+
+Next step: process both reviews when they exit; freeze the branches if no blocking finding; dispatch
+the certifiers; 20:00Z is NIGHT_END (merges after it only by the owner's word).
+
+Open: review verdicts; freezes; four certifier sessions; owner decision on the A-1 merge.
+
+Evidence:
+- anchor: c554d17f40f88d417728fabb29101f68589d9e32, uncommitted changes present
+- digest: sha256:c5d81d1e527d8c20fcf00be66642fdba089b9fcc59060c0f08e8a925e10df0dd over 1913 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T19:40:06.776Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:ceea8c3381bfd985d862b1919730cdf0b5d2a471a939531bf7ad91d9e5c9360e of this entry without this block
+- parent-entry: root
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 8s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+### From .ai/worklog/kilo-2fec8d740dc73400.md, archived 2026-09-28
+
+## 2026-09-28 - ADV-003 (selection=owner): the owner answered the briefing; A-1 merge GRANTED
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: The owner answered the ADV-003 briefing himself (selection=owner; no Claude call, saving
+its limit): (1) the A-1 blacklist is sufficient for v1; the whitelist becomes a separate BACKLOG
+task; (2) H1 accepted as is; pre-pilot host check performed - `D:\Block-Puzzle` and `D:\VPN` both
+have `role=installed` and no `source` key, so no re-install is needed (had `role` been absent, the
+host would need a v1 re-install, otherwise exit 2); (3) the freeze scheme is confirmed provided the
+reviewed..frozen diff is docs-only - checked: A-1 `7e51b89..8b74e41` = five `.md` docs, H1
+`d31ebb6..476b488` = five `.md` docs; (4) merges: A-1 first then H1, plain merge, no rebase; after
+the second - the full suite on the merged tree, `verify`, push; **A-1 merge GRANTED**; **H1 merge
+granted only if MiMo-H1 returns PASS/RECOMMENDATION, otherwise STOP and to the owner**;
+(5) F-001 (`LAUNCH-H1.md:44-45`): do not fix, journal line only; (6) R2/R3, the F-18 row-20 and the
+whitelist go to the next-wave BACKLOG (already CoLabus-bound); (7) after both merges and a green
+suite - the Kernel v1 freeze: propose the tag `kernel-v1.0.0` and the SHA, tag only on the owner's
+word; the Community state-file skeletons are exactly what the installer creates for an empty
+project (decision; the OWNER-QUEUE line is closed); (8) after the merges, a separate commit moves
+`LAUNCH-*.md` from the repository root into `docs/research/2026-09-28-autocycle/launch/` (`git mv`);
+(9) DeepSeek balance counted from the owner's base of $21.9 at 15:08Z (PROTO-DEC-0098) minus
+tracked usage; the two reviewer calls spent $0.080118 by usage so far.
+
+Result: A-1 merge authorised; MiMo-H1 remains the gate for H1.
+
+Next step: merge A-1 locally; on the MiMo-H1 verdict merge H1 or STOP; then the merged-tree suite,
+`verify`, push, and the LAUNCH relocation commit.
+
+Open: MiMo-H1 verdict; the merged-tree suite; the Kernel v1 tag proposal.
+
+---
+
+## 2026-09-28 - Repository documents updated to the certified state (briefing for Claude)
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: On the owner's instruction prepared the repository documents before the chat handoff.
+Updated `docs/research/2026-09-28-autocycle/advisor/003-BRIEFING.md` to the current state: A-1
+certified (Sol PASS `a9a2443` + MiMo RECOMMENDATION `d11b430`; `cert-a1-sol`/`cert-a1-mimo`
+pushed), H1 Luna PASS (`e13adf3` on `cert-h1-luna`, pushed, receipt `codex-e7ed7431f3ebf38f`),
+MiMo-H1 running (its verdict to come as a follow-up commit), F-18 closed and merged, freeze SHAs,
+and seven risk points to check. Updated STATE accordingly; appended the Luna certifier
+MEASUREMENTS row (53 rows). Committed and pushed the batch; the Claude prompt follows this commit.
+
+Result: git holds the current certified-state documents (briefing, STATE, rows, cert branches);
+the chat prompt points at this version.
+
+Next step: append the MiMo-H1 verdict to the briefing in a follow-up commit; the owner's merges.
+
+Open: MiMo-H1 verdict; owner merges of A-1 and H1.
+
+Evidence:
+- anchor: 427634482705ea901656c3a3dfe6c3f6308910ae, uncommitted changes present
+- digest: sha256:8903c452e52a39982b7365e2afa039e870704a04a9abce15eff67713ec1aece7 over 1914 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T20:36:01.993Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:0b4226a300e5e3866828278de1fcc905ba8910b04d55e5b60ad2f0275f858cad of this entry without this block
+- parent-entry: sha256:fb3af02e8bb8da1048f7bf3dea42e50482f5537810e507cf9ee3780abd397025
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 7s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - A-1 CERTIFIED (Sol PASS + MiMo RECOMMENDATION); H1 Luna PASS; MiMo-H1 running
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: **A-1 certification complete**: Sol PASS (`a9a2443`, CERTIFYING, receipt
+`codex-518a4936ada98c03`) + MiMo RECOMMENDATION (`d11b430`, CERTIFYING, receipt
+`mimo-d473022df037297a`, 210 lines, cost 0.140119 = sum of 23 steps); both certifier branches pushed
+to origin (`cert-a1-sol`, `cert-a1-mimo`); both certifiers judge the R2-R4 blacklist limits
+pre-existing and non-blocking. Added the MiMo certifier MEASUREMENTS row (52 rows). **H1**: Luna's
+certification is written and **PASS** (20:28:44Z, CERTIFYING, receipt `codex-e7ed7431f3ebf38f`,
+xhigh; commit/push pending its session end); **MiMo-H1 dispatched** at 20:33Z
+(`bgp_0e9b62f64001yT6V6NLiubGVbZ`). Gate 20:30Z: Available 7.95 GB (transient; remote cert calls
+are light), nonpaged 1296 MB, kilo WS 2.99 GB.
+
+Result: A-1 = certified, ready to merge (owner's word). H1 = one PASS in hand, second certifier
+running.
+
+Next step: collect Luna's commit + MiMo-H1 verdict; the owner's summary with both candidates ready
+for his merge.
+
+Open: MiMo-H1 verdict; owner merges of A-1 (certified) and H1.
+
+Evidence:
+- anchor: 63baba86290df96b3f9acea41c6543ed9357a41f, uncommitted changes present
+- digest: sha256:077f8be92e4cb13ee59b138f30defb280b238467e959474147ee93f830745ff7 over 1914 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T20:31:09.612Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:fb3af02e8bb8da1048f7bf3dea42e50482f5537810e507cf9ee3780abd397025 of this entry without this block
+- parent-entry: sha256:2169b22a8695ea7f078e2a5c35ca2e94a9efe002e47438f508bfc9266cde1535
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 6s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
+
+---
+
+## 2026-09-28 - A-1: Sol PASS; MiMo running; Luna-H1 started; ADV-003 briefing pushed
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-2fec8d740dc73400)
+
+Action: Sol's certification of A-1 finished **PASS** (Mode CERTIFYING, Receipt-Owner
+`codex-518a4936ada98c03`; review `docs/reviews/2026-09-28-sol-a1-certification.md`, 142 lines,
+commit `a9a2443` on `cert-a1-sol`; R2-R4 blacklist and Node-engine limits judged pre-existing and
+outside the candidate). Appended the certifier MEASUREMENTS row (codex, `gpt-5.6-sol`, medium,
+usage not exposed, q=1). Dispatched **Luna-H1** (`bgp_0e9add6490016JEiaiVedif9S2`, codex,
+`gpt-5.6-luna`, xhigh) in parallel with the still-running **MiMo-A1**
+(`bgp_0e99c2f25001qaMgbtuqsmZa1G`, since 20:03Z); **MiMo-H1 is queued** behind its A-1 session
+(ADV-002-8). Wrote, committed and pushed the concise advisor briefing
+`docs/research/2026-09-28-autocycle/advisor/003-BRIEFING.md` (`695b7ae`) so the owner can brief
+Claude quickly when its limits reset: state (`4fdee2a` at write time), what changed, and six risk
+points to check (A-1 blacklist adequacy vs a whitelist follow-up; H1 exit-2 compatibility incl. the
+prototype P2 case; the freeze SHA including launch docs; merge order against the advanced v2.0.0;
+the F-001 docs note; the R2/R3 and F-18 row-20 backlog items). Also answered the owner's effort
+question: the advisor reasoned at effort high, the A-1 executor at max.
+
+Result: A-1 has its first certifying PASS; the second (MiMo-A1) and H1's first (Luna-H1) are
+running; the Claude briefing is in the repository.
+
+Next step: on MiMo-A1 exit - dispatch MiMo-H1; collect all four verdicts; the owner's summary.
+
+Open: three certifier verdicts; owner merges of A-1 and H1.
+
+Evidence:
+- anchor: 695b7ae0679b492c32fddbbf2a0878e67ab93048, uncommitted changes present
+- digest: sha256:8821a7ae3480abe7d0887bb56e47a950f2a7252bb6464a7d336c1b2e0a34756f over 1914 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T20:22:02.304Z by kilo-2fec8d740dc73400
+- entry hash format: 2
+- entry: sha256:2169b22a8695ea7f078e2a5c35ca2e94a9efe002e47438f508bfc9266cde1535 of this entry without this block
+- parent-entry: sha256:555351001909f4a1486f2172890eda95e4efb26c1f36ed4f7bb2f9d1c44636de
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
