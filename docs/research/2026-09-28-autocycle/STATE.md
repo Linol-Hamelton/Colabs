@@ -148,7 +148,9 @@ Sol+MiMo, H1 Luna+MiMo; NIGHT_END not extended.** Read it first, then `.ai/DECIS
 4. At the freeze: the public-composition tables (install into an empty temp folder; compare with
    `git ls-files`; "stays"/"leaves" with path, size, one line; mark any "leaves" file the
    installer/validator needs) to the owner; nothing deleted before the owner's word; the tag-name
-   proposal `kernel-v1.0.0` awaits approval.
+   proposal `kernel-v1.0.0` awaits approval. **Tables built (autonomous brief item 3a):
+   `COMMUNITY-COMPOSITION.md` - 45 stay / 1963 leave @ `63de030` + 5 validator-referenced leaves and
+   the state-file freeze-form question in OWNER-QUEUE; nothing deleted.**
 5. Open backlog/residuals: **M-2A-res** (F-2A-01/F-2A-05 LOW residuals, next wave), **N-3**
    (document `PROTOCOL_JOURNAL_IMPORT_ROOT` in the next forward artifact), the Kilo-client growth
    line, the "tests must not hardcode live-corpus ids" line, and the OWNER-QUEUE additions (license
