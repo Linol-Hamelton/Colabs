@@ -9,6 +9,10 @@ as facts change and pushes after every step.
 - Cycle: C00/C01 (Part A done; C01 work in progress). Claude finalizer calls tonight: 0. Budget spent: $0.00 of $5.00.
 - Mode: post-reboot (reboot 2026-09-28T14:40:16+03:00; not degraded).
 - NIGHT_END 2026-09-28 23:00 MSK (PROTO-DEC-0092); delegation valid until then; MAX_CYCLES 8 and budget $5.00.
+- Vercel (operator session): calls are PAID; the operator cannot observe its own per-call usage or the
+  account balance (the key lives in the extension's store and is never copied), so its cost_marginal
+  is unmeasured rather than zero; the night budget must reserve for it; the owner checks the balance
+  (report to the owner if it is below $1).
 - Last update: 2026-09-28T14:30Z by kilo-a5143d29cc7dd8ff at d174714 (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
@@ -78,6 +82,11 @@ as facts change and pushes after every step.
   diff only; then a new frozen SHA and a repeat certification by MiMo + Sol (Sol Medium).
   PROTO-DEC-0097 item 3: the freeze waits for the MiMo verdict (it exists: RECOMMENDATION, no
   blockers; residuals F-2A-01/03/05 LOW); the report states the MiMo verdict verbatim.
+- Owner order 2026-09-28 (later message): fix -> DeepSeek review of the fix diff -> (if needed)
+  correction -> THEN freeze -> repeat certification. Reviewer route STOP: the Vercel AI Gateway via
+  the kilo CLI fails 401 (the key is not in the CLI environment or auth.json; providers there:
+  deepseek, kilo, openai). Options for the owner: supply the key/env for the CLI, approve the CLI's
+  native `deepseek` route, or another route. No freeze before the review.
 - 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certification round 1 in parallel worktrees:
   **Sol = FAIL** (`docs/reviews/2026-09-28-sol-wave2a-certification.md`, commit `d23d826` on
   cert-2a-sol; CERTIFYING, 171 lines). Reproduced blockers: (B) W5 not hermetic while running -
@@ -108,9 +117,13 @@ as facts change and pushes after every step.
   log; committed `e13cb36` on roadmap-wave3; cover mirror 3/0/0. Luna's re-check of ONLY the
   corrected rows runs now (bg pid 27148). DeepSeek range: REASSIGNED to vibe by the owner
   (PROTO-DEC-0097 item 1; the kilo CLI answers `402 Add credits`); the correction runs
-  (bg pid 8768); Luna re-checks all three ranges' corrected rows afterwards. The operator session
-  itself runs on the Vercel AI Gateway and does NOT depend on the kilo balance (verified). The
-  drafts README documents the `described` status.
+  (bg pid 8768) - now DONE: 14 rows corrected (12 re-proofed with `path:line`/commit, 2 to
+  `described`; counts 111 / 86 built / 14 partial / 2 described / 9 not built), committed `bc590f4`.
+  Luna recheck 1 DONE: 117/118 CONFIRM (Mistral 106/107 = 99.1%, Gemini 11/11 = 100%); the single
+  reject (PROTO-DEC-0045 item 6) has a follow-up fix running; Luna's second recheck
+  (`LAUNCH-DIG-RECHECK2-LUNA.md`) covers the DeepSeek rows and that follow-up row. The operator
+  session runs on the Vercel AI Gateway (paid; see Meta) and does NOT depend on the kilo balance.
+  The drafts README documents the `described` status.
 - DIG result (Luna, advisory, commit 71e1987): **REJECT** - S4 = 130/179 = 72.6% (threshold 20%).
   Main cause: producer proofs are path-only / decision-id / section-only where the task required
   `path:line` or a commit; plus a corpus finding: DIG-GEMINI has 94 rows, not the advertised 91

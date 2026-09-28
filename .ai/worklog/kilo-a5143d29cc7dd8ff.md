@@ -8,6 +8,43 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - Luna recheck 1 (117/118); DeepSeek correction done; reviewer route STOP; Vercel cost note
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collected Luna's corrected-row recheck (`docs/reviews/2026-09-28-luna-dig-recheck.md`,
+144 lines, committed by the session itself, `6c4a536`): verdict RECOMMENDATION, 117/118 CONFIRM,
+1 REJECT (`PROTO-DEC-0045 item 6`); Mistral 106/107 = 99.1%, Gemini 11/11 = 100%. Dispatched the
+single-row follow-up fix (`LAUNCH-DIG-FIX-MISTRAL-45-6.md`, bg `bgp_0e879eb6b001JNASlWq4aiFqpw`,
+pid 36288). Collected the DeepSeek range correction (14 rows: 12 re-proofed, 2 to `described`;
+counts 111 / 86 / 14 / 2 / 9; `bc590f4`) and committed `LAUNCH-DIG-RECHECK2-LUNA.md` for the second
+recheck. Ran the owner's reviewer-route test: `kilo run -m openai-compatible/deepseek/deepseek-flash`
+-> `401 Missing Authorization header` (the Vercel key is absent from the CLI environment and
+`auth.json`; providers there: deepseek, kilo, openai); the CLI's default route answers PONG (provider
+not captured). Per the owner's rule this is a STOP: the DeepSeek diff review cannot start until the
+route is decided, and the 2A freeze waits accordingly. Added the Vercel note: the operator session's
+calls are paid and its usage/balance are not observable by the operator (cost_marginal unmeasured,
+not zero); the balance check belongs to the owner. Four measurement rows added (31 total).
+
+Result: DIG is one row fix plus the second recheck away from complete; the 2A fix round is finishing
+in kb1 (three files still uncommitted) with the required DeepSeek review blocked on the route STOP.
+
+Next step: collect the follow-up fix and dispatch Luna's second recheck; await the owner's
+reviewer-route decision; then the DeepSeek diff review, the freeze, and the repeat certification.
+
+Open: reviewer route (owner); Vercel balance (owner); the follow-up fix result; the kb1 fix commits.
+
+Evidence:
+- anchor: 94de76462c232f658c8c43f62fc43539e2da25a5, uncommitted changes present
+- digest: sha256:0965b21da8d704bf63cb12b6d86b6fd7f0cdc072c053863e31370c5579963005 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T14:45:51.723Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:22fd7f0f210c05dea4451730ab6e10c69ad69c2f412718f41958b20b4a1e0eef of this entry without this block
+- parent-entry: sha256:ebde577712ae810cbc2b1b0bf27b873f7d3d3c8ffea2e38716907cf05b4c66a8
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - PROTO-DEC-0097; DeepSeek DIG range reassigned to vibe; operator-session route verified
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
