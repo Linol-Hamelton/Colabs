@@ -83,8 +83,12 @@ as facts change and pushes after every step.
   (`tests/dispatch.test.cjs:217,241-246`; F-2A-03, now blocking per PROTO-DEC-0041 item 4);
   (E) S-7 bound is six, not four - two `own` watchdog scenarios start before the pool
   (`launch-test.cjs:460-485`; instrumented probe `PROBE_MAX_ONE=6`). Per-item: A/C/F PASS,
-  B/E FAIL, D/G RECOMMENDATION. MiMo's certification still runs. Merge CLOSED for this candidate
-  (section 6 needs both PASS/RECOMMENDATION); the fix-round decision is in OWNER-QUEUE.
+  B/E FAIL, D/G RECOMMENDATION. MiMo = RECOMMENDATION (all items PASS; F-2A-01/03/05 residuals LOW;
+  189 lines, `2440fcc` on cert-2a-mimo, pushed). Divergence recorded: Sol treats F-2A-03 as blocking
+  (PROTO-DEC-0041 item 4), MiMo as LOW backlog. Merge CLOSED (Sol's blocking finding). Round-2 fix
+  dispatched 13:58Z (bg pid 27736; `LAUNCH-2A-FIX-ROUND2.md` `42fd623`): a failing test per blocker
+  first, then the fixes; next: freeze the new SHA -> the DeepSeek diff review -> the repeat
+  certification MiMo + Sol (Sol Medium).
 - Then freeze -> certification MiMo-V2.6-Pro + GPT-5.6 Sol -> delegated merge (section 6). MiMo
   route: xiaomi verified; OpenRouter blocked by credits (OWNER-QUEUE).
 

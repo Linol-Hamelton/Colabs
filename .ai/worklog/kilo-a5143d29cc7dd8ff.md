@@ -8,6 +8,42 @@ Newest entry first. Limit 150 lines.
 
 ---
 
+## 2026-09-28 - 2A cert round 1 CLOSED (Sol FAIL, MiMo RECOMMENDATION); round-2 fix dispatched
+
+Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
+
+Action: Collected MiMo's certification (`docs/reviews/2026-09-28-mimo-wave2a-certification.md`,
+189 lines, CERTIFYING, `Receipt-Owner: mimo-370f15396465bd07`): verdict **RECOMMENDATION**, per-item
+A-G all PASS, residuals F-2A-01/03/05 LOW; MiMo had committed it itself (`2440fcc`). Pushed both
+certifier branches to origin (`cert-2a-mimo`, `cert-2a-sol`). Round 1 therefore closed with a
+classification divergence: Sol FAIL (F-2A-03 blocking per PROTO-DEC-0041 item 4; S-7 bound 6) vs
+MiMo RECOMMENDATION (F-2A-03 LOW backlog). No merge (a blocking finding exists). Per PROTO-DEC-0096
+item 1 wrote and committed `LAUNCH-2A-FIX-ROUND2.md` (`42fd623` on `kernel-batch-1`, pushed) and
+dispatched the single round-2 fix on vibe (bg `bgp_0e84b503b001OSprZmbBIOyTxq`, pid 27736): fix 1 =
+W5 test hermeticity with a failing test first; fix 2 = S-7 bound of four with a failing test first;
+one commit per fix; no push. Added the Sol and MiMo certification measurement rows (24 data rows).
+Gate line 13:53Z: Nonpaged 1062.4 MB, Paged 991.4 MB (within the pool rule).
+
+Result: 2A is in fix round 2 (of 3) with the divergence recorded. Next: the fix session's commits,
+the DeepSeek review of the fix diff, the new frozen SHA, and the repeat certification MiMo + Sol.
+
+Next step: watch the fix session; collect its commits; dispatch the DeepSeek diff review (route
+pending: kilo CLI credits blocked - to resolve or reassign) and then MiMo + Sol re-certification.
+
+Open: DeepSeek review route; the classification divergence (owner may arbitrate, the fix proceeds
+regardless); DIG corrections (Mistral running, agy attempt pending, DeepSeek range blocked).
+
+Evidence:
+- anchor: 71e8b574ab7e1b49a41acf0898d5b11b0f319de1, uncommitted changes present
+- digest: sha256:c6dd78b82ef87d0bc36bf47d54d23a700e2bd61ff7d106fe5a10bf998fd66a11 over 1870 tracked and untracked files
+- digest format: 4
+- recorded: 2026-09-28T13:54:43.059Z by kilo-a5143d29cc7dd8ff
+- entry hash format: 2
+- entry: sha256:f36e8d11b216c97cdf73ed878f383795488f0b222edbeaaaf0dd5d9eb901095f of this entry without this block
+- parent-entry: sha256:aed6c825a4e6e33f55263d902d7c35c8f748a8981923c8c61df3e9e9f765cd10
+- scope: validator only; the regression suite was NOT run; host-project tests run separately
+- validate-protocol.ps1: exit 0 in 5s
+- reproduce: node .ai/bin/protocol-handoff.cjs verify
 ## 2026-09-28 - F-18 catalog collected and committed; MiMo still working; agy DIG attempt idles
 
 Agent: kilo (DeepSeek Flash via kilo; operator session kilo-a5143d29cc7dd8ff)
