@@ -1,8 +1,8 @@
 # AUTOCYCLE-1 STATE (relay capsule; single writer: the operator)
 
-**CHECKPOINT 2026-09-28T20:24Z - CERTIFICATION: A-1 Sol PASS (MiMo running); H1 Luna started; wave 1/2
-running on codex+mimo; merges await the owner; briefings: `advisor/003-BRIEFING.md` for Claude; F-18
-closed; `v2.0.0` = `695b7ae`.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
+**CHECKPOINT 2026-09-28T20:35Z - A-1 CERTIFIED (Sol PASS + MiMo RECOMMENDATION; both cert
+branches pushed) - ready to merge by the owner; H1 Luna PASS (commit pending) + MiMo-H1 running;
+ADV-003 briefing for Claude committed; F-18 closed; `v2.0.0` = `63baba8`.** Read it first, then `.ai/DECISIONS.md` blocks 0091-0106, then
 `docs/research/2026-09-27-roadmap-queue/SUPERVISOR-PREREG.md`.
 
 ## Advisor channel (PROTO-DEC-0102; ADV-001 recorded as selection=advisor)
@@ -159,16 +159,15 @@ closed; `v2.0.0` = `695b7ae`.** Read it first, then `.ai/DECISIONS.md` blocks 00
 1. **A-1**: FROZEN `8b74e41` (branch `a1-installed-advisory`, pushed). DeepSeek review RECOMMENDATION
    (`docs/reviews/2026-09-28-deepseek-a1-fix-review.md`, session `deepseek-7673879ed0e8fc01`; residuals
    R2/R3 = pre-existing blacklist limits, no candidate regression; suggests a future whitelist).
-   Branch suite 425/425 (304.5 s).    Certifiers: Sol DONE **PASS** (`a9a2443`, CERTIFYING, receipt `codex-518a4936ada98c03`; R2-R4
-   blacklist limits pre-existing/outside the candidate); MiMo RUNNING
-   (`bgp_0e99c2f25001qaMgbtuqsmZa1G`, since 20:03Z). Reviews land in
-   `docs/reviews/2026-09-28-{sol,mimo}-a1-certification.md`. The merge is the owner's (always).
-2. **H1 fix (the F-C01 remainder)**: FROZEN `476b488` (branch `h1-installed-protected-set`, pushed).
-   DeepSeek review PASS (`docs/reviews/2026-09-28-deepseek-h1-fix-review.md`, session
-   `deepseek-f1f2471eac81e95a`). Branch suite 432/432 (311.2 s). Certifiers: **Luna started 20:23Z**
-   (`bgp_0e9add6490016JEiaiVedif9S2`, codex `gpt-5.6-luna` xhigh); **MiMo-H1 queued** (after its A-1
-   session, ADV-002-8), worktrees `cert-h1-luna` / `cert-h1-mimo`. Merge: the owner's word (after
-   20:00Z any merge).
+   Branch suite 425/425 (304.5 s).    Certifiers: **CERTIFIED - Sol PASS** (`a9a2443`, CERTIFYING, receipt `codex-518a4936ada98c03`)
+   **+ MiMo RECOMMENDATION** (`d11b430`, CERTIFYING, receipt `mimo-d473022df037297a`); both cert
+   branches pushed (`cert-a1-sol`, `cert-a1-mimo`); R2-R4/R2-R3 blacklist limits judged
+   pre-existing and non-blocking. **A-1 is ready to merge; only the owner's word is pending.**
+2. **H1 fix (the F-C01 remainder)**: FROZEN `476b488`. DeepSeek review PASS. Branch suite 432/432.
+   Certifiers: **Luna PASS** (report written 20:28:44Z, CERTIFYING, receipt
+   `codex-e7ed7431f3ebf38f`; commit/push pending) + **MiMo-H1 RUNNING**
+   (`bgp_0e9b62f64001yT6V6NLiubGVbZ`, since 20:33Z). Merge: the owner's word (after 20:00Z any
+   merge).
 3. **M-2A-res (autonomous brief item 3b): DONE** - F-2A-01 and F-2A-05 both CONFIRMED open LOW
    (`M-2A-RES-CHECK.md`); no code changes.
    **F-18 (item 3c): cover/dup check DONE** (`bench-catalog` `6f2673b`); exit artifact
