@@ -87,6 +87,12 @@ as facts change and pushes after every step.
   the kilo CLI fails 401 (the key is not in the CLI environment or auth.json; providers there:
   deepseek, kilo, openai). Options for the owner: supply the key/env for the CLI, approve the CLI's
   native `deepseek` route, or another route. No freeze before the review.
+- Round-2 fix DONE (session `mistral-e5b0a7370dee2904`; failing test first, journal evidence):
+  W5 hermeticity via the test-only `PROTOCOL_JOURNAL_IMPORT_ROOT` override plus temp-root bindings;
+  S-7 pool bound of four (probe `PROBE_MAX_ONE` 6 -> 4). Operator commits on `kernel-batch-1`:
+  `6364322` (W5), `b26b177` (S-7), `149b19a` (journal), pushed. Session evidence: dispatch 29/29,
+  resolver 7/7, launch-test 55/55, three consecutive instrumented runs PASS; validator exit 0 on the
+  fixed tree (1 warning). The new SHA is NOT frozen - the DeepSeek diff review comes first (STOP).
 - 2A FROZEN at `5ce5219` (candidate code `5bc9940`). Certification round 1 in parallel worktrees:
   **Sol = FAIL** (`docs/reviews/2026-09-28-sol-wave2a-certification.md`, commit `d23d826` on
   cert-2a-sol; CERTIFYING, 171 lines). Reproduced blockers: (B) W5 not hermetic while running -
