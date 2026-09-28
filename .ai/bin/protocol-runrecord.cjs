@@ -381,6 +381,11 @@ function validateAttempt(attempt, jsonPath) {
       }
     }
   }
+
+  // rawUsage: string or null
+  if (attempt.rawUsage !== undefined && attempt.rawUsage !== null && typeof attempt.rawUsage !== 'string') {
+    errors.push(`${jsonPath}.rawUsage: must be a string or null`);
+  }
   
   return errors;
 }

@@ -74,6 +74,10 @@ const CRED_ENV_KEYS = ['GH_TOKEN', 'GITHUB_TOKEN', 'GIT_ASKPASS', 'SSH_ASKPASS',
 const CRED_ENV_SUFFIX = /_(TOKEN|PAT)$/;
 const CRED_ENV_NAME = /(^|_)(GH|GITHUB|GIT)(_|$)/;
 
+function getRepoRoot(opts = {}) {
+  return opts.repoRoot || process.env.PROTOCOL_REPO_ROOT || process.cwd();
+}
+
 let HOOKS_ROOT = null;
 function hooksRoot() {
   if (!HOOKS_ROOT) HOOKS_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'colabs-hooks-'));
@@ -229,7 +233,7 @@ function workdirState(dir) {
   return { entries };
 }
 
-function prepareWorkdir(slot, attemptNumber, repoRoot = process.cwd(), copyIn = [], tmpDir = null) {
+function prepareWorkdir(slot, attemptNumber, repoRoot = getRepoRoot(), copyIn = [], tmpDir = null) {
   const baseDir = tmpDir || os.tmpdir();
   const dir = fs.mkdtempSync(path.join(baseDir, `disp-${slot.id}-${attemptNumber}-`));
   const rClone = gitIn(repoRoot, ['clone', '--shared', '--no-checkout', repoRoot, dir]);
@@ -311,9 +315,17 @@ function scopeCheck(dir, baseHead, declaredOutputs, knownProcs = {}) {
   return { bad: bad.length ? bad : null };
 }
 
-function importResults(dir, declaredOutputs, repoRoot = process.cwd()) {
+// Journal imports land in the repository by default. PROTOCOL_JOURNAL_IMPORT_ROOT redirects
+// them (tests bind it to their temp root so a dispatch run never writes into the tracked tree).
+function journalImportRoot(repoRoot) {
+  const override = process.env.PROTOCOL_JOURNAL_IMPORT_ROOT;
+  return override ? path.resolve(override) : repoRoot;
+}
+
+function importResults(dir, declaredOutputs, repoRoot = getRepoRoot()) {
   const imported = [];
   const declaredNorm = (declaredOutputs || []).map(p => p.replace(/\\/g, '/'));
+  const jRoot = journalImportRoot(repoRoot);
 
   for (const p of declaredNorm) {
     const src = path.resolve(dir, p);
@@ -331,7 +343,7 @@ function importResults(dir, declaredOutputs, repoRoot = process.cwd()) {
       const norm = e.path.replace(/\\/g, '/');
       if (JOURNAL_RE.test(norm)) {
         const src = path.resolve(dir, norm);
-        const dst = path.resolve(repoRoot, norm);
+        const dst = path.resolve(jRoot, norm);
         fs.mkdirSync(path.dirname(dst), { recursive: true });
         fs.copyFileSync(src, dst);
         imported.push(norm);
@@ -342,7 +354,7 @@ function importResults(dir, declaredOutputs, repoRoot = process.cwd()) {
   return imported;
 }
 
-function lsRemoteSnapshot(repoRoot = process.cwd()) {
+function lsRemoteSnapshot(repoRoot = getRepoRoot()) {
   const r = gitIn(repoRoot, ['ls-remote']);
   if (r.status !== 0) return null;
   return (r.stdout || '').trim();
@@ -481,9 +493,17 @@ function validateDispatch(obj) {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
     throw new Error('dispatch must be a JSON object');
   }
-  const allowedTopKeys = ['version', 'stateDir', 'usageFile', 'startLimitMin', 'stallMin', 'hardMin', 'runLimitHours', 'slots', 'jobs'];
+  const allowedTopKeys = ['version', 'stateDir', 'usageFile', 'runsFile', 'startLimitMin', 'stallMin', 'hardMin', 'runLimitHours', 'slots', 'jobs'];
   for (const k of Object.keys(obj)) {
     if (!allowedTopKeys.includes(k)) throw new Error(`unknown top-level key "${k}"`);
+  }
+  if (obj.runsFile !== undefined) {
+    if (typeof obj.runsFile !== 'string' || !obj.runsFile) {
+      throw new Error('runsFile must be a non-empty string');
+    }
+    if (!isSafeRelativePath(obj.runsFile)) {
+      throw new Error(`runsFile must be a safe relative path; got "${obj.runsFile}"`);
+    }
   }
   if (obj.stallMin !== undefined) {
     if (typeof obj.stallMin !== 'number' || !Number.isInteger(obj.stallMin) || obj.stallMin < 5 || obj.stallMin > 120) {
@@ -596,7 +616,7 @@ function loadDispatch(filePath) {
   return validateDispatch(parsed);
 }
 
-function loadLadder(ladderPath, repoRoot = process.cwd()) {
+function loadLadder(ladderPath, repoRoot = getRepoRoot()) {
   const fullPath = path.resolve(repoRoot, ladderPath);
   let raw = '';
   try {
@@ -613,7 +633,7 @@ function loadLadder(ladderPath, repoRoot = process.cwd()) {
   return parsed;
 }
 
-function verifyLadderSectionSha256(ladder, repoRoot = process.cwd()) {
+function verifyLadderSectionSha256(ladder, repoRoot = getRepoRoot()) {
   if (!ladder || !ladder.source || !ladder.source.path || !ladder.source.heading) {
     return { ok: false, reason: 'missing-source-metadata' };
   }
@@ -637,7 +657,7 @@ function verifyLadderSectionSha256(ladder, repoRoot = process.cwd()) {
   return { ok: true, sha256: hash };
 }
 
-function computePins(slot, dispatchPath, repoRoot = process.cwd()) {
+function computePins(slot, dispatchPath, repoRoot = getRepoRoot()) {
   let head = '';
   try {
     const r = gitIn(repoRoot, ['rev-parse', 'HEAD']);
@@ -680,7 +700,7 @@ function computePins(slot, dispatchPath, repoRoot = process.cwd()) {
   };
 }
 
-function verifyPins(pins, slot, dispatchPath, repoRoot = process.cwd()) {
+function verifyPins(pins, slot, dispatchPath, repoRoot = getRepoRoot()) {
   if (!pins) return { ok: false, reason: 'pins-missing' };
   const current = computePins(slot, dispatchPath, repoRoot);
   if (current.launchSha256 !== pins.launchSha256) {
@@ -832,7 +852,7 @@ function resolveSlot(slot, ladder, registry = {}, opts = {}) {
 }
 
 function resolveCommand(dispatchFile, slotId, opts = {}) {
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const ladderPath = opts.ladder || path.resolve(repoRoot, 'docs/ops/model-ladder.json');
   const ladder = loadLadder(ladderPath, repoRoot);
 
@@ -883,7 +903,7 @@ function resolveCommand(dispatchFile, slotId, opts = {}) {
   return 0;
 }
 
-function writeRepairFile(dir, attemptNum, failingRows, repoRoot = process.cwd()) {
+function writeRepairFile(dir, attemptNum, failingRows, repoRoot = getRepoRoot()) {
   const templatePath = path.resolve(repoRoot, '.ai', 'docs', 'dispatch', 'repair.md');
   let header = '';
   try {
@@ -900,7 +920,7 @@ function writeRepairFile(dir, attemptNum, failingRows, repoRoot = process.cwd())
   return relPath;
 }
 
-function checkCompletion(slot, dir, declaredOutputs, attemptResult, repoRoot = process.cwd()) {
+function checkCompletion(slot, dir, declaredOutputs, attemptResult, repoRoot = getRepoRoot()) {
   const result = {
     processEnded: attemptResult.exitCode !== null,
     exitCode: attemptResult.exitCode,
@@ -1104,11 +1124,36 @@ function probeAll(registry, options = {}, clientFilter = []) {
   return { ok: allOk, rows };
 }
 
+function parseCodexTokenNumber(str) {
+  if (!str) return NaN;
+  const trimmed = str.trim();
+  const mSuffix = trimmed.match(/([kKmM])$/);
+  const suffix = mSuffix ? mSuffix[1].toUpperCase() : null;
+  const numPart = suffix ? trimmed.slice(0, -1).trim() : trimmed;
+
+  if (suffix) {
+    const mult = suffix === 'K' ? 1000 : 1000000;
+    const decMatch = numPart.match(/^([0-9\u00A0 ,.]*?)[.,]([0-9]{1,2})$/);
+    if (decMatch) {
+      const intPart = decMatch[1].replace(/[\u00A0 ,.]/g, '');
+      const val = parseFloat((intPart || '0') + '.' + decMatch[2]);
+      return Math.round(val * mult);
+    }
+    const cleaned = numPart.replace(/[\u00A0 ,.]/g, '');
+    const val = parseInt(cleaned, 10);
+    return isNaN(val) ? NaN : Math.round(val * mult);
+  }
+
+  const cleaned = numPart.replace(/[\u00A0 ,.]/g, '');
+  return parseInt(cleaned, 10);
+}
+
 function parseUsageFromLog(logPath, usageParser) {
   const result = {
     tokens: { in: null, out: null, source: 'none' },
     usage: { amount: null, unit: null },
-    found: false
+    found: false,
+    rawUsage: null
   };
 
   if (!usageParser || usageParser === 'none' || !logPath || !fs.existsSync(logPath)) {
@@ -1133,6 +1178,7 @@ function parseUsageFromLog(logPath, usageParser) {
     let stepCount = 0;
     let hasCost = false;
     let hasTokens = false;
+    const rawMatches = [];
 
     const lines = text.split(/\r?\n/);
     for (const line of lines) {
@@ -1142,6 +1188,7 @@ function parseUsageFromLog(logPath, usageParser) {
         const part = (parsed && parsed.part) ? parsed.part : parsed;
         if (part && part.type === 'step-finish') {
           stepCount++;
+          rawMatches.push(line.trim());
           if (typeof part.cost === 'number' && !isNaN(part.cost)) {
             costSum += part.cost;
             hasCost = true;
@@ -1164,6 +1211,7 @@ function parseUsageFromLog(logPath, usageParser) {
 
     if (stepCount > 0 && (hasCost || hasTokens)) {
       result.found = true;
+      result.rawUsage = rawMatches.join('\n');
       if (hasCost) {
         result.usage = {
           amount: Number(costSum.toFixed(6)),
@@ -1181,15 +1229,18 @@ function parseUsageFromLog(logPath, usageParser) {
   } else if (usageParser === 'copilot-credits') {
     let creditSum = 0;
     let count = 0;
+    const rawMatches = [];
     for (const m of text.matchAll(/AI Credits\s+([0-9.]+)/g)) {
       const val = parseFloat(m[1]);
       if (!isNaN(val)) {
         creditSum += val;
         count++;
+        rawMatches.push(m[0].trim());
       }
     }
     if (count > 0) {
       result.found = true;
+      result.rawUsage = rawMatches.join('\n');
       result.usage = {
         amount: Number(creditSum.toFixed(6)),
         unit: 'credits'
@@ -1199,15 +1250,19 @@ function parseUsageFromLog(logPath, usageParser) {
   } else if (usageParser === 'codex-tokens') {
     let tokenSum = 0;
     let count = 0;
-    for (const m of text.matchAll(/tokens used\s*\r?\n?\s*([0-9,]+)/gi)) {
-      const val = parseInt(m[1].replace(/,/g, ''), 10);
+    const rawMatches = [];
+    const codexRegex = /\btokens used\b\s*:?\s*([0-9](?:[0-9\u00A0 ,.]*[0-9kKmM])?|[0-9][kKmM])/gi;
+    for (const m of text.matchAll(codexRegex)) {
+      const val = parseCodexTokenNumber(m[1]);
       if (!isNaN(val)) {
         tokenSum += val;
         count++;
+        rawMatches.push(m[0].trim());
       }
     }
     if (count > 0) {
       result.found = true;
+      result.rawUsage = rawMatches.join('\n');
       result.usage = {
         amount: tokenSum,
         unit: 'tokens'
@@ -1220,7 +1275,7 @@ function parseUsageFromLog(logPath, usageParser) {
 }
 
 function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   fs.mkdirSync(stateDir, { recursive: true });
   const logsDir = path.join(stateDir, 'logs');
@@ -1233,13 +1288,13 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
   const clientName = route.client;
   const clientCfg = registry.clients[clientName];
   if (!clientCfg) {
-    return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `unknown client ${clientName}` });
+    return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `unknown client ${clientName}`, exitCode: null, sessionId: null });
   }
 
   const probeRes = probeClient(clientName, registry, { model: route.model });
   if (!probeRes.ok) {
     const cls = probeRes.state === 'MODEL_UNAVAILABLE' ? 'MODEL_UNAVAILABLE' : 'CONFIG_ERROR';
-    return Promise.resolve({ status: 'FAILED', class: cls, reason: probeRes.state });
+    return Promise.resolve({ status: 'FAILED', class: cls, reason: probeRes.state, exitCode: null, sessionId: null });
   }
 
   const attemptKind = opts.attemptKind || 'fresh';
@@ -1251,7 +1306,7 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
     try {
       prepared = prepareWorkdir(slot, attemptNumber, repoRoot, slot.copyIn, opts.tmpDir);
     } catch (e) {
-      return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `prepareWorkdir failed: ${e.message}` });
+      return Promise.resolve({ status: 'FAILED', class: 'CONFIG_ERROR', reason: `prepareWorkdir failed: ${e.message}`, exitCode: null, sessionId: null });
     }
     dir = prepared.dir;
     base = prepared.base;
@@ -1513,7 +1568,7 @@ function executeAttempt(slot, attemptNumber, dispatch, registry, opts = {}) {
   });
 }
 
-function updateUsageFile(usageFilePath, repoRoot = process.cwd(), runsFilePath = null) {
+function updateUsageFile(usageFilePath, repoRoot = getRepoRoot(), runsFilePath = null) {
   if (!usageFilePath || !runrecordLib) return;
   try {
     const fullRuns = runsFilePath || (process.env.PROTOCOL_RUNS_FILE
@@ -1562,7 +1617,7 @@ function emitFallSignal(signalsFile, runId, client, model, startIso, endIso, isN
 const sleepAsync = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const dispatch = loadDispatch(dispatchFile);
   const registry = loadRegistry(opts.registry);
   const ladderPath = opts.ladder || path.resolve(repoRoot, 'docs/ops/model-ladder.json');
@@ -1588,7 +1643,9 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
     ? path.resolve(repoRoot, opts.runsFile)
     : (process.env.PROTOCOL_RUNS_FILE
         ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
-        : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
+        : (dispatch.runsFile
+            ? path.resolve(repoRoot, dispatch.runsFile)
+            : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl')));
 
   const signalsFile = opts.signalsFile
     ? path.resolve(repoRoot, opts.signalsFile)
@@ -1909,13 +1966,14 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
           id: activeRouteEntry.route.model || null,
           source: 'requested'
         },
-        sessionId: lastSessionId,
+        sessionId: lastSessionId || null,
         start: attemptStartIso,
         end: attemptEndIso,
-        exitCode: res.exitCode !== undefined ? res.exitCode : null,
+        exitCode: (res.exitCode !== undefined && res.exitCode !== null) ? res.exitCode : null,
         class: mappedClass,
         tokens: attemptUsage.tokens,
-        usage: attemptUsage.usage
+        usage: attemptUsage.usage,
+        rawUsage: attemptUsage.rawUsage || null
       });
 
       if (res.class === 'STALL') {
@@ -2094,7 +2152,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
       cost: { estimated: null, actual: actualCost, cumulative: cumulativeCost, unit: costUnit },
       completion: lastCompletion ? {
         processEnded: lastCompletion.processEnded,
-        exitCode: lastCompletion.exitCode,
+        exitCode: (lastCompletion.exitCode !== undefined && lastCompletion.exitCode !== null) ? lastCompletion.exitCode : null,
         outputsPresent: lastCompletion.outputsPresent,
         outputsNonEmpty: lastCompletion.outputsNonEmpty,
         structuralCheck: lastCompletion.structuralCheck,
@@ -2103,7 +2161,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
         supervisorDone: lastCompletion.supervisorDone
       } : {
         processEnded: true,
-        exitCode: lastAttemptResult ? lastAttemptResult.exitCode : null,
+        exitCode: (lastAttemptResult && lastAttemptResult.exitCode !== undefined && lastAttemptResult.exitCode !== null) ? lastAttemptResult.exitCode : null,
         outputsPresent: false,
         outputsNonEmpty: false,
         structuralCheck: 'none',
@@ -2135,7 +2193,7 @@ async function runDispatch(dispatchFile, slotsToRun = [], opts = {}) {
 
 function checkDispatch(dispatchFile, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const slots = dispatch.slots || dispatch.jobs;
 
   console.log(`CHECK dispatch=${dispatchFile} slots=${slots.length}`);
@@ -2165,7 +2223,7 @@ function checkDispatch(dispatchFile, opts = {}) {
 
 function statusDispatch(dispatchFile, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   const stateFile = path.join(stateDir, 'state.json');
   let state = { slots: {} };
@@ -2184,12 +2242,14 @@ function statusDispatch(dispatchFile, opts = {}) {
 
 function reportDispatch(dispatchFile, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const runsFile = opts.runsFile
     ? path.resolve(repoRoot, opts.runsFile)
     : (process.env.PROTOCOL_RUNS_FILE
         ? path.resolve(repoRoot, process.env.PROTOCOL_RUNS_FILE)
-        : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl'));
+        : (dispatch.runsFile
+            ? path.resolve(repoRoot, dispatch.runsFile)
+            : path.resolve(repoRoot, 'docs/ops/RUNS.jsonl')));
 
   let records = [];
   if (runrecordLib && fs.existsSync(runsFile)) {
@@ -2238,7 +2298,7 @@ function reportDispatch(dispatchFile, opts = {}) {
 
 function stopSlot(dispatchFile, slotId, opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   const stateFile = path.join(stateDir, 'state.json');
   let state = { slots: {} };
@@ -2257,7 +2317,7 @@ function stopSlot(dispatchFile, slotId, opts = {}) {
 
 function acceptSlot(dispatchFile, slotId, reason = 'accepted', opts = {}) {
   const dispatch = loadDispatch(dispatchFile);
-  const repoRoot = opts.repoRoot || process.cwd();
+  const repoRoot = getRepoRoot(opts);
   const stateDir = path.resolve(repoRoot, dispatch.stateDir || '.ai/runtime/dispatch');
   const stateFile = path.join(stateDir, 'state.json');
   let state = { slots: {} };
@@ -2521,5 +2581,6 @@ module.exports = {
   ERROR_PATTERNS,
   ERROR_TEXT,
   RETRY_TEXT,
-  NO_PUSH
+  NO_PUSH,
+  getRepoRoot
 };

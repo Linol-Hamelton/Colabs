@@ -20,7 +20,8 @@ const writeJournal = () => {
 };
 
 const writeOutput = (content = 'result from fake client\n') => {
-  const p = path.join(root, 'tests', 'fixtures', 'dispatch', 'out1.txt');
+  const rel = process.env.TEST_DISPATCH_OUT_FILE || path.join('tests', 'fixtures', 'dispatch', 'out1.txt');
+  const p = path.resolve(root, rel);
   fs.mkdirSync(path.dirname(p), { recursive: true });
   fs.writeFileSync(p, content, 'utf8');
 };
