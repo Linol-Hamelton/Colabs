@@ -71,6 +71,37 @@ This is the standing argument for **C** when S1-S2 are ambiguous rather than fai
 | S7 | No quota stop: Sol used 1 of its 2 reserved calls (round 1); MiMo's run in progress; Luna's DIG verification completed. | journals; PROTO-DEC-0095 item 4 |
 | S8 | Operator incidents so far: 1 (a new decision block initially placed out of order; fixed before commit and push, recorded in the operator journal). | `.ai/worklog/kilo-a5143d29cc7dd8ff.md` |
 | S9 | No cloud pilot sessions have been stated by the owner; local Windows only is assumed so far. | owner statements 2026-09-28 |
+| S2 (corrected, PROTO-DEC-0099 item 2) | **S2 = A'**, not A: F-C01 (the host review-path contract; its probes return RECOMMENDATION/0 instead of FAIL/1) lies on the pilot path. The single Gemini "not built" row is PROTO-DEC-0060 item 3 (`.ai/core/` absent, landing deferred to package I-a) - kernel-internal, NOT on the host/install path. | owner correction 2026-09-28; `docs/reviews/2026-09-28-gpt-5.6-luna-dig-verification.md`; `drafts/DIG-GEMINI-0048-0067.md` |
+| S9 (awaiting) | S9 waits for the owner's answer; the operator does not fill it (PROTO-DEC-0099 item 4). | PROTO-DEC-0099 |
+
+Packet 2 gate (PROTO-DEC-0099 item 1): the Kernel v1 choice goes to the owner only after S1 (MiMo +
+Sol round-2 verdicts), S5 (full suite on the frozen 2A candidate in a quiet window, strictly
+sequential) and S6 (`docs/ops/RUNS.jsonl` after the 2A merge: usage or a not-exposed marker on every
+dispatch row); then the whole table ships.
+
+### S8 corrections list (operator; the count is the owner's; PROTO-DEC-0099 item 3)
+
+Cases where the supervisor/advisor corrected the operator, and whether each falls into the S8
+categories (lock, archive, commit):
+
+1. 2026-09-28 12:16Z - owner note: the first cycle after the reboot is strictly sequential; the
+   merged-tree suite ran while the agy recovery-3 session was alive. Category: sequencing/H-1
+   purity, NOT lock/archive/commit.
+2. 2026-09-28 15:08Z - owner order: do not freeze the 2A SHA before the DeepSeek review (the
+   operator's plan had freeze right after the fix). Category: process order, NOT lock/archive/commit.
+3. 2026-09-28 14:42Z - owner correction: the operator's own calls are paid DeepSeek API calls, not
+   Vercel (the operator had inferred Vercel from a config entry while the env key was absent).
+   Category: accounting fact, NOT lock/archive/commit.
+4. 2026-09-28 15:22Z - owner correction: S2 reads A' because F-C01 sits on the pilot path.
+   Category: signal analysis, NOT lock/archive/commit.
+5. Self-caught (not a supervisor correction, listed for completeness): PROTO-DEC-0095 was briefly
+   appended before 0094 in the working file; fixed before commit and push.
+6. Self-caught: the operator journal entry edited after `record` (wording) and refreshed with
+   `rehash` and a reason.
+
+S8 count under the categories (lock, archive, commit): 0 supervisor/advisor corrections. All six
+items above are process, accounting or analysis corrections outside those categories; the count is
+the owner's.
 
 ## Early reading, 2026-09-27 evening (collector drafts, not yet verified by Sol)
 

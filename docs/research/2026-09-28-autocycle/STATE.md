@@ -21,9 +21,11 @@ as facts change and pushes after every step.
 - Reviewer route: route=deepseek-native, selection=owner, 2026-09-28 (PROTO-DEC-0098 item 1); the
   session runs with model `deepseek/deepseek-flash` via the CLI's native route (call log:
   providerID=deepseek modelID=deepseek-flash; cost/tokens from the client step_finish).
-- DeepSeek: spent ~ $0.000125 tracked (reviewer-route probe 2026-09-28T15:09Z); operator calls are
-  cost=unmeasured (no saved usage); owner reconciles against the $21.9 baseline.
-- Last update: 2026-09-28T14:30Z by kilo-a5143d29cc7dd8ff at d174714 (this STATE commit follows it).
+- DeepSeek: spent ~ $0.0218 tracked (reviewer-route probe $0.000125 + the fix-review session
+  $0.021655 measured over the retained 27-step window - a lower bound, the full session output was
+  not retained); operator calls are cost=unmeasured (no saved usage); owner reconciles against the
+  $21.9 baseline. Thresholds: < $3 no DeepSeek reviewer + light steps only; < $1 STOP.
+- Last update: 2026-09-28T15:33Z by kilo-a5143d29cc7dd8ff at 4898332 (this STATE commit follows it).
 
 ## Environment gate (PROTO-DEC-0094 replaces the section-10 pool rule)
 
@@ -97,6 +99,11 @@ as facts change and pushes after every step.
   the kilo CLI fails 401 (the key is not in the CLI environment or auth.json; providers there:
   deepseek, kilo, openai). Options for the owner: supply the key/env for the CLI, approve the CLI's
   native `deepseek` route, or another route. No freeze before the review.
+- 2A FROZEN at `9bf15ae` (2026-09-28): code = `5bc9940` + fixes `6364322`/`b26b177` + docs; the two
+  certifier reports and the DeepSeek fix review are in the tree (N-1 satisfied); the follow-up docs
+  commit `9eb8643` adds only the round-2 launch files. Round-2 certification by MiMo-V2.6-Pro +
+  GPT-5.6 Sol (Medium) runs in parallel worktrees `cert-2a-mimo-r2`/`cert-2a-sol-r2` (bg pids
+  36560/28368). On no double PASS/RECOMMENDATION -> STOP (round 3 under S1 = variant B).
 - Round-2 fix DONE (session `mistral-e5b0a7370dee2904`; failing test first, journal evidence):
   W5 hermeticity via the test-only `PROTOCOL_JOURNAL_IMPORT_ROOT` override plus temp-root bindings;
   S-7 pool bound of four (probe `PROBE_MAX_ONE` 6 -> 4). Operator commits on `kernel-batch-1`:
