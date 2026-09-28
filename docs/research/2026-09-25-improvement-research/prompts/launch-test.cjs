@@ -67,6 +67,26 @@ const CANARY_ENV = { GH_TOKEN: 'canary-gh', GITHUB_TOKEN: 'canary-github', GIT_A
   SSH_ASKPASS: 'canary-ssh-askpass', SSH_AUTH_SOCK: 'canary-agent', MY_GIT_TOKEN: 'canary-git-token',
   OPENAI_TOKEN: 'keep-openai-token', GIT_CONFIG_GLOBAL: CANARY_HOST };
 const cfg = { ...L.DEFAULTS, tickSeconds: 1, softSeconds: 3, hardSeconds: 6, capMinutes: 2 };
+// S-7: the concurrency bound of the scenario pool. The instrumented spawn below counts the
+// simultaneous --one children and the final report asserts the maximum stays within it.
+const S7_CONCURRENCY = 4;
+let oneActive = 0;
+let oneMax = 0;
+function spawnOne(id, env, onExit) {
+  const child = spawn(process.execPath, [__filename, '--one', id], env ? { stdio: 'ignore', env } : { stdio: 'ignore' });
+  oneActive += 1;
+  if (oneActive > oneMax) oneMax = oneActive;
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    oneActive -= 1;
+    if (onExit) onExit();
+  };
+  child.on('exit', release);
+  child.on('error', release);
+  return child;
+}
 const routes = { models: { 'fake-model': [{ route: 'fakeprov/fake-model', provider: 'fakeprov', present: true, status: 'active', toolcall: true, input: 1, output: 2, variants: ['low', 'high'] }] } };
 
 function jobFor(id, dir) {
@@ -433,9 +453,9 @@ const quiet = fn => { const w = process.stdout.write; process.stdout.write = () 
 // recorded the tree before it died, --stop must also have stopped the grandchild; if it never did,
 // no process table can name the grandchild (the residual in P-L3-004), and the test stops its own
 // grandchild so that none outlives the run.
-function deadWatchdog(id, finish) {
+function deadWatchdog(id, finish, onExit) {
   const s = SC[id];
-  const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore' });
+  const child = spawnOne(id, undefined, onExit);
   setTimeout(() => child.kill('SIGKILL'), s.killAt);
   setTimeout(() => {
     const before = L.startBlockers(id);
@@ -459,42 +479,47 @@ function deadWatchdog(id, finish) {
 function scenarios() {
   const ids = Object.keys(SC).filter(id => !SC[id].own);
   const own = Object.keys(SC).filter(id => SC[id].own);
-  let left = ids.length + own.length;
+  const queue = [...own, ...ids];
+  let left = queue.length;
   const report = line => {
     results.push(line);
     left -= 1;
     if (left) return;
+    results.push(`${oneMax <= S7_CONCURRENCY ? 'PASS' : 'FAIL'} S-7: at most ${S7_CONCURRENCY} simultaneous --one children (PROBE_MAX_ONE=${oneMax})`);
     cleanup();
     process.stdout.write(`${results.sort().join('\n')}\n`);
     process.exitCode = results.every(r => r.startsWith('PASS')) ? 0 : 1;
   };
-  for (const id of own) deadWatchdog(id, report);
 
-  // S-7: Throttle concurrent scenarios to prevent WMI query timeouts
-  const CONCURRENCY = 4;
+  // S-7: Throttle concurrent scenarios to prevent WMI query timeouts. The own watchdog
+  // scenarios go through the same bounded pool, so the bound holds for every --one child.
+  const CONCURRENCY = S7_CONCURRENCY;
   let active = 0;
   let idx = 0;
 
   function launchNext() {
-    while (active < CONCURRENCY && idx < ids.length) {
-      const id = ids[idx++];
+    while (active < CONCURRENCY && idx < queue.length) {
+      const id = queue[idx++];
       active++;
-      runScenario(id, () => {
+      runOne(id, () => {
         active--;
         launchNext();
       });
     }
   }
 
-  function runScenario(id, onDone) {
-    let doneCalled = false;
-    const finishScenario = line => {
-      report(line);
-      if (!doneCalled) {
-        doneCalled = true;
-        onDone();
-      }
-    };
+  // Every terminal path releases its pool slot exactly once, at the child's exit, the same
+  // event the S-7 probe counts, so the probe's maximum and the pool's bound cannot diverge.
+  function runOne(id, onSlotFree) {
+    if (SC[id].own) {
+      deadWatchdog(id, report, onSlotFree);
+      return;
+    }
+    runScenario(id, onSlotFree);
+  }
+
+  function runScenario(id, onExit) {
+    const finishScenario = line => report(line);
 
     if (SC[id].stopBefore) { fs.mkdirSync(JOBS_DIR, { recursive: true }); fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'); }
     let childEnv = process.env;
@@ -510,7 +535,7 @@ function scenarios() {
       spawnSync('git', ['-C', repo, 'remote', 'add', 'origin', auditBare], { encoding: 'utf8' });
       childEnv = { ...childEnv, ZZ_AUDIT_BARE: auditBare, ZZ_AUDIT_REPO: repo };
     }
-    const child = spawn(process.execPath, [__filename, '--one', id], { stdio: 'ignore', env: childEnv });
+    const child = spawnOne(id, childEnv, onExit);
     if (SC[id].stopAfter) setTimeout(() => fs.writeFileSync(path.join(JOBS_DIR, `${id}.stop`), 'test'), SC[id].stopAfter);
     const began = Date.now();
     const poll = setInterval(() => {
